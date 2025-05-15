@@ -1,5 +1,0 @@
-bolt
-
-AI tools: 
-
-Mode, Context, agent pair programming 
