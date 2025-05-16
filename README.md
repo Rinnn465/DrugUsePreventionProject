@@ -1,6 +1,6 @@
 CHẠY FRONT END: 
 
-1) TẢI npm (Node Package manager)
+1) TẢI npm (Node Package manager) và Nodejs
 
 2) Mở VSCode -> Sau khi clone project, nhấn Ctrl + Shift + P để mở terminal trên VS Code
 
