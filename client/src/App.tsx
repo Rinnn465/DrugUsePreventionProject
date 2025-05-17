@@ -15,15 +15,18 @@ import ProfilePage from './pages/ProfilePage';
 // import CounselorsPage from './pages/CounselorsPage';
 // import CounselorDetailPage from './pages/CounselorDetailPage';
 import NotFoundPage from './pages/NotFoundPage';
-import Login from './pages/Login';
-import SignUp from './pages/Signup';
+import LoginPage from './pages/LoginPage';
+import SignUp from './pages/SignupPage';
+import EventPage from './pages/Events';
+import { AuthLayout } from './components/AuthLayout';
 
 function App() {
   return (
     <Router>
       <Routes>
+        {/* header and footer included */}
         <Route path="/" element={<Layout />}>
-          <Route index element={<HomePage /> || <NotFoundPage />} />
+          <Route index element={<HomePage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="blog" element={<BlogPage />} />
           <Route path="courses" element={<CoursesPage />} />
@@ -31,20 +34,21 @@ function App() {
           <Route path="assessments" element={<AssessmentsPage />} />
           <Route path="assessments/:id" element={<AssessmentDetailPage />} />
           <Route path="appointments" element={<AppointmentsPage />} />
-          {/* <Route path="programs" element={<ProgramsPage />} />
-          <Route path="programs/:id" element={<ProgramDetailPage />} />
-          <Route path="dashboard" element={<DashboardPage />} /> */}
           <Route path="profile/:userid" element={<ProfilePage />} />
-          {/* <Route path="counselors" element={<CounselorsPage />} />
-          <Route path="counselors/:id" element={<CounselorDetailPage />} /> */}
-          <Route path="error" element={<NotFoundPage />} />
-          <Route path="events-meetings" element={<NotFoundPage />} />
-          <Route path="feedback" element={<NotFoundPage />} />
-          <Route path="login" element={<Login />} />
+          <Route path="events-meetings" element={<EventPage />} />
+          {/* <Route path="feedback" element={<FeedbackPage />} /> */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+
+
+        {/* different layout with no header and footer included */}
+        <Route path="" element={<AuthLayout />}>
+          <Route path="login" element={<LoginPage />} />
           <Route path="signup" element={<SignUp />} />
         </Route>
       </Routes>
     </Router>
+
   );
 }
 

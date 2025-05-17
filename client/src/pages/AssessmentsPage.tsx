@@ -43,7 +43,7 @@ const AssessmentsPage: React.FC = () => {
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2">{assessment.title}</h3>
-                    <p className="text-gray-600 mb-4">{assessment.description}</p>
+                    <p className="h-[96px] text-gray-600 mb-4">{assessment.description}</p>
 
                     <div className="mb-4">
                       <h4 className="text-sm font-semibold text-gray-700 mb-2">Recommended for:</h4>

@@ -25,7 +25,7 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
               isActive ? "text-primary-600 font-medium" : "text-gray-700 hover:text-primary-600 transition-colors"
             }
           >
-            About
+            Giới thiệu
           </NavLink>
           <NavLink
             to="/blog"
@@ -41,7 +41,7 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
               isActive ? "text-primary-600 font-medium" : "text-gray-700 hover:text-primary-600 transition-colors"
             }
           >
-            Courses
+            Khóa học
           </NavLink>
           <NavLink
             to="/assessments"
@@ -49,7 +49,7 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
               isActive ? "text-primary-600 font-medium" : "text-gray-700 hover:text-primary-600 transition-colors"
             }
           >
-            Assessments
+            Trắc ngiệm đánh giá
           </NavLink>
           <NavLink
             to="/appointments"
@@ -57,7 +57,7 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
               isActive ? "text-primary-600 font-medium" : "text-gray-700 hover:text-primary-600 transition-colors"
             }
           >
-            Appointments
+            Đặt lịch trực tuyến
           </NavLink>
           <NavLink
             to="/events-meetings"
@@ -65,7 +65,7 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
               isActive ? "text-primary-600 font-medium" : "text-gray-700 hover:text-primary-600 transition-colors"
             }
           >
-            Events & Meetings
+            Sự kiện
           </NavLink>
           <NavLink
             to="/feedback"
@@ -73,7 +73,7 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
               isActive ? "text-primary-600 font-medium" : "text-gray-700 hover:text-primary-600 transition-colors"
             }
           >
-            Feedback
+            Phản hồi
           </NavLink>
         </nav>
 

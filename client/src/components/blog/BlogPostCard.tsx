@@ -23,8 +23,8 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({
           <Calendar className="h-4 w-4 mr-1" />
           <span>{date}</span>
         </div>
-        <h3 className="text-xl font-semibold mb-3 line-clamp-2">{title}</h3>
-        <p className="text-gray-600 mb-4 line-clamp-3">{excerpt}</p>
+        <h3 className="h-[56px] text-xl font-semibold mb-3 line-clamp-2">{title}</h3>
+        <p className="h-[72px] text-gray-600 mb-4 line-clamp-3">{excerpt}</p>
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-600">{author}</span>
           <Link
