@@ -60,20 +60,12 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
             Đặt lịch trực tuyến
           </NavLink>
           <NavLink
-            to="/events-meetings"
+            to="/events"
             className={({ isActive }) =>
               isActive ? "text-primary-600 font-medium" : "text-gray-700 hover:text-primary-600 transition-colors"
             }
           >
             Sự kiện
-          </NavLink>
-          <NavLink
-            to="/feedback"
-            className={({ isActive }) =>
-              isActive ? "text-primary-600 font-medium" : "text-gray-700 hover:text-primary-600 transition-colors"
-            }
-          >
-            Phản hồi
           </NavLink>
         </nav>
 

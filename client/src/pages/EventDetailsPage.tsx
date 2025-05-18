@@ -1,5 +1,5 @@
 import React from "react"
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { eventData } from "../data/eventData";
 
 const EventsDetails: React.FC = () => {
@@ -36,6 +36,15 @@ const EventsDetails: React.FC = () => {
                         <p className="text-gray-600 text-base">
                             {event.organizer}
                         </p>
+                    </div>
+                    <div className="mt-6">
+                        <button
+                            className="self-start px-6 py-3 text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-md font-semibold transition duration-200"
+                        >
+                            <Link to={`/feedback/${event.id}`}>
+                                Feedback about this event
+                            </Link>
+                        </button>
                     </div>
                 </div>
 
