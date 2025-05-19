@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 import MobileMenu from './MobileMenu';
 
 const Layout: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location])
 
   return (
     <div className="flex flex-col min-h-screen">
