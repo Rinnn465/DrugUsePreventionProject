@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { Heart, Menu, X, User } from 'lucide-react';
+import Tippy from '@tippyjs/react/headless';
+import { users } from '../data/userData';
 
 interface HeaderProps {
   toggleMobileMenu: () => void;
@@ -8,7 +10,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
 
-  let user = false;
+  let user = users[0];
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -70,10 +72,37 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
         </nav>
 
         {user ? <div className="flex items-center gap-4">
-          <Link to="/profile" className="hidden md:flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
-            <User className="h-5 w-5" />
-            <span>Profile</span>
-          </Link>
+          <Tippy
+            interactive
+            render={(attrs) => {
+              return (
+                <div
+                  className='bg-white shadow-lg rounded-md p-4'
+                  tabIndex={-1} {...attrs}
+                >
+                  <div className="flex flex-col gap-2">
+                    <Link to={`/profile/${user.id}`} className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
+                      <User className="h-5 w-5" />
+                      <span>Profile</span>
+                    </Link>
+                    <Link to={`/dashboard/${user.id}`} className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
+                      <User className="h-5 w-5" />
+                      <span>Dashboard</span>
+                    </Link>
+                    <Link to="/logout" className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
+                      <User className="h-5 w-5" />
+                      <span>Logout</span>
+                    </Link>
+                  </div>
+                </div>
+              )
+            }}
+          >
+            <div className='flex gap-2'>
+              <User className="h-5 w-5" />
+              <span className='select-none'>Profile</span>
+            </div>
+          </Tippy>
           <button
             className="md:hidden text-gray-700 focus:outline-none"
             onClick={toggleMobileMenu}
@@ -82,7 +111,6 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
             <Menu className="h-6 w-6" />
           </button>
         </div> :
-
           <div className="flex items-center gap-4">
             <Link
               to="/login"

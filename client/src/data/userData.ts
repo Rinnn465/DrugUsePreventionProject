@@ -1,5 +1,5 @@
 import { User } from "../types/User";
-const users: User[] = [
+export const users: User[] = [
     {
         id: 1,
         name: "Alice Johnson",
@@ -51,5 +51,3 @@ const users: User[] = [
         eventTaken: "Security Conference"
     }
 ];
-
-export default users;
