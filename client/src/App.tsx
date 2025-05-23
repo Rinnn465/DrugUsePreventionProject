@@ -22,6 +22,7 @@ import EventPage from './pages/EventsPage';
 import AuthLayout from './components/AuthLayout';
 import EventsDetails from './pages/EventDetailsPage';
 import CounselorDetailPage from './pages/CounselorDetailsPage';
+import RolePage from './pages/RolePage';
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
           <Route path="events/:id" element={<EventsDetails />} />
           <Route path="feedback/:eventId" element={<FeedbackPage />} />
           <Route path="dashboard/:userId" element={<DashBoardPage />} />
+          <Route path="roles/:userId" element={<RolePage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
 

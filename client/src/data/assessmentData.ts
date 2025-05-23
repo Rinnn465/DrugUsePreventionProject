@@ -13,17 +13,17 @@ export const assessmentData: Assessment[] = [
       {
         id: 1,
         text: "In your life, which of the following substances have you ever used? (Non-medical use only)",
+        type: "checkbox",
         options: [
           { id: "a", text: "Tobacco products", value: 0 },
-          { id: "b", text: "Alcoholic beverages", value: 0 },
-          { id: "c", text: "Cannabis", value: 0 },
-          { id: "d", text: "Cocaine", value: 0 },
-          { id: "e", text: "Amphetamine type stimulants", value: 0 },
-          { id: "f", text: "Inhalants", value: 0 },
-          { id: "g", text: "Sedatives or sleeping pills", value: 0 },
-          { id: "h", text: "Hallucinogens", value: 0 },
-          { id: "i", text: "Opioids", value: 0 },
-          { id: "j", text: "Other - specify", value: 0 }
+          { id: "b", text: "Alcoholic beverages", value: 1 },
+          { id: "c", text: "Cannabis", value: 2 },
+          { id: "d", text: "Cocaine", value: 3 },
+          { id: "e", text: "Amphetamine type stimulants", value: 4 },
+          { id: "f", text: "Inhalants", value: 5 },
+          { id: "g", text: "Sedatives or sleeping pills", value: 6 },
+          { id: "h", text: "Hallucinogens", value: 7 },
+          { id: "i", text: "Opioids", value: 8 },
         ]
       },
       // Additional questions would be added here
@@ -31,11 +31,11 @@ export const assessmentData: Assessment[] = [
         id: 2,
         text: "In the past three months, how often have you used the substances you mentioned?",
         options: [
-          { id: "a", text: "Never", value: 0 },
-          { id: "b", text: "Once or twice", value: 2 },
-          { id: "c", text: "Monthly", value: 3 },
-          { id: "d", text: "Weekly", value: 4 },
-          { id: "e", text: "Daily or almost daily", value: 6 }
+          { id: "aa", text: "Never", value: 0 },
+          { id: "bb", text: "Once or twice", value: 2 },
+          { id: "cc", text: "Monthly", value: 3 },
+          { id: "dd", text: "Weekly", value: 4 },
+          { id: "ee", text: "Daily or almost daily", value: 6 }
         ]
       }
     ]

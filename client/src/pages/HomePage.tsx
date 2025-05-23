@@ -10,7 +10,7 @@ const HomePage: React.FC = () => {
   return (
     <div>
       <HeroSection />
-      
+
       {/* Quick Access Section */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
@@ -19,220 +19,220 @@ const HomePage: React.FC = () => {
               <div className="mb-4 bg-primary-100 p-3 rounded-full w-fit">
                 <BookOpen className="h-6 w-6 text-primary-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Online Courses</h3>
+              <h3 className="text-xl font-semibold mb-3">Các khóa học online</h3>
               <p className="text-gray-600 mb-4">
-                Access age-appropriate training courses on drug awareness and prevention skills.
+                Tham gia các khóa học phòng chống ma túy tùy theo độ tuổi
               </p>
-              <Link to="/courses" className="text-primary-600 font-medium flex items-center gap-2 group">
-                Browse Courses
+              <Link to="/courses" className="h-[76px] text-primary-600 font-medium flex items-center gap-2 group">
+                Xem các khóa học
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
-            
+
             <div className="bg-white rounded-lg shadow-md p-8 transform transition duration-300 hover:scale-105">
               <div className="mb-4 bg-secondary-100 p-3 rounded-full w-fit">
                 <Activity className="h-6 w-6 text-secondary-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Risk Assessment</h3>
+              <h3 className="text-xl font-semibold mb-3">Đánh giá rủi ro sử dụng ma túy</h3>
               <p className="text-gray-600 mb-4">
-                Take our surveys like ASSIST and CRAFFT to evaluate your risk level and get personalized recommendations.
+                Thực hiện cấc bài kiểm tra như đánh giá như ASSIST và CRAFFT để xác định nguy cơ sử dụng ma túy.
               </p>
               <Link to="/assessments" className="text-secondary-600 font-medium flex items-center gap-2 group">
-                Take Assessment
+                Tham gia đánh giá
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
-            
+
             <div className="bg-white rounded-lg shadow-md p-8 transform transition duration-300 hover:scale-105">
               <div className="mb-4 bg-accent-100 p-3 rounded-full w-fit">
                 <Calendar className="h-6 w-6 text-accent-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Counseling Support</h3>
-              <p className="text-gray-600 mb-4">
-                Schedule online appointments with our qualified counselors for personalized guidance.
+              <h3 className="text-xl font-semibold mb-3 ">Chuyên viên hỗ trợ</h3>
+              <p className="h-[76px] text-gray-600 mb-4">
+                Đặt lịch hẹn với chuyên viên tư vấn để nhận hỗ trợ.
               </p>
               <Link to="/appointments" className="text-accent-600 font-medium flex items-center gap-2 group">
-                Book Appointment
+                Đặt lịch hẹn
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
           </div>
         </div>
       </section>
-      
+
       {/* Stats Section */}
       <section className="py-16 bg-primary-600 text-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-12 text-center">Our Impact</h2>
+          <h2 className="text-3xl font-bold mb-12 text-center">Thành tựu</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <StatCard 
+            <StatCard
               icon={<Users className="h-8 w-8" />}
               value="10,000+"
-              label="People Educated"
+              label="thành viên đã tham gia khóa học"
             />
-            <StatCard 
+            <StatCard
               icon={<BookOpen className="h-8 w-8" />}
               value="50+"
-              label="Training Courses"
+              label="Các khóa học online"
             />
-            <StatCard 
+            <StatCard
               icon={<Calendar className="h-8 w-8" />}
               value="5,000+"
-              label="Counseling Sessions"
+              label="Các chương trình tư vấn tâm lý"
             />
-            <StatCard 
+            <StatCard
               icon={<Award className="h-8 w-8" />}
               value="100+"
-              label="Certified Counselors"
+              label="Chuyên viên tư vấn được cấp chứng chỉ đào tạo"
             />
           </div>
         </div>
       </section>
-      
+
       {/* About Section */}
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center gap-12">
             <div className="md:w-1/2">
-              <img 
-                src="https://images.pexels.com/photos/6646918/pexels-photo-6646918.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" 
-                alt="Volunteers working together" 
+              <img
+                src="https://images.pexels.com/photos/6646918/pexels-photo-6646918.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+                alt="Volunteers working together"
                 className="rounded-lg shadow-lg object-cover w-full h-[400px]"
               />
             </div>
             <div className="md:w-1/2">
-              <h2 className="text-3xl font-bold mb-6">About Our Organization</h2>
+              <h2 className="text-3xl font-bold mb-6">Thông tin về tổ chức</h2>
               <p className="text-gray-700 mb-6 leading-relaxed">
-                We are a volunteer-based organization dedicated to preventing drug abuse through education, 
-                support, and community engagement. Our mission is to empower individuals with knowledge and 
-                skills to make informed decisions about drugs and substances.
+                Là một tổ chức hoạt động dựa trên tinh thần tình nguyện, cam kết phòng chống lạm dụng ma túy thông qua giáo dục, hỗ trợ và sự tham gia của cộng đồng.
+                Sứ mệnh của chúng tôi là trao quyền cho mỗi cá nhân bằng kiến thức và kỹ năng cần thiết để đưa ra những quyết định đúng đắn liên quan đến ma túy và các chất gây nghiện.
+
+
               </p>
               <p className="text-gray-700 mb-8 leading-relaxed">
-                Through our comprehensive programs, online courses, and counseling services, we aim to reduce 
-                drug use in communities and provide support to those at risk. We believe in a preventive approach 
-                that focuses on education and early intervention.
+                Thông qua các chương trình toàn diện, khóa học trực tuyến và dịch vụ tư vấn, chúng tôi hướng tới việc giảm thiểu tình trạng sử dụng ma túy trong cộng đồng và hỗ trợ những người có nguy cơ cao bằng
+                cách tiếp cận mang tính phòng ngừa, tập trung vào giáo dục và can thiệp sớm.
               </p>
-              <Link 
-                to="/about" 
+              <Link
+                to="/about"
                 className="inline-block bg-primary-600 text-white px-6 py-3 rounded-md shadow-md hover:bg-primary-700 transition-colors"
               >
-                Learn More About Us
+                Xem thêm thông tin
               </Link>
             </div>
           </div>
         </div>
       </section>
-      
+
       {/* Programs Preview */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-4 text-center">Our Community Programs</h2>
+          <h2 className="text-3xl font-bold mb-4 text-center">Cộng đồng</h2>
           <p className="text-gray-600 text-center mb-12 max-w-3xl mx-auto">
-            We organize a variety of outreach and educational programs to raise awareness and 
-            provide valuable resources to communities.
+            Chúng tôi tổ chức nhiều chương trình truyền thông và giáo dục nhằm nâng cao nhận thức và cung cấp những nguồn lực thiết thực cho cộng đồng.
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <img 
-                src="https://images.pexels.com/photos/3184433/pexels-photo-3184433.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" 
-                alt="School Awareness Program" 
+              <img
+                src="https://images.pexels.com/photos/3184433/pexels-photo-3184433.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+                alt="School Awareness Program"
                 className="w-full h-48 object-cover"
               />
               <div className="p-6">
-                <h3 className="text-xl font-semibold mb-3">School Awareness Workshops</h3>
+                <h3 className="text-xl font-semibold mb-3">Workshop ở môi trường học đường</h3>
                 <p className="text-gray-600 mb-4">
-                  Interactive workshops for students to learn about drug risks and develop refusal skills.
+                  Những buổi workshop được tổ chức trực tiếp nhằm giúp
+                  học sinh nhận thức rõ về các vấn đề liên quan đến ma túy.
                 </p>
-                <Link to="/programs" className="text-primary-600 font-medium">Learn More</Link>
+                <Link to="/programs" className="text-primary-600 font-medium">Thông tin chỉ tiết</Link>
               </div>
             </div>
-            
+
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <img 
-                src="https://images.pexels.com/photos/7551442/pexels-photo-7551442.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" 
-                alt="Parent Training Program" 
+              <img
+                src="https://images.pexels.com/photos/7551442/pexels-photo-7551442.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+                alt="Parent Training Program"
                 className="w-full h-48 object-cover"
               />
               <div className="p-6">
-                <h3 className="text-xl font-semibold mb-3">Parent Education Series</h3>
+                <h3 className="text-xl font-semibold mb-3">Phổ cập kiến thức cho bậc phụ huynh</h3>
                 <p className="text-gray-600 mb-4">
-                  Training sessions for parents on recognizing warning signs and having effective conversations.
+                  Những buổi tuyên truyền, giúp đỡ giúp phụ huynh phát hiện những dấu hiệu sớm của việc sử dụng ma túy
                 </p>
-                <Link to="/programs" className="text-primary-600 font-medium">Learn More</Link>
+                <Link to="/programs" className="text-primary-600 font-medium">Thông tin chi tiết</Link>
               </div>
             </div>
-            
+
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <img 
-                src="https://images.pexels.com/photos/3184405/pexels-photo-3184405.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" 
-                alt="Community Outreach" 
+              <img
+                src="https://images.pexels.com/photos/3184405/pexels-photo-3184405.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+                alt="Community Outreach"
                 className="w-full h-48 object-cover"
               />
               <div className="p-6">
-                <h3 className="text-xl font-semibold mb-3">Community Outreach Events</h3>
+                <h3 className="text-xl font-semibold mb-3">Ngày hội tiếp cận cộng đồng</h3>
                 <p className="text-gray-600 mb-4">
-                  Public events with resources, screenings, and educational materials for the wider community.
+                  Sự kiện mở rộng với nhiều hoạt động, tài liệu giáo dục và khám sàng lọc dành cho mọi người trong cộng đồng.
                 </p>
-                <Link to="/programs" className="text-primary-600 font-medium">Learn More</Link>
+                <Link to="/programs" className="text-primary-600 font-medium">Thông tin chi tiết</Link>
               </div>
             </div>
           </div>
-          
+
           <div className="text-center mt-12">
-            <Link 
-              to="/programs" 
+            <Link
+              to="/programs"
               className="inline-block bg-primary-600 text-white px-6 py-3 rounded-md shadow-md hover:bg-primary-700 transition-colors"
             >
-              View All Programs
+              Xem chương trình
             </Link>
           </div>
         </div>
       </section>
-      
+
       {/* Testimonials */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-4 text-center">Success Stories</h2>
+          <h2 className="text-3xl font-bold mb-4 text-center">Những câu chuyện truyền cảm hứng</h2>
           <p className="text-gray-600 text-center mb-12 max-w-3xl mx-auto">
-            Hear from participants who have benefited from our programs and services.
+            Lắng nghe tiếng nói của những người đã tham gia chương trình.
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <TestimonialCard 
+            <TestimonialCard
               quote="The online course helped me understand the risks and I now feel empowered to make better choices."
-              author="Alex, 17"
+              author="Trường Hạnh, 17"
               role="Student"
               imageSrc="https://images.pexels.com/photos/762020/pexels-photo-762020.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
             />
-            
-            <TestimonialCard 
+
+            <TestimonialCard
               quote="The counseling sessions provided the support my family needed during a difficult time. We're forever grateful."
-              author="Sarah, 42"
+              author="Nguyễn Thị Ba, 42"
               role="Parent"
               imageSrc="https://images.pexels.com/photos/774095/pexels-photo-774095.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
             />
-            
-            <TestimonialCard 
+
+            <TestimonialCard
               quote="The resources helped me start important conversations with my students about drug prevention."
-              author="Michael, 38"
+              author="Trần Quốc Nam, 38"
               role="Teacher"
               imageSrc="https://images.pexels.com/photos/1270076/pexels-photo-1270076.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
             />
           </div>
         </div>
       </section>
-      
+
       {/* Recent Blog Posts */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-4 text-center">Latest Articles</h2>
+          <h2 className="text-3xl font-bold mb-4 text-center">Các bài viết liên quan</h2>
           <p className="text-gray-600 text-center mb-12 max-w-3xl mx-auto">
-            Stay informed with our latest resources, tips, and insights on drug prevention.
+            Tiếp cận các thông tin mới nhất về phòng chống ma túy và các vấn đề liên quan.
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <BlogPostCard 
+            <BlogPostCard
               title="Understanding Substance Use Risk Factors in Adolescents"
               excerpt="Learn about the key risk factors that can lead to substance use among teenagers and how to address them effectively."
               date="June 15, 2025"
@@ -240,8 +240,8 @@ const HomePage: React.FC = () => {
               imageUrl="https://images.pexels.com/photos/7407946/pexels-photo-7407946.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
               slug="understanding-risk-factors"
             />
-            
-            <BlogPostCard 
+
+            <BlogPostCard
               title="Effective Communication Strategies for Parents"
               excerpt="Discover proven techniques to talk to your children about drugs and build a foundation of trust and open dialogue."
               date="June 10, 2025"
@@ -249,8 +249,8 @@ const HomePage: React.FC = () => {
               imageUrl="https://images.pexels.com/photos/7282588/pexels-photo-7282588.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
               slug="communication-strategies"
             />
-            
-            <BlogPostCard 
+
+            <BlogPostCard
               title="Building Resilience: A Key Prevention Strategy"
               excerpt="Explore how developing resilience can help individuals avoid substance use and overcome challenges."
               date="June 5, 2025"
@@ -259,18 +259,18 @@ const HomePage: React.FC = () => {
               slug="building-resilience"
             />
           </div>
-          
+
           <div className="text-center mt-12">
-            <Link 
-              to="/blog" 
+            <Link
+              to="/blog"
               className="inline-block bg-white border border-primary-600 text-primary-600 px-6 py-3 rounded-md shadow-sm hover:bg-primary-50 transition-colors"
             >
-              Read More Articles
+              Xem thêm
             </Link>
           </div>
         </div>
       </section>
-      
+
       {/* CTA Section */}
       <section className="py-20 bg-accent-600 text-white">
         <div className="container mx-auto px-4 text-center">
@@ -279,14 +279,14 @@ const HomePage: React.FC = () => {
             Join our community of volunteers and contribute to our mission of drug prevention and education.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a 
-              href="#" 
+            <a
+              href="#"
               className="inline-block bg-white text-accent-600 px-6 py-3 rounded-md shadow-md hover:bg-gray-100 transition-colors font-medium"
             >
               Volunteer With Us
             </a>
-            <Link 
-              to="/assessments" 
+            <Link
+              to="/assessments"
               className="inline-block bg-accent-700 text-white px-6 py-3 rounded-md shadow-md border border-accent-500 hover:bg-accent-800 transition-colors font-medium"
             >
               Take an Assessment

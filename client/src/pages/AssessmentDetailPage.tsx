@@ -6,98 +6,144 @@ import * as Yup from 'yup';
 import { assessmentData } from '../data/assessmentData';
 import { courseData } from '../data/courseData';
 
+
+
+
 const AssessmentDetailPage: React.FC = () => {
     const { id } = useParams();
-    const assessment = assessmentData[Number(id) - 1];
-    const [result, setResult] = useState<number>(0);
+    const assessment = assessmentData[0];
+    const [result, setResult] = useState<number>(0)
     const [risk, setRisk] = useState<string>('low');
-
-    const initialValues: Record<string, string> = {};
-    const validationShape: Record<string, Yup.StringSchema> = {};
 
     useEffect(() => {
         if (result >= 4) {
-            setRisk('high')
-        } else if (result >= 1) {
             setRisk('medium')
+        } else if (result >= 8) {
+            setRisk('high')
         }
-    }, [result])
+    }, [result]);
+
+    const initialValues = assessment.questions.reduce((acc, q) => {
+        acc[q.id] = q.type === 'checkbox' ? [] : '';
+        return acc;
+    }, {} as { [key: string]: string | string[] });
+
+
+    const validationSchema = Yup.object(
+        assessment.questions.reduce((acc, q) => {
+            acc[q.id] = q.type === 'checkbox'
+                ? Yup.array().min(1, 'Select at least one option')
+                : Yup.string().required('Select one option');
+            return acc;
+        }, {} as { [key: string]: Yup.Schema<any> })
+    );
 
     const handleSuggestedCourse = () => {
         return courseData.filter(course => course.risk === risk);
     }
 
-    assessment.questions.forEach(q => {
-        const fieldName = `question-${q.id}`;
-        initialValues[fieldName] = '';
-        validationShape[fieldName] = Yup.string().required('Required');
-    });
+    const translateRiskLevel = (risk: string) => {
+        switch (risk) {
+            case 'low':
+                return 'Thấp';
+            case 'medium':
+                return 'Trung bình';
+            case 'high':
+                return 'Cao';
+            default:
+                return risk;
+        }
+    }
 
-    const validationSchema = Yup.object().shape(validationShape);
 
-    const handleSubmit = (values: Record<string, string>) => {
+    const calculateScore = (formValues: { [key: string]: string | string[] }) => {
         let total = 0;
-        for (const key in values) {
-            total += Number(values[key]);
+
+        for (const question of assessment.questions) {
+            const answer = formValues[question.id];
+
+            if (question.type === 'checkbox' && Array.isArray(answer)) {
+                // Sum all selected checkbox values
+                total += answer.reduce((sum, val) => sum + Number(val), 0);
+            }
+
+            if (question.type === 'radio' && typeof answer === 'string') {
+                // Add selected radio value
+                total += Number(answer);
+            }
         }
 
-        // alert(`Your total score is: ${total}`);
-        setResult(total);
+        return total;
     };
 
+    const handleSubmit = (values: typeof initialValues) => {
+        // alert(JSON.stringify(values, null, 2));
+        const total = calculateScore(values);
+        setResult(total);
+    }
+
     return (
-        <div className='container mx-auto py-4 px-8'>
-            {result === 0 && <>
-                <h2 className='text-2xl font-bold mb-4'>{assessment.title}</h2>
+        <div className='container mx-auto px-4 py-8'>
+            {result === 0 && (
                 <Formik
                     initialValues={initialValues}
                     validationSchema={validationSchema}
                     onSubmit={handleSubmit}
                 >
-                    {() => (
-                        <Form>
-                            {assessment.questions.map((question) => (
-                                <div key={question.id} className='mb-6'>
+                    <Form className='container mx-auto py-4 px-8'>
+                        {assessment.questions.map((question) => {
+                            return (
+                                <div aria-labelledby="checkbox-group" key={question.id} className='mb-6'>
                                     <p className='text-lg font-medium mb-2'>{question.text}</p>
                                     {question.options.map((option) => {
-                                        const fieldName = `question-${question.id}`;
                                         return (
                                             <label key={option.id} className='block mb-2'>
-                                                <Field
-                                                    type='radio'
-                                                    name={fieldName}
-                                                    value={String(option.value)}
-                                                    className='mr-2 accent-primary-500 scale-125'
-                                                />
+                                                {question.type === 'checkbox' ? (
+                                                    <Field
+                                                        type='checkbox'
+                                                        name={question.id}
+                                                        value={String(option.value)}
+                                                        className='mr-2 accent-primary-500 scale-125'
+                                                    />
+                                                ) : (
+                                                    <Field
+                                                        type='radio'
+                                                        name={question.id}
+                                                        value={String(option.value)}
+                                                        className='mr-2 accent-primary-500 scale-125'
+                                                    />
+                                                )}
                                                 {option.text}
                                             </label>
-                                        );
+                                        )
                                     })}
-                                    <ErrorMessage name={`question-${question.id}`} component="div" className="text-red-500" />
+                                    <ErrorMessage
+                                        name={String(question.id)}
+                                        component={'div'}
+                                        className='text-red-500 text-sm'
+                                    />
                                 </div>
-                            ))}
-
-                            <button type='submit' className='mt-6 bg-primary-600 text-white px-6 py-3 rounded-md shadow-md hover:bg-primary-700'>
-                                Submit
-                            </button>
-                        </Form>
-                    )}
+                            )
+                        })}
+                        <button type='submit'>Submit</button>
+                    </Form>
                 </Formik>
-            </>}
+            )}
 
             {result > 0 && (
                 <div className='my-6'>
-                    <h2 className='text-2xl font-bold mb-4'>Your Result</h2>
-                    <p className='text-lg'>Your total score is: {result}</p>
+                    <h2 className='text-2xl font-bold mb-4'>Kết quả</h2>
+                    <p className='text-lg'>Điểm của bạn: {result}</p>
+                    <p className='text-lg'>Nguy cơ sử dụng ma túy: {translateRiskLevel(risk)}</p>
 
-                    <h3 className='text-xl mb-4'>Some suggested course: </h3>
+                    <h3 className='text-xl mb-4'>Các khóa học được gợi ý: </h3>
                     {handleSuggestedCourse().map(course => (
                         <div key={course.id} className='border p-4 rounded-md shadow-md mb-4'>
                             <h4 className='text-lg font-bold'>{course.title}</h4>
                             <p>{course.description}</p>
-                            <p className='text-sm text-gray-500'>Duration: {course.duration}</p>
-                            <p className='text-sm text-gray-500'>Audience: {course.audience}</p>
-                            <p className='text-sm text-gray-500'>Category: {course.category}</p>
+                            <p className='text-sm text-gray-500'>Thời lượng: {course.duration}</p>
+                            <p className='text-sm text-gray-500'>Đối tượng: {course.audience}</p>
+                            <p className='text-sm text-gray-500'>Lĩnh vực: {course.category}</p>
                             <Link to={`/courses/${course.id}`} className='text-primary-600 hover:underline'>
                                 View Course
                             </Link>
@@ -105,8 +151,9 @@ const AssessmentDetailPage: React.FC = () => {
                     ))}
                 </div>
             )}
+
         </div>
-    );
+    )
 };
 
 export default AssessmentDetailPage;

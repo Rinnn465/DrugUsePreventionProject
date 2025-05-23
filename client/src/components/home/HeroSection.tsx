@@ -15,32 +15,32 @@ const HeroSection: React.FC = () => {
           <rect width="100%" height="100%" fill="url(#grid)" />
         </svg>
       </div>
-      
+
       <div className="container mx-auto px-4 py-24 relative z-10">
         <div className="max-w-3xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 animate-fade-in">
-            Empowering Communities Through Drug Prevention
+            Vì một cộng đồng <br /> không tồn tại ma túy
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-primary-100">
-            Education, support, and resources to build a healthier future
+            Nền tảng phòng ngừa ma túy đầu tiên của Việt Nam
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
-              to="/courses" 
+            <Link
+              to="/courses"
               className="inline-block bg-white text-primary-600 px-6 py-3 rounded-md shadow-md hover:bg-gray-100 transition-colors font-medium"
             >
-              Browse Courses
+              Xem các khóa học
             </Link>
-            <Link 
-              to="/assessments" 
+            <Link
+              to="/assessments"
               className="inline-block bg-transparent text-white px-6 py-3 rounded-md shadow-md border border-white hover:bg-primary-700 transition-colors font-medium"
             >
-              Take an Assessment
+              Tham gia trắc nghiệm
             </Link>
           </div>
         </div>
       </div>
-      
+
       {/* Wave SVG at bottom */}
       <div className="absolute bottom-0 left-0 right-0">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120" fill="white">

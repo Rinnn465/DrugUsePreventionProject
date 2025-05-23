@@ -1,11 +1,11 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import { eventData } from "../data/eventData";
-import { users } from "../data/userData";
+import { userData } from "../data/userData";
 
 const ProfilePage: React.FC = () => {
     const { userId } = useParams();
-    const user = users.find((user) => user.id.toString() === userId);
+    const user = userData.find((user) => user.id.toString() === userId);
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-4xl">

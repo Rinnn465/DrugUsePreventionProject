@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { Heart, Menu, X, User } from 'lucide-react';
 import Tippy from '@tippyjs/react/headless';
-import { users } from '../data/userData';
+import { useUser } from '../hooks/userUser';
 
 interface HeaderProps {
   toggleMobileMenu: () => void;
@@ -10,7 +10,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
 
-  let user = users[0];
+  let user = useUser();
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -69,11 +69,20 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
           >
             Sự kiện
           </NavLink>
+          <NavLink
+            to={'/roles/' + user?.role}
+            className={({ isActive }) =>
+              isActive ? "text-primary-600 font-medium" : "text-gray-700 hover:text-primary-600 transition-colors"
+            }
+          >
+            {user?.role === 'member' ? null : user?.role}
+          </NavLink>
         </nav>
 
         {user ? <div className="flex items-center gap-4">
           <Tippy
             interactive
+            // visible={true}
             render={(attrs) => {
               return (
                 <div
@@ -81,11 +90,11 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
                   tabIndex={-1} {...attrs}
                 >
                   <div className="flex flex-col gap-2">
-                    <Link to={`/profile/${user.id}`} className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
+                    <Link to={`/profile/${user?.id}`} className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
                       <User className="h-5 w-5" />
                       <span>Profile</span>
                     </Link>
-                    <Link to={`/dashboard/${user.id}`} className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
+                    <Link to={`/dashboard/${user?.id}`} className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
                       <User className="h-5 w-5" />
                       <span>Dashboard</span>
                     </Link>
@@ -100,7 +109,7 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
           >
             <div className='flex gap-2'>
               <User className="h-5 w-5" />
-              <span className='select-none'>Profile</span>
+              <span className='select-none'>{user.role}</span>
             </div>
           </Tippy>
           <button
@@ -126,7 +135,7 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
             </Link>
           </div>}
       </div>
-    </header>
+    </header >
   );
 };
 

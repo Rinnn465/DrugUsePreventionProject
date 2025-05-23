@@ -6,5 +6,5 @@ export interface User {
     role: string; // e.g., "manager", "user", etc.
     courseTaken?: string[]; // List of courses taken by the user
     appointment?: string; // Appointment details
-    eventTaken?: string; // Event details
+    eventTaken?: string[]; // Event details
 }

@@ -13,6 +13,7 @@ export interface AssessmentQuestion {
   id: number;
   text: string;
   options: AssessmentOption[];
+  type?: string
 }
 
 export interface AssessmentOption {
