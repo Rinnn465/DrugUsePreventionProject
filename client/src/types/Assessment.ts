@@ -21,10 +21,3 @@ export interface AssessmentOption {
   text: string;
   value: number;
 }
-
-export interface AssessmentResult {
-  riskLevel: 'Low' | 'Moderate' | 'High';
-  score: number;
-  summary: string;
-  recommendations: string[];
-}

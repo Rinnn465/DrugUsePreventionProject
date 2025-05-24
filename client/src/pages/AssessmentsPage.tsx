@@ -8,9 +8,9 @@ const AssessmentsPage: React.FC = () => {
     <div className="bg-gray-50 min-h-screen py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Risk Assessment Tools</h1>
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">Công Cụ Đánh Giá Nguy Cơ</h1>
           <p className="text-lg text-gray-600 mb-8">
-            Take our questionnaires to evaluate your risk level and receive personalized recommendations.
+            Hãy thực hiện các bảng câu hỏi của chúng tôi để đánh giá mức độ rủi ro và nhận được khuyến nghị cá nhân hóa.
           </p>
 
           <div className="bg-accent-50 border border-accent-200 rounded-lg p-6 mb-12 text-left">
@@ -19,14 +19,13 @@ const AssessmentsPage: React.FC = () => {
                 <InfoIcon className="h-6 w-6 text-accent-600" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-accent-800 mb-2">About Our Assessment Tools</h3>
+                <h3 className="text-lg font-semibold text-accent-800 mb-2">Về các công cụ đánh giá của chúng tôi</h3>
                 <p className="text-accent-700 mb-4">
-                  These standardized surveys help identify potential risk levels and guide appropriate
-                  next steps. Your responses are confidential and used only to provide personalized recommendations.
+                  Những khảo sát tiêu chuẩn này giúp xác định mức độ rủi ro tiềm ẩn và hướng dẫn bước tiếp theo phù hợp.
+                  Câu trả lời của bạn sẽ được bảo mật và chỉ dùng để cung cấp khuyến nghị cá nhân hóa.
                 </p>
                 <p className="text-accent-700">
-                  <strong>Note:</strong> These tools are not a substitute for professional diagnosis. If you're concerned
-                  about substance use, please consult with a healthcare professional.
+                  <strong>Lưu ý:</strong> Những công cụ này không thay thế cho chẩn đoán chuyên môn. Nếu bạn lo ngại về việc sử dụng chất kích thích, vui lòng tham khảo ý kiến chuyên gia y tế.
                 </p>
               </div>
             </div>
@@ -46,7 +45,7 @@ const AssessmentsPage: React.FC = () => {
                     <p className="h-[96px] text-gray-600 mb-4">{assessment.description}</p>
 
                     <div className="mb-4">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Recommended for:</h4>
+                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Đề xuất cho:</h4>
                       <div className="flex flex-wrap gap-2">
                         {assessment.audiences.map((audience, index) => (
                           <span
@@ -61,15 +60,15 @@ const AssessmentsPage: React.FC = () => {
 
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-gray-600">
-                        <span>{assessment.questionCount} questions</span>
+                        <span>{assessment.questionCount} câu hỏi</span>
                         <span className="mx-2">•</span>
-                        <span>~{assessment.timeToComplete} min</span>
+                        <span>~{assessment.timeToComplete} phút</span>
                       </div>
                       <Link
                         to={`/assessments/${assessment.id}`}
                         className={`bg-primary-600 text-white font-medium py-2 px-4 rounded hover:bg-${assessment.color}-700 transition-colors`}
                       >
-                        Start Assessment
+                        Bắt đầu đánh giá
                       </Link>
                     </div>
                   </div>
@@ -85,17 +84,17 @@ const AssessmentsPage: React.FC = () => {
               <AlertTriangle className="h-6 w-6 text-warning-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-warning-800 mb-2">Need Immediate Help?</h3>
+              <h3 className="text-lg font-semibold text-warning-800 mb-2">Cần hỗ trợ khẩn cấp?</h3>
               <p className="text-warning-700 mb-4">
-                If you or someone you know is experiencing a substance use emergency or mental health crisis,
-                please contact emergency services or a helpline immediately.
+                Nếu bạn hoặc ai đó đang gặp tình trạng khẩn cấp liên quan đến sử dụng chất kích thích hoặc khủng hoảng tâm lý,
+                vui lòng liên hệ với dịch vụ khẩn cấp hoặc đường dây hỗ trợ ngay lập tức.
               </p>
               <div className="bg-white p-4 rounded-md shadow-sm">
-                <p className="font-semibold text-gray-800 mb-2">National Helplines:</p>
+                <p className="font-semibold text-gray-800 mb-2">Đường dây nóng quốc gia:</p>
                 <ul className="space-y-2 text-gray-700">
-                  <li>Substance Abuse and Mental Health Services Administration (SAMHSA): 1-800-662-HELP (4357)</li>
-                  <li>National Suicide Prevention Lifeline: 1-800-273-TALK (8255)</li>
-                  <li>Crisis Text Line: Text HOME to 741741</li>
+                  <li>Cơ quan Quản lý Dịch vụ Sức khỏe Tâm thần và Lạm dụng Chất (SAMHSA): 1-800-662-HELP (4357)</li>
+                  <li>Đường dây Phòng chống Tự tử Quốc gia: 1-800-273-TALK (8255)</li>
+                  <li>Đường dây nhắn tin khẩn cấp: Gửi từ khóa HOME đến 741741</li>
                 </ul>
               </div>
             </div>

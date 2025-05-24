@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, Filter, BookOpen } from 'lucide-react';
+import { Search, BookOpen } from 'lucide-react';
 import CourseCard from '../components/courses/CourseCard';
 import { courseData } from '../data/courseData';
 
@@ -10,11 +9,11 @@ const CoursesPage: React.FC = () => {
   const [selectedAudience, setSelectedAudience] = useState('');
 
   const filteredCourses = courseData.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         course.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === '' || course.category === selectedCategory;
     const matchesAudience = selectedAudience === '' || course.audience === selectedAudience;
-    
+
     return matchesSearch && matchesCategory && matchesAudience;
   });
 
@@ -29,7 +28,7 @@ const CoursesPage: React.FC = () => {
           <p className="text-lg text-gray-600 mb-8">
             Access age-appropriate training modules to enhance your knowledge and skills in drug prevention.
           </p>
-          
+
           {/* Search and Filter */}
           <div className="bg-white rounded-lg shadow-md p-6 mb-12">
             <div className="flex flex-col md:flex-row gap-4">
@@ -68,7 +67,7 @@ const CoursesPage: React.FC = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Courses Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredCourses.length > 0 ? (

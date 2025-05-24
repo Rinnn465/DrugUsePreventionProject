@@ -10,6 +10,7 @@ import AssessmentDetailPage from './pages/AssessmentDetailPage';
 import AppointmentsPage from './pages/AppointmentsPage';
 import FeedbackPage from './pages/FeedbackPage';
 import DashBoardPage from './pages/DashBoardPage';
+import CourseEnrollPage from './pages/CourseEnrollPage';
 // import ProgramsPage from './pages/ProgramsPage';
 // import ProgramDetailPage from './pages/ProgramDetailPage';
 import ProfilePage from './pages/ProfilePage';
@@ -23,6 +24,7 @@ import AuthLayout from './components/AuthLayout';
 import EventsDetails from './pages/EventDetailsPage';
 import CounselorDetailPage from './pages/CounselorDetailsPage';
 import RolePage from './pages/RolePage';
+import ModuleDetailsPage from './pages/ModuleDetailsPage';
 
 function App() {
   return (
@@ -34,7 +36,9 @@ function App() {
           <Route path="about" element={<AboutPage />} />
           <Route path="blog" element={<BlogPage />} />
           <Route path="courses" element={<CoursesPage />} />
-          <Route path="courses/:id" element={<CourseDetailPage />} />
+          <Route path="courses/:id" element={<CourseEnrollPage />} />
+          <Route path="courses/:id/details/" element={<CourseDetailPage />} />
+          <Route path="courses/:id/details/:moduleId" element={<ModuleDetailsPage />} />
           <Route path="counselor/:counselorId" element={<CounselorDetailPage />} />
           <Route path="assessments" element={<AssessmentsPage />} />
           <Route path="assessments/:id" element={<AssessmentDetailPage />} />

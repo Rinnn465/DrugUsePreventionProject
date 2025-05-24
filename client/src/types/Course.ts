@@ -1,3 +1,5 @@
+import { Lesson } from './Lesson';
+
 export interface Course {
   id: number;
   title: string;
@@ -17,4 +19,5 @@ export interface Module {
   title: string;
   duration: string;
   completed?: boolean;
+  lesson: Lesson[];
 }

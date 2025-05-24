@@ -24,23 +24,23 @@ const AppointmentsPage: React.FC = () => {
     <div className="bg-gray-50 min-h-screen py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Schedule an Online Appointment</h1>
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">Đặt Lịch Hẹn Trực Tuyến</h1>
           <p className="text-lg text-gray-600 mb-8">
-            Connect with our certified counselors for personalized guidance and support.
+            Kết nối với các chuyên gia tư vấn được chứng nhận của chúng tôi để nhận hỗ trợ và hướng dẫn cá nhân hóa.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-4">Find a Counselor</h2>
+              <h2 className="text-xl font-semibold mb-4">Tìm Chuyên Gia Tư Vấn</h2>
 
               <div className="space-y-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-3 text-gray-400 h-5 w-5" />
                   <input
                     type="text"
-                    placeholder="Search counselors..."
+                    placeholder="Tìm kiếm chuyên gia tư vấn..."
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -53,7 +53,7 @@ const AppointmentsPage: React.FC = () => {
                     value={selectedSpecialty}
                     onChange={(e) => setSelectedSpecialty(e.target.value)}
                   >
-                    <option value="">All Specialties</option>
+                    <option value="">Tất Cả Chuyên Môn</option>
                     {specialties.map((specialty, index) => (
                       <option key={index} value={specialty}>{specialty}</option>
                     ))}
@@ -77,8 +77,8 @@ const AppointmentsPage: React.FC = () => {
               ) : (
                 <div className="p-6 text-center">
                   <Users className="h-10 w-10 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No counselors found</h3>
-                  <p className="text-gray-600">Try adjusting your search criteria</p>
+                  <h3 className="text-lg font-semibold mb-2">Không tìm thấy chuyên gia tư vấn</h3>
+                  <p className="text-gray-600">Vui lòng điều chỉnh tiêu chí tìm kiếm của bạn</p>
                 </div>
               )}
             </div>
@@ -89,7 +89,7 @@ const AppointmentsPage: React.FC = () => {
               <div className="bg-white rounded-lg shadow-md p-6">
                 <div className="mb-6">
                   <h2 className="text-xl font-semibold mb-4">
-                    Schedule with
+                    Đặt lịch với
                     <Link
                       className='text-primary-500 underline hover:text-primary-700 ml-2'
                       to={`/counselor/${selectedCounselor}`}>
@@ -97,7 +97,7 @@ const AppointmentsPage: React.FC = () => {
                     </Link>
                   </h2>
                   <p className="text-gray-600">
-                    Select an available time slot to book your appointment
+                    Chọn khung giờ trống để đặt lịch hẹn của bạn
                   </p>
                 </div>
 
@@ -108,9 +108,9 @@ const AppointmentsPage: React.FC = () => {
             ) : (
               <div className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center justify-center h-full">
                 <CalendarIcon className="h-16 w-16 text-gray-300 mb-4" />
-                <h2 className="text-xl font-semibold mb-2">Select a Counselor</h2>
+                <h2 className="text-xl font-semibold mb-2">Chọn Chuyên Gia Tư Vấn</h2>
                 <p className="text-gray-600 text-center max-w-md">
-                  Please select a counselor from the list to view their available appointment slots.
+                  Vui lòng chọn một chuyên gia tư vấn từ danh sách để xem các khung giờ hẹn có sẵn.
                 </p>
               </div>
             )}

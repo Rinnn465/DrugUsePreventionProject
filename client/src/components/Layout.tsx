@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from 'react';
+import React, { createContext, useEffect, useLayoutEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
@@ -18,7 +18,7 @@ const Layout: React.FC = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [location])
+  }, [location.key])
 
   return (
     <UserContext.Provider value={userData[0]}>

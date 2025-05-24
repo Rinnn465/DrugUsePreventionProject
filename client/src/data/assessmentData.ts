@@ -3,113 +3,109 @@ import { Assessment } from '../types/Assessment';
 export const assessmentData: Assessment[] = [
   {
     id: 1,
-    title: "ASSIST Screening Tool",
-    description: "The Alcohol, Smoking and Substance Involvement Screening Test (ASSIST) helps identify substance use patterns and related risks.",
+    title: "Công cụ sàng lọc ASSIST",
+    description: "Bài kiểm tra sàng lọc mức độ sử dụng chất gây nghiện (ASSIST) giúp xác định các kiểu sử dụng chất và các nguy cơ liên quan.",
     questionCount: 8,
     timeToComplete: 5,
-    audiences: ["Adults", "Young Adults", "Teenagers"],
+    audiences: ["Người lớn", "Thanh niên", "Thiếu niên"],
     color: "primary",
     questions: [
       {
         id: 1,
-        text: "In your life, which of the following substances have you ever used? (Non-medical use only)",
+        text: "Trong cuộc sống của bạn, bạn đã từng sử dụng những chất nào sau đây? (Chỉ tính việc sử dụng không vì mục đích y tế)",
         type: "checkbox",
         options: [
-          { id: "a", text: "Tobacco products", value: 0 },
-          { id: "b", text: "Alcoholic beverages", value: 1 },
-          { id: "c", text: "Cannabis", value: 2 },
-          { id: "d", text: "Cocaine", value: 3 },
-          { id: "e", text: "Amphetamine type stimulants", value: 4 },
-          { id: "f", text: "Inhalants", value: 5 },
-          { id: "g", text: "Sedatives or sleeping pills", value: 6 },
-          { id: "h", text: "Hallucinogens", value: 7 },
-          { id: "i", text: "Opioids", value: 8 },
+          { id: "a", text: "Các sản phẩm thuốc lá", value: 0 },
+          { id: "b", text: "Đồ uống có cồn", value: 1 },
+          { id: "c", text: "Cần sa", value: 2 },
+          { id: "d", text: "Cocain", value: 3 },
+          { id: "e", text: "Chất kích thích loại amphetamine", value: 4 },
+          { id: "f", text: "Chất hít", value: 5 },
+          { id: "g", text: "Thuốc an thần hoặc thuốc ngủ", value: 6 },
+          { id: "h", text: "Chất gây ảo giác", value: 7 },
+          { id: "i", text: "Thuốc phiện (opioid)", value: 8 },
         ]
       },
-      // Additional questions would be added here
       {
         id: 2,
-        text: "In the past three months, how often have you used the substances you mentioned?",
+        text: "Trong ba tháng qua, bạn đã sử dụng các chất đã nêu ở mức độ nào?",
         options: [
-          { id: "aa", text: "Never", value: 0 },
-          { id: "bb", text: "Once or twice", value: 2 },
-          { id: "cc", text: "Monthly", value: 3 },
-          { id: "dd", text: "Weekly", value: 4 },
-          { id: "ee", text: "Daily or almost daily", value: 6 }
+          { id: "aa", text: "Chưa bao giờ", value: 0 },
+          { id: "bb", text: "Một hoặc hai lần", value: 2 },
+          { id: "cc", text: "Hàng tháng", value: 3 },
+          { id: "dd", text: "Hàng tuần", value: 4 },
+          { id: "ee", text: "Hàng ngày hoặc gần như hàng ngày", value: 6 }
         ]
       }
     ]
   },
   {
     id: 2,
-    title: "CRAFFT Screening",
-    description: "A brief screening tool for adolescents to assess risk levels related to alcohol and other drugs.",
+    title: "Sàng lọc CRAFFT",
+    description: "Một công cụ sàng lọc ngắn dành cho thanh thiếu niên để đánh giá mức độ rủi ro liên quan đến rượu và các chất gây nghiện khác.",
     questionCount: 6,
     timeToComplete: 3,
-    audiences: ["Teenagers", "Young Adults"],
+    audiences: ["Thiếu niên", "Thanh niên"],
     color: "secondary",
     questions: [
       {
         id: 1,
-        text: "Have you ever ridden in a CAR driven by someone (including yourself) who was 'high' or had been using alcohol or drugs?",
+        text: "Bạn đã từng ngồi trên xe do ai đó (bao gồm cả bạn) lái khi người đó đang 'phê' hoặc đã sử dụng rượu hay ma túy chưa?",
         options: [
-          { id: "a", text: "No", value: 0 },
-          { id: "b", text: "Yes", value: 1 }
+          { id: "a", text: "Chưa", value: 0 },
+          { id: "b", text: "Rồi", value: 1 }
         ]
       },
       {
         id: 2,
-        text: "Do you ever use alcohol or drugs to RELAX, feel better about yourself, or fit in?",
+        text: "Bạn có bao giờ sử dụng rượu hoặc ma túy để thư giãn, cảm thấy tốt hơn về bản thân, hoặc để hoà nhập với mọi người không?",
         options: [
-          { id: "a", text: "No", value: 0 },
-          { id: "b", text: "Yes", value: 1 }
+          { id: "a", text: "Không", value: 0 },
+          { id: "b", text: "Có", value: 1 }
         ]
-      },
-      // Additional questions would be added here
+      }
     ]
   },
   {
     id: 3,
-    title: "Parental Risk Assessment",
-    description: "Helps parents evaluate potential risk factors in their family environment and parenting approach.",
+    title: "Đánh giá nguy cơ dành cho phụ huynh",
+    description: "Giúp phụ huynh đánh giá các yếu tố nguy cơ tiềm ẩn trong môi trường gia đình và cách nuôi dạy con.",
     questionCount: 15,
     timeToComplete: 8,
-    audiences: ["Parents", "Guardians"],
+    audiences: ["Phụ huynh", "Người giám hộ"],
     color: "accent",
     questions: [
       {
         id: 1,
-        text: "How would you rate your family's communication about the risks of substance use?",
+        text: "Bạn đánh giá mức độ giao tiếp của gia đình về rủi ro của việc sử dụng chất gây nghiện như thế nào?",
         options: [
-          { id: "a", text: "We discuss this topic openly and regularly", value: 0 },
-          { id: "b", text: "We occasionally discuss this topic", value: 1 },
-          { id: "c", text: "We rarely discuss this topic", value: 2 },
-          { id: "d", text: "We never discuss this topic", value: 3 }
+          { id: "a", text: "Chúng tôi thảo luận chủ đề này một cách cởi mở và thường xuyên", value: 0 },
+          { id: "b", text: "Chúng tôi thỉnh thoảng nói về chủ đề này", value: 1 },
+          { id: "c", text: "Chúng tôi hiếm khi đề cập đến chủ đề này", value: 2 },
+          { id: "d", text: "Chúng tôi không bao giờ nói về chủ đề này", value: 3 }
         ]
-      },
-      // Additional questions would be added here
+      }
     ]
   },
   {
     id: 4,
-    title: "School Environment Assessment",
-    description: "For educators to evaluate their school's prevention environment and identify areas for improvement.",
+    title: "Đánh giá môi trường học đường",
+    description: "Dành cho giáo viên để đánh giá môi trường phòng ngừa của trường học và xác định các lĩnh vực cần cải thiện.",
     questionCount: 20,
     timeToComplete: 10,
-    audiences: ["Teachers", "School Administrators"],
+    audiences: ["Giáo viên", "Ban giám hiệu nhà trường"],
     color: "success",
     questions: [
       {
         id: 1,
-        text: "Does your school have a comprehensive substance use prevention curriculum?",
+        text: "Trường của bạn có chương trình phòng ngừa sử dụng chất đầy đủ không?",
         options: [
-          { id: "a", text: "Yes, well-implemented", value: 0 },
-          { id: "b", text: "Yes, but implementation could be improved", value: 1 },
-          { id: "c", text: "Only minimal or outdated curriculum", value: 2 },
-          { id: "d", text: "No prevention curriculum", value: 3 }
+          { id: "a", text: "Có, được triển khai tốt", value: 0 },
+          { id: "b", text: "Có, nhưng triển khai còn hạn chế", value: 1 },
+          { id: "c", text: "Chỉ có chương trình tối thiểu hoặc lỗi thời", value: 2 },
+          { id: "d", text: "Không có chương trình phòng ngừa", value: 3 }
         ]
-      },
-      // Additional questions would be added here
+      }
     ]
   }
 ];

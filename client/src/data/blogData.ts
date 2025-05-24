@@ -2,43 +2,43 @@ import { BlogPostCardProps } from "../types/Blog";
 
 export const blogPostsData: BlogPostCardProps[] = [
     {
-        title: "Understanding the Impact of Early Prevention",
-        excerpt: "Learn how early substance use prevention programs can significantly reduce long-term risks among youth.",
+        title: "Hiểu Về Tác Động Của Phòng Ngừa Sớm",
+        excerpt: "Tìm hiểu cách các chương trình phòng ngừa sử dụng chất sớm có thể giảm thiểu đáng kể rủi ro lâu dài ở thanh thiếu niên.",
         date: "2025-05-14",
         author: "Jane Doe",
-        imageUrl: "https://example.com/images/prevention-program.jpg",
-        slug: "early-prevention-impact"
+        imageUrl: "https://images.pexels.com/photos/8197525/pexels-photo-8197525.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+        slug: "tac-dong-phong-ngua-som"
     },
     {
-        title: "How Schools Can Foster Drug-Free Environments",
-        excerpt: "A guide for educators on building supportive, prevention-oriented school communities.",
+        title: "Trường Học Có Thể Xây Dựng Môi Trường Không Ma Túy Như Thế Nào?",
+        excerpt: "Hướng dẫn dành cho giáo viên về cách xây dựng cộng đồng học đường hỗ trợ và định hướng phòng ngừa.",
         date: "2025-04-30",
         author: "Michael Tran",
-        imageUrl: "https://example.com/images/school-prevention.jpg",
-        slug: "schools-prevention-guide"
+        imageUrl: "https://images.pexels.com/photos/8197525/pexels-photo-8197525.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+        slug: "huong-dan-phong-ngua-truong-hoc"
     },
     {
-        title: "What Parents Need to Know About Substance Risks",
-        excerpt: "Explore strategies parents can use to recognize and reduce early signs of substance use in teens.",
+        title: "Phụ Huynh Cần Biết Gì Về Nguy Cơ Sử Dụng Chất?",
+        excerpt: "Khám phá các chiến lược giúp phụ huynh nhận biết và giảm thiểu dấu hiệu sớm của việc sử dụng chất ở tuổi vị thành niên.",
         date: "2025-05-05",
         author: "Lena Garcia",
-        imageUrl: "https://example.com/images/parents-guide.jpg",
-        slug: "parent-substance-awareness"
+        imageUrl: "https://images.pexels.com/photos/8197525/pexels-photo-8197525.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+        slug: "phu-huynh-nhan-biet-su-dung-chat"
     },
     {
-        title: "CRAFFT vs. ASSIST: Which Screening Tool to Use?",
-        excerpt: "Compare two commonly used substance use screening tools for different age groups and settings.",
+        title: "CRAFFT vs. ASSIST: Nên Dùng Công Cụ Sàng Lọc Nào?",
+        excerpt: "So sánh hai công cụ sàng lọc sử dụng chất phổ biến dành cho các nhóm tuổi và bối cảnh khác nhau.",
         date: "2025-03-20",
         author: "Dr. Emily Choi",
-        imageUrl: "https://example.com/images/screening-tools.jpg",
-        slug: "crafft-vs-assist"
+        imageUrl: "https://images.pexels.com/photos/8197525/pexels-photo-8197525.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+        slug: "so-sanh-crafft-assist"
     },
     {
-        title: "Building Resilience in Adolescents",
-        excerpt: "Discover how fostering resilience can act as a protective factor against substance use.",
+        title: "Xây Dựng Sự Kiên Cường Ở Thanh Thiếu Niên",
+        excerpt: "Khám phá cách nuôi dưỡng sự kiên cường có thể đóng vai trò là yếu tố bảo vệ chống lại việc sử dụng chất.",
         date: "2025-02-11",
         author: "Rajiv Kumar",
-        imageUrl: "https://example.com/images/resilience-teens.jpg",
-        slug: "resilience-against-substance-use"
+        imageUrl: "https://images.pexels.com/photos/8197525/pexels-photo-8197525.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+        slug: "xay-dung-kien-cuong"
     }
 ];

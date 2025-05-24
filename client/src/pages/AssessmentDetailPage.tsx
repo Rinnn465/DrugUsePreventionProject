@@ -1,16 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 
 import { assessmentData } from '../data/assessmentData';
 import { courseData } from '../data/courseData';
 
-
-
-
 const AssessmentDetailPage: React.FC = () => {
-    const { id } = useParams();
     const assessment = assessmentData[0];
     const [result, setResult] = useState<number>(0)
     const [risk, setRisk] = useState<string>('low');
