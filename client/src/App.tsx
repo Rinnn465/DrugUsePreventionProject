@@ -24,7 +24,8 @@ import AuthLayout from './components/AuthLayout';
 import EventsDetails from './pages/EventDetailsPage';
 import CounselorDetailPage from './pages/CounselorDetailsPage';
 import RolePage from './pages/RolePage';
-import ModuleDetailsPage from './pages/ModuleDetailsPage';
+import ModuleDetailsPage from './pages/LessonDetailsPage';
+import BlogDetailsPage from './pages/BlogDetailsPage';
 
 function App() {
   return (
@@ -35,10 +36,11 @@ function App() {
           <Route index element={<HomePage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="blog" element={<BlogPage />} />
+          <Route path="blog/:blogId" element={<BlogDetailsPage />} />
           <Route path="courses" element={<CoursesPage />} />
           <Route path="courses/:id" element={<CourseEnrollPage />} />
           <Route path="courses/:id/details/" element={<CourseDetailPage />} />
-          <Route path="courses/:id/details/:moduleId" element={<ModuleDetailsPage />} />
+          <Route path="courses/:id/details/:lessonId" element={<ModuleDetailsPage />} />
           <Route path="counselor/:counselorId" element={<CounselorDetailPage />} />
           <Route path="assessments" element={<AssessmentsPage />} />
           <Route path="assessments/:id" element={<AssessmentDetailPage />} />

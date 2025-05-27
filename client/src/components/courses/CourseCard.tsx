@@ -25,7 +25,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
       </div>
 
       <div className="p-6">
-        <h3 className="text-xl font-semibold mb-3">{course.title}</h3>
+        <h3 className="text-xl font-semibold mb-3 h-[56px]">{course.title}</h3>
         <p className="text-gray-600 mb-4 line-clamp-3">{course.description}</p>
 
         <div className="flex items-center justify-between mb-6">

@@ -24,9 +24,9 @@ const CoursesPage: React.FC = () => {
     <div className="bg-gray-50 min-h-screen py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Online Training Courses</h1>
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">Khóa học online</h1>
           <p className="text-lg text-gray-600 mb-8">
-            Access age-appropriate training modules to enhance your knowledge and skills in drug prevention.
+            TÌm hiểu các kỹ năng phòng chống ma túy theo từng độ tuổi và đối tượng
           </p>
 
           {/* Search and Filter */}
@@ -48,7 +48,7 @@ const CoursesPage: React.FC = () => {
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
-                  <option value="">All Categories</option>
+                  <option value="">Lĩnh vực</option>
                   {categories.map((category, index) => (
                     <option key={index} value={category}>{category}</option>
                   ))}
@@ -58,7 +58,7 @@ const CoursesPage: React.FC = () => {
                   value={selectedAudience}
                   onChange={(e) => setSelectedAudience(e.target.value)}
                 >
-                  <option value="">All Audiences</option>
+                  <option value="">Đối tượng</option>
                   {audiences.map((audience, index) => (
                     <option key={index} value={audience}>{audience}</option>
                   ))}

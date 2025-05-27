@@ -7,17 +7,11 @@ export interface Course {
   category: string;
   audience: string;
   duration: string;
-  modules: Module[];
+  lesson: Lesson[];
   imageUrl: string;
   enrolledCount: number;
   isCertified: boolean;
   risk: string;
 }
 
-export interface Module {
-  id: number;
-  title: string;
-  duration: string;
-  completed?: boolean;
-  lesson: Lesson[];
-}
+

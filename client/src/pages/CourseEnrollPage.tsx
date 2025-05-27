@@ -84,9 +84,9 @@ const CourseEnrollPage: React.FC = () => {
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-8 mb-8">
           <h2 className="text-2xl font-bold mb-6">Nội dung khóa học</h2>
           <div className="space-y-4">
-            {course.modules.map((module, index) => (
+            {course.lesson.map((lesson, index) => (
               <div
-                key={module.id}
+                key={lesson.id}
                 className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
               >
                 <div className="flex items-center">
@@ -94,13 +94,11 @@ const CourseEnrollPage: React.FC = () => {
                     {index + 1}
                   </div>
                   <div>
-                    <h3 className="font-medium">{module.title}</h3>
-                    <p className="text-sm text-gray-500">{module.duration}</p>
+                    <h3 className="font-medium">{lesson.title}</h3>
+                    <p className='text-md text-gray-500'>{lesson.briefDescription}</p>
+                    <p className="text-sm text-gray-500">{lesson.duration} phút</p>
                   </div>
                 </div>
-                {module.completed && (
-                  <CheckCircle className="h-5 w-5 text-success-500" />
-                )}
               </div>
             ))}
           </div>
@@ -112,7 +110,7 @@ const CourseEnrollPage: React.FC = () => {
           <p className="text-primary-700 mb-6">
             Tham gia cùng {course.enrolledCount} người khác
           </p>
-          <Link to={`/courses/${course.id}/details`}>
+          <Link to={`/courses/${course.id}/details/${course.id}`}>
             <button
               className="bg-primary-600 text-white px-8 py-3 rounded-md shadow-md hover:bg-primary-700 transition-colors font-medium"
             >

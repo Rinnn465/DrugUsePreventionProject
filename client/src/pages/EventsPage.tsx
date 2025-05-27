@@ -6,8 +6,8 @@ const Events: React.FC = () => {
     const [eventSelected, setEventSelected] = useState<string>('online');
 
     return (
-        <div className="container  mx-auto py-8 px-20 grid grid-cols-1 md:grid-cols-3 gap-10">
-            <div >
+        <div className="container mx-auto py-8 px-20 grid grid-cols-1 md:grid-cols-3 gap-10">
+            <div>
                 <p className="text-2xl font-bold text-gray-800 mb-4">Tin tức sự kiện {'(' + eventSelected + ')'}</p>
 
                 <ul className="md:flex-row gap-4">

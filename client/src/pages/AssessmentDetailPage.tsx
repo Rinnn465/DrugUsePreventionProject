@@ -9,13 +9,13 @@ import { courseData } from '../data/courseData';
 const AssessmentDetailPage: React.FC = () => {
     const assessment = assessmentData[0];
     const [result, setResult] = useState<number>(0)
-    const [risk, setRisk] = useState<string>('low');
+    const [risk, setRisk] = useState<string>('thấp');
 
     useEffect(() => {
         if (result >= 4) {
-            setRisk('medium')
+            setRisk('trung bình')
         } else if (result >= 8) {
-            setRisk('high')
+            setRisk('cao')
         }
     }, [result]);
 
@@ -37,20 +37,6 @@ const AssessmentDetailPage: React.FC = () => {
     const handleSuggestedCourse = () => {
         return courseData.filter(course => course.risk === risk);
     }
-
-    const translateRiskLevel = (risk: string) => {
-        switch (risk) {
-            case 'low':
-                return 'Thấp';
-            case 'medium':
-                return 'Trung bình';
-            case 'high':
-                return 'Cao';
-            default:
-                return risk;
-        }
-    }
-
 
     const calculateScore = (formValues: { [key: string]: string | string[] }) => {
         let total = 0;
@@ -130,7 +116,7 @@ const AssessmentDetailPage: React.FC = () => {
                 <div className='my-6'>
                     <h2 className='text-2xl font-bold mb-4'>Kết quả</h2>
                     <p className='text-lg'>Điểm của bạn: {result}</p>
-                    <p className='text-lg'>Nguy cơ sử dụng ma túy: {translateRiskLevel(risk)}</p>
+                    <p className='text-lg'>Nguy cơ sử dụng ma túy: {risk}</p>
 
                     <h3 className='text-xl mb-4'>Các khóa học được gợi ý: </h3>
                     {handleSuggestedCourse().map(course => (

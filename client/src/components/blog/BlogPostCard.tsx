@@ -4,6 +4,7 @@ import { Calendar } from 'lucide-react';
 import { BlogPostCardProps } from '../../types/Blog';
 
 const BlogPostCard: React.FC<BlogPostCardProps> = ({
+  id,
   title,
   excerpt,
   date,
@@ -28,7 +29,7 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-600">{author}</span>
           <Link
-            to={`/blog/${slug}`}
+            to={`/blog/${id}`}
             className="text-primary-600 font-medium hover:text-primary-700 transition-colors"
           >
             Read More
