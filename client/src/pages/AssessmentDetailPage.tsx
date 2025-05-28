@@ -1,21 +1,29 @@
+
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 
 import { assessmentData } from '../data/assessmentData';
 import { courseData } from '../data/courseData';
+import { counselorData } from '../data/counselorData';
 
 const AssessmentDetailPage: React.FC = () => {
-    const assessment = assessmentData[0];
+    const { assessmentId } = useParams<{ assessmentId: string }>();
+
+    const assessment = assessmentData[Number(assessmentId) - 1];
     const [result, setResult] = useState<number>(0)
     const [risk, setRisk] = useState<string>('thấp');
+
+    let recommendedCounselor = counselorData.filter(counselor => counselor.id === 5 || counselor.id === 6);
 
     useEffect(() => {
         if (result >= 4) {
             setRisk('trung bình')
+            recommendedCounselor = counselorData.filter(counselor => counselor.id === 1 || counselor.id === 2);
         } else if (result >= 8) {
             setRisk('cao')
+            recommendedCounselor = counselorData.filter(counselor => counselor.id === 3 || counselor.id === 4);
         }
     }, [result]);
 
@@ -127,14 +135,39 @@ const AssessmentDetailPage: React.FC = () => {
                             <p className='text-sm text-gray-500'>Đối tượng: {course.audience}</p>
                             <p className='text-sm text-gray-500'>Lĩnh vực: {course.category}</p>
                             <Link to={`/courses/${course.id}`} className='text-primary-600 hover:underline'>
-                                View Course
+                                Xem khóa học
                             </Link>
                         </div>
                     ))}
+                    <h2 className='text-3xl font-bold mb-6'>Các chuyên viên gợi ý: </h2>
+                    {recommendedCounselor.map(counselor => {
+                        return (
+                            <div key={counselor.id}>
+                                <Link
+                                    className='text-primary-600 hover:underline'
+                                    to={`/counselor/${counselor.id}`}>
+                                    <h3 className='text-xl font-bold mb-2'>{counselor.name}</h3>
+                                </Link>
+                                <p className='text-md mb-2'>{counselor.title}</p>
+                                <p className='text-gray-700 mb-2'>{counselor.bio}</p>
+                                <p className='text-gray-500 mb-2'>Đánh giá: {counselor.rating} ⭐</p>
+                                <p className='text-gray-500 mb-2'>Ngôn ngữ: {counselor.languages.join(', ')}</p>
+                                <Link
+                                    to={'/appointments'}
+                                    state={{ counselorId: counselor.id }}
+                                    className='inline-block mb-12 mt-2 p-3 bg-primary-500 text-white rounded-md hover:bg-primary-600'
+                                >
+                                    <button className='text-md' >
+                                        Đặt lịch ngay
+                                    </button>
+                                </Link>
+                            </div>
+                        )
+                    })}
                 </div>
-            )}
-
-        </div>
+            )
+            }
+        </div >
     )
 };
 

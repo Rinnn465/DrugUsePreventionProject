@@ -206,15 +206,6 @@ const AboutPage: React.FC = () => {
               </p>
             </div>
           </div>
-
-          <div className="text-center mt-12">
-            <a
-              href="#"
-              className="inline-block bg-primary-600 text-white px-6 py-3 rounded-md shadow-md hover:bg-primary-700 transition-colors"
-            >
-              Gia Nhập Đội Ngũ
-            </a>
-          </div>
         </div>
       </section>
 

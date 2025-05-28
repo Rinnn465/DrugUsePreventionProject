@@ -1,14 +1,22 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calendar, Users, Search, Calendar as CalendarIcon, User, Filter } from 'lucide-react';
 import { counselorData } from '../data/counselorData';
 import CounselorCard from '../components/counselors/CounselorCard';
 import AppointmentCalendar from '../components/appointments/AppointmentCalendar';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const AppointmentsPage: React.FC = () => {
+  const location = useLocation();
+  const state = location.state as { counselorId?: number };
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState('');
   const [selectedCounselor, setSelectedCounselor] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (state?.counselorId) {
+      setSelectedCounselor(state.counselorId);
+    }
+  }, [state.counselorId]);
 
   const specialties = [...new Set(counselorData.flatMap(counselor => counselor.specialties))];
 

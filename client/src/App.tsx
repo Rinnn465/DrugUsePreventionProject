@@ -8,8 +8,8 @@ import CourseDetailPage from './pages/CourseDetailPage';
 import AssessmentsPage from './pages/AssessmentsPage';
 import AssessmentDetailPage from './pages/AssessmentDetailPage';
 import AppointmentsPage from './pages/AppointmentsPage';
-import FeedbackPage from './pages/FeedbackPage';
 import DashBoardPage from './pages/DashBoardPage';
+import SurveyBeforeEventPage from './pages/SurveyBeforeEventPage';
 import CourseEnrollPage from './pages/CourseEnrollPage';
 // import ProgramsPage from './pages/ProgramsPage';
 // import ProgramDetailPage from './pages/ProgramDetailPage';
@@ -26,6 +26,8 @@ import CounselorDetailPage from './pages/CounselorDetailsPage';
 import RolePage from './pages/RolePage';
 import ModuleDetailsPage from './pages/LessonDetailsPage';
 import BlogDetailsPage from './pages/BlogDetailsPage';
+import SurveyCompletePage from './pages/SurveyCompletePage';
+import SurveyAfterEventPage from './pages/SurveyAfterEventPage';
 
 function App() {
   return (
@@ -43,12 +45,14 @@ function App() {
           <Route path="courses/:id/details/:lessonId" element={<ModuleDetailsPage />} />
           <Route path="counselor/:counselorId" element={<CounselorDetailPage />} />
           <Route path="assessments" element={<AssessmentsPage />} />
-          <Route path="assessments/:id" element={<AssessmentDetailPage />} />
+          <Route path="assessments/:assessmentId" element={<AssessmentDetailPage />} />
           <Route path="appointments" element={<AppointmentsPage />} />
           <Route path="profile/:userId" element={<ProfilePage />} />
           <Route path="events" element={<EventPage />} />
           <Route path="events/:id" element={<EventsDetails />} />
-          <Route path="feedback/:eventId" element={<FeedbackPage />} />
+          <Route path="survey/:eventId/before" element={<SurveyBeforeEventPage />} />
+          <Route path="survey/:eventId/after" element={<SurveyAfterEventPage />} />
+          <Route path="survey/:eventId/completed" element={<SurveyCompletePage />} />
           <Route path="dashboard/:userId" element={<DashBoardPage />} />
           <Route path="roles/:userId" element={<RolePage />} />
           <Route path="*" element={<NotFoundPage />} />

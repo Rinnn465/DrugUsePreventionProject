@@ -21,7 +21,7 @@ export const blogPostsData: BlogPostCardProps[] = [
     },
     {
         id: "3",
-        title: "Phụ Huynh Cần Biết Gì Về Nguy Cơ Sử Dụng Chất?",
+        title: "Phụ Huynh Cần Biết Gì Về Nguy Cơ Sử Dụng Chát Kích Thích?",
         excerpt: "Khám phá các chiến lược giúp phụ huynh nhận biết và giảm thiểu dấu hiệu sớm của việc sử dụng chất ở tuổi vị thành niên.",
         date: "2025-05-05",
         author: "Lena Garcia",

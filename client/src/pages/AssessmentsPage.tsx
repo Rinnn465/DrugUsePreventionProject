@@ -41,7 +41,7 @@ const AssessmentsPage: React.FC = () => {
                     <ClipboardCheck className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">{assessment.title}</h3>
+                    <h3 className="text-xl font-semibold mb-2 min-h-[56px]">{assessment.title}</h3>
                     <p className="h-[96px] text-gray-600 mb-4">{assessment.description}</p>
 
                     <div className="mb-4">
@@ -92,9 +92,8 @@ const AssessmentsPage: React.FC = () => {
               <div className="bg-white p-4 rounded-md shadow-sm">
                 <p className="font-semibold text-gray-800 mb-2">Đường dây nóng quốc gia:</p>
                 <ul className="space-y-2 text-gray-700">
-                  <li>Cơ quan Quản lý Dịch vụ Sức khỏe Tâm thần và Lạm dụng Chất (SAMHSA): 1-800-662-HELP (4357)</li>
-                  <li>Đường dây Phòng chống Tự tử Quốc gia: 1-800-273-TALK (8255)</li>
-                  <li>Đường dây nhắn tin khẩn cấp: Gửi từ khóa HOME đến 741741</li>
+                  <li>Cơ quan Tư vẫn chăm sóc Sức khỏe Tâm thần: 0784604598</li>
+                  <li>Cơ quan cấp cứu về ý tế: 115</li>
                 </ul>
               </div>
             </div>
