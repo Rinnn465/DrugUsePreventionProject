@@ -25,7 +25,7 @@ const ForgotPasswordPage: React.FC = () => {
                     type="submit"
                     className="w-full bg-blue-500 text-white py-2 px-4 mt-6 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
-                    Gửi liên kết đặt lại mật khẩu
+                    Gửi liên kết để đặt lại mật khẩu
                 </button>
                 <div className="mt-4 text-center">
                     <p className="text-sm text-gray-600">
