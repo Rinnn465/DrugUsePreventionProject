@@ -4,8 +4,8 @@ import { useState } from "react";
 
 
 const ModuleDetailsPage: React.FC = () => {
-    const { id, lessonId } = useParams();
-    const [selected, setSelected] = useState<string>('lesson');
+    const { id } = useParams();
+    const [selected, setSelected] = useState<string>('question');
     const course = courseData.find(course => course.id.toString() === id);
 
 
@@ -23,30 +23,74 @@ const ModuleDetailsPage: React.FC = () => {
         )
     }
 
+    const handleSubmit = (data: any) => {
+    }
+
     const handleQuestion = () => {
         return (
-            <div></div>
+            <form onSubmit={e => {
+                e.preventDefault();
+                const formData = new FormData(e.target as HTMLFormElement); // Collect form data
+                const selectedAnswers = {} as { [key: number]: any };
+
+
+                handleSubmit(selectedAnswers)
+            }}>
+                <h2 className="text-xl font-semibold mb-4">Câu hỏi bài học</h2>
+                {course?.lesson.map(lesson => (
+                    lesson.question.map(question => (
+                        <div key={question.id} className="mb-4">
+                            <p className="font-medium">{question.questionText}</p>
+                            {question.answers.map(answer => (
+                                <div key={answer.id} className="mb-2">
+                                    <label className="inline-flex items-center">
+                                        <input
+                                            type={question.type === 'multiple' ? 'checkbox' : 'radio'}
+                                            name={`question-${answer.id}`}
+                                            value={answer.isCorrect ? 1 : 0}
+                                            className="form-checkbox"
+                                        />
+                                        <span className="ml-2">{answer.answerText}</span>
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
+                    ))
+                ))}
+                <button
+                    type="submit"
+                    className="p-3 bg-primary-600 text-white rounded-md hover:bg-primary-700">
+                    Submit
+                </button>
+            </form>
         )
     }
     return (
         <div className="container mx-auto py-8 px-20 grid grid-cols-1 md:grid-cols-3 gap-10">
             <div>
                 <button
-                    className="px-4 py-2 mb-2 font-medium rounded-md hover:bg-gray-300  transition duration-200"
+                    className={`px-4 py-2 mb-2 font-medium rounded-md hover:bg-gray-200
+                      transition duration-200 ${selected === 'lesson' ? 'bg-gray-300' : ''}`}
                     onClick={() => setSelected('lesson')}>
                     Lesson
+                </button>
+                <button
+                    className={`px-4 py-2 mb-2 font-medium rounded-md hover:bg-gray-200
+                    transition duration-200 ${selected === 'question' ? 'bg-gray-300' : ''}`}
+                    onClick={() => setSelected('question')}>
+                    Question
                 </button>
             </div>
 
             <div>
                 {selected === 'lesson' ? (
-                    <div>
+                    <>
                         {handleContent()}
-                    </div>
+                    </>
                 ) : (
-                    <form>
+                    <>
                         {handleQuestion()}
-                    </form>
+                    </>
                 )}
             </div>
         </div>

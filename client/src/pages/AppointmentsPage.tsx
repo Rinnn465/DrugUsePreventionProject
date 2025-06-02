@@ -16,7 +16,7 @@ const AppointmentsPage: React.FC = () => {
     if (state?.counselorId) {
       setSelectedCounselor(state.counselorId);
     }
-  }, [state.counselorId]);
+  }, [state?.counselorId]);
 
   const specialties = [...new Set(counselorData.flatMap(counselor => counselor.specialties))];
 

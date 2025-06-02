@@ -36,8 +36,8 @@ const AssessmentDetailPage: React.FC = () => {
     const validationSchema = Yup.object(
         assessment.questions.reduce((acc, q) => {
             acc[q.id] = q.type === 'checkbox'
-                ? Yup.array().min(1, 'Select at least one option')
-                : Yup.string().required('Select one option');
+                ? Yup.array().min(1, 'Chọn ít nhất một lựa chọn')
+                : Yup.string().required('Không được để trống');
             return acc;
         }, {} as { [key: string]: Yup.Schema<any> })
     );
@@ -115,7 +115,9 @@ const AssessmentDetailPage: React.FC = () => {
                                 </div>
                             )
                         })}
-                        <button type='submit'>Submit</button>
+                        <button
+                            className='px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-colors duration-200'
+                            type='submit'>Hoàn thành đánh giá</button>
                     </Form>
                 </Formik>
             )}

@@ -1,19 +1,17 @@
-export interface QuizQuestion {
+export interface LessonQuestion {
     id: number;
-    question: string;
-    type?: "single" | "multiple";
-    options: QuizOptions[];
-    correctAnswer?: string;
-    correctAnswers?: string[];
-    explanation?: string;
-};
-
-export interface QuizOptions {
-    id: string | number;
-    text: string,
-    value: number
+    lessonId: number;
+    questionText: string;
+    type: 'multiple' | 'single';
+    answers: LessonAnswer[];
 }
 
+export interface LessonAnswer {
+    id: number;
+    questionId: number;
+    answerText: string;
+    isCorrect: boolean;
+}
 export interface Lesson {
     id: number;
     title: string;
@@ -21,5 +19,5 @@ export interface Lesson {
     content: string;
     duration?: number;
     videoUrl?: string;
-    quiz: QuizQuestion[];
+    question: LessonQuestion[];
 };

@@ -15,16 +15,16 @@ const LoginPage: React.FC = () => {
         },
         validationSchema: Yup.object({
             email: Yup.string()
-                .email('Invalid email address')
-                .required('Required'),
+                .email('Email không hợp lệ')
+                .required('Không được để trống'),
             password: Yup.string()
-                .min(8, 'Password must be at least 8 characters')
-                .required('Required')
+                .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
+                .required('Không được để trống')
         })
     })
     return (
         <form onSubmit={formik.handleSubmit} className="container mx-auto max-w-md p-8 bg-gray-100 shadow-xl rounded-lg">
-            <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
+            <h2 className="text-2xl font-bold text-center mb-6">Đăng nhập</h2>
             <div className="flex flex-col space-y-4">
                 {/* Email Field */}
                 <div>
@@ -35,7 +35,7 @@ const LoginPage: React.FC = () => {
                         id="email"
                         name="email"
                         className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Enter your email"
+                        placeholder="Nhập email của bạn"
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         value={formik.values.email}
@@ -48,14 +48,14 @@ const LoginPage: React.FC = () => {
                 {/* Password Field */}
                 <div>
                     <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                        Password
+                        Mật khẩu
                     </label>
                     <input
                         id="password"
                         name="password"
                         type="password"
                         className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Enter your password"
+                        placeholder="Nhập mật khẩu của bạn"
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         value={formik.values.password}
@@ -65,20 +65,30 @@ const LoginPage: React.FC = () => {
                     </p> : null}
                 </div>
 
+                <div>
+                    <Link
+                        to={"/forgot-password"}
+                    >
+                        <p className="text-sm text-blue-500 hover:underline">
+                            Quên mật khẩu?
+                        </p>
+                    </Link>
+                </div>
+
                 {/* Submit Button */}
                 <button
                     type="submit"
                     className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
-                    Login
+                    Đăng nhập
                 </button>
             </div>
 
             <div className="mt-4 text-center">
                 <p className="text-sm text-gray-600">
-                    Don't have an account?{" "}
+                    Bạn chưa có tài khoản?{" "}
                     <Link to="/signup" className="text-blue-500 hover:underline">
-                        Sign up
+                        Đắng ký ngay
                     </Link>
                 </p>
             </div>
@@ -86,7 +96,7 @@ const LoginPage: React.FC = () => {
             <div className="mt-4 text-center">
                 <p className="text-sm text-gray-600">
                     <Link to="/" className="text-blue-500 hover:underline">
-                        Back to home page
+                        Quay về trang chủ
                     </Link>
                 </p>
             </div>

@@ -77,8 +77,8 @@ const CoursesPage: React.FC = () => {
           ) : (
             <div className="col-span-full text-center py-12">
               <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">No courses found</h3>
-              <p className="text-gray-600">Try adjusting your search or filter criteria</p>
+              <h3 className="text-xl font-semibold mb-2">Không tìm thấy khóa học</h3>
+              <p className="text-gray-600">Hãy thử tìm kiếm lại</p>
             </div>
           )}
         </div>

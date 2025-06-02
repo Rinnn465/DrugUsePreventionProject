@@ -18,7 +18,7 @@ import ProfilePage from './pages/ProfilePage';
 // import CounselorDetailPage from './pages/CounselorDetailPage';
 import NotFoundPage from './pages/NotFoundPage';
 import LoginPage from './pages/LoginPage';
-import SignUp from './pages/SignupPage';
+import SignUpPage from './pages/SignupPage';
 import EventPage from './pages/EventsPage';
 import AuthLayout from './components/AuthLayout';
 import EventsDetails from './pages/EventDetailsPage';
@@ -28,6 +28,11 @@ import ModuleDetailsPage from './pages/LessonDetailsPage';
 import BlogDetailsPage from './pages/BlogDetailsPage';
 import SurveyCompletePage from './pages/SurveyCompletePage';
 import SurveyAfterEventPage from './pages/SurveyAfterEventPage';
+import CourseManagmentPage from './pages/CourseManagmentPage';
+import EventManagmentPage from './pages/EventManagmentPage';
+import EmployeeManagmentPage from './pages/EmployeeManagmentPage';
+import MemberManagmentPage from './pages/MemberManagmentPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 
 function App() {
   return (
@@ -55,6 +60,11 @@ function App() {
           <Route path="survey/:eventId/completed" element={<SurveyCompletePage />} />
           <Route path="dashboard/:userId" element={<DashBoardPage />} />
           <Route path="roles/:userId" element={<RolePage />} />
+
+          <Route path="roles/:userId/course-manage" element={<CourseManagmentPage />} />
+          <Route path="roles/:userId/event-manage" element={<EventManagmentPage />} />
+          <Route path="roles/:userId/employee-manage" element={<EmployeeManagmentPage />} />
+          <Route path="roles/:userId/member-manage" element={<MemberManagmentPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
 
@@ -62,7 +72,8 @@ function App() {
         {/* different layout with no header and footer included */}
         <Route path="" element={<AuthLayout />}>
           <Route path="login" element={<LoginPage />} />
-          <Route path="signup" element={<SignUp />} />
+          <Route path="signup" element={<SignUpPage />} />
+          <Route path="forgot-password" element={<ForgotPasswordPage />} />
         </Route>
       </Routes>
     </Router>

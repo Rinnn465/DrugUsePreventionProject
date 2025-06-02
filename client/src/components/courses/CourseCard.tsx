@@ -35,7 +35,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
           </div>
           <div className="flex items-center text-gray-600 text-sm">
             <Users className="h-4 w-4 mr-1" />
-            <span>{course.enrolledCount} enrolled</span>
+            <span>{course.enrolledCount} người đã tham gia</span>
           </div>
         </div>
 
@@ -43,7 +43,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
           {course.isCertified && (
             <div className="flex items-center text-success-600 text-sm">
               <BadgeCheck className="h-4 w-4 mr-1" />
-              <span>Certificate</span>
+              <span>Chứng chỉ</span>
             </div>
           )}
 
@@ -51,7 +51,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
             to={`/courses/${course.id}`}
             className="bg-primary-600 text-white font-medium py-2 px-4 rounded hover:bg-primary-700 transition-colors"
           >
-            View Course
+            Xem khóa học
           </Link>
         </div>
       </div>
