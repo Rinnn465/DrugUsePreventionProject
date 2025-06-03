@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 
-const transporter = nodemailer.createTransporter({
+const transporter = nodemailer.createTransport({
     service: 'gmail', // or your email service
     auth: {
         user: process.env.EMAIL_USER,
@@ -124,19 +124,27 @@ exports.resetPassword = async (req, res) => {
         res.status(500).json({ message: 'Error resetting password' });
     }
 
-    // Render reset password form
-    exports.showResetPasswordForm = async (req, res) => {
-        const { token } = req.params;
-
-        try {
-            const user = await Account.findByResetToken(token);
-            if (!user || new Date() > new Date(user.ResetTokenExpiry)) {
-                return res.render('error', { message: 'Invalid or expired reset token' });
-            }
-
-            res.render('reset-password', { token }); // You'll need to create this view
-        } catch (error) {
-            res.render('error', { message: 'Error loading reset form' });
-        }
-    };
+    
 };
+
+// Render forgot password form
+exports.showForgotPasswordForm = (req, res) => {
+    res.render('forgot-password'); // You'll need to create this view
+};
+
+// Render reset password form
+exports.showResetPasswordForm = async (req, res) => {
+    const { token } = req.params;
+    
+    try {
+        const user = await Account.findByResetToken(token);
+        if (!user || new Date() > new Date(user.ResetTokenExpiry)) {
+            return res.render('error', { message: 'Invalid or expired reset token' });
+        }
+        
+        res.render('reset-password', { token }); // You'll need to create this view
+    } catch (error) {
+        res.render('error', { message: 'Error loading reset form' });
+    }
+};
+

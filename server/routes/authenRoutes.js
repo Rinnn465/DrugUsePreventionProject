@@ -11,9 +11,9 @@ router.post('/login', authenController.login);
 router.get('/logout', authenController.logout);
 
 // New forgot password routes
-router.get('/forgot-password', authController.showForgotPasswordForm);
-router.post('/forgot-password', authController.forgotPassword);
-router.get('/reset-password/:token', authController.showResetPasswordForm);
-router.post('/reset-password/:token', authController.resetPassword);
+router.get('/forgot-password', authenController.showForgotPasswordForm);
+router.post('/forgot-password', authenController.forgotPassword);
+router.get('/reset-password/:token', authenController.showResetPasswordForm);
+router.post('/reset-password/:token', authenController.resetPassword);
 
 module.exports = router;
