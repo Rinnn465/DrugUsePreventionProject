@@ -26,7 +26,7 @@ export const courseData: Course[] = [
     isCertified: true,
     risk: 'thấp',
     imageUrl: "https://images.pexels.com/photos/7282588/pexels-photo-7282588.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-    lesson: lessonData.filter(lesson => lesson.id === 2 || lesson.id === 3)
+    lesson: lessonData.filter(lesson => lesson.id === 2)
   },
   {
     id: 3,

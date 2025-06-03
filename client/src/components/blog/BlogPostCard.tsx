@@ -32,7 +32,7 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({
             to={`/blog/${id}`}
             className="text-primary-600 font-medium hover:text-primary-700 transition-colors"
           >
-            Read More
+            Xem chi tiết
           </Link>
         </div>
       </div>

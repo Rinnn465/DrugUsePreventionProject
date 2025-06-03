@@ -21,7 +21,7 @@ const Layout: React.FC = () => {
   }, [location.key])
 
   return (
-    <UserContext.Provider value={userData[5]}>
+    <UserContext.Provider value={userData[0]}>
       <div className="flex flex-col min-h-screen">
         <Header toggleMobileMenu={toggleMobileMenu} />
         <MobileMenu isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />

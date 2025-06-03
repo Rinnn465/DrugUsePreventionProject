@@ -13,8 +13,8 @@ const CounselorCard: React.FC<CounselorCardProps> = ({ counselor, compact = fals
     return (
       <div className="p-4">
         <div className="flex items-start gap-4">
-          <img 
-            src={counselor.imageUrl} 
+          <img
+            src={counselor.imageUrl}
             alt={counselor.name}
             className="w-12 h-12 rounded-full object-cover"
           />
@@ -22,28 +22,25 @@ const CounselorCard: React.FC<CounselorCardProps> = ({ counselor, compact = fals
             <h3 className="font-semibold">{counselor.name}</h3>
             <p className="text-sm text-gray-600 mb-1">{counselor.title}</p>
             <div className="flex flex-wrap gap-1">
-              {counselor.specialties.slice(0, 2).map((specialty, index) => (
+              {counselor.specialties.slice(0, 3).map((specialty, index) => (
                 <span key={index} className="bg-primary-100 text-primary-800 text-xs px-2 py-0.5 rounded-full">
                   {specialty}
                 </span>
               ))}
-              {counselor.specialties.length > 2 && (
-                <span className="text-xs text-gray-500">+{counselor.specialties.length - 2} more</span>
-              )}
             </div>
           </div>
         </div>
       </div>
     );
   }
-  
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:-translate-y-1 hover:shadow-lg">
       <div className="p-6">
         <div className="flex flex-col sm:flex-row gap-6">
           <div className="flex-shrink-0">
-            <img 
-              src={counselor.imageUrl} 
+            <img
+              src={counselor.imageUrl}
               alt={counselor.name}
               className="w-24 h-24 rounded-full object-cover mx-auto sm:mx-0"
             />
@@ -57,7 +54,7 @@ const CounselorCard: React.FC<CounselorCardProps> = ({ counselor, compact = fals
               </div>
             </div>
             <p className="text-gray-600 mb-3">{counselor.title}</p>
-            
+
             <div className="flex flex-wrap gap-2 mb-4">
               {counselor.specialties.map((specialty, index) => (
                 <span key={index} className="bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-full">
@@ -65,9 +62,9 @@ const CounselorCard: React.FC<CounselorCardProps> = ({ counselor, compact = fals
                 </span>
               ))}
             </div>
-            
+
             <p className="text-gray-700 mb-4 line-clamp-3">{counselor.bio}</p>
-            
+
             <div className="flex flex-wrap gap-4 text-sm text-gray-600">
               <div className="flex items-center">
                 <MapPin className="h-4 w-4 mr-1" />
@@ -80,13 +77,13 @@ const CounselorCard: React.FC<CounselorCardProps> = ({ counselor, compact = fals
             </div>
           </div>
         </div>
-        
+
         <div className="mt-6 flex justify-end">
-          <Link 
-            to={`/appointments?counselor=${counselor.id}`} 
+          <Link
+            to={`/appointments?counselor=${counselor.id}`}
             className="bg-primary-600 text-white font-medium py-2 px-4 rounded hover:bg-primary-700 transition-colors"
           >
-            Schedule Appointment
+            Đặt lịch
           </Link>
         </div>
       </div>

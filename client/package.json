@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tinymce/tinymce-react": "^6.2.0",
     "@tippyjs/react": "^4.2.6",
     "formik": "^2.4.6",
     "lucide-react": "^0.344.0",

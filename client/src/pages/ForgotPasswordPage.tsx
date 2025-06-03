@@ -1,10 +1,29 @@
+import { useFormik } from 'formik';
 import React from 'react';
 import { Link } from 'react-router-dom';
+import * as Yup from 'yup';
 
 const ForgotPasswordPage: React.FC = () => {
+    const formik = useFormik(
+        {
+            initialValues: {
+                email: ''
+            },
+            validationSchema: Yup.object({
+                email: Yup.string()
+                    .email('Email không hợp lệ')
+                    .required('Không được để trống')
+            }),
+            onSubmit: values => {
+                alert(`Đã gửi liên kết đặt lại mật khẩu đến ${values.email}`);
+            }
+        }
+    )
     return (
         <>
-            <form className="container mx-auto max-w-md p-8 bg-gray-100 shadow-xl rounded-lg">
+            <form
+                onSubmit={formik.handleSubmit}
+                className="container mx-auto max-w-md p-8 bg-gray-100 shadow-xl rounded-lg">
                 <h2 className="text-2xl font-bold text-center mb-6">Quên mật khẩu</h2>
 
                 <div className="flex flex-col space-y-4">
@@ -17,8 +36,15 @@ const ForgotPasswordPage: React.FC = () => {
                             id="email"
                             name="email"
                             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
                         />
                     </div>
+                    {formik.touched.email && formik.errors.email ? (
+                        <div className="text-red-500 text-sm mt-1">
+                            {formik.errors.email}
+                        </div>
+                    ) : null}
                 </div>
 
                 <button

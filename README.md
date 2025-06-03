@@ -14,3 +14,5 @@ LƯU Ý: Đổi từ powershell sang Git Bash trên terminal của VSCode
 4) Chạy lệnh npm i để tải các dependency (thư viện) của dự án
 
 5) Sau khi tải xong, quay lại terminal, chạy npm run dev, sau đó nhấn tổ hợp o + Enter để mở dự án trong trình duyệt 
+
+
