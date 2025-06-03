@@ -10,4 +10,10 @@ router.post('/login', authenController.login);
 
 router.get('/logout', authenController.logout);
 
+// New forgot password routes
+router.get('/forgot-password', authController.showForgotPasswordForm);
+router.post('/forgot-password', authController.forgotPassword);
+router.get('/reset-password/:token', authController.showResetPasswordForm);
+router.post('/reset-password/:token', authController.resetPassword);
+
 module.exports = router;
