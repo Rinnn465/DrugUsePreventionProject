@@ -1,8 +1,18 @@
 const express = require('express');
 const session = require('express-session');
 const authenRoutes = require('./routes/authenRoutes');
+const cors = require('cors');
 
 const app = express();
+
+//tim hieu ve cors policy de cac port localhost giao tiep voi nhau
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true
+}));
+
+//tra ve json 
+app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
@@ -10,7 +20,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false
 }));
-app.set('view engine', 'ejs');
+
 
 app.use('/', authenRoutes);
 

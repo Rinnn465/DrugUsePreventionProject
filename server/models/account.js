@@ -8,6 +8,7 @@ class Account {
             const result = await request
                 .input('email', sql.VarChar, email)
                 .query('SELECT * FROM Account WHERE Email = @email AND IsDisabled = 0');
+
             return result.recordset[0];
         } catch (err) {
             console.log(err);

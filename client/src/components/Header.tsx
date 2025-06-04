@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { Heart, Menu, X, User } from 'lucide-react';
 import Tippy from '@tippyjs/react/headless';
-import { useUser } from '../hooks/userUser';
+import { useUser } from '../context/UserContext';
 
 interface HeaderProps {
   toggleMobileMenu: () => void;
@@ -10,7 +10,33 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
 
-  let user = useUser();
+  let { user, setUser } = useUser();
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    // console.log(storedUser);
+
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, [])
+
+  const handleLogout = () => {
+    fetch('http://localhost:3000/logout', {
+      method: 'POST',
+      credentials: 'include',
+    })
+      .then(response => {
+        if (response.ok) {
+          setUser(null);
+          localStorage.clear();
+          window.location.href = '/login';
+        } else {
+          console.error('Logout failed');
+        }
+      })
+      .catch(err => console.error('Error:', err));
+  }
+
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -69,14 +95,7 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
           >
             Sự kiện
           </NavLink>
-          <NavLink
-            to={'/roles/' + user?.role}
-            className={({ isActive }) =>
-              isActive ? "text-primary-600 font-medium" : "text-gray-700 hover:text-primary-600 transition-colors"
-            }
-          >
-            {user?.role === 'member' ? null : user?.role}
-          </NavLink>
+
         </nav>
 
         {user ? <div className="flex items-center gap-4">
@@ -90,18 +109,20 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
                   tabIndex={-1} {...attrs}
                 >
                   <div className="flex flex-col gap-2">
-                    <Link to={`/profile/${user?.id}`} className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
+                    <Link to={`/profile/${user?.AccountID}`} className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
                       <User className="h-5 w-5" />
-                      <span>Profile</span>
+                      <span>Hồ sơ</span>
                     </Link>
-                    <Link to={`/dashboard/${user?.id}`} className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
+                    <Link to={`/dashboard/${user?.AccountID}`} className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
                       <User className="h-5 w-5" />
                       <span>Dashboard</span>
                     </Link>
-                    <Link to="/logout" className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
                       <User className="h-5 w-5" />
-                      <span>Logout</span>
-                    </Link>
+                      <span>Đăng xuất</span>
+                    </button>
                   </div>
                 </div>
               )
@@ -109,7 +130,7 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
           >
             <div className='flex gap-2'>
               <User className="h-5 w-5" />
-              <span className='select-none'>{user.role}</span>
+              <span className='select-none text-black-500'>{user.Username}</span>
             </div>
           </Tippy>
           <button
@@ -125,13 +146,13 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
               to="/login"
               className="inline-block bg-white text-primary-600 px-6 py-3 rounded-md shadow-md hover:bg-gray-100 transition-colors font-medium"
             >
-              Sign in
+              Đăng nhập
             </Link>
             <Link
               to="/signup"
               className="inline-block bg-primary-600 text-white px-6 py-3 rounded-md shadow-md hover:bg-primary-700 transition-colors font-medium"
             >
-              Sign up
+              Đăng ký
             </Link>
           </div>}
       </div>

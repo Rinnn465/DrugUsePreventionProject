@@ -1,9 +1,9 @@
 import { useParams } from "react-router-dom";
-import { userData } from "../data/userData";
+import { useUser } from "../context/UserContext";
 
 const DashBoardPage: React.FC = () => {
     const { userId } = useParams();
-    const user = userData.find((user) => user.id.toString() === userId);
+    const { user, setUser } = useUser();
 
     if (!user) {
         return (
@@ -31,27 +31,9 @@ const DashBoardPage: React.FC = () => {
                     </div>
                     <div className="bg-blue-100 p-4 rounded-lg">
                         <h2 className="text-lg font-semibold text-blue-600">Courses taken</h2>
-                        <p className="text-gray-700">
-                            {user.courseTaken?.map((course, index) => {
-                                return (
-                                    <div key={index} className="block">
-                                        {course}
-                                    </div>
-                                );
-                            })}
-                        </p>
                     </div>
                     <div className="bg-blue-100 p-4 rounded-lg">
                         <h2 className="text-lg font-semibold text-blue-600">Events taken</h2>
-                        <p className="text-gray-700">
-                            {user.eventTaken?.map((eventTaken, index) => {
-                                return (
-                                    <div key={index} className="block">
-                                        {eventTaken}
-                                    </div>
-                                );
-                            })}
-                        </p>
                     </div>
                 </div>
 

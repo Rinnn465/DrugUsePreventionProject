@@ -1,11 +1,10 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import { eventData } from "../data/eventData";
-import { userData } from "../data/userData";
 
 const ProfilePage: React.FC = () => {
     const { userId } = useParams();
-    const user = userData.find((user) => user.id.toString() === userId);
+    // const user = userData.find((user) => user.id.toString() === userId);
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -13,7 +12,7 @@ const ProfilePage: React.FC = () => {
                 <h1 className="text-3xl font-bold text-gray-800 mb-4">User Profile</h1>
                 <p className="text-gray-600 mb-6">
                     Welcome to the profile page of <span className="font-semibold text-blue-500">
-                        {user?.id}
+                        {/* {user?.id} */}
                     </span>.
                 </p>
 
@@ -21,13 +20,13 @@ const ProfilePage: React.FC = () => {
                 <div className="space-y-4">
                     <div className="flex items-center space-x-4">
                         <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 font-bold text-xl">
-                            {user?.name}
+                            {/* {user?.name} */}
                         </div>
                         <div>
-                            <h2 className="text-xl font-semibold text-gray-800">{user?.id +
+                            {/* <h2 className="text-xl font-semibold text-gray-800">{user?.id +
                                 ' (' + user?.role + ')'
-                            }</h2>
-                            <p className="text-gray-500">{user?.email}</p>
+                            }</h2> */}
+                            {/* <p className="text-gray-500">{user?.email}</p> */}
                         </div>
                     </div>
 

@@ -2,16 +2,37 @@ import React from "react";
 import { useFormik } from "formik";
 import * as Yup from 'yup'
 import { Link } from "react-router-dom";
+import { useUser } from "../context/UserContext";
 
 const LoginPage: React.FC = () => {
 
+    const { setUser } = useUser();
     const formik = useFormik({
         initialValues: {
             email: '',
             password: ''
         },
         onSubmit: (values) => {
-            alert(values.email + " " + values.password);
+            fetch('http://localhost:3000/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(values)
+            })
+                .then(async (response) => {
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log(data);
+
+                        setUser(data.user);
+                        localStorage.setItem('user', JSON.stringify(data.user));
+
+                        window.location.href = '/';
+                    }
+                })
+                .catch(err => console.error('Error:', err));
+
         },
         validationSchema: Yup.object({
             email: Yup.string()
@@ -23,7 +44,11 @@ const LoginPage: React.FC = () => {
         })
     })
     return (
-        <form onSubmit={formik.handleSubmit} className="container mx-auto max-w-md p-8 bg-gray-100 shadow-xl rounded-lg">
+        <form onSubmit={formik.handleSubmit}
+            className="container mx-auto max-w-md p-8 bg-gray-100 shadow-xl rounded-lg"
+            action="/login"
+            method="POST"
+        >
             <h2 className="text-2xl font-bold text-center mb-6">Đăng nhập</h2>
             <div className="flex flex-col space-y-4">
                 {/* Email Field */}

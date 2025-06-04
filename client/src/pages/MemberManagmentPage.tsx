@@ -1,7 +1,6 @@
-import { userData } from "../data/userData"
 
 const MemberManagmentPage: React.FC = () => {
-    const filteredUsers = userData.filter(user => user.role === "member");
+    // const filteredUsers = userData.filter(user => user.role === "member");
 
     return (
         <div>
@@ -10,7 +9,7 @@ const MemberManagmentPage: React.FC = () => {
                 <div className="bg-white shadow-md rounded-lg p-6 w-full max-w-2xl">
                     <h2 className="text-2xl font-semibold mb-4">Danh sách member</h2>
                     <div>
-                        {filteredUsers.map((user) => {
+                        {/* {filteredUsers.map((user) => {
                             return (
                                 <div key={user.id}>
                                     <h3 className="text-xl font-bold mb-2">{user.name}</h3>
@@ -25,7 +24,7 @@ const MemberManagmentPage: React.FC = () => {
                                     </div>
                                 </div>
                             )
-                        })}
+                        })} */}
                     </div>
                 </div>
             </div>

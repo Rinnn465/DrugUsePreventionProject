@@ -10,6 +10,9 @@ const SignUpPage: React.FC = () => {
     const months = Array.from({ length: 12 }, (_, i) => i + 1);
     const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
 
+    // handle role selection
+    // const roles = ['Thành viên', 'Quản trị viên', 'Quản lý', 'Nhân viên', 'Chuyên viên'];
+
     const handleDateChange = (key: any, value: any) => {
         const [day = '', month = '', year = ''] = formik.values.date.split('-');
 
@@ -33,21 +36,46 @@ const SignUpPage: React.FC = () => {
     const formik = useFormik({
         initialValues: {
             email: '',
-            fullname: '',
+            fullName: '',
+            username: '',
             date: '',
+            // role: '',
             password: '',
             confirmPassword: ''
         },
         onSubmit: (values, { resetForm }) => {
-            alert(values.email + " " + values.fullname + " " + values.date + " " + values.password + " " + values.confirmPassword);
-            resetForm();
+            fetch('http://localhost:3000/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(values)
+            })
+                .then(async (response) => {
+                    if (response.ok) {
+                        const user = await response.json();
+                        console.log(user);
+                        alert('Tạo tài khoản thành công! Vui lòng đăng nhập để tiếp tục.');
+                        window.location.href = '/login'
+                    }
+                })
+                .catch(err => console.error('Error:', err));
+
         },
+
+
         validationSchema: Yup.object({
             email: Yup.string()
+                .trim()
                 .email('Email không hợp lệ')
                 .required('Không được để trống'),
-            fullname: Yup.string()
+            fullName: Yup.string()
+                .trim()
                 .min(2, 'Họ tên phải có ít nhất 2 ký tự')
+                .required('Không được để trống'),
+            username: Yup.string()
+                .trim()
+                .min(2, 'Tên đăng nhập phải có ít nhất 2 ký tự')
                 .required('Không được để trống'),
             date: Yup.string()
                 .required('Không được để trống')
@@ -58,6 +86,9 @@ const SignUpPage: React.FC = () => {
                     const date = new Date(year, month - 1, day);
                     return date.getDate() === day && date.getMonth() + 1 === month && date.getFullYear() === year;
                 }),
+            // role: Yup.string()
+            //     .required('Không được để trống')
+            //     .oneOf(roles, 'Vai trò không hợp lệ'),
             password: Yup.string()
                 .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
                 .required('Không được để trống'),
@@ -71,7 +102,12 @@ const SignUpPage: React.FC = () => {
     const [day = "", month = "", year = ""] = formik.values.date.split("-");
 
     return (
-        <form onSubmit={formik.handleSubmit} className="container mx-auto max-w-md p-8 bg-gray-100 shadow-xl rounded-lg">
+        <form
+            onSubmit={formik.handleSubmit}
+            className="container mx-auto max-w-md p-8 bg-gray-100 shadow-xl rounded-lg"
+            action="/register"
+            method="POST"
+        >
             <h2 className="text-2xl font-bold text-center mb-6">Đăng ký</h2>
             <div className="flex flex-col space-y-4">
                 {/* Email Field */}
@@ -92,22 +128,41 @@ const SignUpPage: React.FC = () => {
                         {formik.errors.email}
                     </p> : null}
                 </div>
-                {/* Fullname Field */}
+                {/* fullName Field */}
                 <div>
-                    <label htmlFor="fullname" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
                         Họ tên
                     </label>
                     <input
-                        id="fullname"
-                        name="fullname"
+                        id="fullName"
+                        name="fullName"
                         className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Nhập họ tên"
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
-                        value={formik.values.fullname}
+                        value={formik.values.fullName}
                     />
-                    {formik.touched.fullname && formik.errors.fullname ? <p className="text-red-600">
-                        {formik.errors.fullname}
+                    {formik.touched.fullName && formik.errors.fullName ? <p className="text-red-600">
+                        {formik.errors.fullName}
+                    </p> : null}
+                </div>
+
+                {/* username field */}
+                <div>
+                    <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                        Tên tài khoản (tên sẽ hiển thị trên trang web)
+                    </label>
+                    <input
+                        id="username"
+                        name="username"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Nhập tên tài khoản của bạn"
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        value={formik.values.username}
+                    />
+                    {formik.touched.username && formik.errors.username ? <p className="text-red-600">
+                        {formik.errors.username}
                     </p> : null}
                 </div>
 
@@ -162,6 +217,29 @@ const SignUpPage: React.FC = () => {
                 {formik.touched.date && formik.errors.date ? <p className="text-red-600">
                     {formik.errors.date}
                 </p> : null}
+
+                {/* role field */}
+                {/* <label htmlFor="dob" className="block text-sm font-medium text-gray-700 mb-1">
+                    Chọn role (các vai trò khác ngoài member đều cần sự phê duyệt của quản trị viên)
+                </label>
+                <select
+                    name="role"
+                    id="role"
+                    value={formik.values.role}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                >
+                    <option>Chọn role</option>
+                    {roles.map((role) => (
+                        <option key={role} value={role}>
+                            {role}
+                        </option>
+                    ))}
+                </select>
+
+                {formik.touched.role && formik.errors.role ? <p className="text-red-600">
+                    {formik.errors.role}
+                </p> : null} */}
 
                 {/* Password Field */}
                 <div>

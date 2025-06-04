@@ -200,23 +200,23 @@ const HomePage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <TestimonialCard
-              quote="The online course helped me understand the risks and I now feel empowered to make better choices."
+              quote="khóa học đã giúp tôi hiểu rõ hơn về tác hại của ma túy và cách phòng tránh. Tôi cảm thấy tự tin hơn khi nói chuyện với bạn bè về vấn đề này."
               author="Trường Hạnh, 17"
-              role="Student"
+              role="Học sinh"
               imageSrc="https://images.pexels.com/photos/762020/pexels-photo-762020.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
             />
 
             <TestimonialCard
-              quote="The counseling sessions provided the support my family needed during a difficult time. We're forever grateful."
+              quote="Buôi học đã giúp tôi nhận ra tầm quan trọng của việc giáo dục con cái về ma túy. Tôi cảm thấy mình có thêm công cụ để hỗ trợ con trong việc phòng tránh."
               author="Nguyễn Thị Ba, 42"
-              role="Parent"
+              role="Phụ huynh"
               imageSrc="https://images.pexels.com/photos/774095/pexels-photo-774095.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
             />
 
             <TestimonialCard
-              quote="The resources helped me start important conversations with my students about drug prevention."
+              quote="Tài liệu và các hoạt động trong khóa học rất hữu ích. Tôi đã học được nhiều điều mới và cảm thấy có trách nhiệm hơn trong việc phòng chống ma túy."
               author="Trần Quốc Nam, 38"
-              role="Teacher"
+              role="Giáo viên"
               imageSrc="https://images.pexels.com/photos/1270076/pexels-photo-1270076.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
             />
           </div>
@@ -233,8 +233,9 @@ const HomePage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <BlogPostCard
-              title="Understanding Substance Use Risk Factors in Adolescents"
-              excerpt="Learn about the key risk factors that can lead to substance use among teenagers and how to address them effectively."
+              id='1'
+              title="Tìm hiểu các yếu tố nguy cơ dẫn đến sử dụng ma túy ở thanh thiếu niên"
+              excerpt="Tìm hiểu các yếu tố nguy cơ có thể dẫn đến việc sử dụng ma túy ở thanh thiếu niên và cách phòng ngừa hiệu quả."
               date="June 15, 2025"
               author="Dr. Emily Johnson"
               imageUrl="https://images.pexels.com/photos/7407946/pexels-photo-7407946.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
@@ -242,8 +243,9 @@ const HomePage: React.FC = () => {
             />
 
             <BlogPostCard
-              title="Effective Communication Strategies for Parents"
-              excerpt="Discover proven techniques to talk to your children about drugs and build a foundation of trust and open dialogue."
+              id='1'
+              title="Giao tiếp hiệu quả: Chiến lược nói chuyện với trẻ em về ma túy"
+              excerpt="Tìm hiểu các chiến lược giao tiếp hiệu quả với con trẻ"
               date="June 10, 2025"
               author="Thomas Richards, LMFT"
               imageUrl="https://images.pexels.com/photos/7282588/pexels-photo-7282588.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
@@ -251,8 +253,9 @@ const HomePage: React.FC = () => {
             />
 
             <BlogPostCard
-              title="Building Resilience: A Key Prevention Strategy"
-              excerpt="Explore how developing resilience can help individuals avoid substance use and overcome challenges."
+              id='1'
+              title="Xây dựng nền tảng: Cách giúp trẻ em tránh xa ma túy"
+              excerpt="Khám phá các phương pháp giúp trẻ em phát triển kỹ năng sống và giá trị cá nhân để tránh xa ma túy."
               date="June 5, 2025"
               author="Dr. Marcus Lee"
               imageUrl="https://images.pexels.com/photos/2531353/pexels-photo-2531353.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"

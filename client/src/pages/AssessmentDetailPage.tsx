@@ -125,7 +125,6 @@ const AssessmentDetailPage: React.FC = () => {
             {result > 0 && (
                 <div className='my-6'>
                     <h2 className='text-2xl font-bold mb-4'>Kết quả</h2>
-                    <p className='text-lg'>Điểm của bạn: {result}</p>
                     <p className='text-lg'>Nguy cơ sử dụng ma túy: {risk}</p>
 
                     <h3 className='text-xl mb-4'>Các khóa học được gợi ý: </h3>

@@ -22,7 +22,7 @@ const HeroSection: React.FC = () => {
             Vì một cộng đồng <br /> không tồn tại ma túy
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-primary-100">
-            Nền tảng phòng ngừa ma túy đầu tiên của Việt Nam
+            Nền tảng hỗ trợ phòng ngừa ma túy đầu tiên của Việt Nam
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
