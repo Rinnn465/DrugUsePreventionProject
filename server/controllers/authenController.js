@@ -1,6 +1,17 @@
 const Account = require('../models/account');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 
+const transporter = nodemailer.createTransport({
+    service: 'gmail', // or your email service
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
+
+//Use to register a new user
 exports.register = async (req, res) => {
     const { username, email, password, fullName, dateOfBirth } = req.body; // Bỏ role
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -14,6 +25,7 @@ exports.register = async (req, res) => {
     }
 };
 
+// Use to login a user
 exports.login = async (req, res) => {
     const { email, password } = req.body;
 
@@ -31,6 +43,7 @@ exports.login = async (req, res) => {
     }
 };
 
+// Use to logout a user
 exports.logout = (req, res) => {
     req.session.destroy((err) => {
         if (err) {
@@ -41,3 +54,101 @@ exports.logout = (req, res) => {
 
     });
 };
+
+// Use to handle forgot password functionality
+exports.forgotPassword = async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        const user = await Account.findByEmail(email);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found with this email' });
+        }
+
+        // Generate reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
+
+        // Save token to database
+        await Account.saveResetToken(user.AccountID, resetToken, resetTokenExpiry);
+
+        // Send email
+        const resetUrl = `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`;
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Password Reset Request',
+            html: `
+                <h2>Password Reset Request</h2>
+                <p>You requested a password reset. Click the link below to reset your password:</p>
+                <a href="${resetUrl}" style="background-color: #4CAF50; color: white; padding: 14px 20px; text-decoration: none; display: inline-block;">Reset Password</a>
+                <p>This link will expire in 1 hour.</p>
+                <p>If you didn't request this, please ignore this email.</p>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+        res.json({ message: 'Password reset email sent successfully' });
+
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({ message: 'Error sending reset email' });
+    }
+};
+
+// Reset Password - Verify token and update password
+exports.resetPassword = async (req, res) => {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+
+    try {
+        // Find user by reset token
+        const user = await Account.findByResetToken(token);
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid or expired reset token' });
+        }
+
+        // Check if token is expired
+        if (new Date() > new Date(user.ResetTokenExpiry)) {
+            return res.status(400).json({ message: 'Reset token has expired' });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update password and clear reset token
+        await Account.updatePassword(user.AccountID, hashedPassword);
+        await Account.clearResetToken(user.AccountID);
+
+        res.json({ message: 'Password reset successfully' });
+
+    } catch (error) {
+        console.error('Reset password error:', error);
+        res.status(500).json({ message: 'Error resetting password' });
+    }
+
+    
+};
+
+// Render forgot password form
+exports.showForgotPasswordForm = (req, res) => {
+    res.render('forgot-password'); // You'll need to create this view
+};
+
+// Render reset password form
+exports.showResetPasswordForm = async (req, res) => {
+    const { token } = req.params;
+    
+    try {
+        const user = await Account.findByResetToken(token);
+        if (!user || new Date() > new Date(user.ResetTokenExpiry)) {
+            return res.render('error', { message: 'Invalid or expired reset token' });
+        }
+        
+        res.render('reset-password', { token }); // You'll need to create this view
+    } catch (error) {
+        res.render('error', { message: 'Error loading reset form' });
+    }
+};
+
