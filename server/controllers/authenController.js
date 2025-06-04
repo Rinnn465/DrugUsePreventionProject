@@ -17,8 +17,9 @@ exports.register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     try {
-        const userId = await Account.create(username, email, hashedPassword, fullName, dateOfBirth); // Bỏ role
-        res.redirect('/login');
+        const userId = await Account.create(username, email, hashedPassword, fullName, dateOfBirth);
+        res.status(201).json({ message: 'User registered successfully', userId });
+        //backend ko handle redirect, chi can tra ve chuoi json, ben frontend se xu ly redirect
     } catch (error) {
         res.status(500).send('Error registering user');
     }
@@ -31,8 +32,9 @@ exports.login = async (req, res) => {
     try {
         const user = await Account.findByEmail(email);
         if (user && await bcrypt.compare(password, user.Password)) {
-            req.session.user = { id: user.AccountID, username: user.Username, role: user.Role };
-            res.redirect('/dashboard');
+            req.session.user = user
+            res.status(201).json({ message: 'Login successful', user: user });
+            // res.redirect('/dashboard');
         } else {
             res.status(401).send('Wrong email or password');
         }
@@ -47,7 +49,9 @@ exports.logout = (req, res) => {
         if (err) {
             return res.status(500).send('Error logging out');
         }
-        res.redirect('/login');
+        res.clearCookie('connect.sid');
+        res.status(200).json({ message: 'Logged out' });
+
     });
 };
 

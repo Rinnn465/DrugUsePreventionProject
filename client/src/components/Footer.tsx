@@ -13,7 +13,7 @@ const Footer: React.FC = () => {
               <span className="font-bold text-xl">DrugPrevention</span>
             </Link>
             <p className="text-gray-400 max-w-xs">
-              Supporting communities through drug prevention education and counseling services.
+              Hỗ trợ cộng đồng trong việc phòng ngừa và giảm thiểu tác hại của ma túy thông qua giáo dục, tư vấn và các chương trình hỗ trợ.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-primary-400 transition-colors">
@@ -30,54 +30,54 @@ const Footer: React.FC = () => {
               </a>
             </div>
           </div>
-          
+
           <div>
-            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+            <h3 className="text-lg font-semibold mb-4">Liên kết</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/about" className="text-gray-400 hover:text-white transition-colors">About Us</Link>
+                <Link to="/about" className="text-gray-400 hover:text-white transition-colors">Về chúng tôi</Link>
               </li>
               <li>
-                <Link to="/courses" className="text-gray-400 hover:text-white transition-colors">Training Courses</Link>
+                <Link to="/courses" className="text-gray-400 hover:text-white transition-colors">Khóa học</Link>
               </li>
               <li>
-                <Link to="/assessments" className="text-gray-400 hover:text-white transition-colors">Risk Assessment</Link>
+                <Link to="/assessments" className="text-gray-400 hover:text-white transition-colors">Trắc nghiệm đánh giá</Link>
               </li>
               <li>
-                <Link to="/appointments" className="text-gray-400 hover:text-white transition-colors">Counseling</Link>
+                <Link to="/appointments" className="text-gray-400 hover:text-white transition-colors">Tư vẫn</Link>
               </li>
               <li>
-                <Link to="/programs" className="text-gray-400 hover:text-white transition-colors">Community Programs</Link>
+                <Link to="/programs" className="text-gray-400 hover:text-white transition-colors">Sự kiện</Link>
               </li>
               <li>
                 <Link to="/blog" className="text-gray-400 hover:text-white transition-colors">Blog</Link>
               </li>
             </ul>
           </div>
-          
+
           <div>
-            <h3 className="text-lg font-semibold mb-4">Resources</h3>
+            <h3 className="text-lg font-semibold mb-4">Tài nguyên</h3>
             <ul className="space-y-2">
               <li>
                 <a href="#" className="text-gray-400 hover:text-white transition-colors">FAQs</a>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">Chính sách quyền riêng tư</a>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">Terms of Service</a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">Điều khoản dịch vụ</a>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">Volunteer</a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">Tình nguyện</a>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">Donate</a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">Quyên góp</a>
               </li>
             </ul>
           </div>
-          
+
           <div>
-            <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
+            <h3 className="text-lg font-semibold mb-4">Thông tin liên lạc</h3>
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
                 <MapPin className="h-5 w-5 text-primary-400 flex-shrink-0 mt-0.5" />
@@ -94,7 +94,7 @@ const Footer: React.FC = () => {
             </ul>
           </div>
         </div>
-        
+
         <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-500">
           <p>&copy; {new Date().getFullYear()} Drug Prevention Organization. All rights reserved.</p>
         </div>

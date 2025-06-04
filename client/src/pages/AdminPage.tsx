@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import { useUser } from "../hooks/userUser";
+import { useUser } from "../context/UserContext";
 
 const AdminPage: React.FC = () => {
-    const user = useUser();
+    const { user } = useUser();
 
     return (
         <div className="flex container flex-col mx-auto items-center justify-center min-h-screen bg-gray-100">
