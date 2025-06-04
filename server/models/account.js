@@ -38,45 +38,86 @@ class Account {
 
 
 
-    // Save reset token
-    static async saveResetToken(accountId, token, expiry) {
-        const query = `
+//     // Save reset token
+//     static async saveResetToken(accountId, token, expiry) {
+//         const query = `
+//         UPDATE accounts 
+//         SET ResetToken = ?, ResetTokenExpiry = ? 
+//         WHERE AccountID = ?
+//     `;
+//         return await db.execute(query, [token, expiry, accountId]);
+//     }
+
+//     // Find user by reset token
+//     static async findByResetToken(token) {
+//         const query = `
+//         SELECT * FROM accounts 
+//         WHERE ResetToken = ? AND ResetTokenExpiry > NOW()
+//     `;
+//         const [rows] = await db.execute(query, [token]);
+//         return rows[0];
+//     }
+
+//     // Update password
+//     static async updatePassword(accountId, hashedPassword) {
+//         const query = `
+//         UPDATE accounts 
+//         SET Password = ? 
+//         WHERE AccountID = ?
+//     `;
+//         return await db.execute(query, [hashedPassword, accountId]);
+//     }
+
+//     // Clear reset token
+//     static async clearResetToken(accountId) {
+//         const query = `
+//         UPDATE accounts 
+//         SET ResetToken = NULL, ResetTokenExpiry = NULL 
+//         WHERE AccountID = ?
+//     `;
+//         return await db.execute(query, [accountId]);
+//     }
+// }
+
+// Save reset token
+static async saveResetToken(accountId, token, expiry) {
+    const query = `
         UPDATE accounts 
         SET ResetToken = ?, ResetTokenExpiry = ? 
         WHERE AccountID = ?
     `;
-        return await db.execute(query, [token, expiry, accountId]);
-    }
+    return await db.execute(query, [token, expiry, accountId]);
+}
 
-    // Find user by reset token
-    static async findByResetToken(token) {
-        const query = `
+// Find user by reset token
+static async findByResetToken(token) {
+    const query = `
         SELECT * FROM accounts 
-        WHERE ResetToken = ? AND ResetTokenExpiry > NOW()
+        WHERE ResetToken = ? AND ResetTokenExpiry > GETDATE()
     `;
-        const [rows] = await db.execute(query, [token]);
-        return rows[0];
-    }
+    const [rows] = await db.execute(query, [token]);
+    return rows[0];
+}
 
-    // Update password
-    static async updatePassword(accountId, hashedPassword) {
-        const query = `
+// Update password
+static async updatePassword(accountId, hashedPassword) {
+    const query = `
         UPDATE accounts 
         SET Password = ? 
         WHERE AccountID = ?
     `;
-        return await db.execute(query, [hashedPassword, accountId]);
-    }
+    return await db.execute(query, [hashedPassword, accountId]);
+}
 
-    // Clear reset token
-    static async clearResetToken(accountId) {
-        const query = `
+// Clear reset token
+static async clearResetToken(accountId) {
+    const query = `
         UPDATE accounts 
         SET ResetToken = NULL, ResetTokenExpiry = NULL 
         WHERE AccountID = ?
     `;
-        return await db.execute(query, [accountId]);
-    }
+    return await db.execute(query, [accountId]);
 }
 
+}
 module.exports = Account;
