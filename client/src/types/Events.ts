@@ -9,4 +9,5 @@ export interface Event {
     tags?: string[];
     type?: string;
     url?: string;
+    imageUrl?: string;
 }

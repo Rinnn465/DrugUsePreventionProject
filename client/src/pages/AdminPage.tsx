@@ -11,7 +11,7 @@ const AdminPage: React.FC = () => {
                 <div className="space-y-6">
                     <div className="w-container bg-white shadow-md rounded-lg p-6 w-full flex items-center justify-between gap-12">
                         <h2 className="text-lg font-semibold text-gray-700">Quản lý sự kiện</h2>
-                        <Link to={`/roles/${user?.role}/event-manage`}>
+                        <Link to={`/roles/${user?.Role}/event-manage`}>
                             <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
                                 Chi tiết
                             </button>
@@ -19,7 +19,7 @@ const AdminPage: React.FC = () => {
                     </div>
                     <div className="bg-white shadow-md rounded-lg p-6 w-full flex items-center justify-between">
                         <h2 className="text-lg font-semibold text-gray-700">Quản lý khóa học</h2>
-                        <Link to={`/roles/${user?.role}/course-manage`}>
+                        <Link to={`/roles/${user?.Role}/course-manage`}>
                             <button className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
                                 Chi tiết
                             </button>
@@ -27,7 +27,7 @@ const AdminPage: React.FC = () => {
                     </div>
                     <div className="bg-white shadow-md rounded-lg p-6 w-full flex items-center justify-between">
                         <h2 className="text-lg font-semibold text-gray-700">Quản lý nhân viên</h2>
-                        <Link to={`/roles/${user?.role}/employee-manage`}>
+                        <Link to={`/roles/${user?.Role}/employee-manage`}>
                             <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
                                 Chi tiết
                             </button>

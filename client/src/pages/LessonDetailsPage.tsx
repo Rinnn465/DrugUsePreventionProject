@@ -27,6 +27,14 @@ const ModuleDetailsPage: React.FC = () => {
                         <h3 className="text-lg font-medium">{lesson.title}</h3>
                         <p>{lesson.content}</p>
                         <p>{lesson.content}</p>
+
+                        <iframe
+                            width={"100%"}
+                            height={"400px"}
+                            src={lesson.videoUrl}
+                            className="my-6 rounded-lg shadow-md"
+                            allowFullScreen
+                        ></iframe>
                     </div>
                 ))}
                 <button

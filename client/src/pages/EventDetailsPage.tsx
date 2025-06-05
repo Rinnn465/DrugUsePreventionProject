@@ -52,11 +52,6 @@ const EventsDetails: React.FC = () => {
                         <p className="text-gray-600 text-lg">
                             {event.location}
                         </p>
-                    </div>
-                    <div className="mt-6">
-                        <h3 className="text-xl font-medium text-gray-700 mb-2">
-                            Các thông tin khác
-                        </h3>
                         <p className="text-gray-600 text-base">
                             {event.description}
                         </p>
@@ -65,10 +60,26 @@ const EventsDetails: React.FC = () => {
                         </p>
                     </div>
                     {handleRenderSurveyForm()}
+                    {event.imageUrl ? (
+                        <div>
+                            <figure>
+                                <img
+                                    src={event.imageUrl}
+                                    alt={event.name}
+                                    className="w-full mt-12 object-cover rounded-md mb-4"
+                                />
+                                <figcaption>
+                                    <p className="text-gray-600 text-sm text-center">
+                                        Hình ảnh minh họa cho sự kiện
+                                    </p>
+                                </figcaption>
+                            </figure>
+                        </div>
+                    ) : null}
                 </div>
 
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-800">Upcoming Events</h2>
+                    <h2 className="text-2xl font-bold text-gray-800">Các sự kiện trong tương lai</h2>
                     {upcomingEvents.map((event) => {
                         return (
                             <div key={event.id} className="border p-4 mb-4">

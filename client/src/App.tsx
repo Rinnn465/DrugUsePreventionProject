@@ -54,7 +54,7 @@ function App() {
             <Route path="assessments" element={<AssessmentsPage />} />
             <Route path="assessments/:assessmentId" element={<AssessmentDetailPage />} />
             <Route path="appointments" element={<AppointmentsPage />} />
-            <Route path="profile/:userId" element={<ProfilePage />} />
+            {/* <Route path="profile/:userId" element={<ProfilePage />} /> */}
             <Route path="events" element={<EventPage />} />
             <Route path="events/:id" element={<EventsDetails />} />
             <Route path="survey/:eventId/before" element={<SurveyBeforeEventPage />} />

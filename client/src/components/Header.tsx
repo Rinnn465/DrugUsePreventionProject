@@ -109,10 +109,10 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
                   tabIndex={-1} {...attrs}
                 >
                   <div className="flex flex-col gap-2">
-                    <Link to={`/profile/${user?.AccountID}`} className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
+                    {/* <Link to={`/profile/${user?.AccountID}`} className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
                       <User className="h-5 w-5" />
                       <span>Hồ sơ</span>
-                    </Link>
+                    </Link> */}
                     <Link to={`/dashboard/${user?.AccountID}`} className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
                       <User className="h-5 w-5" />
                       <span>Dashboard</span>
