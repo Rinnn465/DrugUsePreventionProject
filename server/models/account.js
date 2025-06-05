@@ -81,15 +81,14 @@ class Account {
 // }
 
 // Save reset token
-    static async saveResetToken(accountId, token, expiry) {
+    static async saveResetToken(accountId, token) {
         try {
             const pool = await poolPromise;
             const request = pool.request();
             await request
                 .input('accountId', sql.Int, accountId)
                 .input('token', sql.VarChar, token)
-                .input('expiry', sql.DateTime2, expiry)
-                .query('UPDATE Account SET ResetToken = @token, ResetTokenExpiry = @expiry WHERE AccountID = @accountId');
+                .query('UPDATE Account SET ResetToken = @token WHERE AccountID = @accountId');
         } catch (err) {
             console.log(err);
             throw err;
@@ -103,7 +102,7 @@ class Account {
             const request = pool.request();
             const result = await request
                 .input('token', sql.VarChar, token)
-                .query('SELECT * FROM Account WHERE ResetToken = @token AND ResetTokenExpiry > GETDATE()');
+                .query('SELECT * FROM Account WHERE ResetToken = @token');
             return result.recordset[0];
         } catch (err) {
             console.log(err);
@@ -133,7 +132,7 @@ class Account {
             const request = pool.request();
             await request
                 .input('accountId', sql.Int, accountId)
-                .query('UPDATE Account SET ResetToken = NULL, ResetTokenExpiry = NULL WHERE AccountID = @accountId');
+                .query('UPDATE Account SET ResetToken = NULL WHERE AccountID = @accountId');
         } catch (err) {
             console.log(err);
             throw err;

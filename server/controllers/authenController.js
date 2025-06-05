@@ -1,10 +1,10 @@
 const Account = require('../models/account');
 const bcrypt = require('bcryptjs');
-const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail', // or your email service
+    service: 'gmail',
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
@@ -20,7 +20,15 @@ exports.register = async (req, res) => {
         const userId = await Account.create(username, email, hashedPassword, fullName, dateOfBirth);
         res.status(201).json({ message: 'User registered successfully', userId });
     } catch (error) {
-        res.status(500).json({ message: 'Error registering user' });
+        if (error.message.includes('Violation of UNIQUE KEY constraint')) {
+            if (error.message.includes('Email')) {
+                return res.status(400).json({ message: 'Email already exists' });
+            }
+            if (error.message.includes('Username')) {
+                return res.status(400).json({ message: 'Username already exists' });
+            }
+        }
+        res.status(500).json({ message: 'Error registering user', error: error.message });
     }
 };
 
@@ -62,13 +70,16 @@ exports.forgotPassword = async (req, res) => {
             return res.status(404).json({ message: 'User not found with this email' });
         }
 
-        // Generate reset token
-        const resetToken = crypto.randomBytes(32).toString('hex');
-        const resetTokenExpiryMinutes = parseInt(process.env.RESET_TOKEN_EXPIRY_MINUTES) || 15; // Default to 15 minutes if not set
-        const resetTokenExpiry = new Date(Date.now() + resetTokenExpiryMinutes + 15 * 60 * 1000); // 15 minutes from now
+        // Tạo reset token bằng JWT
+        const resetTokenExpiryMinutes = parseInt(process.env.RESET_TOKEN_EXPIRY_MINUTES) || 15; // Thời gian hết hạn token (mặc định 15 phút)
+        const resetToken = jwt.sign(
+            { accountId: user.AccountID }, // Payload chứa accountId
+            process.env.JWT_SECRET, // Secret key để ký token
+            { expiresIn: `${resetTokenExpiryMinutes}m` } // Thời gian hết hạn
+        );
         
-        // Save token to database
-        await Account.saveResetToken(user.AccountID, resetToken, resetTokenExpiry);
+        // Lưu token vào cơ sở dữ liệu
+        await Account.saveResetToken(user.AccountID, resetToken);
 
         // Send email
         const resetUrl = `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`;
@@ -111,9 +122,10 @@ exports.resetPassword = async (req, res) => {
             return res.status(400).json({ message: 'Invalid or expired reset token' });
         }
 
-        // Check if token is expired (already handled in findByResetToken)
-        if (new Date() > new Date(user.ResetTokenExpiry)) {
-            return res.status(400).json({ message: 'Reset token has expired' });
+        // Verify token using JWT
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (decoded.accountId !== user.AccountID) {
+            return res.status(400).json({ message: 'Invalid or expired reset token' });
         }
 
         // Hash new password
@@ -127,6 +139,12 @@ exports.resetPassword = async (req, res) => {
 
     } catch (error) {
         console.error('Reset password error:', error);
+        if (error.name === 'TokenExpiredError') {
+            return res.status(400).json({ message: 'Reset token has expired' });
+        }
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(400).json({ message: 'Invalid reset token' });
+        }
         res.status(500).json({ message: 'Error resetting password' });
     }
 
@@ -135,22 +153,29 @@ exports.resetPassword = async (req, res) => {
 
 // Render forgot password form
 exports.showForgotPasswordForm = (req, res) => {
-    res.render('forgot-password'); // You'll need to create this view
+    res.render('forgot-password');
 };
 
 // Render reset password form
 exports.showResetPasswordForm = async (req, res) => {
     const { token } = req.params;
-    
+
     try {
         const user = await Account.findByResetToken(token);
-        if (!user || new Date() > new Date(user.ResetTokenExpiry)) {
-            return res.render('error', { message: 'Invalid or expired reset token' });
+        if (!user) {
+            return res.render('error', { message: 'Invalid reset token' });
         }
-        
-        res.render('reset-password', { token }); // You'll need to create this view
+
+        // Xác thực token bằng JWT
+        jwt.verify(token, process.env.JWT_SECRET, (err) => {
+            if (err) {
+                return res.render('error', { message: 'Invalid or expired reset token' });
+            }
+            res.render('reset-password', { token });
+        });
     } catch (error) {
         res.render('error', { message: 'Error loading reset form' });
     }
 };
 
+module.exports = exports;

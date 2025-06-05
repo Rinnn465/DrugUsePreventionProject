@@ -10,9 +10,8 @@ CREATE TABLE Account (
     FullName VARCHAR(100) NOT NULL,
     DateOfBirth DATE,
     Role VARCHAR(50) NOT NULL,
-    ManagedBy INT,
     CreatedAt DATETIME2 NOT NULL,
-    IsDisabled BIT NOT NULL DEFAULT 0
+    IsDisabled BIT NOT NULL DEFAULT 0,
     ResetToken VARCHAR(255) NULL,
     ResetTokenExpiry DATETIME NULL,
 );
