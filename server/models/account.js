@@ -39,44 +39,105 @@ class Account {
 
 
 
-    // Save reset token
+//     // Save reset token
+//     static async saveResetToken(accountId, token, expiry) {
+//         const query = `
+//         UPDATE accounts 
+//         SET ResetToken = ?, ResetTokenExpiry = ? 
+//         WHERE AccountID = ?
+//     `;
+//         return await db.execute(query, [token, expiry, accountId]);
+//     }
+
+//     // Find user by reset token
+//     static async findByResetToken(token) {
+//         const query = `
+//         SELECT * FROM accounts 
+//         WHERE ResetToken = ? AND ResetTokenExpiry > NOW()
+//     `;
+//         const [rows] = await db.execute(query, [token]);
+//         return rows[0];
+//     }
+
+//     // Update password
+//     static async updatePassword(accountId, hashedPassword) {
+//         const query = `
+//         UPDATE accounts 
+//         SET Password = ? 
+//         WHERE AccountID = ?
+//     `;
+//         return await db.execute(query, [hashedPassword, accountId]);
+//     }
+
+//     // Clear reset token
+//     static async clearResetToken(accountId) {
+//         const query = `
+//         UPDATE accounts 
+//         SET ResetToken = NULL, ResetTokenExpiry = NULL 
+//         WHERE AccountID = ?
+//     `;
+//         return await db.execute(query, [accountId]);
+//     }
+// }
+
+// Save reset token
     static async saveResetToken(accountId, token, expiry) {
-        const query = `
-        UPDATE accounts 
-        SET ResetToken = ?, ResetTokenExpiry = ? 
-        WHERE AccountID = ?
-    `;
-        return await db.execute(query, [token, expiry, accountId]);
+        try {
+            const pool = await poolPromise;
+            const request = pool.request();
+            await request
+                .input('accountId', sql.Int, accountId)
+                .input('token', sql.VarChar, token)
+                .input('expiry', sql.DateTime2, expiry)
+                .query('UPDATE Account SET ResetToken = @token, ResetTokenExpiry = @expiry WHERE AccountID = @accountId');
+        } catch (err) {
+            console.log(err);
+            throw err;
+        }
     }
 
-    // Find user by reset token
+// Find user by reset token
     static async findByResetToken(token) {
-        const query = `
-        SELECT * FROM accounts 
-        WHERE ResetToken = ? AND ResetTokenExpiry > NOW()
-    `;
-        const [rows] = await db.execute(query, [token]);
-        return rows[0];
+        try {
+            const pool = await poolPromise;
+            const request = pool.request();
+            const result = await request
+                .input('token', sql.VarChar, token)
+                .query('SELECT * FROM Account WHERE ResetToken = @token AND ResetTokenExpiry > GETDATE()');
+            return result.recordset[0];
+        } catch (err) {
+            console.log(err);
+            throw err;
+        }
     }
 
-    // Update password
+// Update password
     static async updatePassword(accountId, hashedPassword) {
-        const query = `
-        UPDATE accounts 
-        SET Password = ? 
-        WHERE AccountID = ?
-    `;
-        return await db.execute(query, [hashedPassword, accountId]);
+        try {
+            const pool = await poolPromise;
+            const request = pool.request();
+            await request
+                .input('accountId', sql.Int, accountId)
+                .input('password', sql.VarChar, hashedPassword)
+                .query('UPDATE Account SET Password = @password WHERE AccountID = @accountId');
+        } catch (err) {
+            console.log(err);
+            throw err;
+        }
     }
 
-    // Clear reset token
+// Clear reset token
     static async clearResetToken(accountId) {
-        const query = `
-        UPDATE accounts 
-        SET ResetToken = NULL, ResetTokenExpiry = NULL 
-        WHERE AccountID = ?
-    `;
-        return await db.execute(query, [accountId]);
+        try {
+            const pool = await poolPromise;
+            const request = pool.request();
+            await request
+                .input('accountId', sql.Int, accountId)
+                .query('UPDATE Account SET ResetToken = NULL, ResetTokenExpiry = NULL WHERE AccountID = @accountId');
+        } catch (err) {
+            console.log(err);
+            throw err;
+        }
     }
 }
 

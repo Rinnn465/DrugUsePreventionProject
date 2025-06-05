@@ -13,6 +13,8 @@ CREATE TABLE Account (
     ManagedBy INT,
     CreatedAt DATETIME2 NOT NULL,
     IsDisabled BIT NOT NULL DEFAULT 0
+    ResetToken VARCHAR(255) NULL,
+    ResetTokenExpiry DATETIME NULL,
 );
 
 CREATE TABLE Course (
