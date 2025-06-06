@@ -44,7 +44,7 @@ const SignUpPage: React.FC = () => {
             confirmPassword: ''
         },
         onSubmit: (values, { resetForm }) => {
-            fetch('http://localhost:3000/register', {
+            fetch('http://localhost:5000/api/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -59,7 +59,7 @@ const SignUpPage: React.FC = () => {
                         window.location.href = '/login'
                     }
                 })
-                .catch(err => console.error('Error:', err));
+                .catch(err => console.error('Error:', err.message));
 
         },
 

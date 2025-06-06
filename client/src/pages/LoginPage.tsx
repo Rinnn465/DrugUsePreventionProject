@@ -13,7 +13,7 @@ const LoginPage: React.FC = () => {
             password: ''
         },
         onSubmit: (values) => {
-            fetch('http://localhost:3000/login', {
+            fetch('http://localhost:5000/api/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

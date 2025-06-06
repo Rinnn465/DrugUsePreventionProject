@@ -15,7 +15,14 @@ const ForgotPasswordPage: React.FC = () => {
                     .required('Không được để trống')
             }),
             onSubmit: values => {
-                alert(`Đã gửi liên kết đặt lại mật khẩu đến ${values.email}`);
+                // alert(`Đã gửi liên kết đặt lại mật khẩu đến ${values.email}`);
+                fetch('http://localhost:5000/forgot-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: values.email })
+                })
             }
         }
     )
