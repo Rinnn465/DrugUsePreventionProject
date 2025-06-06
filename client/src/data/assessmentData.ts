@@ -15,15 +15,15 @@ export const assessmentData: Assessment[] = [
         text: "Trong cuộc sống của bạn, bạn đã từng sử dụng những chất nào sau đây? (Chỉ tính việc sử dụng không vì mục đích y tế)",
         type: "checkbox",
         options: [
-          { id: "a", text: "Các sản phẩm thuốc lá", value: 0 },
-          { id: "b", text: "Đồ uống có cồn", value: 0 },
-          { id: "c", text: "Cần sa", value: 0 },
-          { id: "d", text: "Cocain", value: 0 },
-          { id: "e", text: "Chất kích thích loại amphetamine", value: 0 },
-          { id: "f", text: "Chất hít", value: 0 },
-          { id: "g", text: "Thuốc an thần hoặc thuốc ngủ", value: 0 },
-          { id: "h", text: "Chất gây ảo giác", value: 0 },
-          { id: "i", text: "Thuốc phiện (opioid)", value: 0 },
+          { id: "a", text: "Các sản phẩm thuốc lá", value: 1 },
+          { id: "b", text: "Đồ uống có cồn", value: 2 },
+          { id: "c", text: "Cần sa", value: 3 },
+          { id: "d", text: "Cocain", value: 4 },
+          { id: "e", text: "Chất kích thích loại amphetamine", value: 5 },
+          { id: "f", text: "Chất hít", value: 6 },
+          { id: "g", text: "Thuốc an thần hoặc thuốc ngủ", value: 7 },
+          { id: "h", text: "Chất gây ảo giác", value: 8 },
+          { id: "i", text: "Thuốc phiện (opioid)", value: 9 },
           { id: "j", text: "Không có", value: 0 }
         ]
       },
@@ -128,38 +128,38 @@ export const assessmentData: Assessment[] = [
           { id: "b", text: "Có", value: 1 }
         ]
       },
-      {
-        id: 3,
-        text: "Bạn có bao giờ sử dụng rượu hoặc ma túy khi đang ở một mình không?",
-        options: [
-          { id: "a", text: "Không", value: 0 },
-          { id: "b", text: "Có", value: 1 }
-        ]
-      },
-      {
-        id: 4,
-        text: "Bạn có bao giờ quên những việc đã làm khi đang sử dụng rượu hoặc ma túy không?",
-        options: [
-          { id: "a", text: "Không", value: 0 },
-          { id: "b", text: "Có", value: 1 }
-        ]
-      },
-      {
-        id: 5,
-        text: "Bạn có bao giờ bị người thân hoặc bạn bè khuyên nên giảm sử dụng rượu hoặc ma túy không?",
-        options: [
-          { id: "a", text: "Không", value: 0 },
-          { id: "b", text: "Có", value: 1 }
-        ]
-      },
-      {
-        id: 6,
-        text: "Bạn có bao giờ gặp rắc rối khi sử dụng rượu hoặc ma túy không?",
-        options: [
-          { id: "a", text: "Không", value: 0 },
-          { id: "b", text: "Có", value: 1 }
-        ]
-      }
+      // {
+      //   id: 3,
+      //   text: "Bạn có bao giờ sử dụng rượu hoặc ma túy khi đang ở một mình không?",
+      //   options: [
+      //     { id: "a", text: "Không", value: 0 },
+      //     { id: "b", text: "Có", value: 1 }
+      //   ]
+      // },
+      // {
+      //   id: 4,
+      //   text: "Bạn có bao giờ quên những việc đã làm khi đang sử dụng rượu hoặc ma túy không?",
+      //   options: [
+      //     { id: "a", text: "Không", value: 0 },
+      //     { id: "b", text: "Có", value: 1 }
+      //   ]
+      // },
+      // {
+      //   id: 5,
+      //   text: "Bạn có bao giờ bị người thân hoặc bạn bè khuyên nên giảm sử dụng rượu hoặc ma túy không?",
+      //   options: [
+      //     { id: "a", text: "Không", value: 0 },
+      //     { id: "b", text: "Có", value: 1 }
+      //   ]
+      // },
+      // {
+      //   id: 6,
+      //   text: "Bạn có bao giờ gặp rắc rối khi sử dụng rượu hoặc ma túy không?",
+      //   options: [
+      //     { id: "a", text: "Không", value: 0 },
+      //     { id: "b", text: "Có", value: 1 }
+      //   ]
+      // }
     ]
   },
   {

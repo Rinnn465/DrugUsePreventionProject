@@ -1,13 +1,16 @@
 import { useParams } from "react-router-dom";
 import { courseData } from "../data/courseData";
 import { useState } from "react";
+import * as Yup from "yup";
+import { useFormik } from "formik";
 
 
-const ModuleDetailsPage: React.FC = () => {
+const LessonDetailsPage: React.FC = () => {
     const { id } = useParams();
     const [selected, setSelected] = useState<string>('lesson');
     const course = courseData.find(course => course.id.toString() === id);
     let score = 0;
+
 
     const handleDoneLesson = () => {
         alert("Bạn đã hoàn thành bài học này!");
@@ -47,18 +50,10 @@ const ModuleDetailsPage: React.FC = () => {
         )
     }
 
-    const handleSubmit = (data: any) => {
-    }
-
     const handleQuestion = () => {
         if (course?.lesson) {
             return (
-                <form onSubmit={e => {
-                    e.preventDefault();
-                    const formData = new FormData(e.target as HTMLFormElement); // Collect form data
-                    const selectedAnswers = {} as { [key: number]: any };
-                    handleSubmit(selectedAnswers)
-                }}>
+                <form>
                     <h2 className="text-xl font-semibold mb-4">Câu hỏi bài học</h2>
                     {course?.lesson.map(lesson => (
                         lesson.question.map(question => (
@@ -129,4 +124,4 @@ const ModuleDetailsPage: React.FC = () => {
     );
 };
 
-export default ModuleDetailsPage;
+export default LessonDetailsPage;
