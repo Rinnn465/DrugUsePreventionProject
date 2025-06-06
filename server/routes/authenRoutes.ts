@@ -1,15 +1,13 @@
 import express, { Router } from "express";
-import * as authenController from "../controllers/authenController";
+import { login, register } from "../controllers/authenController";
 
+// Create router
 const router: Router = express.Router();
 
-router.post("/register", authenController.register);
-router.post("/login", authenController.login);
-router.post("/logout", authenController.logout);
+// Login route
+router.post("/login", login);
 
-router.get("/forgot-password", authenController.showForgotPasswordForm);
-router.post("/forgot-password", authenController.forgotPassword);
-router.get("/reset-password/:token", authenController.showResetPasswordForm);
-router.post("/reset-password/:token", authenController.resetPassword);
+// Register route
+router.post("/register", register);
 
 export default router;
