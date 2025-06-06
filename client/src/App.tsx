@@ -24,7 +24,7 @@ import AuthLayout from './components/AuthLayout';
 import EventsDetails from './pages/EventDetailsPage';
 import CounselorDetailPage from './pages/CounselorDetailsPage';
 import RolePage from './pages/RolePage';
-import ModuleDetailsPage from './pages/LessonDetailsPage';
+import LessonDetailsPage from './pages/LessonDetailsPage';
 import BlogDetailsPage from './pages/BlogDetailsPage';
 import SurveyCompletePage from './pages/SurveyCompletePage';
 import SurveyAfterEventPage from './pages/SurveyAfterEventPage';
@@ -49,7 +49,7 @@ function App() {
             <Route path="courses" element={<CoursesPage />} />
             <Route path="courses/:id" element={<CourseEnrollPage />} />
             <Route path="courses/:id/details/" element={<CourseDetailPage />} />
-            <Route path="courses/:id/details/:lessonId" element={<ModuleDetailsPage />} />
+            <Route path="courses/:id/details/:lessonId" element={<LessonDetailsPage />} />
             <Route path="counselor/:counselorId" element={<CounselorDetailPage />} />
             <Route path="assessments" element={<AssessmentsPage />} />
             <Route path="assessments/:assessmentId" element={<AssessmentDetailPage />} />

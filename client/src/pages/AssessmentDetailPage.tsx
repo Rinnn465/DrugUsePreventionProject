@@ -12,20 +12,25 @@ const AssessmentDetailPage: React.FC = () => {
     const { assessmentId } = useParams<{ assessmentId: string }>();
 
     const assessment = assessmentData[Number(assessmentId) - 1];
-    const [result, setResult] = useState<number>(0)
+    const [result, setResult] = useState<number | null>(0)
     const [risk, setRisk] = useState<string>('thấp');
 
-    let recommendedCounselor = counselorData.filter(counselor => counselor.id === 5 || counselor.id === 6);
-
+    const [recommendedCounselor, setRecommendedCounselor] = useState(() =>
+        counselorData.filter(counselor => counselor.id === 5 || counselor.id === 6)
+    );
     useEffect(() => {
-        if (result >= 4) {
-            setRisk('trung bình')
-            recommendedCounselor = counselorData.filter(counselor => counselor.id === 1 || counselor.id === 2);
-        } else if (result >= 8) {
-            setRisk('cao')
-            recommendedCounselor = counselorData.filter(counselor => counselor.id === 3 || counselor.id === 4);
+        if (result !== null && result >= 8) {
+            setRisk('cao');
+            setRecommendedCounselor(counselorData.filter(counselor => counselor.id === 3 || counselor.id === 4));
+        } else if (result !== null && result >= 4) {
+            setRisk('trung bình');
+            setRecommendedCounselor(counselorData.filter(counselor => counselor.id === 1 || counselor.id === 2));
+        } else {
+            setRisk('thấp');
+            setRecommendedCounselor(counselorData.filter(counselor => counselor.id === 5 || counselor.id === 6));
         }
     }, [result]);
+
 
     const initialValues = assessment.questions.reduce((acc, q) => {
         acc[q.id] = q.type === 'checkbox' ? [] : '';
@@ -51,15 +56,18 @@ const AssessmentDetailPage: React.FC = () => {
 
         for (const question of assessment.questions) {
             const answer = formValues[question.id];
+            console.log(answer);
+
 
             if (question.type === 'checkbox' && Array.isArray(answer)) {
                 // Sum all selected checkbox values
                 total += answer.reduce((sum, val) => sum + Number(val), 0);
             }
 
-            if (question.type === 'radio' && typeof answer === 'string') {
+            if (question.type !== 'checkbox' && typeof answer === 'string') {
                 // Add selected radio value
                 total += Number(answer);
+                console.log(total);
             }
         }
 
@@ -67,7 +75,6 @@ const AssessmentDetailPage: React.FC = () => {
     };
 
     const handleSubmit = (values: typeof initialValues) => {
-        // alert(JSON.stringify(values, null, 2));
         const total = calculateScore(values);
         setResult(total);
     }
@@ -122,7 +129,7 @@ const AssessmentDetailPage: React.FC = () => {
                 </Formik>
             )}
 
-            {result > 0 && (
+            {result !== null && result > 0 && (
                 <div className='my-6'>
                     <h2 className='text-2xl font-bold mb-4'>Kết quả</h2>
                     <p className='text-lg'>Nguy cơ sử dụng ma túy: {risk}</p>
