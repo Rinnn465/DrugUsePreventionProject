@@ -1,26 +1,27 @@
-import * as sql from "mssql";
+import sql from 'mssql';
+import dotenv from 'dotenv';
 
-const dbConfig: sql.config = {
-  user: "SA",
-  password: "12345",
-  server: "localhost",
-  database: "DrugUsePreventionDB",
+dotenv.config();
+const config: sql.config = {
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  server: process.env.DB_SERVER as string,
+  database: process.env.DB_NAME,
   options: {
-    encrypt: true,
-    trustServerCertificate: true,
-  },
+    encrypt: false, // Use true if you're on Azure or need encryption
+    trustServerCertificate: true // For development only
+  }
 };
 
-const poolPromise: Promise<sql.ConnectionPool> = new sql.ConnectionPool(
-  dbConfig
-)
+// Create and export a pool connection
+const poolPromise: Promise<sql.ConnectionPool> = new sql.ConnectionPool(config)
   .connect()
-  .then((pool) => {
-    console.log("Connected to SQL Server");
+  .then(pool => {
+    console.log('Connected to SQL Server');
     return pool;
   })
-  .catch((err) => {
-    console.log("Database Connection Failed! Bad Config: ", err);
+  .catch(err => {
+    console.error('Database Connection Failed!', err);
     throw err;
   });
 
