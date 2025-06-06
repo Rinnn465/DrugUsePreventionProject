@@ -12,8 +12,7 @@ CREATE TABLE Account (
     Role VARCHAR(50) NOT NULL,
     CreatedAt DATETIME2 NOT NULL,
     IsDisabled BIT NOT NULL DEFAULT 0,
-    ResetToken VARCHAR(255) NULL,
-    ResetTokenExpiry DATETIME NULL,
+	ResetToken VARCHAR(255) NULL,
 );
 
 CREATE TABLE Course (
@@ -86,6 +85,7 @@ CREATE TABLE Consultant (
     ImageUrl VARCHAR(255),
     IsDisabled BIT NOT NULL DEFAULT 0
 );
+
 
 CREATE TABLE ConsultantSchedule (
     ScheduleID INT PRIMARY KEY IDENTITY(1,1),
