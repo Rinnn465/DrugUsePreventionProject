@@ -1,7 +1,7 @@
 import express, { Application } from "express";
 import cors from "cors";
 import apiAccountRoutes from "./routes/accountRoutes";
-import authRoutes from "./routes/authenRoutes";
+import authenRoutes from "./routes/authenRoutes";
 import authenticateToken from "./middleware/authenMiddleware";
 
 const app: Application = express();
@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(cors()); // Enable CORS for all routes
 
 // Public Auth Routes
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authenRoutes);
 
 // JWT Middleware for all other routes
 app.use(authenticateToken);
