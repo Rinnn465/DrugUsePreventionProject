@@ -1,8 +1,9 @@
 {
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js",
-    "lint": "eslint ."
+    "dev": "nodemon --exec npx ./app.ts",
+    "build": "tsc",
+    "lint": "eslint .",
+    "start": "node dist/app.js"
   },
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -23,6 +24,7 @@
     "jsonwebtoken": "^9.0.2",
     "mssql": "^11.0.1",
     "nodemailer": "^7.0.3",
+    "nodemon": "^3.1.10",
     "typescript": "^5.8.3"
   }
 }
