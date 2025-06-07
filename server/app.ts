@@ -24,6 +24,7 @@ app.use("/api/auth", authenRoutes);
 // Public Course Routes
 app.use("/api/courses", courseRoutes)
 
+
 // JWT Middleware for all other routes
 app.use(authenticateToken);
 // Survey Routes
