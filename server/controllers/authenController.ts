@@ -52,6 +52,22 @@ export async function login(
   }
 }
 
+export function logout(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Error logging out:", err);
+      res.status(500).json({ message: "Error logging out" });
+      return;
+    }
+    res.clearCookie('connect.sid');
+    res.status(200).json({ message: "Logged out" });
+  });
+}
+
 export async function register(
   req: Request,
   res: Response,
