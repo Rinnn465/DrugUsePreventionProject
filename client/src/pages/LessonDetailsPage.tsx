@@ -23,65 +23,67 @@ const LessonDetailsPage: React.FC = () => {
 
     const handleContent = () => {
         return (
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold mb-4">Nội dung bài học</h2>
+            <div className="bg-white p-6 rounded-2xl shadow-lg space-y-6">
+                <h2 className="text-2xl font-bold text-gray-800">📚 Nội dung bài học</h2>
                 {course?.lesson.map(lesson => (
-                    <div key={lesson.id} className="mb-4">
-                        <h3 className="text-lg font-medium">{lesson.title}</h3>
-                        <p>{lesson.content}</p>
-                        <p>{lesson.content}</p>
+                    <div key={lesson.id} className="space-y-4 border-b pb-6 last:border-b-0 last:pb-0">
+                        <h3 className="text-xl font-semibold text-gray-700">{lesson.title}</h3>
+                        <p className="text-gray-600 leading-relaxed">{lesson.content}</p>
 
                         <iframe
-                            width={"100%"}
-                            height={"400px"}
+                            width="100%"
+                            height="400px"
                             src={lesson.videoUrl}
-                            className="my-6 rounded-lg shadow-md"
+                            className="rounded-lg border shadow-md"
                             allowFullScreen
                         ></iframe>
                     </div>
                 ))}
                 <button
                     onClick={handleDoneLesson}
-                    type="submit"
-                    className="p-3 bg-primary-600 text-white rounded-md hover:bg-primary-700">
-                    Hoàn thành bài học
+                    className="mt-4 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-medium"
+                >
+                    ✅ Hoàn thành bài học
                 </button>
             </div>
+
         )
     }
 
     const handleQuestion = () => {
         if (course?.lesson) {
             return (
-                <form>
-                    <h2 className="text-xl font-semibold mb-4">Câu hỏi bài học</h2>
-                    {course?.lesson.map(lesson => (
+                <form className="bg-white p-6 rounded-2xl shadow-lg space-y-6">
+                    <h2 className="text-2xl font-bold text-gray-800">📝 Câu hỏi bài học</h2>
+                    {course?.lesson.map(lesson =>
                         lesson.question.map(question => (
-                            <div key={question.id} className="mb-4">
-                                <p className="font-medium">{question.questionText}</p>
-                                {question.answers.map(answer => (
-                                    <div key={answer.id} className="mb-2">
-                                        <label className="inline-flex items-center">
+                            <div key={question.id} className="space-y-2">
+                                <p className="font-semibold text-gray-700">{question.questionText}</p>
+                                <div className="pl-4 space-y-1">
+                                    {question.answers.map(answer => (
+                                        <label key={answer.id} className="flex items-center space-x-2 text-gray-600">
                                             <input
                                                 type={question.type === 'multiple' ? 'checkbox' : 'radio'}
-                                                name={`question-${answer.id}`}
+                                                name={`question-${question.id}`}
                                                 value={answer.isCorrect ? 1 : 0}
-                                                className="form-checkbox"
+                                                className="accent-primary-600"
                                             />
-                                            <span className="ml-2">{answer.answerText}</span>
+                                            <span>{answer.answerText}</span>
                                         </label>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         ))
-                    ))}
+                    )}
                     <button
                         onClick={handleSubmitQuestion}
                         type="submit"
-                        className="p-3 bg-primary-600 text-white rounded-md hover:bg-primary-700">
-                        Hoàn thành
+                        className="mt-4 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-medium"
+                    >
+                        🏁 Hoàn thành
                     </button>
                 </form>
+
             )
         }
         return (
@@ -94,30 +96,36 @@ const LessonDetailsPage: React.FC = () => {
 
 
     return (
-        <div className="container mx-auto py-8 px-20 flex gap-10">
-            {/* Sidebar (fixed width) */}
-            <div className="w-40 shrink-0">
-                <button
-                    className={`px-4 py-2 mb-2 font-medium rounded-md hover:bg-gray-200 transition duration-200 ${selected === 'lesson' ? 'bg-gray-300' : ''
-                        }`}
-                    onClick={() => setSelected('lesson')}>
-                    Bài học
-                </button>
-                <button
-                    className={`px-4 py-2 mb-2 font-medium rounded-md hover:bg-gray-200 transition duration-200 ${selected === 'question' ? 'bg-gray-300' : ''
-                        }`}
-                    onClick={() => setSelected('question')}>
-                    Câu hỏi
-                </button>
-            </div>
+        <div className="min-h-screen bg-gray-100">
+            <div className="container mx-auto py-10 px-6 md:px-20 flex flex-col md:flex-row gap-6">
+                {/* Sidebar */}
+                <aside className="md:w-52 shrink-0 bg-white rounded-xl shadow-md p-4">
+                    <nav className="space-y-2">
+                        <button
+                            className={`w-full text-left px-4 py-2 rounded-lg font-medium transition duration-200 ${selected === 'lesson'
+                                ? 'bg-primary-600 text-white'
+                                : 'hover:bg-gray-100 text-gray-700'
+                                }`}
+                            onClick={() => setSelected('lesson')}
+                        >
+                            📘 Bài học
+                        </button>
+                        <button
+                            className={`w-full text-left px-4 py-2 rounded-lg font-medium transition duration-200 ${selected === 'question'
+                                ? 'bg-primary-600 text-white'
+                                : 'hover:bg-gray-100 text-gray-700'
+                                }`}
+                            onClick={() => setSelected('question')}
+                        >
+                            ❓ Câu hỏi
+                        </button>
+                    </nav>
+                </aside>
 
-            {/* Main content (fills the rest) */}
-            <div className="flex-1">
-                {selected === 'lesson' ? (
-                    <>{handleContent()}</>
-                ) : (
-                    <>{handleQuestion()}</>
-                )}
+                {/* Main content */}
+                <main className="flex-1">
+                    {selected === 'lesson' ? handleContent() : handleQuestion()}
+                </main>
             </div>
         </div>
 

@@ -181,7 +181,7 @@ const HomePage: React.FC = () => {
 
           <div className="text-center mt-12">
             <Link
-              to="/programs"
+              to="/events"
               className="inline-block bg-primary-600 text-white px-6 py-3 rounded-md shadow-md hover:bg-primary-700 transition-colors"
             >
               Xem chương trình

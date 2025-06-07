@@ -93,7 +93,7 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
               isActive ? "text-primary-600 font-medium" : "text-gray-700 hover:text-primary-600 transition-colors"
             }
           >
-            Sự kiện
+            Cộng đồng
           </NavLink>
 
         </nav>

@@ -18,21 +18,19 @@ const Events: React.FC = () => {
                 <div className="flex justify-center space-x-4 mb-12">
                     <button
                         onClick={() => setEventSelected('online')}
-                        className={`px-6 py-3 rounded-full font-medium transition-all duration-200 ${
-                            eventSelected === 'online'
-                                ? 'bg-blue-600 text-white shadow-lg'
-                                : 'bg-white text-gray-700 hover:bg-gray-100'
-                        }`}
+                        className={`px-6 py-3 rounded-full font-medium transition-all duration-200 ${eventSelected === 'online'
+                            ? 'bg-blue-600 text-white shadow-lg'
+                            : 'bg-white text-gray-700 hover:bg-gray-100'
+                            }`}
                     >
                         Sự kiện Online
                     </button>
                     <button
                         onClick={() => setEventSelected('offline')}
-                        className={`px-6 py-3 rounded-full font-medium transition-all duration-200 ${
-                            eventSelected === 'offline'
-                                ? 'bg-green-600 text-white shadow-lg'
-                                : 'bg-white text-gray-700 hover:bg-gray-100'
-                        }`}
+                        className={`px-6 py-3 rounded-full font-medium transition-all duration-200 ${eventSelected === 'offline'
+                            ? 'bg-green-600 text-white shadow-lg'
+                            : 'bg-white text-gray-700 hover:bg-gray-100'
+                            }`}
                     >
                         Sự kiện Offline
                     </button>
@@ -52,16 +50,15 @@ const Events: React.FC = () => {
                                             className="w-full h-full object-cover"
                                         />
                                         <div className="absolute top-4 right-4">
-                                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                                event.type === 'online' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-                                            }`}>
+                                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${event.type === 'online' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                                                }`}>
                                                 {event.type === 'online' ? 'Online' : 'Offline'}
                                             </span>
                                         </div>
                                     </div>
                                 )}
                                 <div className="p-6">
-                                    <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">{event.name}</h3>
+                                    <h3 className="text-xl font-bold min-h-[56px] text-gray-900 mb-2 line-clamp-2">{event.name}</h3>
                                     <div className="space-y-3 mb-4">
                                         <div className="flex items-center text-gray-600">
                                             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,7 +82,7 @@ const Events: React.FC = () => {
                                             </div>
                                         )}
                                     </div>
-                                    <p className="text-gray-600 mb-4 line-clamp-2">{event.description}</p>
+                                    <p className="text-gray-600 mb-4 line-clamp-2 min-h-[48px]">{event.description}</p>
                                     {event.url ? (
                                         <Link
                                             to={`${event.id}`}
