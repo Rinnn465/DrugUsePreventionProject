@@ -13,14 +13,14 @@ export async function login(
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
   try {
     const pool = await poolPromise;
     const result = await pool
       .request()
-      .input("username", sql.VarChar, username)
-      .query("SELECT * FROM Account WHERE Username = @username");
+      .input("email", sql.VarChar, email)
+      .query("SELECT * FROM Account WHERE Email = @email");
     const user = result.recordset[0];
 
     if (!user) {
