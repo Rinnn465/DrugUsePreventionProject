@@ -56,13 +56,14 @@ export const createAccount = async (req: Request, res: Response) => {
     const pool = await poolPromise;
     await pool
       .request()
-      .input("Username", sql.VarChar, username)
-      .input("Email", sql.VarChar, email)
-      .input("Password", sql.VarChar, password)
-      .input("FullName", sql.VarChar, fullName)
+      .input("Username", sql.NVarChar, username)
+      .input("Email", sql.NVarChar, email)
+      .input("Password", sql.NVarChar, password)
+      .input("FullName", sql.NVarChar, fullName)
       .input("DateOfBirth", sql.Date, dateOfBirth)
-      .input("Role", sql.VarChar, role)
-      .input("CreatedAt", sql.DateTime2, new Date()).query(`INSERT INTO Account 
+      .input("Role", sql.NVarChar, role)
+      .input("CreatedAt", sql.DateTime2, new Date())
+      .query(`INSERT INTO Account 
         (Username, Email, Password, FullName, DateOfBirth, Role, CreatedAt) 
         VALUES (@Username, @Email, @Password, @FullName, @DateOfBirth, @Role, @CreatedAt)`);
     res.status(201).json({ message: "Account created" });
@@ -83,12 +84,12 @@ export const updateAccount = async (
     const result = await pool
       .request()
       .input("AccountID", sql.Int, parseInt(req.params.id, 10))
-      .input("Username", sql.VarChar, username)
-      .input("Email", sql.VarChar, email)
-      .input("Password", sql.VarChar, password)
-      .input("FullName", sql.VarChar, fullName)
+      .input("Username", sql.NVarChar, username)
+      .input("Email", sql.NVarChar, email)
+      .input("Password", sql.NVarChar, password)
+      .input("FullName", sql.NVarChar, fullName)
       .input("DateOfBirth", sql.Date, dateOfBirth)
-      .input("Role", sql.VarChar, role)
+      .input("Role", sql.NVarChar, role)
       .input("IsDisabled", sql.Bit, isDisabled).query(`UPDATE Account SET 
         Username=@Username, 
         Email=@Email, 

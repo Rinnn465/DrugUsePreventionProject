@@ -19,7 +19,7 @@ export async function login(
     const pool = await poolPromise;
     const result = await pool
       .request()
-      .input("email", sql.VarChar, email)
+      .input("email", sql.NVarChar, email)
       .query("SELECT * FROM Account WHERE Email = @email");
     const user = result.recordset[0];
 
@@ -64,7 +64,7 @@ export async function register(
 
     const checkUser = await pool
       .request()
-      .input("username", sql.VarChar, username)
+      .input("username", sql.NVarChar, username)
       .query("SELECT * FROM Account WHERE Username = @username");
     if (checkUser.recordset.length > 0) {
       res.status(400).json({ message: "Username already exists" });
@@ -73,7 +73,7 @@ export async function register(
 
     const checkEmail = await pool
       .request()
-      .input("email", sql.VarChar, email)
+      .input("email", sql.NVarChar, email)
       .query("SELECT * FROM Account WHERE Email = @email");
     if (checkEmail.recordset.length > 0) {
       res.status(400).json({ message: "Email already exists" });
@@ -84,12 +84,12 @@ export async function register(
 
     await pool
       .request()
-      .input("username", sql.VarChar, username)
-      .input("email", sql.VarChar, email)
-      .input("password", sql.VarChar, hashedPassword)
-      .input("fullName", sql.VarChar, fullName)
+      .input("username", sql.NVarChar, username)
+      .input("email", sql.NVarChar, email)
+      .input("password", sql.NVarChar, hashedPassword)
+      .input("fullName", sql.NVarChar, fullName)
       .input("dateOfBirth", sql.Date, dateOfBirth || null)
-      .input("role", sql.VarChar, role || "user")
+      .input("role", sql.NVarChar, role || "user")
       .input("createdAt", sql.DateTime2, new Date())
       .query(
         `INSERT INTO Account 
@@ -98,6 +98,8 @@ export async function register(
                 (@username, @email, @password, @fullName, @dateOfBirth, @role, @createdAt)`
       );
 
+      
+      
     // Send welcome email
     await sendEmail(
       email,
