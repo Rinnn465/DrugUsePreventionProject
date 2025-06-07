@@ -52,20 +52,18 @@ export async function login(
   }
 }
 
-export function logout(
+export async function logout(
   req: Request,
   res: Response,
   next: NextFunction
-): void {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error("Error logging out:", err);
-      res.status(500).json({ message: "Error logging out" });
-      return;
-    }
-    res.clearCookie('connect.sid');
-    res.status(200).json({ message: "Logged out" });
-  });
+): Promise<void> {
+  try {
+    // Since JWT is stateless, logout is handled client-side by clearing the token
+    res.status(200).json({ message: "Logout successful" });
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
 }
 
 export async function register(
