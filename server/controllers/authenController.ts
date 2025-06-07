@@ -35,12 +35,17 @@ export async function login(
     }
 
     const token = jwt.sign(
-      { userId: user.AccountID, role: user.Role },
+      { user: user },
       process.env.JWT_SECRET as string,
       { expiresIn: "1h" }
     );
 
-    res.json({ token });
+
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: { ...user, status: 'hello' }
+    });
   } catch (err: any) {
     console.error(err);
     res.status(500).json({ message: "Server error" });

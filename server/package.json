@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "nodemon --exec ts-node app.ts",
+    "dev": "npx nodemon --exec npx ts-node app.ts",
     "build": "tsc",
     "lint": "eslint .",
     "start": "node dist/app.js"
