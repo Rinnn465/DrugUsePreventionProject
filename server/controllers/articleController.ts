@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { sql , poolPromise } from '../config/database';
+import { poolPromise } from '../config/database';
 
 interface Article {
     BlogID: number;
