@@ -1,24 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, BookOpen } from 'lucide-react';
 import CourseCard from '../components/courses/CourseCard';
 import { courseData } from '../data/courseData';
+import { Course, SqlCourse } from '../types/Course';
 
 const CoursesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedAudience, setSelectedAudience] = useState('');
+  const [courses, setCourses] = useState<SqlCourse[]>([]);
 
-  const filteredCourses = courseData.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === '' || course.category === selectedCategory;
-    const matchesAudience = selectedAudience === '' || course.audience === selectedAudience;
 
-    return matchesSearch && matchesCategory && matchesAudience;
-  });
+  // const filteredCourses = courseData.filter(course => {
+  //   const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     course?.description.toLowerCase().includes(searchTerm.toLowerCase());
+  //   const matchesCategory = selectedCategory === '' || course.category === selectedCategory;
+  //   const matchesAudience = selectedAudience === '' || course.audience === selectedAudience;
 
-  const categories = [...new Set(courseData.map(course => course.category))];
-  const audiences = [...new Set(courseData.map(course => course.audience))];
+  //   return matchesSearch && matchesCategory && matchesAudience;
+  // });
+
+  // const categories = [...new Set(courseData.map(course => course.category))];
+  // const audiences = [...new Set(courseData.map(course => course.audience))];
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/courses')
+      .then(response => response.json())
+      .then(data => {
+        setCourses(data.data);
+        console.log(data.data);
+      })
+      .catch(error => {
+        console.error('Error fetching courses:', error);
+      });
+  }, [])
 
   return (
     <div className="bg-gray-50 min-h-screen py-12">
@@ -49,9 +64,9 @@ const CoursesPage: React.FC = () => {
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
                   <option value="">Lĩnh vực</option>
-                  {categories.map((category, index) => (
+                  {/* {categories.map((category, index) => (
                     <option key={index} value={category}>{category}</option>
-                  ))}
+                  ))} */}
                 </select>
                 <select
                   className="pl-4 pr-8 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white"
@@ -59,9 +74,9 @@ const CoursesPage: React.FC = () => {
                   onChange={(e) => setSelectedAudience(e.target.value)}
                 >
                   <option value="">Đối tượng</option>
-                  {audiences.map((audience, index) => (
+                  {/* {audiences.map((audience, index) => (
                     <option key={index} value={audience}>{audience}</option>
-                  ))}
+                  ))} */}
                 </select>
               </div>
             </div>
@@ -70,9 +85,9 @@ const CoursesPage: React.FC = () => {
 
         {/* Courses Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredCourses.length > 0 ? (
-            filteredCourses.map((course) => (
-              <CourseCard key={course.id} course={course} />
+          {courses.length > 0 ? (
+            courses.map((course) => (
+              <CourseCard key={course.CourseID} course={course} />
             ))
           ) : (
             <div className="col-span-full text-center py-12">

@@ -1,16 +1,71 @@
 import { useParams } from "react-router-dom";
 import { courseData } from "../data/courseData";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import * as Yup from "yup";
 import { useFormik } from "formik";
+import { Course, SqlCourse } from "../types/Course";
+import { slqLessonQuestion, sqlLesson, sqlLessonAnswer } from "../types/Lesson";
 
 
 const LessonDetailsPage: React.FC = () => {
-    const { id } = useParams();
+    const { id, lessonId } = useParams();
     const [selected, setSelected] = useState<string>('lesson');
-    const course = courseData.find(course => course.id.toString() === id);
+    // const course = courseData.find(course => course.id.toString() === id);
+    const [course, setCourse] = useState<SqlCourse | null>(null); // Use any for now, replace with proper type later
+    const [lesson, setLesson] = useState<sqlLesson[] | null>(null); // Use any for now, replace with proper type later
+    const [questions, setQuestions] = useState<slqLessonQuestion[] | null>(null); // Use any for now, replace with proper type later
+    const [answers, setAnswers] = useState<sqlLessonAnswer[] | null>(null); // Use any for now, replace with proper type later
     let score = 0;
 
+
+
+    useEffect(() => {
+        const fetchLessonDetail = async () => {
+            try {
+                const courseResponse = await fetch(`http://localhost:5000/api/courses/${id}`);
+                if (!courseResponse.ok) throw new Error('Failed to fetch course');
+                const courseData = await courseResponse.json();
+                setCourse(courseData.data);
+
+                const lessonResponse = await fetch(`http://localhost:5000/api/courses/${id}/lessons/${lessonId}`);
+                if (!lessonResponse.ok) throw new Error('Failed to fetch lesson');
+                const lessonData = await lessonResponse.json();
+                setLesson(lessonData.data);
+            } catch (error: any) {
+                console.log(error);
+
+            }
+        };
+
+        const fetchQuestionsAndAnswers = async () => {
+            try {
+                const questionResponse = await fetch(`http://localhost:5000/api/courses/${id}/lessons/${lessonId}/questions`);
+                if (!questionResponse.ok) throw new Error('Failed to fetch questions');
+                const questionData = await questionResponse.json();
+                console.log(questionData.data);
+
+                setQuestions(questionData.data);
+
+
+                const answerResponse = await fetch(`http://localhost:5000/api/courses/${id}/lessons/${lessonId}/questions/answers`);
+                const data = await answerResponse.json();
+                console.log(data.data);
+                setAnswers(data.data);
+
+
+            } catch (error: any) {
+                console.log(error);
+            }
+
+
+        };
+
+        const fetchData = async () => {
+            await Promise.all([fetchLessonDetail(), fetchQuestionsAndAnswers()]);
+        };
+
+        fetchData();
+    }, []);
 
     const handleDoneLesson = () => {
         alert("Bạn đã hoàn thành bài học này!");
@@ -25,15 +80,15 @@ const LessonDetailsPage: React.FC = () => {
         return (
             <div className="bg-white p-6 rounded-2xl shadow-lg space-y-6">
                 <h2 className="text-2xl font-bold text-gray-800">📚 Nội dung bài học</h2>
-                {course?.lesson.map(lesson => (
-                    <div key={lesson.id} className="space-y-4 border-b pb-6 last:border-b-0 last:pb-0">
-                        <h3 className="text-xl font-semibold text-gray-700">{lesson.title}</h3>
-                        <p className="text-gray-600 leading-relaxed">{lesson.content}</p>
+                {lesson?.map(lesson => (
+                    <div key={lesson.LessonID} className="space-y-4 border-b pb-6 last:border-b-0 last:pb-0">
+                        <h3 className="text-xl font-semibold text-gray-700">{lesson.Title}</h3>
+                        <p className="text-gray-600 leading-relaxed">{lesson.Content}</p>
 
                         <iframe
                             width="100%"
                             height="400px"
-                            src={lesson.videoUrl}
+                            src={lesson.VideoUrl}
                             className="rounded-lg border shadow-md"
                             allowFullScreen
                         ></iframe>
@@ -51,29 +106,28 @@ const LessonDetailsPage: React.FC = () => {
     }
 
     const handleQuestion = () => {
-        if (course?.lesson) {
+        if (questions && questions.length > 0) {
             return (
                 <form className="bg-white p-6 rounded-2xl shadow-lg space-y-6">
                     <h2 className="text-2xl font-bold text-gray-800">📝 Câu hỏi bài học</h2>
-                    {course?.lesson.map(lesson =>
-                        lesson.question.map(question => (
-                            <div key={question.id} className="space-y-2">
-                                <p className="font-semibold text-gray-700">{question.questionText}</p>
-                                <div className="pl-4 space-y-1">
-                                    {question.answers.map(answer => (
-                                        <label key={answer.id} className="flex items-center space-x-2 text-gray-600">
-                                            <input
-                                                type={question.type === 'multiple' ? 'checkbox' : 'radio'}
-                                                name={`question-${question.id}`}
-                                                value={answer.isCorrect ? 1 : 0}
-                                                className="accent-primary-600"
-                                            />
-                                            <span>{answer.answerText}</span>
-                                        </label>
-                                    ))}
-                                </div>
+                    {questions?.map(question =>
+                        <div key={question.QuestionID} className="space-y-2">
+                            <p className="font-semibold text-gray-700">{question.QuestionText}</p>
+                            <div className="pl-4 space-y-1">
+                                {answers?.map((answer, index) => (
+                                    <label key={index} className="flex items-center space-x-2 text-gray-600">
+                                        <input
+                                            type={question.Type === 'multiple' ? 'checkbox' : 'radio'}
+                                            name={`question-${question.QuestionID}`}
+                                            value={answer.IsCorrect ? 1 : 0}
+                                            className="accent-primary-600"
+                                        />
+                                        <span>{answer.AnswerText}</span>
+                                    </label>
+
+                                ))}
                             </div>
-                        ))
+                        </div>
                     )}
                     <button
                         onClick={handleSubmitQuestion}
@@ -82,7 +136,7 @@ const LessonDetailsPage: React.FC = () => {
                     >
                         🏁 Hoàn thành
                     </button>
-                </form>
+                </form >
 
             )
         }

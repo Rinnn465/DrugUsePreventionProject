@@ -22,7 +22,7 @@ import SignUpPage from './pages/SignupPage';
 import EventPage from './pages/EventsPage';
 import AuthLayout from './components/AuthLayout';
 import EventsDetails from './pages/EventDetailsPage';
-import CounselorDetailPage from './pages/CounselorDetailsPage';
+import CounselorDetailPage from './pages/ConsultantDetailsPage';
 import RolePage from './pages/RolePage';
 import LessonDetailsPage from './pages/LessonDetailsPage';
 import BlogDetailsPage from './pages/BlogDetailsPage';
