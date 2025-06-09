@@ -21,7 +21,7 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
   }, [])
 
   const handleLogout = () => {
-    fetch('http://localhost:3000/logout', {
+    fetch('http://localhost:5000/logout', {
       method: 'POST',
       credentials: 'include',
     })

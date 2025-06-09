@@ -25,13 +25,14 @@ app.use("/api/auth", authenRoutes);
 app.use("/api/courses", courseRoutes)
 
 
-// JWT Middleware for all other routes
-app.use(authenticateToken);
-// Survey Routes
-app.use("/api/surveys", surveyRoutes);
-
 // Program Routes
 app.use("/api/programs", programRoutes);
+
+// JWT Middleware for all other routes
+app.use(authenticateToken);
+
+// Survey Routes
+app.use("/api/surveys", surveyRoutes);
 
 // Protected Routes
 app.use("/api/account", authenticateToken, apiAccountRoutes);
