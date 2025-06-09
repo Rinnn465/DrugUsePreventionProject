@@ -1,9 +1,16 @@
 import { Link } from 'react-router-dom';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { eventData } from '../data/eventData';
+import { date } from 'yup';
 
 const Events: React.FC = () => {
     const [eventSelected, setEventSelected] = useState<string>('online');
+
+    useEffect(() => {
+        fetch('http://localhost:5000/api/programs')
+            .then(response => response.json())
+            .then(data => console.log(data));
+    }, []);
 
     return (
         <div className="min-h-screen bg-gray-50 py-12">

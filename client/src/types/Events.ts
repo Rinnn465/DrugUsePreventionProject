@@ -11,3 +11,13 @@ export interface Event {
     url?: string;
     imageUrl?: string;
 }
+
+export interface CommunityProgram {
+    ProgramID: number;
+    EventName: string;
+    Date: string; // ISO date string
+    Description?: string | null;
+    Organizer?: string | null;
+    ImageUrl?: string | null;
+    IsDisabled: boolean;
+}

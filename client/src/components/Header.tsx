@@ -21,13 +21,14 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
   }, [])
 
   const handleLogout = () => {
-    fetch('http://localhost:3000/logout', {
+    fetch('http://localhost:5000/api/auth/logout', {
       method: 'POST',
       credentials: 'include',
     })
       .then(response => {
         if (response.ok) {
           setUser(null);
+          localStorage.removeItem('user');
           localStorage.clear();
           window.location.href = '/login';
         } else {
