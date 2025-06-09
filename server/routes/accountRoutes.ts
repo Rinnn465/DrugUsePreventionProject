@@ -1,5 +1,7 @@
 import express, { Router } from "express";
 import * as accountController from "../controllers/accountController";
+import authenMiddleware from "../middleware/authenMiddleware";
+import { restrictToAdminMiddleware } from "../middleware/restrictToAdminMiddleware";
 
 const router: Router = express.Router();
 
@@ -17,5 +19,8 @@ router.put("/:id", accountController.updateAccount);
 
 // Delete account
 router.delete("/:id", accountController.deleteAccount);
+
+// Change account role
+router.patch("/:id/role", authenMiddleware, restrictToAdminMiddleware, accountController.changeAccountRole);
 
 export default router;

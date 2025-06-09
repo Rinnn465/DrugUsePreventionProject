@@ -26,6 +26,7 @@ export const getAccounts = async (req: Request, res: Response) => {
   }
 };
 
+// Get account by ID
 export const getAccountById = async (
   req: Request,
   res: Response,
@@ -127,3 +128,32 @@ export const deleteAccount = async (
     res.status(500).json({ error: err.message });
   }
 };
+
+//Change account role (only for admin)
+export const changeAccountRole = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { role } = req.body;
+  if (!role) {
+    res.status(400).json({ message: "Role is required" });
+    return;
+  }
+  try {
+    const pool = await poolPromise;
+    const result = await pool
+      .request()
+      .input("AccountID", sql.Int, parseInt(req.params.id, 10))
+      .input("Role", sql.NVarChar, role)
+      .query("UPDATE Account SET Role=@Role WHERE AccountID=@AccountID");
+    if (result.rowsAffected[0] === 0) {
+      res.status(404).json({ message: "Account not found" });
+      return;
+    }
+    res.json({ message: "Account role updated" });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
