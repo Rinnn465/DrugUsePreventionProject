@@ -208,37 +208,6 @@ const AboutPage: React.FC = () => {
           </div>
         </div>
       </section>
-
-
-      <section className="py-16 bg-accent-600 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-6">Tham Gia Cùng Chúng Tôi</h2>
-          <p className="text-xl mb-8 max-w-3xl mx-auto">
-            Có nhiều cách để bạn ủng hộ sứ mệnh của chúng tôi và tạo sự thay đổi trong cộng đồng.
-            Dù bạn muốn tình nguyện, hợp tác, hay đóng góp tài chính, chúng tôi luôn chào đón sự tham gia của bạn.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="#"
-              className="inline-block bg-white text-accent-600 px-6 py-3 rounded-md shadow-md hover:bg-gray-100 transition-colors font-medium"
-            >
-              Tình Nguyện
-            </a>
-            <a
-              href="#"
-              className="inline-block bg-accent-700 text-white px-6 py-3 rounded-md shadow-md border border-accent-500 hover:bg-accent-800 transition-colors font-medium"
-            >
-              Đóng Góp
-            </a>
-            <a
-              href="#"
-              className="inline-block bg-accent-700 text-white px-6 py-3 rounded-md shadow-md border border-accent-500 hover:bg-accent-800 transition-colors font-medium"
-            >
-              Trở Thành Đối Tác
-            </a>
-          </div>
-        </div>
-      </section>
     </div>
   );
 };

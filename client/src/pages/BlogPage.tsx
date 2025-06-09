@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import BlogPostCard from '../components/blog/BlogPostCard';
-import { blogPostsData } from '../data/blogData'
+
 import { Article } from '../types/Blog';
 
 const BlogPage: React.FC = () => {

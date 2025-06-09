@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Activity, Calendar, Users, ArrowRight, ShieldCheck, Award, Book } from 'lucide-react';
+import { BookOpen, Activity, Calendar, Users, ArrowRight, Award } from 'lucide-react';
 import HeroSection from '../components/home/HeroSection';
 import StatCard from '../components/common/StatCard';
 import TestimonialCard from '../components/home/TestimonialCard';
@@ -233,33 +233,39 @@ const HomePage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <BlogPostCard
-              id='1'
-              title="Tìm hiểu các yếu tố nguy cơ dẫn đến sử dụng ma túy ở thanh thiếu niên"
-              excerpt="Tìm hiểu các yếu tố nguy cơ có thể dẫn đến việc sử dụng ma túy ở thanh thiếu niên và cách phòng ngừa hiệu quả."
-              date="June 15, 2025"
-              author="Dr. Emily Johnson"
-              imageUrl="https://images.pexels.com/photos/7407946/pexels-photo-7407946.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-              slug="understanding-risk-factors"
+              AccountID={1}
+              BlogID={1}
+              Status="Tìm hiểu các yếu tố nguy cơ dẫn đến sử dụng ma túy ở thanh thiếu niên"
+              Content="Tìm hiểu các yếu tố nguy cơ có thể dẫn đến việc sử dụng ma túy ở thanh thiếu niên và cách phòng ngừa hiệu quả."
+              PublishedDate="June 15, 2025"
+              Author="Dr. Emily Johnson"
+              ImageUrl="https://images.pexels.com/photos/7407946/pexels-photo-7407946.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+              // slug="understanding-risk-factors"
+              IsDisabled={false}
             />
 
             <BlogPostCard
-              id='1'
-              title="Giao tiếp hiệu quả: Chiến lược nói chuyện với trẻ em về ma túy"
-              excerpt="Tìm hiểu các chiến lược giao tiếp hiệu quả với con trẻ"
-              date="June 10, 2025"
-              author="Thomas Richards, LMFT"
-              imageUrl="https://images.pexels.com/photos/7282588/pexels-photo-7282588.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-              slug="communication-strategies"
+              AccountID={1}
+              BlogID={1}
+              Status="Tìm hiểu các yếu tố nguy cơ dẫn đến sử dụng ma túy ở thanh thiếu niên"
+              Content="Tìm hiểu các yếu tố nguy cơ có thể dẫn đến việc sử dụng ma túy ở thanh thiếu niên và cách phòng ngừa hiệu quả."
+              PublishedDate="June 15, 2025"
+              Author="Dr. Emily Johnson"
+              ImageUrl="https://images.pexels.com/photos/7407946/pexels-photo-7407946.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+              // slug="understanding-risk-factors"
+              IsDisabled={false}
             />
 
             <BlogPostCard
-              id='1'
-              title="Xây dựng nền tảng: Cách giúp trẻ em tránh xa ma túy"
-              excerpt="Khám phá các phương pháp giúp trẻ em phát triển kỹ năng sống và giá trị cá nhân để tránh xa ma túy."
-              date="June 5, 2025"
-              author="Dr. Marcus Lee"
-              imageUrl="https://images.pexels.com/photos/2531353/pexels-photo-2531353.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-              slug="building-resilience"
+              AccountID={1}
+              BlogID={1}
+              Status="Tìm hiểu các yếu tố nguy cơ dẫn đến sử dụng ma túy ở thanh thiếu niên"
+              Content="Tìm hiểu các yếu tố nguy cơ có thể dẫn đến việc sử dụng ma túy ở thanh thiếu niên và cách phòng ngừa hiệu quả."
+              PublishedDate="June 15, 2025"
+              Author="Dr. Emily Johnson"
+              ImageUrl="https://images.pexels.com/photos/7407946/pexels-photo-7407946.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+              // slug="understanding-risk-factors"
+              IsDisabled={false}
             />
           </div>
 
