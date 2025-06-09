@@ -27,7 +27,10 @@ export const getAllSurveys = async (req: Request, res: Response): Promise<void> 
             ORDER BY s.SurveyID DESC
         `);
         console.log("Surveys fetched:", result.recordset);
-        res.status(200).json(result.recordset);
+        res.status(200).json({
+            data: result.recordset,
+            user: (req as any).user ? { ...((req as any).user).user } : null
+        });
     } catch (error) {
         console.error("Error fetching surveys:", error);
         res.status(500).json({ message: "Error occurred when fetching surveys" });
@@ -58,7 +61,10 @@ export const getSurveyById = async (req: Request, res: Response): Promise<void> 
             return;
         }
         console.log("Survey fetched:", result.recordset[0]);
-        res.status(200).json(result.recordset[0]);
+        res.status(200).json({
+            data: result.recordset[0],
+            user: (req as any).user ? { ...((req as any).user).user } : null
+        });
     } catch (error) {
         console.error("Error fetching survey:", error);
         res.status(500).json({ message: "Error occurred when fetching survey" });
