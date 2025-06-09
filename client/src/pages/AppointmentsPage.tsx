@@ -40,24 +40,24 @@ const AppointmentsPage: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-4">Tìm Chuyên Gia Tư Vấn</h2>
-
+            <div className="bg-gradient-to-br from-primary-50 via-white to-accent-50 rounded-2xl shadow-2xl p-6 mb-6 border-2 border-accent-200 animate-fade-in">
+              <h2 className="text-xl font-bold mb-4 text-primary-700 flex items-center gap-2">
+                <Search className="h-6 w-6 text-primary-400" /> Tìm Chuyên Gia Tư Vấn
+              </h2>
               <div className="space-y-4">
                 <div className="relative">
-                  <Search className="absolute left-3 top-3 text-gray-400 h-5 w-5" />
+                  <Search className="absolute left-3 top-3 text-accent-400 h-5 w-5" />
                   <input
                     type="text"
                     placeholder="Tìm kiếm chuyên gia tư vấn..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 border-2 border-accent-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-400 bg-accent-50 text-primary-900 placeholder:text-accent-400 shadow-md"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-
                 <div>
                   <select
-                    className="w-full pl-4 pr-8 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white"
+                    className="w-full pl-4 pr-8 py-2 border-2 border-accent-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-400 bg-accent-50 text-primary-900 shadow-md"
                     value={selectedSpecialty}
                     onChange={(e) => setSelectedSpecialty(e.target.value)}
                   >
@@ -69,14 +69,12 @@ const AppointmentsPage: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            <div className="bg-white rounded-lg shadow-md overflow-hidden max-h-[600px] overflow-y-auto">
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden max-h-[600px] overflow-y-auto border-2 border-accent-100 animate-fade-in">
               {filteredCounselors.length > 0 ? (
                 filteredCounselors.map((counselor) => (
                   <div
                     key={counselor.id}
-                    className={`border-b border-gray-200 last:border-b-0 cursor-pointer transition-colors ${selectedCounselor === counselor.id ? 'bg-primary-50' : 'hover:bg-gray-50'
-                      }`}
+                    className={`border-b-2 border-accent-100 last:border-b-0 cursor-pointer transition-all duration-200 ${selectedCounselor === counselor.id ? 'bg-primary-50 scale-[1.01] shadow-lg' : 'hover:bg-gradient-to-r hover:from-primary-50 hover:to-accent-100 hover:scale-[1.01]'} animate-fade-in`}
                     onClick={() => setSelectedCounselor(counselor.id)}
                   >
                     <CounselorCard counselor={counselor} compact={true} />
@@ -84,40 +82,38 @@ const AppointmentsPage: React.FC = () => {
                 ))
               ) : (
                 <div className="p-6 text-center">
-                  <Users className="h-10 w-10 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Không tìm thấy chuyên gia tư vấn</h3>
-                  <p className="text-gray-600">Vui lòng điều chỉnh tiêu chí tìm kiếm của bạn</p>
+                  <Users className="h-10 w-10 text-accent-200 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2 text-primary-700">Không tìm thấy chuyên gia tư vấn</h3>
+                  <p className="text-accent-400">Vui lòng điều chỉnh tiêu chí tìm kiếm của bạn</p>
                 </div>
               )}
             </div>
           </div>
-
           <div className="lg:col-span-2">
             {selectedCounselor ? (
-              <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="bg-white rounded-2xl shadow-xl p-8 border-2 border-accent-100 animate-fade-in">
                 <div className="mb-6">
-                  <h2 className="text-xl font-semibold mb-4">
-                    Đặt lịch với
+                  <h2 className="text-xl font-bold mb-4 text-primary-700 flex items-center gap-2">
+                    <User className="h-6 w-6 text-primary-400" /> Đặt lịch với
                     <Link
                       className='text-primary-500 underline hover:text-primary-700 ml-2'
                       to={`/counselor/${selectedCounselor}`}>
                       {counselorData.find(c => c.id === selectedCounselor)?.name}
                     </Link>
                   </h2>
-                  <p className="text-gray-600">
+                  <p className="text-primary-500">
                     Chọn khung giờ trống để đặt lịch hẹn của bạn
                   </p>
                 </div>
-
                 <AppointmentCalendar
                   counselorId={selectedCounselor}
                 />
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center justify-center h-full">
-                <CalendarIcon className="h-16 w-16 text-gray-300 mb-4" />
-                <h2 className="text-xl font-semibold mb-2">Chọn Chuyên Gia Tư Vấn</h2>
-                <p className="text-gray-600 text-center max-w-md">
+              <div className="bg-white rounded-2xl shadow-xl p-8 flex flex-col items-center justify-center h-full border-2 border-accent-100 animate-fade-in">
+                <CalendarIcon className="h-16 w-16 text-primary-100 mb-4" />
+                <h2 className="text-xl font-bold mb-2 text-primary-700">Chọn Chuyên Gia Tư Vấn</h2>
+                <p className="text-accent-400 text-center max-w-md">
                   Vui lòng chọn một chuyên gia tư vấn từ danh sách để xem các khung giờ hẹn có sẵn.
                 </p>
               </div>

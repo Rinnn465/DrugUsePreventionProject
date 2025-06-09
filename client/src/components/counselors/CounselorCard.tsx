@@ -11,23 +11,21 @@ interface CounselorCardProps {
 const CounselorCard: React.FC<CounselorCardProps> = ({ counselor, compact = false }) => {
   if (compact) {
     return (
-      <div className="p-4">
-        <div className="flex items-start gap-4">
-          <img
-            src={counselor.imageUrl}
-            alt={counselor.name}
-            className="w-12 h-12 rounded-full object-cover"
-          />
-          <div>
-            <h3 className="font-semibold">{counselor.name}</h3>
-            <p className="text-sm text-gray-600 mb-1">{counselor.title}</p>
-            <div className="flex flex-wrap gap-1">
-              {counselor.specialties.slice(0, 3).map((specialty, index) => (
-                <span key={index} className="bg-primary-100 text-primary-800 text-xs px-2 py-0.5 rounded-full">
-                  {specialty}
-                </span>
-              ))}
-            </div>
+      <div className="p-4 flex items-start gap-4 hover:bg-gradient-to-r hover:from-primary-50 hover:to-accent-100 rounded-xl transition-all duration-200 border-b-2 border-accent-100 shadow-md">
+        <img
+          src={counselor.imageUrl}
+          alt={counselor.name}
+          className="w-14 h-14 rounded-full object-cover border-4 border-accent-300 shadow-lg"
+        />
+        <div>
+          <h3 className="font-bold text-primary-700 text-base">{counselor.name}</h3>
+          <p className="text-xs text-accent-400 mb-1">{counselor.title}</p>
+          <div className="flex flex-wrap gap-1 mt-1">
+            {counselor.specialties.slice(0, 3).map((specialty, index) => (
+              <span key={index} className="bg-gradient-to-r from-accent-100 to-primary-100 text-accent-700 text-[11px] px-2 py-0.5 rounded-full font-bold border border-accent-200 shadow">
+                {specialty}
+              </span>
+            ))}
           </div>
         </div>
       </div>
