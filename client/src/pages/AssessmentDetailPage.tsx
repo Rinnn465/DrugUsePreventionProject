@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
@@ -87,94 +86,99 @@ const AssessmentDetailPage: React.FC = () => {
                     validationSchema={validationSchema}
                     onSubmit={handleSubmit}
                 >
-                    <Form className='container mx-auto py-4 px-8'>
+                    <Form className='max-w-2xl mx-auto py-8 px-6 bg-gradient-to-br from-white via-primary-50 to-accent-50 rounded-2xl shadow-2xl border-2 border-accent-100 animate-fade-in'>
                         {assessment.questions.map((question) => {
                             return (
-                                <div aria-labelledby="checkbox-group" key={question.id} className='mb-6'>
-                                    <p className='text-lg font-medium mb-2'>{question.text}</p>
+                                <div aria-labelledby="checkbox-group" key={question.id} className='mb-8 p-6 bg-white rounded-xl shadow-lg border border-accent-100'>
+                                    <p className='text-lg font-bold mb-4 text-accent-700'>{question.text}</p>
                                     {question.options.map((option) => {
                                         return (
-                                            <label key={option.id} className='block mb-2'>
+                                            <label key={option.id} className='block mb-3 cursor-pointer hover:bg-accent-50 rounded-lg px-3 py-2 transition-all'>
                                                 {question.type === 'checkbox' ? (
                                                     <Field
                                                         type='checkbox'
                                                         name={question.id}
                                                         value={String(option.value)}
-                                                        className='mr-2 accent-primary-500 scale-125'
+                                                        className='mr-3 accent-accent-500 scale-150'
                                                     />
                                                 ) : (
                                                     <Field
                                                         type='radio'
                                                         name={question.id}
                                                         value={String(option.value)}
-                                                        className='mr-2 accent-primary-500 scale-125'
+                                                        className='mr-3 accent-accent-500 scale-150'
                                                     />
                                                 )}
-                                                {option.text}
+                                                <span className='font-medium text-primary-700'>{option.text}</span>
                                             </label>
                                         )
                                     })}
                                     <ErrorMessage
                                         name={String(question.id)}
                                         component={'div'}
-                                        className='text-red-500 text-sm'
+                                        className='text-red-500 text-sm mt-1'
                                     />
                                 </div>
                             )
                         })}
                         <button
-                            className='px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-colors duration-200'
+                            className='w-full py-3 bg-gradient-to-r from-accent-500 to-primary-500 text-white rounded-xl hover:from-primary-600 hover:to-accent-600 transition-all font-bold shadow-lg text-lg mt-4'
                             type='submit'>Hoàn thành đánh giá</button>
                     </Form>
                 </Formik>
             )}
 
             {result !== null && result > 0 && (
-                <div className='my-6'>
-                    <h2 className='text-2xl font-bold mb-4'>Kết quả</h2>
-                    <p className='text-lg'>Nguy cơ sử dụng ma túy: {risk}</p>
-
-                    <h3 className='text-xl mb-4'>Các khóa học được gợi ý: </h3>
-                    {handleSuggestedCourse().map(course => (
-                        <div key={course.id} className='border p-4 rounded-md shadow-md mb-4'>
-                            <h4 className='text-lg font-bold'>{course.title}</h4>
-                            <p>{course.description}</p>
-                            <p className='text-sm text-gray-500'>Thời lượng: {course.duration}</p>
-                            <p className='text-sm text-gray-500'>Đối tượng: {course.audience}</p>
-                            <p className='text-sm text-gray-500'>Lĩnh vực: {course.category}</p>
-                            <Link to={`/courses/${course.id}`} className='text-primary-600 hover:underline'>
-                                Xem khóa học
-                            </Link>
-                        </div>
-                    ))}
-                    <h2 className='text-3xl font-bold mb-6'>Các chuyên viên gợi ý: </h2>
-                    {recommendedCounselor.map(counselor => {
-                        return (
-                            <div key={counselor.id}>
-                                <Link
-                                    className='text-primary-600 hover:underline'
-                                    to={`/counselor/${counselor.id}`}>
-                                    <h3 className='text-xl font-bold mb-2'>{counselor.name}</h3>
-                                </Link>
-                                <p className='text-md mb-2'>{counselor.title}</p>
-                                <p className='text-gray-700 mb-2'>{counselor.bio}</p>
-                                <p className='text-gray-500 mb-2'>Đánh giá: {counselor.rating} ⭐</p>
-                                <p className='text-gray-500 mb-2'>Ngôn ngữ: {counselor.languages.join(', ')}</p>
+                <div className="my-10 max-w-3xl mx-auto bg-gradient-to-br from-white via-primary-50 to-accent-50 rounded-2xl shadow-2xl border-2 border-accent-100 p-8 animate-fade-in">
+                    <h2 className="text-3xl font-extrabold mb-4 text-accent-700 flex items-center gap-3">
+                        🎉 Kết quả đánh giá
+                    </h2>
+                    <div className="mb-8 flex items-center gap-4">
+                        <span className={`inline-block px-4 py-2 rounded-full text-lg font-bold shadow-md
+                            ${risk === 'cao' ? 'bg-error-100 text-error-700' : risk === 'trung bình' ? 'bg-warning-100 text-warning-700' : 'bg-success-100 text-success-700'}`}
+                        >
+                            Nguy cơ sử dụng ma túy: {risk.toUpperCase()}
+                        </span>
+                    </div>
+                    <h3 className="text-xl font-bold mb-4 text-primary-700">Các khóa học được gợi ý:</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        {handleSuggestedCourse().map(course => (
+                            <div key={course.id} className="bg-white border-2 border-primary-100 rounded-xl shadow-lg p-5 flex flex-col justify-between">
+                                <h4 className="text-lg font-bold text-primary-700 mb-2">{course.title}</h4>
+                                <p className="mb-2 text-gray-700">{course.description}</p>
+                                <div className="text-xs text-gray-500 mb-2">Thời lượng: {course.duration} phút</div>
+                                <div className="text-xs text-gray-500 mb-2">Đối tượng: {course.audience}</div>
+                                <div className="text-xs text-gray-500 mb-2">Lĩnh vực: {course.category}</div>
+                                <Link to={`/courses/${course.id}`} className="mt-2 inline-block px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-lg font-bold shadow hover:from-accent-600 hover:to-primary-600 transition-all">Xem khóa học</Link>
+                            </div>
+                        ))}
+                    </div>
+                    <h3 className="text-xl font-bold mb-4 text-primary-700">Các chuyên viên gợi ý:</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {recommendedCounselor.map(counselor => (
+                            <div key={counselor.id} className="bg-white border-2 border-accent-100 rounded-xl shadow-lg p-5 flex flex-col justify-between">
+                                <div className="flex items-center gap-4 mb-2">
+                                    <img src={counselor.imageUrl} alt={counselor.name} className="w-14 h-14 rounded-full object-cover border-2 border-accent-300 shadow" />
+                                    <div>
+                                        <Link className="text-accent-700 font-bold text-lg hover:underline" to={`/counselor/${counselor.id}`}>{counselor.name}</Link>
+                                        <div className="text-xs text-gray-500">{counselor.title}</div>
+                                        <div className="text-xs text-yellow-600">Đánh giá: {counselor.rating} ⭐</div>
+                                    </div>
+                                </div>
+                                <p className="text-gray-700 mb-2 text-sm line-clamp-3">{counselor.bio}</p>
+                                <div className="text-xs text-gray-500 mb-1">Ngôn ngữ: {counselor.languages.join(', ')}</div>
                                 <Link
                                     to={'/appointments'}
                                     state={{ counselorId: counselor.id }}
-                                    className='inline-block mb-12 mt-2 p-3 bg-primary-500 text-white rounded-md hover:bg-primary-600'
+                                    className="mt-2 inline-block px-4 py-2 bg-gradient-to-r from-accent-500 to-primary-500 text-white rounded-lg font-bold shadow hover:from-primary-600 hover:to-accent-600 transition-all"
                                 >
-                                    <button className='text-md' >
-                                        Đặt lịch ngay
-                                    </button>
+                                    Đặt lịch ngay
                                 </Link>
                             </div>
-                        )
-                    })}
+                        ))}
+                    </div>
                 </div>
-            )
-            }
+            )}
         </div >
     )
 };
