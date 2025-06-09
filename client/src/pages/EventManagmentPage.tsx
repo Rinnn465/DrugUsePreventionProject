@@ -1,4 +1,3 @@
-import { eventData } from "../data/eventData"
 
 const EventManagmentPage: React.FC = () => {
 
@@ -9,7 +8,7 @@ const EventManagmentPage: React.FC = () => {
                 <div className="bg-white shadow-md rounded-lg p-6 w-full max-w-2xl">
                     <h2 className="text-2xl font-semibold mb-4">Danh sách sự kiện</h2>
                     <div>
-                        {eventData.map((event) => {
+                        {/* {eventData.map((event) => {
                             return (
                                 <div key={event.id}>
                                     <h3 className="text-xl font-bold mb-2">{event.name}</h3>
@@ -27,7 +26,7 @@ const EventManagmentPage: React.FC = () => {
                                     </div>
                                 </div>
                             )
-                        })}
+                        })} */}
                     </div>
                 </div>
             </div>

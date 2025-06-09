@@ -1,4 +1,4 @@
-import { Counselor } from '../types/Counselor';
+import { Counselor } from '../types/Consultant';
 
 export const counselorData: Counselor[] = [
   {

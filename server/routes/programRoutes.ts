@@ -9,5 +9,8 @@ router.get("/", programController.getAllPrograms);
 // Get program by ID
 router.get("/:id", programController.getProgramById);
 
+// Get upcoming programs
+router.get("/upcoming/programs", programController.getUpcomingPrograms);
+
 
 export default router;

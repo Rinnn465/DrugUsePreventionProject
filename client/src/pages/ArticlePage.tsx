@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import BlogPostCard from '../components/blog/BlogPostCard';
 
-import { Article } from '../types/Blog';
+import { Article } from '../types/Article';
 
-const BlogPage: React.FC = () => {
+const ArticlePage: React.FC = () => {
   const [blogPosts, setBlogPosts] = React.useState<Article[]>();
 
   useEffect(() => {
@@ -34,4 +34,4 @@ const BlogPage: React.FC = () => {
   );
 };
 
-export default BlogPage;
+export default ArticlePage;

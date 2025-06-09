@@ -4,7 +4,6 @@ import { useUser } from "../context/UserContext";
 import Sidebar from "../components/sidebar/Sidebar";
 import { parseDate } from "../utils/parseDateUtils";
 import { courseData } from "../data/courseData";
-import { eventData } from "../data/eventData";
 import { User } from "lucide-react";
 
 const DashBoardPage: React.FC = () => {
@@ -47,13 +46,13 @@ const DashBoardPage: React.FC = () => {
 
                     <div className="text-lg font-semibold text-gray-800 mb-4">
                         Sự kiện đã tham gia
-                        {eventData.map((event) => (
+                        {/* {eventData.map((event) => (
                             <div key={event.id} className="py-4 pr-4 rounded-lg mb-2">
                                 <Link to={`/events/${event.id}`} className="text-blue-600 hover:underline">
                                     {event.name}
                                 </Link>
                             </div>
-                        ))}
+                        ))} */}
                     </div>
                     <div className="text-lg font-semibold text-gray-800 mb-4">
                         Lịch sử đặt lịch

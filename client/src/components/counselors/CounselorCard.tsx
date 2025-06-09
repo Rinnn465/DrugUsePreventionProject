@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Star, MapPin, Calendar } from 'lucide-react';
-import { Counselor } from '../../types/Counselor';
+import { Counselor } from '../../types/Consultant';
 
 interface CounselorCardProps {
   counselor: Counselor;

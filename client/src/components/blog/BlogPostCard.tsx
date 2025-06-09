@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar } from 'lucide-react';
-import { Article, BlogPostCardProps } from '../../types/Blog';
+import { Article, BlogPostCardProps } from '../../types/Article';
 
 const BlogPostCard: React.FC<Article> = ({
   BlogID,

@@ -18,10 +18,12 @@ export const getAllPrograms = async (req: Request, res: Response): Promise<void>
         const result = await pool.request().query(`
             SELECT 
                 ProgramID,
-                EventName,
+                ProgramName,
+                Type,
                 Date,
                 Description,
                 Organizer,
+                Location,
                 ImageUrl,
                 IsDisabled
             FROM CommunityProgram
@@ -46,10 +48,12 @@ export const getProgramById = async (req: Request, res: Response): Promise<void>
             .query(`
                 SELECT 
                     ProgramID,
-                    EventName,
+                    ProgramName,
+                    Type,
                     Date,
                     Description,
                     Organizer,
+                    Location,
                     ImageUrl,
                     IsDisabled
                 FROM CommunityProgram
@@ -66,3 +70,30 @@ export const getProgramById = async (req: Request, res: Response): Promise<void>
         res.status(500).json({ message: "Error occurred when fetching program" });
     }
 };
+
+export const getUpcomingPrograms = async (req: Request, res: Response): Promise<void> => {
+    try {
+        console.log("Fetching upcoming programs...");
+        const pool = await poolPromise;
+        const result = await pool.request().query(`
+            SELECT 
+                ProgramID,
+                ProgramName,
+                Type,
+                Date,
+                Description,
+                Organizer,
+                Location,
+                ImageUrl,
+                IsDisabled
+            FROM CommunityProgram
+            WHERE Date > GETDATE() AND IsDisabled = 0
+            ORDER BY Date ASC
+        `);
+        console.log("Upcoming programs fetched:", result.recordset);
+        res.status(200).json(result.recordset);
+    } catch (error) {
+        console.error("Error fetching upcoming programs:", error);
+        res.status(500).json({ message: "Error occurred when fetching upcoming programs" });
+    }
+}

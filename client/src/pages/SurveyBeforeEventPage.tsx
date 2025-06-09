@@ -1,21 +1,17 @@
 import React, { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { eventData } from "../data/eventData";
 
 const SurveyBeforeEventPage: React.FC = () => {
-    const { eventId } = useParams();
+    const { programId } = useParams();
 
-    const event = eventData.find(event => event.id === Number(eventId));
     console.log(event);
-
-
     return (
         <div className="container px-4 py-8 mx-auto max-w-2xl">
             <h1 className="text-3xl font-bold text-center mb-4">Form khảo sát trước sự kiện</h1>
             <h2 className="text-2xl font-semi-bold text-center mb-6">
                 Tên sự kiện
                 <br />
-                <p className="text-primary-600">{' ' + event?.name}</p>
+                {/* <p className="text-primary-600">{' ' + event?.name}</p> */}
             </h2>
 
             <form className="space-y-6">
@@ -57,15 +53,15 @@ const SurveyBeforeEventPage: React.FC = () => {
                     ></textarea>
                 </div>
 
-                <Link to={`/survey/${eventId}/completed`}>
-                    <button
-                        type="submit"
-                        onClick={() => { alert('hoàn thành khỏa sát') }}
-                        className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                    >
-                        Hoàn thành khảo sát
-                    </button>
-                </Link>
+                {/* <Link to={`/survey/${eventId}/completed`}> */}
+                <button
+                    type="submit"
+                    onClick={() => { alert('hoàn thành khỏa sát') }}
+                    className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                    Hoàn thành khảo sát
+                </button>
+                {/* </Link> */}
             </form>
         </div>
     );

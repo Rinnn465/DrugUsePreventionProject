@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { counselorData } from "../data/counselorData";
 import { Star } from "lucide-react";
 
-const CounselorDetailPage: React.FC = () => {
+const ConsultantDetailsPage: React.FC = () => {
     const { counselorId } = useParams();
     const counselor = counselorData.find(counselor => counselor.id === Number(counselorId));
 
@@ -45,4 +45,4 @@ const CounselorDetailPage: React.FC = () => {
     );
 };
 
-export default CounselorDetailPage;
+export default ConsultantDetailsPage;

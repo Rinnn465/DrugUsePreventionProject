@@ -1,23 +1,40 @@
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { blogPostsData } from '../data/blogData';
+import { Article } from '../types/Article';
 
-const BlogDetailsPage = () => {
-    const { blogId } = useParams();
+const ArticleDetailsPage = () => {
+    const { articleId } = useParams();
+    const [article, setArticle] = useState<Article | null>(null);
 
-    const blog = blogPostsData.find(post => post.id.toString() === blogId);
+    useEffect(() => {
+        const fetchArticleDetails = async () => {
+            try {
+                const response = await fetch(`http://localhost:5000/api/articles/${articleId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch blog details');
+                }
+                const data = await response.json();
+                setArticle(data);
+            } catch (error) {
+                console.error('Error fetching blog details:', error);
+            }
+        };
+
+        fetchArticleDetails();
+    }, [articleId]);
 
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4 md:px-8 lg:px-20">
             <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-md">
                 <h1 className="text-4xl font-bold text-gray-900 mb-6 leading-tight">
-                    {blog?.title}
+                    {article?.ArticleTitle}
                 </h1>
 
-                {blog?.imageUrl && (
+                {article?.ImageUrl && (
                     <figure className="mb-8">
                         <img
-                            src={blog.imageUrl}
-                            alt={blog?.slug}
+                            src={article.ImageUrl}
+                            alt={article.ArticleTitle}
                             className="w-full h-auto rounded-lg object-cover shadow-sm"
                         />
                         <figcaption className="text-center text-gray-500 text-sm italic mt-2">
@@ -40,4 +57,4 @@ const BlogDetailsPage = () => {
 
 }
 
-export default BlogDetailsPage;
+export default ArticleDetailsPage;

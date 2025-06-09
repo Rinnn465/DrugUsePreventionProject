@@ -102,7 +102,7 @@ export async function register(
       .input("email", sql.NVarChar, email)
       .input("password", sql.NVarChar, hashedPassword)
       .input("fullName", sql.NVarChar, fullName)
-      .input("dateOfBirth", sql.Date, dateOfBirth || null)
+      .input("dateOfBirthz", sql.Date, dateOfBirth || null)
       .input("role", sql.NVarChar, role || "user")
       .input("createdAt", sql.DateTime2, new Date())
       .query(
@@ -112,8 +112,8 @@ export async function register(
                 (@username, @email, @password, @fullName, @dateOfBirth, @role, @createdAt)`
       );
 
-      
-      
+
+
     // Send welcome email
     await sendEmail(
       email,

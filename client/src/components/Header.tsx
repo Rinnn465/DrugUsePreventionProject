@@ -57,7 +57,7 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
             Giới thiệu
           </NavLink>
           <NavLink
-            to="/blog"
+            to="/article"
             className={({ isActive }) =>
               isActive ? "text-primary-600 font-medium" : "text-gray-700 hover:text-primary-600 transition-colors"
             }
@@ -89,7 +89,7 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileMenu }) => {
             Đặt lịch trực tuyến
           </NavLink>
           <NavLink
-            to="/events"
+            to="/community-programs"
             className={({ isActive }) =>
               isActive ? "text-primary-600 font-medium" : "text-gray-700 hover:text-primary-600 transition-colors"
             }

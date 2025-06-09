@@ -1,33 +1,55 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { Link, useParams } from "react-router-dom";
-import { eventData } from "../data/eventData";
+import { CommunityProgram } from "../types/CommunityProgram";
+import { parseDate } from "../utils/parseDateUtils";
 
-const EventsDetails: React.FC = () => {
+const CommunityProgramDetails: React.FC = () => {
 
-    const { id } = useParams();
-    const event = eventData.find(event => event.id === Number(id));
-    const upcomingEvents = eventData.filter(event => event.date > new Date());
+    const { programId } = useParams();
+    const [programData, setProgramData] = React.useState<CommunityProgram | null>();
+    const [upcomingPrograms, setUpcomingPrograms] = React.useState<CommunityProgram[]>([]);
+
+    useEffect(() => {
+        const fetchProgramData = async () => {
+            fetch(`http://localhost:5000/api/programs/${programId}`)
+                .then(response => response.json())
+                .then(data => setProgramData(data))
+                .catch(error => console.error('Error fetching program data:', error));
+        }
+
+        const fetchUpcomingPrograms = async () => {
+            fetch('http://localhost:5000/api/programs/upcoming/programs')
+                .then(response => response.json())
+                .then(data => setUpcomingPrograms(data))
+                .catch(error => console.error('Error fetching upcoming programs:', error));
+        }
+
+        fetchProgramData();
+        fetchUpcomingPrograms();
+    }, [programId])
+
+
 
     const handleRenderSurveyForm = () => {
-        if (event && event.date > new Date()) {
+        if (programData && new Date(parseDate(programData.Date)) > new Date()) {
             return (
                 <div className="mt-6">
                     <button
                         className="self-start px-6 py-3 text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-md font-semibold transition duration-200"
                     >
-                        <Link to={`/survey/${event.id}/before`}>
+                        <Link to={`/survey/${programData.ProgramID}/before`}>
                             Khảo sát trước sự kiện
                         </Link>
                     </button>
                 </div>
             )
-        } else if (event && event.date <= new Date()) {
+        } else if (programData && new Date(parseDate(programData.Date)) <= new Date()) {
             return (
                 <div className="mt-6">
                     <button
                         className="self-start px-6 py-3 text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-md font-semibold transition duration-200"
                     >
-                        <Link to={`/survey/${event.id}/after`}>
+                        <Link to={`/survey/${programData.ProgramID}/after`}>
                             Khảo sát sau sự kiện
                         </Link>
                     </button>
@@ -35,40 +57,40 @@ const EventsDetails: React.FC = () => {
             )
         }
     }
-    if (event) {
+    if (programData) {
         return (
             <div className="min-h-screen bg-gray-100 py-10">
                 <div className="container mx-auto px-6 md:px-16 space-y-12">
 
                     <div className="bg-white rounded-xl shadow-md p-8 space-y-6">
-                        <h1 className="text-3xl font-bold text-gray-800">{event.name}</h1>
+                        <h1 className="text-3xl font-bold text-gray-800">{programData.ProgramName}</h1>
 
                         <div className="grid gap-4 text-gray-700">
                             <div className="text-lg">
                                 <strong className="block font-semibold">🗓 Thời gian:</strong>
-                                {event.date.toLocaleDateString()}
+                                {parseDate(programData.Date)}
                             </div>
                             <div className="text-lg">
                                 <strong className="block font-semibold">📍 Địa điểm:</strong>
-                                {event.location}
+                                {programData.Location}
                             </div>
                             <div className="text-base">
                                 <strong className="block font-semibold">📄 Mô tả:</strong>
-                                {event.description}
+                                {programData.Description}
                             </div>
                             <div className="text-base">
                                 <strong className="block font-semibold">👥 Đơn vị tổ chức:</strong>
-                                {event.organizer}
+                                {programData.Organizer}
                             </div>
                         </div>
 
                         {handleRenderSurveyForm()}
 
-                        {event.imageUrl && (
+                        {programData.ImageUrl && (
                             <figure className="mt-10">
                                 <img
-                                    src={event.imageUrl}
-                                    alt={event.name}
+                                    src={programData.ImageUrl}
+                                    alt={programData.ProgramName}
                                     className="w-full h-auto rounded-lg object-cover shadow-sm"
                                 />
                                 <figcaption className="text-center text-sm text-gray-500 mt-2">
@@ -80,22 +102,22 @@ const EventsDetails: React.FC = () => {
 
                     <div className="space-y-4">
                         <h2 className="text-2xl font-bold text-gray-800">📅 Các sự kiện sắp tới</h2>
-                        {upcomingEvents.map(event => (
+                        {upcomingPrograms.map(program => (
                             <div
-                                key={event.id}
+                                key={program.ProgramID}
                                 className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 space-y-2"
                             >
-                                <h3 className="text-xl font-semibold text-blue-800">{event.name}</h3>
-                                <p><strong>🕒 Thời gian:</strong> {event.date.toLocaleDateString()}</p>
-                                <p><strong>📍 Địa điểm:</strong> {event.location}</p>
-                                <p><strong>📄 Mô tả:</strong> {event.description}</p>
-                                <p><strong>👥 Đơn vị tổ chức:</strong> {event.organizer}</p>
-                                {event.attendees && (
-                                    <p><strong>👤 Số người dự kiến:</strong> {event.attendees}</p>
-                                )}
-                                {event.url ? (
+                                <h3 className="text-xl font-semibold text-blue-800">{program.ProgramName}</h3>
+                                <p><strong>🕒 Thời gian:</strong> {parseDate(program.Date)}</p>
+                                <p><strong>📍 Địa điểm:</strong> {program.Location}</p>
+                                <p><strong>📄 Mô tả:</strong> {program.Description}</p>
+                                <p><strong>👥 Đơn vị tổ chức:</strong> {program.Organizer}</p>
+                                {/* {program.attendees && (
+                                    <p><strong>👤 Số người dự kiến:</strong> {program.attendees}</p>
+                                )} */}
+                                {program.Url ? (
                                     <a
-                                        href={event.url}
+                                        href={'#'}
                                         className="inline-block text-blue-600 hover:underline font-medium"
                                         target="_blank"
                                         rel="noopener noreferrer"
@@ -121,4 +143,4 @@ const EventsDetails: React.FC = () => {
     }
 }
 
-export default EventsDetails
+export default CommunityProgramDetails
