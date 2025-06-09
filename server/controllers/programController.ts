@@ -31,7 +31,10 @@ export const getAllPrograms = async (req: Request, res: Response): Promise<void>
             ORDER BY Date DESC
         `);
         console.log("Programs fetched:", result.recordset);
-        res.status(200).json(result.recordset);
+        res.status(200).json({
+            data: result.recordset,
+            user: (req as any).user ? { ...((req as any).user).user } : null
+        });
     } catch (error) {
         console.error("Error fetching programs:", error);
         res.status(500).json({ message: "Error occurred when fetching programs" });
@@ -64,7 +67,10 @@ export const getProgramById = async (req: Request, res: Response): Promise<void>
             return;
         }
         console.log("Program fetched:", result.recordset[0]);
-        res.status(200).json(result.recordset[0]);
+        res.status(200).json({
+            data: result.recordset[0],
+            user: (req as any).user ? { ...((req as any).user).user } : null
+        });
     } catch (error) {
         console.error("Error fetching program:", error);
         res.status(500).json({ message: "Error occurred when fetching program" });

@@ -1,18 +1,23 @@
-CHẠY FRONT END: 
+<h1>Drug Use Prevention Platform</h1>
+<h2>Phần mềm hỗ trợ phòng ngừa sử dụng ma túy</h2>
 
-1) TảI npm (Node Package manager) và Nodejs (LTS version), nhớ chọn Add to PATH khi download Nodejs 
 
-Để xác nhận rằng đã tải npm và node, truy cập command prompt, gõ npm -v, node -v, nếu xuất hiện số 
-phiên bản là đã cài xong
+<h2>Mô tả</h2>
 
-2) Mở VSCode -> Sau khi clone project, nhấn Ctrl + Shift + P để mở terminal trên VSCode
+<p>
+  Trước hiện trạng độ tuổi sử dụng ma túy đang bắt đầu trẻ hóa một cách nhanh chóng, chúng em quyết định tạo nên một nền tảng web nơi 
+  mọi người có thể tìm hiểu thêm về tác hại của ma túy, đồng thời thực hiện các bài trắc nghiệm nhằm đánh giá nguy cơ sử dụng ma túy của một cá nhân. 
+  Bên cạnh đó, nền tảng của chúng em còn cung cấp cho người dùng các khóa học miễn phí về ngăn ngừa sử dụng ma túy, cớ hội gặp gỡ và trò chuyện 
+  với các chuyên gia nhằm giải đáp các vẫn đề xoay quanh việc sử dụng ma túy.
+</p>
 
-LƯU Ý: Đổi từ powershell sang Git Bash trên terminal của VSCode
+<p>
+  Công nghệ sử dụng: 
+  <ul>
+    <li>Front end: React, Vite, Tailwind, react-router-dom, Formik, Yup</li>
+    <li>Backend: Nodejs, Express </li>
+  </ul>
+</p>
 
-3) Di chuyển đến thư mục dự án bằng dòng lệnh (cd client/)
-
-4) Chạy lệnh npm i để tải các dependency (thư viện) của dự án
-
-5) Sau khi tải xong, quay lại terminal, chạy npm run dev, sau đó nhấn tổ hợp o + Enter để mở dự án trong trình duyệt 
 
 

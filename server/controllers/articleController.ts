@@ -4,6 +4,7 @@ import { poolPromise } from '../config/database';
 interface Article {
     BlogID: number;
     AccountID: number;
+    ArticleTitle: string;
     PublishedDate: Date;
     ImageUrl: string | null;
     Author: string;
@@ -17,7 +18,7 @@ export const getArticles = async (req: Request, res: Response): Promise<void> =>
         console.log("Fetching articles from database...");
         const pool = await poolPromise;
         const result = await pool.request().query(`
-            SELECT BlogID, AccountID, PublishedDate, ImageUrl, Author, Status, Content, IsDisabled
+            SELECT BlogID, AccountID, ArticleTitle, PublishedDate, ImageUrl, Author, Status, Content, IsDisabled
             FROM Article
             WHERE IsDisabled = 0
             ORDER BY PublishedDate DESC

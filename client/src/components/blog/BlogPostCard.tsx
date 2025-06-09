@@ -6,6 +6,7 @@ import { Article, BlogPostCardProps } from '../../types/Article';
 const BlogPostCard: React.FC<Article> = ({
   BlogID,
   AccountID,
+  ArticleTitle,
   PublishedDate,
   ImageUrl,
   Content,
@@ -25,7 +26,7 @@ const BlogPostCard: React.FC<Article> = ({
           <Calendar className="h-4 w-4 mr-1" />
           <span>{PublishedDate}</span>
         </div>
-        <h3 className="h-[56px] text-xl font-semibold mb-3 line-clamp-2">{Status}</h3>
+        <h3 className="h-[56px] text-xl font-semibold mb-3 line-clamp-2">{ArticleTitle}</h3>
         <p className="h-[72px] text-gray-600 mb-4 line-clamp-3">{Content}</p>
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-600">{Author}</span>
