@@ -18,27 +18,18 @@ app.use(cors({
   credentials: true,
 })); // Enable CORS with credentials
 
-// Article Routes
+// Public Routes
 app.use("/api/articles", articleRoutes);
-
-// Auth Routes
 app.use("/api/auth", authenRoutes);
-
-// Public Course Routes
 app.use("/api/courses", courseRoutes)
-
-// Survey Routes
-app.use("/api/surveys", surveyRoutes);
-
-// Program Routes
-app.use("/api/programs", programRoutes);
 
 // JWT Middleware for all other routes
 app.use(authenticateToken);
 
 // Protected Routes
 app.use("/api/account", apiAccountRoutes);
-
+app.use("/api/surveys", surveyRoutes);
+app.use("/api/programs", programRoutes);
 
 // Start the server
 app.listen(PORT, () => {
