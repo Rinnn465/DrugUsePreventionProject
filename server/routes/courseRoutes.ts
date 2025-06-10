@@ -18,10 +18,10 @@ router.get("/:id/lessons", lessonController.getLesson);
 router.get("/:id/lessons/:lessonId", lessonController.getLessonContent);
 
 // fetch lesson questions by lesson id
-router.get("/:id/lessons/:lessonId/questions", lessonController.getQuestions);
+router.get("/:id/lessons/questions", lessonController.getQuestions);
 
 // fetch lesson answers by lesson id and question id
-router.get("/:id/lessons/:lessonId/questions/answers", lessonController.getAnswers);
+router.get("/:id/lessons/questions/answers", lessonController.getAnswers);
 
 
 export default router;

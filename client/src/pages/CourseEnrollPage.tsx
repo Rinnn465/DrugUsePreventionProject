@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Clock, Users, BadgeCheck, ArrowLeft, BookOpen, CheckCircle } from 'lucide-react';
-import { courseData } from '../data/courseData';
 import { SqlCourse } from '../types/Course';
 import { sqlLesson } from '../types/Lesson';
 
@@ -138,7 +137,7 @@ const CourseEnrollPage: React.FC = () => {
           <p className="text-primary-700 mb-6">
             Tham gia cùng {course.EnrollCount} người khác
           </p>
-          <Link to={`/courses/${course.CourseID}/details/${course.CourseID}`}>
+          <Link to={`/courses/${course.CourseID}/details/`}>
             <button
               className="bg-primary-600 text-white px-8 py-3 rounded-md shadow-md hover:bg-primary-700 transition-colors font-medium"
             >

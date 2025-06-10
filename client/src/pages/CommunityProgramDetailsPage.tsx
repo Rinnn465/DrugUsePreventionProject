@@ -13,7 +13,9 @@ const CommunityProgramDetails: React.FC = () => {
         const fetchProgramData = async () => {
             fetch(`http://localhost:5000/api/programs/${programId}`)
                 .then(response => response.json())
-                .then(data => setProgramData(data))
+                .then(data => {
+                    setProgramData(data.data), console.log(data);
+                })
                 .catch(error => console.error('Error fetching program data:', error));
         }
 

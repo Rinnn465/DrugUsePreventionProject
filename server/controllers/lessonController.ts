@@ -13,7 +13,7 @@ export async function getLesson(req: Request, res: Response): Promise<void> {
     try {
         const pool = await poolPromise;
         const result = await pool.request()
-            .input('CourseId', courseId)
+            .input('CourseId', Number(courseId))
             .query('SELECT * FROM Lesson WHERE CourseID = @CourseId');
         res.status(200).json({ message: 'Courses fetched successfully', data: result.recordset });
 
@@ -25,15 +25,13 @@ export async function getLesson(req: Request, res: Response): Promise<void> {
 }
 
 export async function getLessonContent(req: Request, res: Response): Promise<void> {
-    const { lessonId, id } = req.params;
-    console.log(`Fetching content for lesson ID: ${lessonId} in course ID: ${id}`);
+    const { id } = req.params;
 
     try {
         const pool = await poolPromise;
         const result = await pool.request()
-            .input('LessonId', lessonId) // <-- bind the variable here
-            .input('CourseId', id)
-            .query('SELECT * FROM Lesson WHERE LessonID = @LessonId AND CourseID = @CourseId');
+            .input('CourseId', Number(id))
+            .query('SELECT * FROM LessonQuestion WHERE LessonID IN ( SELECT l.LessonID FROM Course c JOIN Lesson l ON c.CourseID = l.CourseID WHERE l.CourseID = @CourseId)');
         res.status(200).json({ message: 'Lesson content fetched successfully', data: result.recordset });
 
         return;
@@ -44,14 +42,15 @@ export async function getLessonContent(req: Request, res: Response): Promise<voi
 }
 
 export async function getQuestions(req: Request, res: Response): Promise<void> {
-    const { lessonId } = req.params;
+    const lessonId = req.params.id;
+
     console.log(`Fetching questions for lesson ID: ${lessonId}`);
 
     try {
         const pool = await poolPromise;
         const result = await pool.request()
-            .input('LessonID', lessonId)
-            .query('SELECT * FROM LessonQuestion WHERE QuestionId = @LessonID')
+            .input('LessonID', Number(lessonId))
+            .query('SELECT * FROM LessonQuestion WHERE LessonID IN ( SELECT l.LessonID FROM Course c JOIN Lesson l ON c.CourseID = l.CourseID WHERE l.CourseID = @CourseId)')
 
         res.status(200).json({ message: 'Lesson questions fetched successfully', data: result.recordset });
     } catch (err: any) {
@@ -61,16 +60,24 @@ export async function getQuestions(req: Request, res: Response): Promise<void> {
 }
 
 export async function getAnswers(req: Request, res: Response): Promise<void> {
-    const { lessonId } = req.params;
+    const { id } = req.params;
     console.log(req.params);
 
-    console.log(`Fetching answers for question ID: ${lessonId}`);
+    console.log(`Fetching answers for question ID: ${id}`);
 
     try {
         const pool = await poolPromise;
         const result = await pool.request()
-            .input('LessonID', lessonId)
-            .query('select la.AnswerID, la.QuestionID, la.AnswerText, la.IsCorrect, la.IsDisabled from LessonQuestion lq JOIN LessonAnswer la ON lq.QuestionId = la.QuestionId where lessonId = @LessonID')
+            .input('CourseID', id)
+            .query(`
+            SELECT * 
+            FROM LessonAnswer 
+            WHERE QuestionID IN (
+                SELECT lq.QuestionID 
+                FROM Lesson l
+                JOIN LessonQuestion lq ON l.LessonID = lq.LessonID
+                WHERE l.CourseID = @CourseID
+            );`);
 
         res.status(200).json({ message: 'Lesson answers fetched successfully', data: result.recordset });
     } catch (err: any) {

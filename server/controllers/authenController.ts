@@ -44,7 +44,7 @@ export async function login(
     res.status(200).json({
       message: "Login successful",
       token,
-      user: { ...user, status: 'hello' }
+      user: { ...user }
     });
   } catch (err: any) {
     console.error(err);
@@ -102,8 +102,8 @@ export async function register(
       .input("email", sql.NVarChar, email)
       .input("password", sql.NVarChar, hashedPassword)
       .input("fullName", sql.NVarChar, fullName)
-      .input("dateOfBirthz", sql.Date, dateOfBirth || null)
-      .input("role", sql.NVarChar, role || "user")
+      .input("dateOfBirth", sql.Date, dateOfBirth || null)
+      .input("role", sql.NVarChar, role || "member")
       .input("createdAt", sql.DateTime2, new Date())
       .query(
         `INSERT INTO Account 
@@ -111,15 +111,15 @@ export async function register(
                 VALUES 
                 (@username, @email, @password, @fullName, @dateOfBirth, @role, @createdAt)`
       );
-
-
-
-    // Send welcome email
-    await sendEmail(
-      email,
-      "🎉 Welcome to Our App!",
-      welcomeTemplate(fullName, username)
-    );
+    try {
+      await sendEmail(
+        email,
+        "🎉 Welcome to Our App!",
+        welcomeTemplate(fullName, username)
+      );
+    } catch (emailErr) {
+      console.warn("Email sending failed:", emailErr); // log but don't crash
+    }
 
     res.status(201).json({ message: "User registered successfully" });
   } catch (err: any) {

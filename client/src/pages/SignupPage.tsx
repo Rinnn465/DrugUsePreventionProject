@@ -5,34 +5,8 @@ import * as Yup from 'yup'
 
 const SignUpPage: React.FC = () => {
 
-    // handle date selection
-    const days = Array.from({ length: 31 }, (_, i) => i + 1);
-    const months = Array.from({ length: 12 }, (_, i) => i + 1);
-    const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
-
     // handle role selection
     // const roles = ['Thành viên', 'Quản trị viên', 'Quản lý', 'Nhân viên', 'Chuyên viên'];
-
-    const handleDateChange = (key: any, value: any) => {
-        const [day = '', month = '', year = ''] = formik.values.date.split('-');
-
-        const newDate = {
-            day,
-            month,
-            year,
-            [key]: value
-        };
-
-        if (newDate.year && newDate.month && newDate.day) {
-            console.log("Full date selected:", newDate);
-
-            formik.setFieldValue('date', `${newDate.day}-${newDate.month}-${newDate.year}`);
-        } else {
-            console.log("Partial date selected:", newDate);
-            formik.setFieldValue('date', `${newDate.day || ''}-${newDate.month || ''}-${newDate.year || ''}`);
-        }
-    }
-
     const formik = useFormik({
         initialValues: {
             email: '',
@@ -44,22 +18,24 @@ const SignUpPage: React.FC = () => {
             confirmPassword: ''
         },
         onSubmit: (values, { resetForm }) => {
+            const transformedValues = {
+                ...values,
+                dateOfBirth: values.date
+            }
             fetch('http://localhost:5000/api/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(values)
+                body: JSON.stringify(transformedValues)
             })
-                .then(async (response) => {
-                    if (response.ok) {
-                        const user = await response.json();
-                        console.log(user);
-                        alert('Tạo tài khoản thành công! Vui lòng đăng nhập để tiếp tục.');
-                        window.location.href = '/login'
-                    }
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message);
+                    window.location.href = '/login'; // Redirect to login page after successful registration
                 })
                 .catch(err => console.error('Error:', err.message));
+            console.log("Form submitted with values:", transformedValues);
 
         },
 
@@ -78,14 +54,14 @@ const SignUpPage: React.FC = () => {
                 .min(2, 'Tên đăng nhập phải có ít nhất 2 ký tự')
                 .required('Không được để trống'),
             date: Yup.string()
-                .required('Không được để trống')
-                .matches(/^\d{1,2}-\d{1,2}-\d{4}$/, 'Ngày sinh không hợp lệ')
-                .test('date', 'Ngày sinh không hợp lệ', (value) => {
-                    if (!value) return false;
-                    const [day, month, year] = value.split('-').map(Number);
-                    const date = new Date(year, month - 1, day);
-                    return date.getDate() === day && date.getMonth() + 1 === month && date.getFullYear() === year;
-                }),
+                .required('Không được để trống'),
+            // .matches(/^\d{1,2}-\d{1,2}-\d{4}$/, 'Ngày sinh không hợp lệ')
+            // .test('date', 'Ngày sinh không hợp lệ', (value) => {
+            //     if (!value) return false;
+            //     const [day, month, year] = value.split('-').map(Number);
+            //     const date = new Date(year, month - 1, day);
+            //     return date.getDate() === day && date.getMonth() + 1 === month && date.getFullYear() === year;
+            // }),
             // role: Yup.string()
             //     .required('Không được để trống')
             //     .oneOf(roles, 'Vai trò không hợp lệ'),
@@ -99,7 +75,6 @@ const SignUpPage: React.FC = () => {
         })
     })
 
-    const [day = "", month = "", year = ""] = formik.values.date.split("-");
 
     return (
         <form
@@ -171,7 +146,7 @@ const SignUpPage: React.FC = () => {
                     Ngày sinh (ngày / tháng / năm)
                 </label>
                 <div className="flex justify-between">
-                    <select
+                    {/* <select
                         name="dob_day"
                         id="dob_day"
                         value={day}
@@ -211,8 +186,13 @@ const SignUpPage: React.FC = () => {
                                 {y}
                             </option>
                         ))}
-                    </select>
-
+                    </select> */}
+                    <input type="date" name="date" id="date"
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        value={formik.values.date || ""}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
                 </div>
                 {formik.touched.date && formik.errors.date ? <p className="text-red-600">
                     {formik.errors.date}

@@ -44,6 +44,8 @@ export const getAllPrograms = async (req: Request, res: Response): Promise<void>
 export const getProgramById = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
+        console.log(req.params);
+
         console.log(`Fetching program with ID: ${id}...`);
         const pool = await poolPromise;
         const result = await pool.request()

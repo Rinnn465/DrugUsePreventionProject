@@ -27,7 +27,7 @@ export interface SqlCourse {
   ImageUrl?: string;       // matches ImageUrl nvarchar(300), optional if nullable
   Status: string;          // matches Status nvarchar(40)
   IsDisabled: boolean;     // matches IsDisabled BIT
-  Lessons: sqlLesson[];
+
 }
 
 

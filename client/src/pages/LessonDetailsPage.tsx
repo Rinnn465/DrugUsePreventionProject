@@ -8,7 +8,7 @@ import { slqLessonQuestion, sqlLesson, sqlLessonAnswer } from "../types/Lesson";
 
 
 const LessonDetailsPage: React.FC = () => {
-    const { id, lessonId } = useParams();
+    const { id } = useParams();
     const [selected, setSelected] = useState<string>('lesson');
     // const course = courseData.find(course => course.id.toString() === id);
     const [course, setCourse] = useState<SqlCourse | null>(null); // Use any for now, replace with proper type later
@@ -27,7 +27,7 @@ const LessonDetailsPage: React.FC = () => {
                 const courseData = await courseResponse.json();
                 setCourse(courseData.data);
 
-                const lessonResponse = await fetch(`http://localhost:5000/api/courses/${id}/lessons/${lessonId}`);
+                const lessonResponse = await fetch(`http://localhost:5000/api/courses/${id}/lessons/`);
                 if (!lessonResponse.ok) throw new Error('Failed to fetch lesson');
                 const lessonData = await lessonResponse.json();
                 setLesson(lessonData.data);
@@ -39,7 +39,7 @@ const LessonDetailsPage: React.FC = () => {
 
         const fetchQuestionsAndAnswers = async () => {
             try {
-                const questionResponse = await fetch(`http://localhost:5000/api/courses/${id}/lessons/${lessonId}/questions`);
+                const questionResponse = await fetch(`http://localhost:5000/api/courses/${id}/lessons/questions`);
                 if (!questionResponse.ok) throw new Error('Failed to fetch questions');
                 const questionData = await questionResponse.json();
                 console.log(questionData.data);
@@ -47,7 +47,7 @@ const LessonDetailsPage: React.FC = () => {
                 setQuestions(questionData.data);
 
 
-                const answerResponse = await fetch(`http://localhost:5000/api/courses/${id}/lessons/${lessonId}/questions/answers`);
+                const answerResponse = await fetch(`http://localhost:5000/api/courses/${id}/lessons/questions/answers`);
                 const data = await answerResponse.json();
                 console.log(data.data);
                 setAnswers(data.data);

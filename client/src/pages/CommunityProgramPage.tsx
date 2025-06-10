@@ -10,7 +10,10 @@ const CommunityProgramPage: React.FC = () => {
     useEffect(() => {
         fetch('http://localhost:5000/api/programs')
             .then(response => response.json())
-            .then(data => setEvents(data))
+            .then(data => {
+                console.log('Fetched events:', data);
+                setEvents(data.data)
+            })
             .catch(error => console.log('Error fetching events:', error));
     }, []);
 

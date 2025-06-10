@@ -22,6 +22,7 @@ app.use(cors({
 app.use("/api/articles", articleRoutes);
 app.use("/api/auth", authenRoutes);
 app.use("/api/courses", courseRoutes)
+app.use("/api/programs", programRoutes);
 
 // JWT Middleware for all other routes
 app.use(authenticateToken);
@@ -29,7 +30,6 @@ app.use(authenticateToken);
 // Protected Routes
 app.use("/api/account", apiAccountRoutes);
 app.use("/api/surveys", surveyRoutes);
-app.use("/api/programs", programRoutes);
 
 // Start the server
 app.listen(PORT, () => {

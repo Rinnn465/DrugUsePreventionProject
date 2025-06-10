@@ -25,6 +25,7 @@ const ArticlePage: React.FC = () => {
         {blogPosts?.map((blog) => {
           return (
             <BlogPostCard
+              key={blog.BlogID}
               {...blog}
             />
           )
