@@ -9,19 +9,19 @@ interface TestimonialCardProps {
 
 const TestimonialCard: React.FC<TestimonialCardProps> = ({ quote, author, role, imageSrc }) => {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 transform transition duration-300 hover:-translate-y-2">
+    <div className="bg-gradient-to-br from-white via-blue-50 to-primary-50 rounded-3xl shadow-2xl border-2 border-primary-100/40 p-8 transform transition duration-300 hover:scale-105 hover:shadow-3xl animate-fade-in">
       <div className="flex items-center mb-6">
         <img 
           src={imageSrc} 
           alt={author}
-          className="w-16 h-16 rounded-full object-cover mr-4"
+          className="w-20 h-20 rounded-full object-cover mr-6 border-4 border-primary-200 shadow-lg"
         />
         <div>
-          <h4 className="font-semibold">{author}</h4>
-          <p className="text-gray-600 text-sm">{role}</p>
+          <h4 className="font-bold text-lg text-primary-700 mb-1">{author}</h4>
+          <p className="text-blue-500 text-sm font-medium">{role}</p>
         </div>
       </div>
-      <p className="text-gray-700 italic">"{quote}"</p>
+      <p className="text-gray-700 italic text-lg leading-relaxed">“{quote}”</p>
     </div>
   );
 };

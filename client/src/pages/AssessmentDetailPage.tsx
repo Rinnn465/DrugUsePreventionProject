@@ -90,7 +90,7 @@ const AssessmentDetailPage: React.FC = () => {
                         {assessment.questions.map((question) => {
                             return (
                                 <div aria-labelledby="checkbox-group" key={question.id} className='mb-8 p-6 bg-white rounded-xl shadow-lg border border-accent-100'>
-                                    <p className='text-lg font-bold mb-4 text-accent-700'>{question.text}</p>
+                                    <p className='text-lg font-bold mb-4 text-blue-500'>{question.text}</p>
                                     {question.options.map((option) => {
                                         return (
                                             <label key={option.id} className='block mb-3 cursor-pointer hover:bg-accent-50 rounded-lg px-3 py-2 transition-all'>
@@ -109,7 +109,7 @@ const AssessmentDetailPage: React.FC = () => {
                                                         className='mr-3 accent-accent-500 scale-150'
                                                     />
                                                 )}
-                                                <span className='font-medium text-primary-700'>{option.text}</span>
+                                                <span className='font-medium text-blue-500'>{option.text}</span>
                                             </label>
                                         )
                                     })}

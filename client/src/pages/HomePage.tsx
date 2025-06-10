@@ -12,48 +12,46 @@ const HomePage: React.FC = () => {
       <HeroSection />
 
       {/* Quick Access Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-gradient-to-b from-blue-50 to-white">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white rounded-lg shadow-md p-8 transform transition duration-300 hover:scale-105">
-              <div className="mb-4 bg-primary-100 p-3 rounded-full w-fit">
-                <BookOpen className="h-6 w-6 text-primary-600" />
+            {/* Card 1 */}
+            <div className="bg-white rounded-3xl shadow-2xl p-10 transform transition duration-300 hover:scale-105 hover:shadow-3xl animate-fade-in">
+              <div className="mb-6 bg-primary-100/80 p-4 rounded-full w-fit shadow-lg">
+                <BookOpen className="h-10 w-10 text-primary-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Các khóa học online</h3>
-              <p className="text-gray-600 mb-4">
+              <h3 className="text-2xl font-bold mb-3 text-primary-700">Các khóa học online</h3>
+              <p className="text-gray-600 mb-6">
                 Tham gia các khóa học phòng chống ma túy tùy theo độ tuổi
               </p>
-              <Link to="/courses" className="h-[76px] text-primary-600 font-medium flex items-center gap-2 group">
+              <Link to="/courses" className="inline-block bg-primary-500 text-white font-bold px-6 py-3 rounded-xl shadow hover:bg-primary-600 transition-all">
                 Xem các khóa học
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
-
-            <div className="bg-white rounded-lg shadow-md p-8 transform transition duration-300 hover:scale-105">
-              <div className="mb-4 bg-secondary-100 p-3 rounded-full w-fit">
-                <Activity className="h-6 w-6 text-secondary-600" />
+            {/* Card 2 */}
+            <div className="bg-white rounded-3xl shadow-2xl p-10 transform transition duration-300 hover:scale-105 hover:shadow-3xl animate-fade-in delay-100">
+              <div className="mb-6 bg-secondary-100/80 p-4 rounded-full w-fit shadow-lg">
+                <Activity className="h-10 w-10 text-secondary-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Đánh giá rủi ro sử dụng ma túy</h3>
-              <p className="text-gray-600 mb-4">
-                Thực hiện cấc bài kiểm tra như đánh giá như ASSIST và CRAFFT để xác định nguy cơ sử dụng ma túy.
+              <h3 className="text-2xl font-bold mb-3 text-secondary-700">Đánh giá rủi ro sử dụng ma túy</h3>
+              <p className="text-gray-600 mb-6">
+                Thực hiện các bài kiểm tra như ASSIST và CRAFFT để xác định nguy cơ sử dụng ma túy.
               </p>
-              <Link to="/assessments" className="text-secondary-600 font-medium flex items-center gap-2 group">
+              <Link to="/assessments" className="inline-block bg-secondary-500 text-white font-bold px-6 py-3 rounded-xl shadow hover:bg-secondary-600 transition-all">
                 Tham gia đánh giá
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
-
-            <div className="bg-white rounded-lg shadow-md p-8 transform transition duration-300 hover:scale-105">
-              <div className="mb-4 bg-accent-100 p-3 rounded-full w-fit">
-                <Calendar className="h-6 w-6 text-accent-600" />
+            {/* Card 3 */}
+            <div className="bg-white rounded-3xl shadow-2xl p-10 transform transition duration-300 hover:scale-105 hover:shadow-3xl animate-fade-in delay-200">
+              <div className="mb-6 bg-accent-100/80 p-4 rounded-full w-fit shadow-lg">
+                <Calendar className="h-10 w-10 text-accent-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-3 ">Chuyên viên hỗ trợ</h3>
-              <p className="h-[76px] text-gray-600 mb-4">
+              <h3 className="text-2xl font-bold mb-3 text-accent-700">Chuyên viên hỗ trợ</h3>
+              <p className="text-gray-600 mb-6">
                 Đặt lịch hẹn với chuyên viên tư vấn để nhận hỗ trợ.
               </p>
-              <Link to="/appointments" className="text-accent-600 font-medium flex items-center gap-2 group">
+              <Link to="/appointments" className="inline-block bg-accent-500 text-white font-bold px-6 py-3 rounded-xl shadow hover:bg-accent-600 transition-all">
                 Đặt lịch hẹn
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
           </div>
@@ -235,6 +233,7 @@ const HomePage: React.FC = () => {
             <BlogPostCard
               AccountID={1}
               BlogID={1}
+              ArticleTitle="Tìm hiểu các yếu tố nguy cơ dẫn đến sử dụng ma túy ở thanh thiếu niên"
               Status="Tìm hiểu các yếu tố nguy cơ dẫn đến sử dụng ma túy ở thanh thiếu niên"
               Content="Tìm hiểu các yếu tố nguy cơ có thể dẫn đến việc sử dụng ma túy ở thanh thiếu niên và cách phòng ngừa hiệu quả."
               PublishedDate="June 15, 2025"
@@ -247,6 +246,7 @@ const HomePage: React.FC = () => {
             <BlogPostCard
               AccountID={1}
               BlogID={1}
+              ArticleTitle="Tìm hiểu các yếu tố nguy cơ dẫn đến sử dụng ma túy ở thanh thiếu niên"
               Status="Tìm hiểu các yếu tố nguy cơ dẫn đến sử dụng ma túy ở thanh thiếu niên"
               Content="Tìm hiểu các yếu tố nguy cơ có thể dẫn đến việc sử dụng ma túy ở thanh thiếu niên và cách phòng ngừa hiệu quả."
               PublishedDate="June 15, 2025"
@@ -259,6 +259,7 @@ const HomePage: React.FC = () => {
             <BlogPostCard
               AccountID={1}
               BlogID={1}
+              ArticleTitle="Tìm hiểu các yếu tố nguy cơ dẫn đến sử dụng ma túy ở thanh thiếu niên"
               Status="Tìm hiểu các yếu tố nguy cơ dẫn đến sử dụng ma túy ở thanh thiếu niên"
               Content="Tìm hiểu các yếu tố nguy cơ có thể dẫn đến việc sử dụng ma túy ở thanh thiếu niên và cách phòng ngừa hiệu quả."
               PublishedDate="June 15, 2025"
