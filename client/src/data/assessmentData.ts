@@ -110,7 +110,7 @@ export const assessmentData: Assessment[] = [
     questionCount: 6,
     timeToComplete: 3,
     audiences: ["Thiếu niên", "Thanh niên"],
-    color: "secondary",
+    color: "primary",
     questions: [
       {
         id: 1,
@@ -169,7 +169,7 @@ export const assessmentData: Assessment[] = [
     questionCount: 7,
     timeToComplete: 5,
     audiences: ["Phụ huynh", "Người giám hộ"],
-    color: "accent",
+    color: "primary",
     questions: [
       {
         id: 1,
@@ -250,7 +250,7 @@ export const assessmentData: Assessment[] = [
     questionCount: 8,
     timeToComplete: 6,
     audiences: ["Giáo viên", "Ban giám hiệu nhà trường"],
-    color: "success",
+    color: "primary",
     questions: [
       {
         id: 1,
