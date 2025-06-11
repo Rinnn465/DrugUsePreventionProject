@@ -34,11 +34,11 @@ export interface sqlLesson {
     VideoUrl?: string;          // optional if nullable
     Status: string;             // e.g., 'Published', 'Draft'
     IsDisabled: boolean;        // whether the lesson is disabled
-    Questions: slqLessonQuestion[]; // nested lesson questions (optional)
+    Questions: sqlLessonQuestion[]; // nested lesson questions (optional)
 }
 
 
-export interface slqLessonQuestion {
+export interface sqlLessonQuestion {
     QuestionID: number;       // matches QuestionID
     LessonID: number;         // foreign key to Lesson
     QuestionText: string;     // the actual question
