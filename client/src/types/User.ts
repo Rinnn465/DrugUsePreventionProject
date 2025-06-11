@@ -9,4 +9,5 @@ export interface User {
     CreatedAt: string; // ISO date string
     IsDisabed: boolean; // true if the account is disabled
     ResetToken: string | null; // Token for password reset, if applicable
+    ResetTokenExpiry: Date | null; // Expiry date for the reset token
 }
