@@ -87,6 +87,19 @@ const AssessmentDetailPage: React.FC = () => {
                     onSubmit={handleSubmit}
                 >
                     <Form className='max-w-2xl mx-auto py-8 px-6 bg-gradient-to-br from-white via-primary-50 to-accent-50 rounded-2xl shadow-2xl border-2 border-accent-100 animate-fade-in'>
+                        <div className='text-center mb-8'>
+                            <h1 className='text-3xl font-extrabold text-primary-700 mb-2'>
+                                📋 {assessment.title}
+                            </h1>
+                            <p className='text-gray-600 text-lg'>
+                                {assessment.description}
+                            </p>
+                            <div className='mt-4 flex justify-center items-center gap-4 text-sm text-gray-500'>
+                                <span>📝 {assessment.questionCount} câu hỏi</span>
+                                <span>•</span>
+                                <span>⏱️ ~{assessment.timeToComplete} phút</span>
+                            </div>
+                        </div>
                         {assessment.questions.map((question) => {
                             return (
                                 <div aria-labelledby="checkbox-group" key={question.id} className='mb-8 p-6 bg-white rounded-xl shadow-lg border border-accent-100'>

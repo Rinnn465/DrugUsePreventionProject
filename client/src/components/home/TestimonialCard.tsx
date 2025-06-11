@@ -9,12 +9,12 @@ interface TestimonialCardProps {
 
 const TestimonialCard: React.FC<TestimonialCardProps> = ({ quote, author, role, imageSrc }) => {
   return (
-    <div className="bg-gradient-to-br from-white via-blue-50 to-primary-50 rounded-3xl shadow-2xl border-2 border-primary-100/40 p-8 transform transition duration-300 hover:scale-105 hover:shadow-3xl animate-fade-in">
+    <div className="bg-gradient-to-br from-white via-blue-50 to-primary-50 rounded-3xl border-2 border-primary-100/40 p-8">
       <div className="flex items-center mb-6">
         <img 
           src={imageSrc} 
           alt={author}
-          className="w-20 h-20 rounded-full object-cover mr-6 border-4 border-primary-200 shadow-lg"
+          className="w-20 h-20 rounded-full object-cover mr-6 border-4 border-primary-200"
         />
         <div>
           <h4 className="font-bold text-lg text-primary-700 mb-1">{author}</h4>
