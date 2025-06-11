@@ -7,6 +7,7 @@ import surveyRoutes from "./routes/surveyRoutes";
 import programRoutes from "./routes/programRoutes";
 import authenticateToken from "./middleware/authenMiddleware";
 import courseRoutes from "./routes/courseRoutes";
+import consultantRoutes from "./routes/consultantRoutes";
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
@@ -23,6 +24,7 @@ app.use("/api/articles", articleRoutes);
 app.use("/api/auth", authenRoutes);
 app.use("/api/courses", courseRoutes)
 app.use("/api/programs", programRoutes);
+app.use("/api/consultants", consultantRoutes);
 
 // JWT Middleware for all other routes
 app.use(authenticateToken);

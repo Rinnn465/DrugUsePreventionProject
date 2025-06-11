@@ -4,13 +4,19 @@ import { counselorData } from '../data/counselorData';
 import CounselorCard from '../components/counselors/CounselorCard';
 import AppointmentCalendar from '../components/appointments/AppointmentCalendar';
 import { Link, useLocation } from 'react-router-dom';
+import { Consultant, Qualification, Specialty } from '../types/Consultant';
 
 const AppointmentsPage: React.FC = () => {
   const location = useLocation();
   const state = location.state as { counselorId?: number };
+
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSpecialty, setSelectedSpecialty] = useState('');
   const [selectedCounselor, setSelectedCounselor] = useState<number | null>(null);
+
+  //set data from fetching
+  const [consultantData, setConsultantData] = useState<Consultant[]>([]);
+  const [specialtyData, setSpecialtyData] = useState<Specialty[]>([]);
+  const [qualificationData, setQualificationData] = useState<Qualification[]>([]);
 
   useEffect(() => {
     if (state?.counselorId) {
@@ -18,15 +24,63 @@ const AppointmentsPage: React.FC = () => {
     }
   }, [state?.counselorId]);
 
-  const specialties = [...new Set(counselorData.flatMap(counselor => counselor.specialties))];
+  useEffect(() => {
+    fetch('http://localhost:5000/api/consultants')
+      .then(response => response.json())
+      .then(data => setConsultantData(data.data))
+      .catch(error => console.error('Error fetching counselors:', error));
 
-  const filteredCounselors = counselorData.filter(counselor => {
-    const matchesSearch = counselor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      counselor.bio.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSpecialty = selectedSpecialty === '' || counselor.specialties.includes(selectedSpecialty);
+    fetch('http://localhost:5000/api/consultants/qualifications')
+      .then(response => response.json())
+      .then(data => setQualificationData(data.data))
+      .catch(error => console.error('Error fetching qualifications:', error))
 
-    return matchesSearch && matchesSpecialty;
-  });
+    fetch('http://localhost:5000/api/consultants/specialties')
+      .then(response => response.json())
+      .then(data => setSpecialtyData(data.data))
+      .catch(error => console.error('Error fetching specialties:', error));
+  }, [])
+
+  const groupByConsultant = (
+    qualifications: Qualification[],
+    specialties: Specialty[]
+  ): Record<number, { qualifications: string[]; specialties: string[] }> => {
+    const grouped: Record<number, { qualifications: string[]; specialties: string[] }> = {};
+
+    qualifications.forEach(({ ConsultantID, Name }) => {
+      if (!grouped[ConsultantID]) grouped[ConsultantID] = { qualifications: [], specialties: [] };
+      grouped[ConsultantID].qualifications.push(Name);
+    });
+
+    specialties.forEach(({ ConsultantID, Name }) => {
+      if (!grouped[ConsultantID]) grouped[ConsultantID] = { qualifications: [], specialties: [] };
+      grouped[ConsultantID].specialties.push(Name);
+    });
+
+    return grouped;
+  };
+
+  const mergeDataIntoConsultants = (
+    consultants: Consultant[],
+    qualifications: Qualification[],
+    specialties: Specialty[]
+  ) => {
+    const grouped = groupByConsultant(qualifications, specialties);
+
+    return consultants.map((consultant) => ({
+      ...consultant,
+      Qualifications: grouped[consultant.ConsultantID]?.qualifications || [],
+      Specialties: grouped[consultant.ConsultantID]?.specialties || [],
+    }));
+  };
+
+  const mergedConsultants = mergeDataIntoConsultants(consultantData, qualificationData, specialtyData);
+  console.log(mergedConsultants);
+
+
+  // const filteredCounselors = consultantData.filter(consultant => {
+
+  // });
 
   return (
     <div className="bg-sky-50 min-h-screen py-12">
@@ -56,7 +110,7 @@ const AppointmentsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <select
+                  {/* <select
                     className="w-full pl-4 pr-8 py-2 border-2 border-sky-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-300 bg-sky-50 text-sky-900 shadow-md"
                     value={selectedSpecialty}
                     onChange={(e) => setSelectedSpecialty(e.target.value)}
@@ -65,19 +119,19 @@ const AppointmentsPage: React.FC = () => {
                     {specialties.map((specialty, index) => (
                       <option key={index} value={specialty}>{specialty}</option>
                     ))}
-                  </select>
+                  </select> */}
                 </div>
               </div>
             </div>
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden max-h-[600px] overflow-y-auto border-2 border-sky-100 animate-fade-in">
-              {filteredCounselors.length > 0 ? (
-                filteredCounselors.map((counselor) => (
+              {mergedConsultants.length > 0 ? (
+                mergedConsultants.map((consultant) => (
                   <div
-                    key={counselor.id}
-                    className={`border-b-2 border-sky-50 last:border-b-0 cursor-pointer transition-all duration-200 ${selectedCounselor === counselor.id ? 'bg-sky-100 scale-[1.01] shadow-lg' : 'hover:bg-gradient-to-r hover:from-sky-50 hover:to-blue-100 hover:scale-[1.01]'} animate-fade-in`}
-                    onClick={() => setSelectedCounselor(counselor.id)}
+                    key={consultant.ConsultantID}
+                    className={`border-b-2 border-sky-50 last:border-b-0 cursor-pointer transition-all duration-200 ${selectedCounselor === consultant.ConsultantID ? 'bg-sky-100 scale-[1.01] shadow-lg' : 'hover:bg-gradient-to-r hover:from-sky-50 hover:to-blue-100 hover:scale-[1.01]'} animate-fade-in`}
+                    onClick={() => setSelectedCounselor(consultant.ConsultantID)}
                   >
-                    <CounselorCard counselor={counselor} compact={true} />
+                    <CounselorCard counselor={consultant} compact={true} />
                   </div>
                 ))
               ) : (

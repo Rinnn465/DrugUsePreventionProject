@@ -128,38 +128,38 @@ export const assessmentData: Assessment[] = [
           { id: "b", text: "Có", value: 1 }
         ]
       },
-      // {
-      //   id: 3,
-      //   text: "Bạn có bao giờ sử dụng rượu hoặc ma túy khi đang ở một mình không?",
-      //   options: [
-      //     { id: "a", text: "Không", value: 0 },
-      //     { id: "b", text: "Có", value: 1 }
-      //   ]
-      // },
-      // {
-      //   id: 4,
-      //   text: "Bạn có bao giờ quên những việc đã làm khi đang sử dụng rượu hoặc ma túy không?",
-      //   options: [
-      //     { id: "a", text: "Không", value: 0 },
-      //     { id: "b", text: "Có", value: 1 }
-      //   ]
-      // },
-      // {
-      //   id: 5,
-      //   text: "Bạn có bao giờ bị người thân hoặc bạn bè khuyên nên giảm sử dụng rượu hoặc ma túy không?",
-      //   options: [
-      //     { id: "a", text: "Không", value: 0 },
-      //     { id: "b", text: "Có", value: 1 }
-      //   ]
-      // },
-      // {
-      //   id: 6,
-      //   text: "Bạn có bao giờ gặp rắc rối khi sử dụng rượu hoặc ma túy không?",
-      //   options: [
-      //     { id: "a", text: "Không", value: 0 },
-      //     { id: "b", text: "Có", value: 1 }
-      //   ]
-      // }
+      {
+        id: 3,
+        text: "Bạn có bao giờ sử dụng rượu hoặc ma túy khi đang ở một mình không?",
+        options: [
+          { id: "a", text: "Không", value: 0 },
+          { id: "b", text: "Có", value: 1 }
+        ]
+      },
+      {
+        id: 4,
+        text: "Bạn có bao giờ quên những việc đã làm khi đang sử dụng rượu hoặc ma túy không?",
+        options: [
+          { id: "a", text: "Không", value: 0 },
+          { id: "b", text: "Có", value: 1 }
+        ]
+      },
+      {
+        id: 5,
+        text: "Bạn có bao giờ bị người thân hoặc bạn bè khuyên nên giảm sử dụng rượu hoặc ma túy không?",
+        options: [
+          { id: "a", text: "Không", value: 0 },
+          { id: "b", text: "Có", value: 1 }
+        ]
+      },
+      {
+        id: 6,
+        text: "Bạn có bao giờ gặp rắc rối khi sử dụng rượu hoặc ma túy không?",
+        options: [
+          { id: "a", text: "Không", value: 0 },
+          { id: "b", text: "Có", value: 1 }
+        ]
+      }
     ]
   },
   {
