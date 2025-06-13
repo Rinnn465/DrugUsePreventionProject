@@ -13,6 +13,7 @@ interface Account {
   CreatedAt: Date;
   IsDisabled: boolean;
   ResetToken?: string | null;
+  ResetTokenExpriry: Date | null;
 }
 
 // Get all accounts

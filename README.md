@@ -15,7 +15,7 @@
   Công nghệ sử dụng: 
   <ul>
     <li>Front end: React, Vite, Tailwind, react-router-dom, Formik, Yup</li>
-    <li>Backend: Nodejs, Express </li>
+    <li>Backend: Nodejs, Typesript, Express </li>
   </ul>
 </p>
 
