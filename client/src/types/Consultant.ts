@@ -25,3 +25,9 @@ export interface Consultant {
 
 export interface Qualification { QualificationID: number[]; Name: string; ConsultantID: number };
 export interface Specialty { SpecialtyID: number; Name: string; ConsultantID: number };
+export interface ConsultantWithDetails extends Consultant {
+  ScheduleID: number;
+  Date: string;
+  StartTime: string;
+  EndTime: string;
+}
