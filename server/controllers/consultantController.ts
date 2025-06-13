@@ -4,6 +4,29 @@ import { sql, poolPromise } from "../config/database";
 
 dotenv.config();
 
+/**
+ * Interface representing a Consultant in the database
+ * Maps to the Consultant table structure
+ */
+interface Consultant {
+    ConsultantID: number;
+    Name: string;
+    Specialization: string;
+    Experience: string;
+    IsAvailable: boolean;
+}
+
+/**
+ * Retrieves all consultants from the database
+ *
+ * @route GET /api/consultants
+ * @access Public
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response with array of consultants
+ * @throws {500} If database error occurs
+ */
 export async function getConsultants(
     req: Request,
     res: Response,
@@ -22,6 +45,18 @@ export async function getConsultants(
     }
 }
 
+/**
+ * Retrieves a specific consultant by their ID
+ *
+ * @route GET /api/consultants/:id
+ * @access Public
+ * @param {Request} req - Express request object with consultant ID in params
+ * @param {Response} res - Express response object
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response with consultant details
+ * @throws {404} If consultant is not found
+ * @throws {500} If server error occurs
+ */
 export async function getConsultantById(
     req: Request,
     res: Response,
@@ -30,12 +65,15 @@ export async function getConsultantById(
     const consultantId = req.params.id;
 
     try {
+
+        // Query consultant with parameterized query for security
         const pool = await poolPromise;
         const result = await pool
             .request()
             .input("consultantId", sql.Int, consultantId)
             .query("SELECT * FROM Consultant WHERE ConsultantId = @consultantId");
 
+        // Check if consultant exists
         if (result.recordset.length === 0) {
             res.status(404).json({ message: "Consultant not found" });
             return;
@@ -51,6 +89,18 @@ export async function getConsultantById(
     }
 }
 
+/**
+ * Retrieves all qualifications and their associated consultants
+ * Uses a JOIN operation to get qualification-consultant relationships
+ *
+ * @route GET /api/consultants/qualifications
+ * @access Public
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response with qualifications data
+ * @throws {500} If database error occurs
+ */
 export async function getQualifications(
     req: Request,
     res: Response,
@@ -58,10 +108,15 @@ export async function getQualifications(
 ): Promise<void> {
     try {
         const pool = await poolPromise;
+        
+        // Join query to get qualifications with consultant associations
         const result = await pool.request().query(
             `SELECT q.QualificationID, q.Name, cq.ConsultantID  
-               FROM Qualifications q JOIN ConsultantQualification cq ON q.QualificationID = cq.QualificationID`);
-        res.status(200).json({ message: "Tải dữ liệu bằng cấp thành công", data: result.recordset });
+               FROM Qualifications q JOIN ConsultantQualification cq ON q.QualificationID = cq.QualificationID`
+        );
+        res
+            .status(200)
+            .json({ message: "Tải dữ liệu bằng cấp thành công", data: result.recordset });
         return;
     } catch (err: any) {
         console.error(err);
@@ -69,6 +124,18 @@ export async function getQualifications(
     }
 }
 
+/**
+ * Retrieves all specialties and their associated consultants
+ * Uses a JOIN operation to get specialty-consultant relationships
+ *
+ * @route GET /api/consultants/specialties
+ * @access Public
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response with specialties data
+ * @throws {500} If database error occurs
+ */
 export async function getSpecialties(
     req: Request,
     res: Response,
@@ -76,10 +143,14 @@ export async function getSpecialties(
 ): Promise<void> {
     try {
         const pool = await poolPromise;
+        // Join query to get specialties with consultant associations
         const result = await pool.request().query(
             `SELECT s.SpecialtyID, s.Name, cs.ConsultantID 
-               FROM Specialties s JOIN ConsultantSpecialty cs ON s.SpecialtyID = cs.SpecialtyID`);
-        res.status(200).json({ message: "Tải dữ liệu chuyên môn thành công", data: result.recordset });
+               FROM Specialties s JOIN ConsultantSpecialty cs ON s.SpecialtyID = cs.SpecialtyID`
+        );
+        res
+            .status(200)
+            .json({ message: "Tải dữ liệu chuyên môn thành công", data: result.recordset });
         return;
     } catch (err: any) {
         console.error(err);
