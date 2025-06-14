@@ -1,20 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { poolPromise, sql } from "../config/database";
-
-// TypeScript interface for Account (based on your SQL table)
-interface Account {
-  AccountID: number;
-  Username: string;
-  Email: string;
-  Password: string;
-  FullName: string;
-  DateOfBirth: Date | null;
-  Role: string;
-  CreatedAt: Date;
-  IsDisabled: boolean;
-  ResetToken?: string | null;
-  ResetTokenExpriry: Date | null;
-}
+import { Account } from "../types/type";
 
 // Get all accounts
 export const getAccounts = async (req: Request, res: Response) => {
@@ -64,8 +50,7 @@ export const createAccount = async (req: Request, res: Response) => {
       .input("FullName", sql.NVarChar, fullName)
       .input("DateOfBirth", sql.Date, dateOfBirth)
       .input("Role", sql.NVarChar, role)
-      .input("CreatedAt", sql.DateTime2, new Date())
-      .query(`INSERT INTO Account 
+      .input("CreatedAt", sql.DateTime2, new Date()).query(`INSERT INTO Account 
         (Username, Email, Password, FullName, DateOfBirth, Role, CreatedAt) 
         VALUES (@Username, @Email, @Password, @FullName, @DateOfBirth, @Role, @CreatedAt)`);
     res.status(201).json({ message: "Account created" });
@@ -110,6 +95,37 @@ export const updateAccount = async (
   }
 };
 
+export const updateAccountProfile = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { username, email, password, fullName, dateOfBirth } = req.body;
+  try {
+    const pool = await poolPromise;
+    const result = await pool
+      .request()
+      .input("AccountID", sql.Int, parseInt(req.params.id, 10))
+      .input("Username", sql.VarChar, username)
+      .input("Email", sql.VarChar, email)
+      .input("Password", sql.VarChar, password)
+      .input("FullName", sql.VarChar, fullName)
+      .input("DateOfBirth", sql.Date, dateOfBirth).query(`UPDATE Account SET 
+        Username=@Username, 
+        Email=@Email, 
+        Password=@Password, 
+        FullName=@FullName, 
+        DateOfBirth=@DateOfBirth
+        WHERE AccountID=@AccountID`);
+    if (result.rowsAffected[0] === 0) {
+      res.status(404).json({ message: "Account not found" });
+      return;
+    }
+    res.json({ message: "Profile updated" });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // Delete account
 export const deleteAccount = async (
   req: Request,
@@ -130,31 +146,28 @@ export const deleteAccount = async (
   }
 };
 
-//Change account role (only for admin)
-export const changeAccountRole = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  const { role } = req.body;
-  if (!role) {
-    res.status(400).json({ message: "Role is required" });
-    return;
-  }
-  try {
-    const pool = await poolPromise;
-    const result = await pool
-      .request()
-      .input("AccountID", sql.Int, parseInt(req.params.id, 10))
-      .input("Role", sql.NVarChar, role)
-      .query("UPDATE Account SET Role=@Role WHERE AccountID=@AccountID");
-    if (result.rowsAffected[0] === 0) {
-      res.status(404).json({ message: "Account not found" });
-      return;
-    }
-    res.json({ message: "Account role updated" });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-
+// export const changeAccountRole = async (
+//   req: Request,
+//   res: Response
+// ): Promise<void> => {
+//   const { role } = req.body;
+//   if (!role) {
+//     res.status(400).json({ message: "Role is required" });
+//     return;
+//   }
+//   try {
+//     const pool = await poolPromise;
+//     const result = await pool
+//       .request()
+//       .input("AccountID", sql.Int, parseInt(req.params.id, 10))
+//       .input("Role", sql.NVarChar, role)
+//       .query("UPDATE Account SET Role=@Role WHERE AccountID=@AccountID");
+//     if (result.rowsAffected[0] === 0) {
+//       res.status(404).json({ message: "Account not found" });
+//       return;
+//     }
+//     res.json({ message: "Account role updated" });
+//   } catch (err: any) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };

@@ -1,30 +1,46 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-const HeroSection: React.FC = () => {
-  return (
-    <section className="relative bg-gradient-to-r from-primary-600 to-primary-800 text-white pb-0 border-b-4 border-b-blue-100">
-      {/* Background pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
-          <defs>
-            <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
-              <circle cx="25" cy="25" r="1" fill="white" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
-        </svg>
-      </div>
+// Ảnh nền chủ đề phòng chống ma túy do user cung cấp, bao gồm cả ảnh banner slogan có chữ
+const backgrounds = [
+  'https://resource.kinhtedothi.vn/resources2025/1/users/186/0000000000000000-17483525682831984571985-1748394118.jpg',
+  'https://pcmatuy.bocongan.gov.vn/Portals/0/N%C4%82M%202025/HUY%20H%C3%80%20-2025/27.jpg?ver=2025-06-12-192749-710',
+  'https://datafiles.nghean.gov.vn/nan-ubnd/4147/quantritintuc20236/mt1638216685949813674.jpg',
+  'https://ninhson.tayninh.gov.vn/uploads/news/2024_06/noi-khong-voi-ma-tuy.jpg',
+  // Thêm ảnh banner slogan có chữ nếu có
+  // 'https://i.imgur.com/0QwQw7A.png',
+];
 
-      <div className="container mx-auto px-4 py-24 relative z-10">
-        <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 animate-fade-in">
-            Vì một cộng đồng <br /> không tồn tại ma túy
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 text-primary-100">
-            Nền tảng hỗ trợ phòng ngừa ma túy đầu tiên của Việt Nam
-          </p>
-        </div>
+const HeroSection: React.FC = () => {
+  const [bgIndex, setBgIndex] = useState(0);
+  const [fade, setFade] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFade(false);
+      setTimeout(() => {
+        setBgIndex((prev) => (prev + 1) % backgrounds.length);
+        setFade(true);
+      }, 500);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <section
+      className="relative text-white shadow-lg rounded-b-3xl"
+      style={{ minHeight: 420 }}
+    >
+      {/* Ảnh nền động */}
+      <div className="absolute inset-0 w-full h-full z-0 rounded-b-3xl overflow-hidden">
+        <img
+          src={backgrounds[bgIndex]}
+          alt="background hero"
+          className={`w-full h-full object-cover transition-opacity duration-700 ${fade ? 'opacity-100' : 'opacity-0'}`}
+          style={{ minHeight: 420 }}
+        />
+        {/* Overlay gradient xanh tím */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-800/80 via-indigo-700/70 to-blue-600/60" />
       </div>
     </section>
   );
