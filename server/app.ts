@@ -23,23 +23,33 @@ app.use(
 ); // Enable CORS with credentials
 
 // Public Routes (accessible to all including guests)
-app.use("/api/articles", authorizeRoles(["Guest", "Memeber", "Consultant", "Admin"]), articleRoutes
+app.use(
+  "/api/articles",
+  authorizeRoles(["Guest", "Memeber", "Consultant", "Admin"]),
+  articleRoutes
 );
 app.use("/api/auth", authenRoutes);
-
-app.use("/api/courses", authorizeRoles(["Guest", "Memeber", "Consultant", "Admin"]), courseRoutes
+app.use(
+  "/api/courses",
+  authorizeRoles(["Guest", "Memeber", "Consultant", "Admin"]),
+  courseRoutes
 );
-app.use("/api/program", authorizeRoles(["Guest", "Memeber", "Consultant", "Admin"]), programRoutes
+app.use(
+  "/api/programs",
+  authorizeRoles(["Guest", "Memeber", "Consultant", "Admin"]),
+  programRoutes
 );
-app.use("/api/consultants", authorizeRoles(["Guest", "Memeber", "Consultant", "Admin"]), consultantRoutes
+app.use(
+  "/api/consultants",
+  authorizeRoles(["Guest", "Memeber", "Consultant", "Admin"]),
+  consultantRoutes
 );
-
-app.use("/api/surveys", authorizeRoles(["Memeber", "Consultant", "Admin"]), apiSurveyRoutes
-);
-
 
 // Protected Routes - Member/Consultant can update profiles (excluding role changes)
-app.use("/api/account", authorizeRoles(["Memeber", "Consultant", "Admin"]), apiAccountRoutes
+app.use(
+  "/api/account",
+  authorizeRoles(["Memeber", "Consultant", "Admin"]),
+  apiAccountRoutes
 );
 
 app.use(
@@ -49,13 +59,13 @@ app.use(
 );
 
 // Admin-only Routes - Full account management including role changes
-app.use("/api/account/admin", authorizeRoles(["Admin"]), apiAccountRoutes);
+app.use("/api/accounts", authorizeRoles(["Admin"]), apiAccountRoutes);
 
-// Admin-only Routes for managing programs
-app.use("/api/program/admin", authorizeRoles(["Admin"]),programRoutes);
-
-// Admin-only Routes for managing surveys
-app.use("/api/survey/admin", authorizeRoles(["Admin"]), apiSurveyRoutes);
+app.use(
+  "/api/surveys",
+  authorizeRoles(["Memeber", "Consultant", "Admin"]),
+  apiSurveyRoutes
+);
 
 // Start the server
 app.listen(PORT, () => {
