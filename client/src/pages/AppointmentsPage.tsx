@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar, Users, Search, Calendar as CalendarIcon, User, Filter } from 'lucide-react';
+import { Users, Search, Calendar as CalendarIcon, User, Filter } from 'lucide-react';
 import { counselorData } from '../data/counselorData';
 import CounselorCard from '../components/counselors/CounselorCard';
 import AppointmentCalendar from '../components/appointments/AppointmentCalendar';
 import { Link, useLocation } from 'react-router-dom';
-import { ConsultantWithDetails, Qualification, Specialty } from '../types/Consultant';
+import { ConsultantWithSchedule, Qualification, Specialty } from '../types/Consultant';
 import { parseDate } from '../utils/parseDateUtils';
 
 const AppointmentsPage: React.FC = () => {
@@ -15,7 +15,7 @@ const AppointmentsPage: React.FC = () => {
   const [selectedCounselor, setSelectedCounselor] = useState<number | null>(null);
 
   //set data from fetching
-  const [consultantData, setConsultantData] = useState<ConsultantWithDetails[]>([]);
+  const [consultantData, setConsultantData] = useState<ConsultantWithSchedule[]>([]);
   const [specialtyData, setSpecialtyData] = useState<Specialty[]>([]);
   const [qualificationData, setQualificationData] = useState<Qualification[]>([]);
 
@@ -28,7 +28,7 @@ const AppointmentsPage: React.FC = () => {
   useEffect(() => {
     fetch('http://localhost:5000/api/consultants')
       .then(response => response.json())
-      .then(data => setConsultantData(data.data))
+      .then(data => { setConsultantData(data.data) })
       .catch(error => console.error('Error fetching counselors:', error));
 
     fetch('http://localhost:5000/api/consultants/qualifications')
@@ -38,48 +38,105 @@ const AppointmentsPage: React.FC = () => {
 
     fetch('http://localhost:5000/api/consultants/specialties')
       .then(response => response.json())
-      .then(data => setSpecialtyData(data.data))
+      .then(data => { setSpecialtyData(data.data) })
       .catch(error => console.error('Error fetching specialties:', error));
   }, [])
 
-  const groupByConsultant = (
-    qualifications: Qualification[],
-    specialties: Specialty[]
-  ): Record<number, { qualifications: string[]; specialties: string[] }> => {
-    const grouped: Record<number, { qualifications: string[]; specialties: string[] }> = {};
-
-    qualifications.forEach(({ ConsultantID, Name }) => {
-      if (!grouped[ConsultantID]) grouped[ConsultantID] = { qualifications: [], specialties: [] };
-      grouped[ConsultantID].qualifications.push(Name);
-    });
-
-    specialties.forEach(({ ConsultantID, Name }) => {
-      if (!grouped[ConsultantID]) grouped[ConsultantID] = { qualifications: [], specialties: [] };
-      grouped[ConsultantID].specialties.push(Name);
-    });
-
-    return grouped;
-  };
-
   const mergeDataIntoConsultants = (
-    consultants: ConsultantWithDetails[],
-    qualifications: Qualification[],
-    specialties: Specialty[]
-  ) => {
-    const grouped = groupByConsultant(qualifications, specialties);
+    consultantData: any[],
+    specialtyData: any[],
+    qualificationData: any[]
+  ): ConsultantWithSchedule[] => {
+    // Validate inputs
+    if (
+      !Array.isArray(consultantData) ||
+      !Array.isArray(specialtyData) ||
+      !Array.isArray(qualificationData)
+    ) {
+      console.warn('Invalid input data: one or more datasets are not arrays');
+      return [];
+    }
 
-    return consultants.map((consultant) => ({
-      ...consultant,
-      Date: parseDate(consultant.Date),
-      StartTime: parseDate(consultant.StartTime),
-      EndTime: parseDate(consultant.EndTime),
-      Qualifications: grouped[consultant.ConsultantID]?.qualifications || [],
-      Specialties: grouped[consultant.ConsultantID]?.specialties || [],
-    }));
+    // Group data by ConsultantID
+    const groupedByConsultant: { [key: number]: ConsultantWithSchedule } = {};
+
+    // Process consultant data (includes schedules)
+    consultantData.forEach((item) => {
+      if (!item || typeof item !== 'object' || !item.ConsultantID) {
+        console.warn('Invalid consultant item:', item);
+        return;
+      }
+
+      const consultantId = item.ConsultantID;
+      if (!groupedByConsultant[consultantId]) {
+        // Initialize consultant object
+        groupedByConsultant[consultantId] = {
+          ConsultantID: item.ConsultantID || 0,
+          Name: item.Name || 'Unknown Consultant',
+          Rating: item.Rating || 0,
+          Bio: item.Bio || '',
+          Title: item.Title || '',
+          ImageUrl: item.ImageUrl || '',
+          IsDisabled: item.IsDisabled || false,
+          Schedule: [],
+          Specialties: [],
+          Qualifications: [],
+        };
+      }
+
+
+      // Add schedule to the consultant's Schedule array
+      if (item.ScheduleID && item.Date && item.StartTime && item.EndTime) {
+        groupedByConsultant[consultantId].Schedule.push({
+          ScheduleID: item.ScheduleID || 0,
+          Date: item.Date || '',
+          StartTime: item.StartTime || '',
+          EndTime: item.EndTime || '',
+        });
+      }
+    });
+
+    // Process specialty data
+    specialtyData.forEach((item) => {
+      if (!item || typeof item !== 'object' || !item.ConsultantID || !item.SpecialtyID) {
+        console.warn('Invalid specialty item:', item);
+        return;
+      }
+
+      const consultantId = item.ConsultantID;
+      if (groupedByConsultant[consultantId]) {
+        groupedByConsultant[consultantId].Specialties.push({
+          SpecialtyID: item.SpecialtyID,
+          Name: item.Name || '',
+        });
+      }
+    });
+
+    // Process qualification data
+    qualificationData.forEach((item) => {
+      if (!item || typeof item !== 'object' || !item.ConsultantID || !item.QualificationID) {
+        console.warn('Invalid qualification item:', item);
+        return;
+      }
+
+      const consultantId = item.ConsultantID;
+      if (groupedByConsultant[consultantId]) {
+        groupedByConsultant[consultantId].Qualifications.push({
+          QualificationID: item.QualificationID,
+          Name: item.Name || '',
+        });
+      }
+    });
+
+    // Convert grouped object to array and filter out incomplete consultants
+    return Object.values(groupedByConsultant).filter(
+      (consultant) =>
+        consultant.Name !== 'Unknown Consultant' && consultant.Schedule.length > 0
+    );
   };
 
-  const mergedConsultants = mergeDataIntoConsultants(consultantData, qualificationData, specialtyData);
-  console.log(mergedConsultants);
+
+  const mergedConsultants = mergeDataIntoConsultants(consultantData, specialtyData, qualificationData);
 
 
   // const filteredCounselors = consultantData.filter(consultant => {
@@ -135,7 +192,7 @@ const AppointmentsPage: React.FC = () => {
                     className={`border-b-2 border-sky-50 last:border-b-0 cursor-pointer transition-all duration-200 ${selectedCounselor === consultant.ConsultantID ? 'bg-sky-100 scale-[1.01] shadow-lg' : 'hover:bg-gradient-to-r hover:from-sky-50 hover:to-blue-100 hover:scale-[1.01]'} animate-fade-in`}
                     onClick={() => setSelectedCounselor(consultant.ConsultantID)}
                   >
-                    <CounselorCard counselor={consultant} compact={true} />
+                    <CounselorCard consultant={consultant} compact={true} />
                   </div>
                 ))
               ) : (
@@ -164,7 +221,7 @@ const AppointmentsPage: React.FC = () => {
                   </p>
                 </div>
                 <AppointmentCalendar
-                  schedule={consultantData.find(c => c.ConsultantID === selectedCounselor)}
+                  schedule={mergedConsultants.find(c => c.ConsultantID === selectedCounselor) || undefined}
                   consultantId={selectedCounselor}
                 />
               </div>
