@@ -10,7 +10,7 @@ const LessonDetailsPage: React.FC = () => {
     // const course = courseData.find(course => course.id.toString() === id);
     const [course, setCourse] = useState<SqlCourse | null>(null); // Use any for now, replace with proper type later
     const [lesson, setLesson] = useState<sqlLesson[] | null>(null); // Use any for now, replace with proper type later
-    const [questions, setQuestions] = useState<slqLessonQuestion[] | null>(null); // Use any for now, replace with proper type later
+    const [questions, setQuestions] = useState<sqlLessonQuestion[] | null>(null); // Use any for now, replace with proper type later
     const [answers, setAnswers] = useState<sqlLessonAnswer[] | null>(null); // Use any for now, replace with proper type later
     let score = 0;
 

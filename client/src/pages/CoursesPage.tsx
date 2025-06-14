@@ -9,19 +9,6 @@ const CoursesPage: React.FC = () => {
   const [selectedAudience, setSelectedAudience] = useState('');
   const [courses, setCourses] = useState<SqlCourse[]>([]);
 
-
-  // const filteredCourses = courseData.filter(course => {
-  //   const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //     course?.description.toLowerCase().includes(searchTerm.toLowerCase());
-  //   const matchesCategory = selectedCategory === '' || course.category === selectedCategory;
-  //   const matchesAudience = selectedAudience === '' || course.audience === selectedAudience;
-
-  //   return matchesSearch && matchesCategory && matchesAudience;
-  // });
-
-  // const categories = [...new Set(courseData.map(course => course.category))];
-  // const audiences = [...new Set(courseData.map(course => course.audience))];
-
   useEffect(() => {
     fetch('http://localhost:5000/api/course')
       .then(response => response.json())

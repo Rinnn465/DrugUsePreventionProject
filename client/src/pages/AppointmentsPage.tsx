@@ -19,6 +19,12 @@ const AppointmentsPage: React.FC = () => {
   const [specialtyData, setSpecialtyData] = useState<Specialty[]>([]);
   const [qualificationData, setQualificationData] = useState<Qualification[]>([]);
 
+  //handling filter data
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string>('');
+
+
+
+
   useEffect(() => {
     if (state?.counselorId) {
       setSelectedCounselor(state.counselorId);
@@ -42,6 +48,7 @@ const AppointmentsPage: React.FC = () => {
       .catch(error => console.error('Error fetching specialties:', error));
   }, [])
 
+
   const mergeDataIntoConsultants = (
     consultantData: any[],
     specialtyData: any[],
@@ -60,7 +67,6 @@ const AppointmentsPage: React.FC = () => {
     // Group data by ConsultantID
     const groupedByConsultant: { [key: number]: ConsultantWithSchedule } = {};
 
-    // Process consultant data (includes schedules)
     consultantData.forEach((item) => {
       if (!item || typeof item !== 'object' || !item.ConsultantID) {
         console.warn('Invalid consultant item:', item);
@@ -137,11 +143,13 @@ const AppointmentsPage: React.FC = () => {
 
 
   const mergedConsultants = mergeDataIntoConsultants(consultantData, specialtyData, qualificationData);
+  const specialtyOptions = specialtyData.map(specialty => specialty.Name);
 
-
-  // const filteredCounselors = consultantData.filter(consultant => {
-
-  // });
+  const filteredConsunltants = mergedConsultants.filter(consultant => {
+    const matchesSearch = consultant.Name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSpecialty = selectedSpecialty ? consultant.Specialties.some(s => s.Name === selectedSpecialty) : true;
+    return matchesSearch && matchesSpecialty;
+  });
 
   return (
     <div className="bg-sky-50 min-h-screen py-12">
@@ -171,22 +179,22 @@ const AppointmentsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  {/* <select
+                  <select
                     className="w-full pl-4 pr-8 py-2 border-2 border-sky-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-300 bg-sky-50 text-sky-900 shadow-md"
                     value={selectedSpecialty}
                     onChange={(e) => setSelectedSpecialty(e.target.value)}
                   >
                     <option value="">Tất Cả Chuyên Môn</option>
-                    {specialties.map((specialty, index) => (
+                    {specialtyOptions.map((specialty, index) => (
                       <option key={index} value={specialty}>{specialty}</option>
                     ))}
-                  </select> */}
+                  </select>
                 </div>
               </div>
             </div>
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden max-h-[600px] overflow-y-auto border-2 border-sky-100 animate-fade-in">
-              {mergedConsultants.length > 0 ? (
-                mergedConsultants.map((consultant) => (
+              {filteredConsunltants.length > 0 ? (
+                filteredConsunltants.map((consultant) => (
                   <div
                     key={consultant.ConsultantID}
                     className={`border-b-2 border-sky-50 last:border-b-0 cursor-pointer transition-all duration-200 ${selectedCounselor === consultant.ConsultantID ? 'bg-sky-100 scale-[1.01] shadow-lg' : 'hover:bg-gradient-to-r hover:from-sky-50 hover:to-blue-100 hover:scale-[1.01]'} animate-fade-in`}
@@ -221,7 +229,7 @@ const AppointmentsPage: React.FC = () => {
                   </p>
                 </div>
                 <AppointmentCalendar
-                  schedule={mergedConsultants.find(c => c.ConsultantID === selectedCounselor) || undefined}
+                  schedule={filteredConsunltants.find(c => c.ConsultantID === selectedCounselor) || undefined}
                   consultantId={selectedCounselor}
                 />
               </div>
