@@ -1,21 +1,7 @@
 import { Request, Response } from 'express';
 import { poolPromise } from '../config/database';
 
-/**
- * Interface representing an Article in the database
- * Maps to the Article table structure
- */
-interface Article {
-    BlogID: number;      // Unique identifier for the article
-    AccountID: number;   // ID of the account that created the article
-    ArticleTitle: string; // Title of the article
-    PublishedDate: Date; // Date when the article was published
-    ImageUrl: string | null; // Optional URL for article's featured image
-    Author: string;      // Name of the article's author
-    Status: string;      // Publication status (e.g., draft, published)
-    Content: string;     // Main content of the article
-    IsDisabled: boolean; // Flag to soft-delete/disable articles
-}
+
 
 /**
  * Retrieves all active articles from the database

@@ -1,19 +1,22 @@
 import express, { Router } from "express";
 import * as accountController from "../controllers/accountController";
-import authenMiddleware from "../middleware/authenMiddleware";
-import { restrictToAdmin, restrictToAdminMiddleware } from "../middleware/restrictToAdminMiddleware";
+import * as programController from "../controllers/programController";
+
 
 const router: Router = express.Router();
 
 
-// Get all accounts
-router.get("/", authenMiddleware, restrictToAdminMiddleware, accountController.getAccounts);
+// Admin-only routes for account management
+router.get("/", accountController.getAccounts);
+router.get("/:id", accountController.getAccountById);
+router.put("/:id", accountController.updateAccount);
+router.delete("/:id", accountController.deleteAccount);
 
-// Get account by ID
-router.get("/:id",authenMiddleware, restrictToAdminMiddleware, accountController.getAccountById);
+// Admin-only routes for program management
+router.post("/", programController.createProgram);
+router.put("/:id", programController.updateProgram);
+router.delete("/:id", programController.deleteProgram);
 
-// Delete account
-router.delete("/:id", authenMiddleware, restrictToAdminMiddleware, accountController.deleteAccount);
+// Admin-only routes for managing surveys
 
-// Change account role
-router.patch("/:id/role", authenMiddleware, restrictToAdminMiddleware, accountController.changeAccountRole);
+export default router;
