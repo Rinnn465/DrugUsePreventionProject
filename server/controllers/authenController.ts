@@ -8,6 +8,19 @@ import { welcomeTemplate } from "../templates/welcome";
 import { passwordReset } from "../templates/passwordreset";
 dotenv.config();
 
+/**
+ * Authenticates a user and generates a JWT token
+ *
+ * @route POST /api/auth/login
+ * @access Public
+ * @param {Request} req - Express request object with email and password in body
+ * @param {Response} res - Express response object
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response with token and user data
+ * @throws {400} If user is not found
+ * @throws {401} If password is invalid
+ * @throws {500} If server error occurs
+ */
 export async function login(
   req: Request,
   res: Response,
@@ -16,6 +29,7 @@ export async function login(
   const { email, password } = req.body;
 
   try {
+    // Get database connection and find user by email
     const pool = await poolPromise;
     const result = await pool
       .request()
@@ -23,21 +37,24 @@ export async function login(
       .query("SELECT * FROM Account WHERE Email = @email");
     const user = result.recordset[0];
 
+    // Validate user exists
     if (!user) {
       res.status(400).json({ message: "User not found" });
       return;
     }
 
+    // Verify password
     const isMatch = await bcrypt.compare(password, user.Password);
     if (!isMatch) {
       res.status(401).json({ message: "Invalid password" });
       return;
     }
 
+    // Generate JWT token
     const token = jwt.sign({ user: user }, process.env.JWT_SECRET as string, {
-      expiresIn: "1h",
+      expiresIn: "1h", // Token expires in 1 hour
     });
-
+    // Send successful response with token and user data
     res.status(200).json({
       message: "Login successful",
       token,
@@ -49,6 +66,14 @@ export async function login(
   }
 }
 
+/**
+ * Handles user logout
+ * Since JWT is stateless, this primarily serves as a client-side cleanup endpoint
+ *
+ * @route POST /api/auth/logout
+ * @access Public
+ * @returns {Promise<void>} Success message
+ */
 export async function logout(
   req: Request,
   res: Response,
@@ -63,6 +88,16 @@ export async function logout(
   }
 }
 
+/**
+ * Registers a new user in the system
+ *
+ * @route POST /api/auth/register
+ * @access Public
+ * @param {Request} req - Express request object with registration details in body
+ * @returns {Promise<void>} Success message
+ * @throws {400} If username or email already exists
+ * @throws {500} If server error occurs
+ */
 export async function register(
   req: Request,
   res: Response,
@@ -73,6 +108,7 @@ export async function register(
   try {
     const pool = await poolPromise;
 
+    // Check for existing username
     const checkUser = await pool
       .request()
       .input("username", sql.NVarChar, username)
@@ -82,6 +118,7 @@ export async function register(
       return;
     }
 
+    // Check for existing email
     const checkEmail = await pool
       .request()
       .input("email", sql.NVarChar, email)
@@ -91,8 +128,10 @@ export async function register(
       return;
     }
 
+    // Hash password for security
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Insert new user into database
     await pool
       .request()
       .input("username", sql.NVarChar, username)
@@ -100,7 +139,7 @@ export async function register(
       .input("password", sql.NVarChar, hashedPassword)
       .input("fullName", sql.NVarChar, fullName)
       .input("dateOfBirth", sql.Date, dateOfBirth || null)
-      .input("role", sql.NVarChar, role || "member")
+      .input("role", sql.NVarChar, role || "member") // Default role is member
       .input("createdAt", sql.DateTime2, new Date())
       .query(
         `INSERT INTO Account 
@@ -108,6 +147,8 @@ export async function register(
                 VALUES 
                 (@username, @email, @password, @fullName, @dateOfBirth, @role, @createdAt)`
       );
+
+    // Send welcome email
     try {
       await sendEmail(
         email,
@@ -115,7 +156,7 @@ export async function register(
         welcomeTemplate(fullName, username)
       );
     } catch (emailErr) {
-      console.warn("Email sending failed:", emailErr); // log but don't crash
+      console.warn("Email sending failed:", emailErr); // Non-critical error
     }
 
     res.status(201).json({ message: "User registered successfully" });
@@ -125,6 +166,17 @@ export async function register(
   }
 }
 
+/**
+ * Initiates the password reset process
+ * Generates a reset token and sends it via email
+ *
+ * @route POST /api/auth/forgot-password
+ * @access Public
+ * @param {Request} req - Express request object with email in body
+ * @returns {Promise<void>} Success message
+ * @throws {404} If email is not found
+ * @throws {500} If server error occurs
+ */
 export async function forgotPassword(
   req: Request,
   res: Response,
@@ -134,6 +186,7 @@ export async function forgotPassword(
 
   try {
     const pool = await poolPromise;
+    // Check if user exists
     const result = await pool
       .request()
       .input("email", sql.VarChar, email)
@@ -145,12 +198,10 @@ export async function forgotPassword(
       return;
     }
 
-    // Generate a reset token (valid for 1 hour)
-    // Generate a secure random reset token (hex string)
+    // Generate secure random reset token
     const resetToken =
       Math.random().toString(36).substr(2) + Date.now().toString(36);
-
-    const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+    const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour expiry
 
     // Store the reset token in DB
     await pool
@@ -162,10 +213,8 @@ export async function forgotPassword(
         "UPDATE Account SET ResetToken = @resetToken, ResetTokenExpiry = @resetTokenExpiry WHERE AccountID = @userId"
       );
 
-    // You might want to store this token in DB for verification later
-
+    // Generate reset link and send email
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-
     await sendEmail(
       email,
       "🔑 Password Reset Request",
@@ -180,9 +229,12 @@ export async function forgotPassword(
 }
 
 /**
- * Verifies a password reset token.
- * @param token The JWT reset token to verify.
- * @returns The decoded payload if valid, or null if invalid/expired.
+ * Verifies a password reset token's validity
+ *
+ * @route POST /api/auth/verify-reset-token
+ * @access Public
+ * @param {Request} req - Express request object with token in body
+ * @returns {Promise<void>} Token validity status
  */
 export async function postVerifyResetToken(
   req: Request,
@@ -224,8 +276,13 @@ export async function postVerifyResetToken(
 }
 
 /**
- * Resets the user's password using a valid reset token.
- * Expects { token, newPassword, confirmPassword } in req.body.
+ * Completes the password reset process
+ *
+ * @route POST /api/auth/reset-password
+ * @access Public
+ * @param {Request} req - Express request object with token and new password
+ * @returns {Promise<void>} Success message
+ * @throws {400} If passwords don't match or token is invalid
  */
 export async function resetPassword(
   req: Request,
@@ -233,11 +290,9 @@ export async function resetPassword(
 ): Promise<void> {
   const { token, newPassword, confirmPassword } = req.body;
   if (!token || !newPassword || !confirmPassword) {
-    res
-      .status(400)
-      .json({
-        message: "Token, new password, and confirm password are required",
-      });
+    res.status(400).json({
+      message: "Token, new password, and confirm password are required",
+    });
     return;
   }
 

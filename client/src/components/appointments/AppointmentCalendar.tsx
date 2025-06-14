@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { getAvailableTimeSlots } from '../../utils/appointmentUtils';
+import { ConsultantWithDetails } from '../../types/Consultant';
 
 interface AppointmentCalendarProps {
-  counselorId: number;
+  consultantId: number;
+  schedule: ConsultantWithDetails | undefined
 }
 
-const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ counselorId }) => {
+const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId, schedule }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -63,7 +65,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ counselorId }
   };
 
   const handleConfirmBooking = () => {
-    alert(`Xác nhận đặt lịch với chuyên viên #${counselorId} on ${selectedDate?.toLocaleDateString()} at ${selectedTime}`);
+    alert(`Xác nhận đặt lịch với chuyên viên #${consultantId} on ${selectedDate?.toLocaleDateString()} at ${selectedTime}`);
     // In a real app, this would send the booking to the server
     setSelectedDate(null);
     setSelectedTime(null);
@@ -105,7 +107,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ counselorId }
           className={`h-10 w-10 rounded-full flex items-center justify-center font-bold transition-all duration-150 shadow-md
             ${isCurrentDay ? 'bg-sky-400 text-white scale-110 ring-2 ring-sky-500' :
               isPastDay ? 'text-gray-300 cursor-not-allowed' :
-              'hover:bg-sky-100 hover:text-sky-700 text-blue-700'}
+                'hover:bg-sky-100 hover:text-sky-700 text-blue-700'}
           `}
         >
           {day}
@@ -116,7 +118,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ counselorId }
     return days;
   };
 
-  const availableTimeSlots = selectedDate ? getAvailableTimeSlots(counselorId, selectedDate) : [];
+  const availableTimeSlots = selectedDate ? getAvailableTimeSlots(consultantId, selectedDate) : [];
 
   return (
     <div className="bg-gradient-to-br from-sky-50 via-white to-blue-50 rounded-2xl p-6 border-2 border-sky-100 shadow-2xl animate-fade-in">

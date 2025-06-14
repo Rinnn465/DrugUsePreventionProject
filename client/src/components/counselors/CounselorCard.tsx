@@ -9,7 +9,6 @@ interface CounselorCardProps {
 }
 
 const CounselorCard: React.FC<CounselorCardProps> = ({ counselor, compact = false }) => {
-  console.log(counselor.Specialties);
 
   if (compact) {
     return (

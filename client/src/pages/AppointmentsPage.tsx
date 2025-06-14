@@ -4,7 +4,8 @@ import { counselorData } from '../data/counselorData';
 import CounselorCard from '../components/counselors/CounselorCard';
 import AppointmentCalendar from '../components/appointments/AppointmentCalendar';
 import { Link, useLocation } from 'react-router-dom';
-import { Consultant, Qualification, Specialty } from '../types/Consultant';
+import { ConsultantWithDetails, Qualification, Specialty } from '../types/Consultant';
+import { parseDate } from '../utils/parseDateUtils';
 
 const AppointmentsPage: React.FC = () => {
   const location = useLocation();
@@ -14,7 +15,7 @@ const AppointmentsPage: React.FC = () => {
   const [selectedCounselor, setSelectedCounselor] = useState<number | null>(null);
 
   //set data from fetching
-  const [consultantData, setConsultantData] = useState<Consultant[]>([]);
+  const [consultantData, setConsultantData] = useState<ConsultantWithDetails[]>([]);
   const [specialtyData, setSpecialtyData] = useState<Specialty[]>([]);
   const [qualificationData, setQualificationData] = useState<Qualification[]>([]);
 
@@ -61,7 +62,7 @@ const AppointmentsPage: React.FC = () => {
   };
 
   const mergeDataIntoConsultants = (
-    consultants: Consultant[],
+    consultants: ConsultantWithDetails[],
     qualifications: Qualification[],
     specialties: Specialty[]
   ) => {
@@ -69,6 +70,9 @@ const AppointmentsPage: React.FC = () => {
 
     return consultants.map((consultant) => ({
       ...consultant,
+      Date: parseDate(consultant.Date),
+      StartTime: parseDate(consultant.StartTime),
+      EndTime: parseDate(consultant.EndTime),
       Qualifications: grouped[consultant.ConsultantID]?.qualifications || [],
       Specialties: grouped[consultant.ConsultantID]?.specialties || [],
     }));
@@ -160,7 +164,8 @@ const AppointmentsPage: React.FC = () => {
                   </p>
                 </div>
                 <AppointmentCalendar
-                  counselorId={selectedCounselor}
+                  schedule={consultantData.find(c => c.ConsultantID === selectedCounselor)}
+                  consultantId={selectedCounselor}
                 />
               </div>
             ) : (
