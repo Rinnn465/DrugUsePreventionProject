@@ -7,7 +7,7 @@ const ArticlePage: React.FC = () => {
   const [blogPosts, setBlogPosts] = React.useState<Article[]>();
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/articles')
+    fetch('http://localhost:5000/api/article')
       .then(response => response.json())
       .then(data => {
         // Assuming data is an array of blog posts

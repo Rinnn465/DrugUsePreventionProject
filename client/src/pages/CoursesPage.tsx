@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, BookOpen } from 'lucide-react';
 import CourseCard from '../components/courses/CourseCard';
-import { courseData } from '../data/courseData';
-import { Course, SqlCourse } from '../types/Course';
+import { SqlCourse } from '../types/Course';
 
 const CoursesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -10,21 +9,8 @@ const CoursesPage: React.FC = () => {
   const [selectedAudience, setSelectedAudience] = useState('');
   const [courses, setCourses] = useState<SqlCourse[]>([]);
 
-
-  // const filteredCourses = courseData.filter(course => {
-  //   const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //     course?.description.toLowerCase().includes(searchTerm.toLowerCase());
-  //   const matchesCategory = selectedCategory === '' || course.category === selectedCategory;
-  //   const matchesAudience = selectedAudience === '' || course.audience === selectedAudience;
-
-  //   return matchesSearch && matchesCategory && matchesAudience;
-  // });
-
-  // const categories = [...new Set(courseData.map(course => course.category))];
-  // const audiences = [...new Set(courseData.map(course => course.audience))];
-
   useEffect(() => {
-    fetch('http://localhost:5000/api/courses')
+    fetch('http://localhost:5000/api/course')
       .then(response => response.json())
       .then(data => {
         setCourses(data.data);

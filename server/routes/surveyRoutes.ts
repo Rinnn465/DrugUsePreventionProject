@@ -9,5 +9,16 @@ router.get("/", surveyController.getAllSurveys);
 // Get survey by ID
 router.get("/:id", surveyController.getSurveyById);
 
+// Get survey by CateID
+router.get("/cate/:id", surveyController.getSurveyByCategoryId);
+
+// Create new survey
+router.post("/", surveyController.createSurvey);
+
+// Update survey
+router.put("/:id", surveyController.updateSurvey);
+
+// Delete survey
+router.delete("/:id", surveyController.deleteSurvey);
 
 export default router;

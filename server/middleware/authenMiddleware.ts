@@ -4,29 +4,37 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const SECRET_KEY = process.env.JWT_SECRET || "jwtsecretkey123@!"; // Ensure you have a secret key set in your environment variables
+type Role = "Admin" | "Consultant" | "Member" | "Guest"; // Define roles as needed
 
-function authenticateToken(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+const authorizeRoles =
+  (allowedRoles: Role[]) =>
+  (req: Request, res: Response, next: NextFunction): void => {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
 
-  if (!token) {
-    res.status(401).json({ message: "No token provided" });
-    return;
-  }
-
-  jwt.verify(token, SECRET_KEY, (err, user) => {
-    if (err) {
-      res.status(403).json({ message: "Invalid token" });
+    if (!token) {
+      if (allowedRoles.includes("Guest")) {
+        return next(); // Allow access for Guest role without token
+      }
+      console.log("No token provided");
+      res.status(401);
       return;
     }
-    (req as any).user = user;
-    next();
-  });
-}
 
-export default authenticateToken;
+    jwt.verify(token, process.env.JWT_SECRET as string, (err, decoded) => {
+      if (err) {
+        console.log("Token verification failed", err);
+        return res.status(403);
+      }
+
+      (req as any).user = decoded; // Attach user info to request
+
+      const userRole = (decoded as any).role as Role;
+      if (!allowedRoles.includes(userRole)) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      next();
+    });
+  };
+
+export default authorizeRoles;

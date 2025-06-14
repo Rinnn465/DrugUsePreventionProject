@@ -1,10 +1,7 @@
 import { useParams } from "react-router-dom";
-import { courseData } from "../data/courseData";
 import { useEffect, useState } from "react";
-import * as Yup from "yup";
-import { useFormik } from "formik";
-import { Course, SqlCourse } from "../types/Course";
-import { slqLessonQuestion, sqlLesson, sqlLessonAnswer } from "../types/Lesson";
+import { SqlCourse } from "../types/Course";
+import { sqlLesson, sqlLessonAnswer, sqlLessonQuestion } from "../types/Lesson";
 
 
 const LessonDetailsPage: React.FC = () => {
@@ -13,7 +10,7 @@ const LessonDetailsPage: React.FC = () => {
     // const course = courseData.find(course => course.id.toString() === id);
     const [course, setCourse] = useState<SqlCourse | null>(null); // Use any for now, replace with proper type later
     const [lesson, setLesson] = useState<sqlLesson[] | null>(null); // Use any for now, replace with proper type later
-    const [questions, setQuestions] = useState<slqLessonQuestion[] | null>(null); // Use any for now, replace with proper type later
+    const [questions, setQuestions] = useState<sqlLessonQuestion[] | null>(null); // Use any for now, replace with proper type later
     const [answers, setAnswers] = useState<sqlLessonAnswer[] | null>(null); // Use any for now, replace with proper type later
     let score = 0;
 
@@ -22,12 +19,12 @@ const LessonDetailsPage: React.FC = () => {
     useEffect(() => {
         const fetchLessonDetail = async () => {
             try {
-                const courseResponse = await fetch(`http://localhost:5000/api/courses/${id}`);
+                const courseResponse = await fetch(`http://localhost:5000/api/course/${id}`);
                 if (!courseResponse.ok) throw new Error('Failed to fetch course');
                 const courseData = await courseResponse.json();
                 setCourse(courseData.data);
 
-                const lessonResponse = await fetch(`http://localhost:5000/api/courses/${id}/lessons/`);
+                const lessonResponse = await fetch(`http://localhost:5000/api/course/${id}/lessons/`);
                 if (!lessonResponse.ok) throw new Error('Failed to fetch lesson');
                 const lessonData = await lessonResponse.json();
                 setLesson(lessonData.data);
@@ -39,7 +36,7 @@ const LessonDetailsPage: React.FC = () => {
 
         const fetchQuestionsAndAnswers = async () => {
             try {
-                const questionResponse = await fetch(`http://localhost:5000/api/courses/${id}/lessons/questions`);
+                const questionResponse = await fetch(`http://localhost:5000/api/course/${id}/lessons/questions`);
                 if (!questionResponse.ok) throw new Error('Failed to fetch questions');
                 const questionData = await questionResponse.json();
                 console.log(questionData.data);
@@ -47,7 +44,7 @@ const LessonDetailsPage: React.FC = () => {
                 setQuestions(questionData.data);
 
 
-                const answerResponse = await fetch(`http://localhost:5000/api/courses/${id}/lessons/questions/answers`);
+                const answerResponse = await fetch(`http://localhost:5000/api/course/${id}/lessons/questions/answers`);
                 const data = await answerResponse.json();
                 console.log(data.data);
                 setAnswers(data.data);

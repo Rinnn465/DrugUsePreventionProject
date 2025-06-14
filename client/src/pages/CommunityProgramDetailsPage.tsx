@@ -7,27 +7,18 @@ const CommunityProgramDetails: React.FC = () => {
 
     const { programId } = useParams();
     const [programData, setProgramData] = React.useState<CommunityProgram | null>();
-    const [upcomingPrograms, setUpcomingPrograms] = React.useState<CommunityProgram[]>([]);
 
     useEffect(() => {
         const fetchProgramData = async () => {
-            fetch(`http://localhost:5000/api/programs/${programId}`)
+            fetch(`http://localhost:5000/api/program/${programId}`)
                 .then(response => response.json())
                 .then(data => {
-                    setProgramData(data.data), console.log(data);
+                    setProgramData(data.data); console.log(data);
                 })
                 .catch(error => console.error('Error fetching program data:', error));
         }
 
-        const fetchUpcomingPrograms = async () => {
-            fetch('http://localhost:5000/api/programs/upcoming/programs')
-                .then(response => response.json())
-                .then(data => setUpcomingPrograms(data))
-                .catch(error => console.error('Error fetching upcoming programs:', error));
-        }
-
         fetchProgramData();
-        fetchUpcomingPrograms();
     }, [programId])
 
 
@@ -102,36 +93,6 @@ const CommunityProgramDetails: React.FC = () => {
                         )}
                     </div>
 
-                    <div className="space-y-4">
-                        <h2 className="text-2xl font-bold text-gray-800">📅 Các sự kiện sắp tới</h2>
-                        {upcomingPrograms.map(program => (
-                            <div
-                                key={program.ProgramID}
-                                className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 space-y-2"
-                            >
-                                <h3 className="text-xl font-semibold text-blue-800">{program.ProgramName}</h3>
-                                <p><strong>🕒 Thời gian:</strong> {parseDate(program.Date)}</p>
-                                <p><strong>📍 Địa điểm:</strong> {program.Location}</p>
-                                <p><strong>📄 Mô tả:</strong> {program.Description}</p>
-                                <p><strong>👥 Đơn vị tổ chức:</strong> {program.Organizer}</p>
-                                {/* {program.attendees && (
-                                    <p><strong>👤 Số người dự kiến:</strong> {program.attendees}</p>
-                                )} */}
-                                {program.Url ? (
-                                    <a
-                                        href={'#'}
-                                        className="inline-block text-blue-600 hover:underline font-medium"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        🔗 Xem chi tiết
-                                    </a>
-                                ) : (
-                                    <p className="text-red-500">Chưa có thông tin cụ thể</p>
-                                )}
-                            </div>
-                        ))}
-                    </div>
 
                     <Link to="/events">
                         <button className="mt-6 inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition">

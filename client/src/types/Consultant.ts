@@ -13,6 +13,13 @@ export interface Counselor {
 }
 
 export interface Consultant {
+
+}
+
+export interface Qualification { QualificationID: number[]; Name: string; ConsultantID: number };
+export interface Specialty { SpecialtyID: number; Name: string; ConsultantID: number };
+
+export interface ConsultantWithSchedule extends Consultant {
   ConsultantID: number;
   Name: string;
   Title: string;
@@ -21,13 +28,11 @@ export interface Consultant {
   ImageUrl: string;
   Rating: number;
   Qualifications: any[];
-}
-
-export interface Qualification { QualificationID: number[]; Name: string; ConsultantID: number };
-export interface Specialty { SpecialtyID: number; Name: string; ConsultantID: number };
-export interface ConsultantWithDetails extends Consultant {
-  ScheduleID: number;
-  Date: string;
-  StartTime: string;
-  EndTime: string;
+  IsDisabled: boolean;
+  Schedule: {
+    ScheduleID: number;
+    Date: string;
+    StartTime: string;
+    EndTime: string;
+  }[];
 }

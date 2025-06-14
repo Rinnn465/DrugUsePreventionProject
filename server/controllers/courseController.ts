@@ -3,22 +3,6 @@ import { sql, poolPromise } from "../config/database";
 import { Request, Response } from 'express';
 
 dotenv.config();
-
-/**
- * Interface representing a Course in the database
- * Maps to the Course table structure
- */
-interface Course {
-    CourseID: number;      // Unique identifier for the course
-    Title: string;         // Course title
-    Description: string;   // Course description
-    Duration: number;      // Course duration in hours/days
-    Level: string;         // Difficulty level
-    IsActive: boolean;     // Course availability status
-    CreatedAt: Date;      // Course creation timestamp
-    UpdatedAt: Date;      // Last update timestamp
-}
-
 /**
  * Retrieves all active courses from the database
  * 
@@ -35,17 +19,17 @@ export async function getCourses(req: Request, res: Response): Promise<void> {
         const pool = await poolPromise;
         // Query all courses
         const result = await pool.request().query('SELECT * FROM Course');
-        res.status(200).json({ 
-            message: 'Courses fetched successfully', 
-            data: result.recordset 
+        res.status(200).json({
+            message: 'Courses fetched successfully',
+            data: result.recordset
         });
         return;
     } catch (err: any) {
         // Log error and send error response
         console.error('Error in getCourses:', err);
-        res.status(500).json({ 
-            message: 'Error fetching courses', 
-            error: err.message 
+        res.status(500).json({
+            message: 'Error fetching courses',
+            error: err.message
         });
         return;
     }
@@ -80,17 +64,17 @@ export async function getCourseById(req: Request, res: Response): Promise<void> 
         }
 
         // Return course data
-        res.status(200).json({ 
-            message: 'Course fetched successfully', 
-            data: result.recordset[0] 
+        res.status(200).json({
+            message: 'Course fetched successfully',
+            data: result.recordset[0]
         });
         return;
     } catch (err: any) {
         // Log error and send error response
         console.error('Error in getCourseById:', err);
-        res.status(500).json({ 
-            message: 'Error fetching course', 
-            error: err.message 
+        res.status(500).json({
+            message: 'Error fetching course',
+            error: err.message
         });
         return;
     }

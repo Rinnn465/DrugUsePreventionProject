@@ -1,8 +1,7 @@
-import React, { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+
 
 const SurveyBeforeEventPage: React.FC = () => {
-    const { programId } = useParams();
+
 
     console.log(event);
     return (
