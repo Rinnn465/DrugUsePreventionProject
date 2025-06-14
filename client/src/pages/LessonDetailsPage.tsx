@@ -1,10 +1,7 @@
 import { useParams } from "react-router-dom";
-import { courseData } from "../data/courseData";
 import { useEffect, useState } from "react";
-import * as Yup from "yup";
-import { useFormik } from "formik";
-import { Course, SqlCourse } from "../types/Course";
-import { slqLessonQuestion, sqlLesson, sqlLessonAnswer } from "../types/Lesson";
+import { SqlCourse } from "../types/Course";
+import { sqlLessonQuestion, sqlLesson, sqlLessonAnswer } from "../types/Lesson";
 
 
 const LessonDetailsPage: React.FC = () => {
@@ -13,7 +10,7 @@ const LessonDetailsPage: React.FC = () => {
     // const course = courseData.find(course => course.id.toString() === id);
     const [course, setCourse] = useState<SqlCourse | null>(null); // Use any for now, replace with proper type later
     const [lesson, setLesson] = useState<sqlLesson[] | null>(null); // Use any for now, replace with proper type later
-    const [questions, setQuestions] = useState<slqLessonQuestion[] | null>(null); // Use any for now, replace with proper type later
+    const [questions, setQuestions] = useState<sqlLessonQuestion[] | null>(null); // Use any for now, replace with proper type later
     const [answers, setAnswers] = useState<sqlLessonAnswer[] | null>(null); // Use any for now, replace with proper type later
     let score = 0;
 
