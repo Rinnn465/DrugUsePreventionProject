@@ -65,34 +65,33 @@ const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm border-b">
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <div className="container mx-auto px-4 py-2 flex items-center justify-between gap-4">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 min-w-[180px]">
-          <span className="inline-block h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center">
-            <span role="img" aria-label="logo" className="text-3xl">💙</span>
+        <Link to="/" className="flex items-center gap-2 min-w-[160px]">
+          <span className="inline-block h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
+            <span role="img" aria-label="logo" className="text-2xl">💙</span>
           </span>
-          <span className="font-bold text-2xl text-primary-700 tracking-wide">DrugPrevention</span>
+          <span className="font-bold text-xl text-primary-700 tracking-wide">DrugPrevention</span>
         </Link>
+        
         {/* Menu điều hướng dạng card */}
         <nav className="flex-1 flex justify-center">
-          <div className="flex gap-5 overflow-x-auto scrollbar-thin pb-1">
+          <div className="flex gap-3 overflow-x-auto scrollbar-thin pb-1">
             {navMenus.map((item, idx) => (
               <NavLink
                 to={item.to}
                 key={idx}
                 className={({ isActive }) =>
-                  `flex flex-col items-center justify-center bg-white rounded-2xl shadow-md px-7 py-4 min-w-[150px] max-w-[200px] hover:shadow-lg transition group border border-transparent hover:border-primary-200 text-center whitespace-nowrap select-none ${isActive ? 'border-primary-500 shadow-lg' : ''}`
+                  `flex flex-col items-center justify-center bg-white rounded-xl shadow-md px-4 py-2 min-w-[120px] max-w-[160px] hover:shadow-lg transition group border border-transparent hover:border-primary-200 text-center whitespace-nowrap select-none ${isActive ? 'border-primary-500 shadow-lg' : ''}`
                 }
-                style={{ minHeight: 80 }}
+                style={{ minHeight: 60 }}
               >
-                <span className="text-2xl mb-2">{item.icon}</span>
-                <span className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition leading-tight">
-                  {item.label}
-                </span>
+                <span className="text-2xl">{item.icon}</span>
               </NavLink>
             ))}
           </div>
         </nav>
+        
         {/* User/account */}
         <div className="min-w-[120px] flex justify-end">
           {user ? (

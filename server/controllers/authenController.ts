@@ -17,7 +17,7 @@ dotenv.config();
  * @param {Response} res - Express response object
  * @param {NextFunction} next - Express next middleware function
  * @returns {Promise<void>} JSON response with token and user data
- * @throws {400} If user is not found
+ * @throws {400} If user is not found or input validation fails
  * @throws {401} If password is invalid
  * @throws {500} If server error occurs
  */
@@ -29,25 +29,60 @@ export async function login(
   const { email, password } = req.body;
 
   try {
+    // Input validation
+    if (!email || !password) {
+      res.status(400).json({ 
+        message: "Vui lòng nhập đầy đủ email và mật khẩu",
+        field: !email ? "email" : "password"
+      });
+      return;
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      res.status(400).json({ 
+        message: "Định dạng email không hợp lệ",
+        field: "email"
+      });
+      return;
+    }
     
     // Get database connection and find user by email
     const pool = await poolPromise;
     const result = await pool
       .request()
-      .input("email", sql.NVarChar, email)
-      .query("SELECT * FROM Account WHERE Email = @email");
+      .input("email", sql.NVarChar, email.toLowerCase().trim())
+      .query("SELECT * FROM Account WHERE LOWER(Email) = @email");
     const user = result.recordset[0];
 
-    // Validate user exists
+    // Check if account exists
     if (!user) {
-      res.status(400).json({ message: "User not found" });
+      res.status(404).json({ 
+        message: "Tài khoản không tồn tại. Vui lòng kiểm tra lại email hoặc đăng ký tài khoản mới.",
+        field: "email",
+        suggestion: "register"
+      });
+      return;
+    }
+
+    // Check if account is disabled
+    if (user.IsDisabled) {
+      res.status(403).json({ 
+        message: "Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ admin để được hỗ trợ.",
+        field: "account"
+      });
       return;
     }
 
     // Verify password
     const isMatch = await bcrypt.compare(password, user.Password);
     if (!isMatch) {
-      res.status(401).json({ message: "Invalid password" });
+      res.status(401).json({ 
+        message: "Mật khẩu không chính xác. Vui lòng thử lại.",
+        field: "password",
+        suggestion: "forgot-password"
+      });
       return;
     }
 
@@ -55,18 +90,25 @@ export async function login(
     const token = jwt.sign(
       { user: user },
       process.env.JWT_SECRET as string,
-      { expiresIn: "1h" } // Token expires in 1 hour
+      { expiresIn: "24h" } // Token expires in 24 hours
     );
+
+    // Remove sensitive data before sending
+    const { Password, ResetToken, ResetTokenExpiry, ...safeUser } = user;
 
     // Send successful response with token and user data
     res.status(200).json({
-      message: "Login successful",
+      message: "Đăng nhập thành công",
+      success: true,
       token,
-      user: { ...user }
+      user: safeUser
     });
   } catch (err: any) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    console.error("Login error:", err);
+    res.status(500).json({ 
+      message: "Lỗi hệ thống. Vui lòng thử lại sau.",
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 }
 
@@ -315,5 +357,42 @@ export async function resetPassword(req: Request, res: Response): Promise<void> 
         res.json({ message: "Password has been reset successfully" });
     } catch (err) {
         res.status(400).json({ message: "Invalid or expired token" });
+    }
+}
+
+/**
+ * Delete account by email (for testing purposes only)
+ * 
+ * @route DELETE /api/auth/delete-account
+ * @access Public (should be removed in production)
+ * @param {Request} req - Express request object with email in body
+ * @returns {Promise<void>} Success message
+ * @throws {404} If email not found
+ * @throws {500} If server error occurs
+ */
+export async function deleteAccountByEmail(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { email } = req.body;
+
+    try {
+        const pool = await poolPromise;
+        
+        // Delete account by email
+        const result = await pool
+            .request()
+            .input('email', sql.NVarChar, email)
+            .query('DELETE FROM Account WHERE Email = @email');
+
+        if (result.rowsAffected[0] === 0) {
+            res.status(404).json({ message: "Email not found" });
+            return;
+        }
+
+        res.status(200).json({ 
+            message: "Account deleted successfully",
+            email: email
+        });
+    } catch (err: any) {
+        console.error("Delete account error:", err);
+        res.status(500).json({ message: "Server error" });
     }
 }

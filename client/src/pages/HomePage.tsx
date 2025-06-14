@@ -20,7 +20,7 @@ const HomePage: React.FC = () => {
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-20">
-            <h2 className="text-5xl md:text-6xl font-extrabold mb-8 bg-gradient-to-r from-primary-600 via-blue-600 to-primary-800 bg-clip-text text-transparent leading-normal py-2">
+            <h2 className="text-5xl md:text-6xl font-extrabold mb-8 bg-gradient-to-r from-primary-600 via-blue-600 to-primary-800 bg-clip-text text-transparent leading-loose pb-4">
               Thành Tựu Của Chúng Tôi
             </h2>
             <div className="w-32 h-1 bg-gradient-to-r from-primary-500 to-blue-500 mx-auto mb-12 rounded-full"></div>
@@ -110,7 +110,7 @@ const HomePage: React.FC = () => {
                   <span className="inline-block bg-primary-100 text-primary-800 px-4 py-2 rounded-full text-sm font-semibold mb-4">
                     📋 Về Chúng Tôi
                   </span>
-                  <h2 className="text-5xl md:text-6xl font-extrabold mb-6 bg-gradient-to-r from-primary-700 via-blue-600 to-primary-800 bg-clip-text text-transparent leading-tight">
+                  <h2 className="text-5xl md:text-6xl font-extrabold mb-6 bg-gradient-to-r from-primary-700 via-blue-600 to-primary-800 bg-clip-text text-transparent leading-loose pb-4">
                     Sứ Mệnh Cao Cả
                   </h2>
                   <div className="w-24 h-1 bg-gradient-to-r from-primary-500 to-blue-500 rounded-full mb-8"></div>
@@ -173,7 +173,7 @@ const HomePage: React.FC = () => {
             <span className="inline-block bg-gradient-to-r from-primary-100 to-blue-100 text-primary-800 px-6 py-3 rounded-full text-sm font-semibold mb-6">
               🌟 Chương Trình Nổi Bật
             </span>
-            <h2 className="text-5xl md:text-6xl font-extrabold mb-12 bg-gradient-to-r from-primary-700 via-blue-600 to-green-600 bg-clip-text text-transparent leading-normal py-2">
+            <h2 className="text-5xl md:text-6xl font-extrabold mb-12 bg-gradient-to-r from-blue-500 to-blue-600 bg-clip-text text-transparent leading-loose pb-4">
               Hoạt động cộng đồng
             </h2>
             <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">

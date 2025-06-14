@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { useFormik } from "formik";
 import { Link } from "react-router-dom";
 import * as Yup from 'yup'
 
 const SignUpPage: React.FC = () => {
+    const [isLoading, setIsLoading] = useState(false);
 
     // handle role selection
     // const roles = ['Thành viên', 'Quản trị viên', 'Quản lý', 'Nhân viên', 'Chuyên viên'];
@@ -17,26 +18,38 @@ const SignUpPage: React.FC = () => {
             password: '',
             confirmPassword: ''
         },
-        onSubmit: (values, { resetForm }) => {
-            const transformedValues = {
-                ...values,
-                dateOfBirth: values.date
-            }
-            fetch('http://localhost:5000/api/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(transformedValues)
-            })
-                .then(res => res.json())
-                .then(data => {
+        onSubmit: async (values, { resetForm }) => {
+            setIsLoading(true);
+            try {
+                const transformedValues = {
+                    ...values,
+                    dateOfBirth: values.date
+                }
+                
+                const response = await fetch('http://localhost:5000/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(transformedValues)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
                     alert(data.message);
                     window.location.href = '/login'; // Redirect to login page after successful registration
-                })
-                .catch(err => console.error('Error:', err.message));
-            console.log("Form submitted with values:", transformedValues);
-
+                } else {
+                    alert(data.message || 'Đăng ký thất bại');
+                }
+                
+                console.log("Form submitted with values:", transformedValues);
+            } catch (err: any) {
+                console.error('Error:', err.message);
+                alert('Có lỗi xảy ra khi đăng ký');
+            } finally {
+                setIsLoading(false);
+            }
         },
 
 
@@ -263,27 +276,53 @@ const SignUpPage: React.FC = () => {
                 {/* Submit Button */}
                 <button
                     type="submit"
-                    className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    disabled={isLoading}
+                    className={`py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center ${
+                        isLoading 
+                            ? 'bg-gray-400 cursor-not-allowed' 
+                            : 'bg-blue-500 hover:bg-blue-600 text-white'
+                    }`}
                 >
-                    Tạo tài khoản
+                    {isLoading ? (
+                        <>
+                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Đang tạo tài khoản...
+                        </>
+                    ) : (
+                        'Tạo tài khoản'
+                    )}
                 </button>
             </div>
 
-            {/* Additional Links */}
-            <div className="mt-4 text-center">
-                <p className="text-sm text-gray-600">
-                    Bạn đã có tài khoản?{" "}
-                    <Link to="/login" className="text-blue-500 hover:underline">
+            {/* Enhanced Link Section */}
+            <div className="mt-6 space-y-4">
+                <div className="text-center">
+                    <p className="text-sm text-gray-600 mb-3">Bạn đã có tài khoản?</p>
+                    <Link 
+                        to="/login" 
+                        className="inline-flex items-center justify-center w-full px-4 py-2 border border-green-500 text-green-600 bg-white rounded-lg hover:bg-green-50 hover:border-green-600 hover:text-green-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+                    >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                        </svg>
                         Đăng nhập ngay
                     </Link>
-                </p>
-            </div>
-            <div className="mt-4 text-center">
-                <p className="text-sm text-gray-600">
-                    <Link to="/" className="text-blue-500 hover:underline">
+                </div>
+                
+                <div className="text-center border-t pt-4">
+                    <Link 
+                        to="/" 
+                        className="inline-flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors duration-200 font-medium"
+                    >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
                         Quay về trang chủ
                     </Link>
-                </p>
+                </div>
             </div>
 
         </form >
