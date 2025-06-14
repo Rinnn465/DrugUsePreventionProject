@@ -7,6 +7,7 @@ import articleRoutes from "./routes/articleRoutes";
 import programRoutes from "./routes/programRoutes";
 import courseRoutes from "./routes/courseRoutes";
 import consultantRoutes from "./routes/consultantRoutes";
+import appointmentRoutes from "./routes/appointmentRoutes";
 import authorizeRoles from "./middleware/authenMiddleware";
 
 const app: Application = express();
@@ -39,6 +40,12 @@ app.use("/api/surveys", authorizeRoles(["Memeber", "Consultant", "Admin"]), apiS
 
 // Protected Routes - Member/Consultant can update profiles (excluding role changes)
 app.use("/api/account", authorizeRoles(["Memeber", "Consultant", "Admin"]), apiAccountRoutes
+);
+
+app.use(
+  "/api/appointments",
+  authorizeRoles(["Guest", "Memeber", "Consultant", "Admin"]),
+  appointmentRoutes
 );
 
 // Admin-only Routes - Full account management including role changes
