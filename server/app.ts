@@ -24,25 +24,32 @@ app.use(
 
 // Public Routes (accessible to all including guests)
 app.use(
-  "/api/articles",
+  "/api/article",
   authorizeRoles(["Guest", "Memeber", "Consultant", "Admin"]),
   articleRoutes
 );
 app.use("/api/auth", authenRoutes);
+
 app.use(
-  "/api/courses",
+  "/api/course",
   authorizeRoles(["Guest", "Memeber", "Consultant", "Admin"]),
   courseRoutes
 );
 app.use(
-  "/api/programs",
+  "/api/program",
   authorizeRoles(["Guest", "Memeber", "Consultant", "Admin"]),
   programRoutes
 );
 app.use(
-  "/api/consultants",
+  "/api/consultant",
   authorizeRoles(["Guest", "Memeber", "Consultant", "Admin"]),
   consultantRoutes
+);
+
+app.use(
+  "/api/survey",
+  authorizeRoles(["Memeber", "Consultant", "Admin"]),
+  apiSurveyRoutes
 );
 
 // Protected Routes - Member/Consultant can update profiles (excluding role changes)
@@ -53,19 +60,16 @@ app.use(
 );
 
 app.use(
-  "/api/appointments",
-  authorizeRoles(["Guest", "Memeber", "Consultant", "Admin"]),
+  "/api/appointment",
+  authorizeRoles(["Memeber", "Consultant", "Admin"]),
   appointmentRoutes
 );
 
-// Admin-only Routes - Full account management including role changes
-app.use("/api/accounts", authorizeRoles(["Admin"]), apiAccountRoutes);
 
-app.use(
-  "/api/surveys",
-  authorizeRoles(["Memeber", "Consultant", "Admin"]),
-  apiSurveyRoutes
-);
+// Admin-only Routes - Full account management including role changes
+app.use("/api/account/admin", authorizeRoles(["Admin"]), apiAccountRoutes);
+// Admin-only Routes - Full survey management
+app.use("/api/survey/admin", authorizeRoles(["Admin"]), apiSurveyRoutes);
 
 // Start the server
 app.listen(PORT, () => {

@@ -8,7 +8,7 @@ const CommunityProgramPage: React.FC = () => {
     const [events, setEvents] = useState<CommunityProgram[]>([]);
 
     useEffect(() => {
-        fetch('http://localhost:5000/api/programs')
+        fetch('http://localhost:5000/api/program')
             .then(response => response.json())
             .then(data => {
                 console.log('Fetched events:', data);

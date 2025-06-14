@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, BookOpen } from 'lucide-react';
 import CourseCard from '../components/courses/CourseCard';
-import { courseData } from '../data/courseData';
-import { Course, SqlCourse } from '../types/Course';
+import { SqlCourse } from '../types/Course';
 
 const CoursesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,7 +23,7 @@ const CoursesPage: React.FC = () => {
   // const audiences = [...new Set(courseData.map(course => course.audience))];
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/courses')
+    fetch('http://localhost:5000/api/course')
       .then(response => response.json())
       .then(data => {
         setCourses(data.data);

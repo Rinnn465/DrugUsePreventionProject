@@ -9,7 +9,7 @@ const ArticleDetailsPage = () => {
     useEffect(() => {
         const fetchArticleDetails = async () => {
             try {
-                const response = await fetch(`http://localhost:5000/api/articles/${articleId}`);
+                const response = await fetch(`http://localhost:5000/api/article/${articleId}`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch blog details');
                 }

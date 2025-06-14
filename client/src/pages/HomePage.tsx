@@ -1,9 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Activity, Calendar, Users, ArrowRight, Award } from 'lucide-react';
+import { BookOpen, Calendar, Users, ArrowRight, Award } from 'lucide-react';
 import HeroSection from '../components/home/HeroSection';
-import StatCard from '../components/common/StatCard';
-import TestimonialCard from '../components/home/TestimonialCard';
+
 
 const HomePage: React.FC = () => {
   return (
