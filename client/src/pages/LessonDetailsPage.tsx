@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { SqlCourse } from "../types/Course";
-import { sqlLesson, sqlLessonAnswer } from "../types/Lesson";
+import { sqlLesson, sqlLessonAnswer, sqlLessonQuestion } from "../types/Lesson";
 
 
 const LessonDetailsPage: React.FC = () => {
