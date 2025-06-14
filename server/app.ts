@@ -25,43 +25,43 @@ app.use(
 // Public Routes (accessible to all including guests)
 app.use(
   "/api/article",
-  authorizeRoles(["Guest", "Memeber", "Consultant", "Admin"]),
+  authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   articleRoutes
 );
 app.use("/api/auth", authenRoutes);
 
 app.use(
   "/api/course",
-  authorizeRoles(["Guest", "Memeber", "Consultant", "Admin"]),
+  authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   courseRoutes
 );
 app.use(
   "/api/program",
-  authorizeRoles(["Guest", "Memeber", "Consultant", "Admin"]),
+  authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   programRoutes
 );
 app.use(
   "/api/consultant",
-  authorizeRoles(["Guest", "Memeber", "Consultant", "Admin"]),
+  authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   consultantRoutes
 );
 
 app.use(
   "/api/survey",
-  authorizeRoles(["Memeber", "Consultant", "Admin"]),
+  authorizeRoles(["Member", "Consultant", "Admin"]),
   apiSurveyRoutes
 );
 
 // Protected Routes - Member/Consultant can update profiles (excluding role changes)
 app.use(
   "/api/account",
-  authorizeRoles(["Memeber", "Consultant", "Admin"]),
+  authorizeRoles(["Member", "Consultant", "Admin"]),
   apiAccountRoutes
 );
 
 app.use(
   "/api/appointment",
-  authorizeRoles(["Memeber", "Consultant", "Admin"]),
+  authorizeRoles(["Member", "Consultant", "Admin"]),
   appointmentRoutes
 );
 

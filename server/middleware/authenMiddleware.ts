@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-type Role = "Admin" | "Consultant" | "Memeber" | "Guest"; // Define roles as needed
+type Role = "Admin" | "Consultant" | "Member" | "Guest"; // Define roles as needed
 
 const authorizeRoles =
   (allowedRoles: Role[]) =>
