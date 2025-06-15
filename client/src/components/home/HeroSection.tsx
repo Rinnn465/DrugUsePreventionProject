@@ -24,7 +24,7 @@ const heroSlides = [
     title: "Đánh Giá & Tư Vấn",
     subtitle: "Hỗ Trợ Chuyên Nghiệp",
     description: "Nhận được sự hỗ trợ và tư vấn từ các chuyên gia tâm lý, bác sĩ và các tình nguyện viên có kinh nghiệm.",
-    image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    image: "https://images.pexels.com/photos/7659564/pexels-photo-7659564.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     gradient: "from-teal-400 to-blue-600",
     steps: [
       { icon: MessageCircle, title: "Tư vấn trực tuyến", desc: "Nhận tư vấn miễn phí từ các chuyên gia tâm lý 24/7" },
@@ -187,6 +187,10 @@ const HeroSection: React.FC = () => {
                     src={slide.image}
                     alt={slide.title}
                     className="w-full h-96 object-cover rounded-2xl shadow-lg"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = "https://images.pexels.com/photos/5029857/pexels-photo-5029857.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2";
+                    }}
                   />
                 </div>
               </div>
