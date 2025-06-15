@@ -50,7 +50,7 @@ const BlogPostCard: React.FC<Article> = ({
         >
           {ArticleTitle}
         </h3>
-        <p className="h-[60px] text-gray-600 mb-4 line-clamp-3 text-base">{Content}</p>
+        <p className="max-h-[60px] text-gray-600 mb-4 line-clamp-2 text-base">{Content}</p>
         <div className="flex items-center justify-between mt-auto">
           <span className="text-sm text-gray-500 font-medium italic">{Author}</span>
           <Link

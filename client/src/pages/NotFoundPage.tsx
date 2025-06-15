@@ -16,8 +16,8 @@ const NotFoundPage: React.FC = () => {
             <HomeIcon className="h-4 w-4" />
             Return Home
           </Link>
-          <button 
-            onClick={() => window.history.back()} 
+          <button
+            onClick={() => window.history.back()}
             className="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />

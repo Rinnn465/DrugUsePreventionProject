@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import Tippy from '@tippyjs/react/headless';
 import { useUser } from '../context/UserContext';
+import tippy from 'tippy.js';
+import 'tippy.js/dist/tippy.css';
 
 const navMenus = [
   {
@@ -36,9 +38,15 @@ const navMenus = [
   },
 ];
 
-const Header: React.FC = () => {
+type HeaderProps = {
+  toggleMobileMenu?: () => void;
+}
+
+const Header: React.FC<HeaderProps> = () => {
   let { user, setUser } = useUser();
+
   useEffect(() => {
+    tippy('[data-tippy-content]');
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
@@ -73,12 +81,13 @@ const Header: React.FC = () => {
           </span>
           <span className="font-bold text-xl text-primary-700 tracking-wide">DrugPrevention</span>
         </Link>
-        
+
         {/* Menu điều hướng dạng card */}
         <nav className="flex-1 flex justify-center">
           <div className="flex gap-3 overflow-x-auto scrollbar-thin pb-1">
             {navMenus.map((item, idx) => (
               <NavLink
+                data-tippy-content={item.label}
                 to={item.to}
                 key={idx}
                 className={({ isActive }) =>
@@ -91,7 +100,7 @@ const Header: React.FC = () => {
             ))}
           </div>
         </nav>
-        
+
         {/* User/account */}
         <div className="min-w-[120px] flex justify-end">
           {user ? (

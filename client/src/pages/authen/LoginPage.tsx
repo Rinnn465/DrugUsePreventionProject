@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from 'yup'
 import { Link } from "react-router-dom";
-import { useUser } from "../context/UserContext";
+import { useUser } from "../../context/UserContext";
 
 interface ErrorResponse {
     message: string;
@@ -15,7 +15,7 @@ const LoginPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [serverError, setServerError] = useState<ErrorResponse | null>(null);
     const { setUser } = useUser();
-    
+
     const formik = useFormik({
         initialValues: {
             email: '',
@@ -24,30 +24,30 @@ const LoginPage: React.FC = () => {
         onSubmit: async (values) => {
             setIsLoading(true);
             setServerError(null); // Clear previous errors
-            
+
             try {
                 const response = await fetch('http://localhost:5000/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(values)
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(values)
                 });
 
                 const data = await response.json();
 
-                    if (response.ok) {
+                if (response.ok) {
                     console.log('Login successful:', data);
 
-                        setUser(data.user);
-                        localStorage.setItem('user', JSON.stringify(data.user));
+                    setUser(data.user);
+                    localStorage.setItem('user', JSON.stringify(data.user));
                     localStorage.setItem('token', data.token);
 
-                        window.location.href = '/';
+                    window.location.href = '/';
                 } else {
                     // Handle different types of errors
                     setServerError(data);
-                    }
+                }
             } catch (err) {
                 console.error('Network error:', err);
                 setServerError({
@@ -101,8 +101,8 @@ const LoginPage: React.FC = () => {
                         <p className="text-sm text-red-700 font-medium">{error.message}</p>
                         {error.suggestion === 'register' && (
                             <div className="mt-2">
-                                <Link 
-                                    to="/signup" 
+                                <Link
+                                    to="/signup"
                                     className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium"
                                 >
                                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,8 +114,8 @@ const LoginPage: React.FC = () => {
                         )}
                         {error.suggestion === 'forgot-password' && (
                             <div className="mt-2">
-                                <Link 
-                                    to="/forgot-password" 
+                                <Link
+                                    to="/forgot-password"
                                     className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium"
                                 >
                                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -138,10 +138,10 @@ const LoginPage: React.FC = () => {
             method="POST"
         >
             <h2 className="text-2xl font-bold text-center mb-6">Đăng nhập</h2>
-            
+
             {/* Display server errors */}
             {serverError && renderError(serverError)}
-            
+
             <div className="flex flex-col space-y-4">
                 {/* Email Field */}
                 <div>
@@ -151,11 +151,10 @@ const LoginPage: React.FC = () => {
                     <input
                         id="email"
                         name="email"
-                        className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                            (formik.touched.email && formik.errors.email) || (serverError?.field === 'email') 
-                                ? 'border-red-300 bg-red-50' 
+                        className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${(formik.touched.email && formik.errors.email) || (serverError?.field === 'email')
+                                ? 'border-red-300 bg-red-50'
                                 : 'border-gray-300'
-                        }`}
+                            }`}
                         placeholder="Nhập email của bạn"
                         onChange={(e) => {
                             formik.handleChange(e);
@@ -178,11 +177,10 @@ const LoginPage: React.FC = () => {
                         id="password"
                         name="password"
                         type="password"
-                        className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                            (formik.touched.password && formik.errors.password) || (serverError?.field === 'password')
-                                ? 'border-red-300 bg-red-50' 
+                        className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${(formik.touched.password && formik.errors.password) || (serverError?.field === 'password')
+                                ? 'border-red-300 bg-red-50'
                                 : 'border-gray-300'
-                        }`}
+                            }`}
                         placeholder="Nhập mật khẩu của bạn"
                         onChange={(e) => {
                             formik.handleChange(e);
@@ -204,7 +202,7 @@ const LoginPage: React.FC = () => {
                         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                            Quên mật khẩu?
+                        Quên mật khẩu?
                     </Link>
                 </div>
 
@@ -212,11 +210,10 @@ const LoginPage: React.FC = () => {
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className={`w-full py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center ${
-                        isLoading 
-                            ? 'bg-gray-400 cursor-not-allowed' 
+                    className={`w-full py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center ${isLoading
+                            ? 'bg-gray-400 cursor-not-allowed'
                             : 'bg-blue-500 hover:bg-blue-600 text-white'
-                    }`}
+                        }`}
                 >
                     {isLoading ? (
                         <>
@@ -236,8 +233,8 @@ const LoginPage: React.FC = () => {
             <div className="mt-6 space-y-4">
                 <div className="text-center">
                     <p className="text-sm text-gray-600 mb-3">Bạn chưa có tài khoản?</p>
-                    <Link 
-                        to="/signup" 
+                    <Link
+                        to="/signup"
                         className="inline-flex items-center justify-center w-full px-4 py-2 border border-blue-500 text-blue-600 bg-white rounded-lg hover:bg-blue-50 hover:border-blue-600 hover:text-blue-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
                     >
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -245,11 +242,11 @@ const LoginPage: React.FC = () => {
                         </svg>
                         Đăng ký ngay
                     </Link>
-            </div>
+                </div>
 
                 <div className="text-center border-t pt-4">
-                    <Link 
-                        to="/" 
+                    <Link
+                        to="/"
                         className="inline-flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors duration-200 font-medium"
                     >
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

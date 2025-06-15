@@ -1,4 +1,4 @@
-import { courseData } from "../data/courseData";
+import { courseData } from "../../data/courseData";
 
 
 const CourseManagmentPage: React.FC = () => {

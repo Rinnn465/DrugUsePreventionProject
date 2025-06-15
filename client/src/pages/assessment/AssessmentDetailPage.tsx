@@ -3,9 +3,9 @@ import { Link, useParams } from 'react-router-dom';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 
-import { assessmentData } from '../data/assessmentData';
-import { courseData } from '../data/courseData';
-import { counselorData } from '../data/counselorData';
+import { assessmentData } from '../../data/assessmentData';
+import { courseData } from '../../data/courseData';
+import { counselorData } from '../../data/counselorData';
 
 const AssessmentDetailPage: React.FC = () => {
     const { assessmentId } = useParams<{ assessmentId: string }>();

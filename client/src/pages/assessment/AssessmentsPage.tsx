@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ClipboardCheck, AlertTriangle, InfoIcon } from 'lucide-react';
-import { assessmentData } from '../data/assessmentData';
+import { assessmentData } from '../../data/assessmentData';
 
 type AssessmentColor = 'primary' | 'secondary' | 'accent' | 'success' | 'warning' | 'error';
 const colorMap: Record<AssessmentColor, { gradient: string; text: string; badge: string; button: string }> = {

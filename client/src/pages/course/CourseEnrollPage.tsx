@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Clock, Users, ArrowLeft} from 'lucide-react';
-import { SqlCourse } from '../types/Course';
-import { sqlLesson } from '../types/Lesson';
+import { Clock, Users, ArrowLeft } from 'lucide-react';
+import { SqlCourse } from '../../types/Course';
+import { sqlLesson } from '../../types/Lesson';
 
 const CourseEnrollPage: React.FC = () => {
   const { id } = useParams();

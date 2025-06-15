@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { counselorData } from "../data/counselorData";
+import { counselorData } from "../../data/counselorData";
 import { Star } from "lucide-react";
 
 const ConsultantDetailsPage: React.FC = () => {

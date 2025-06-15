@@ -16,7 +16,7 @@ const HomePage: React.FC = () => {
           <div className="absolute top-10 left-10 w-72 h-72 bg-primary-400 rounded-full blur-3xl"></div>
           <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-400 rounded-full blur-3xl"></div>
         </div>
-        
+
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-20">
             <h2 className="text-5xl md:text-6xl font-extrabold mb-8 bg-gradient-to-r from-primary-600 via-blue-600 to-primary-800 bg-clip-text text-transparent leading-loose pb-4">
@@ -82,7 +82,7 @@ const HomePage: React.FC = () => {
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-20 right-10 w-64 h-64 bg-gradient-to-r from-primary-400 to-blue-400 rounded-full blur-3xl"></div>
         </div>
-        
+
         <div className="container mx-auto px-4 relative z-10">
           <div className="flex flex-col lg:flex-row items-center gap-16">
             <div className="lg:w-1/2">
@@ -102,7 +102,7 @@ const HomePage: React.FC = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="lg:w-1/2">
               <div className="max-w-2xl">
                 <div className="mb-8">
@@ -117,20 +117,20 @@ const HomePage: React.FC = () => {
 
                 <div className="space-y-6 mb-10">
                   <p className="text-xl text-gray-700 leading-relaxed">
-                    Là một tổ chức hoạt động dựa trên tinh thần tình nguyện, chúng tôi cam kết 
-                    <span className="font-semibold text-primary-700"> phòng chống lạm dụng ma túy</span> 
+                    Là một tổ chức hoạt động dựa trên tinh thần tình nguyện, chúng tôi cam kết
+                    <span className="font-semibold text-primary-700"> phòng chống lạm dụng ma túy</span>
                     thông qua giáo dục, hỗ trợ và sự tham gia tích cực của cộng đồng.
                   </p>
-                  
+
                   <p className="text-xl text-gray-700 leading-relaxed">
-                    Sứ mệnh của chúng tôi là 
-                    <span className="font-semibold text-blue-700"> trao quyền cho mỗi cá nhân</span> 
+                    Sứ mệnh của chúng tôi là
+                    <span className="font-semibold text-blue-700"> trao quyền cho mỗi cá nhân</span>
                     bằng kiến thức và kỹ năng cần thiết để đưa ra những quyết định đúng đắn liên quan đến ma túy và các chất gây nghiện.
                   </p>
 
                   <div className="bg-gradient-to-r from-primary-50 to-blue-50 border-l-4 border-primary-500 p-6 rounded-r-2xl">
                     <p className="text-lg text-gray-700 leading-relaxed italic">
-                      "Thông qua các chương trình toàn diện, khóa học trực tuyến và dịch vụ tư vấn chuyên nghiệp, 
+                      "Thông qua các chương trình toàn diện, khóa học trực tuyến và dịch vụ tư vấn chuyên nghiệp,
                       chúng tôi hướng tới việc giảm thiểu tình trạng sử dụng ma túy trong cộng đồng."
                     </p>
                   </div>
@@ -144,7 +144,7 @@ const HomePage: React.FC = () => {
                     <span>Tìm hiểu thêm</span>
                     <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                   </Link>
-                  
+
                   <Link
                     to="/community-programs"
                     className="group inline-flex items-center gap-3 bg-white border-2 border-primary-200 text-primary-700 px-8 py-4 rounded-2xl shadow-lg hover:bg-primary-50 transition-all duration-300 text-lg font-semibold hover:scale-105 hover:-translate-y-1"
@@ -176,7 +176,7 @@ const HomePage: React.FC = () => {
               Hoạt động cộng đồng
             </h2>
             <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-              Chúng tôi tổ chức nhiều chương trình truyền thông và giáo dục nhằm nâng cao nhận thức 
+              Chúng tôi tổ chức nhiều chương trình truyền thông và giáo dục nhằm nâng cao nhận thức
               và cung cấp những nguồn lực thiết thực cho cộng đồng.
             </p>
           </div>
@@ -202,8 +202,8 @@ const HomePage: React.FC = () => {
                   Những buổi workshop được tổ chức trực tiếp nhằm giúp học sinh nhận thức rõ về các vấn đề liên quan đến ma túy.
                 </p>
                 <div className="flex items-center justify-between">
-                  <Link 
-                    to="/community-programs" 
+                  <Link
+                    to="/community-programs"
                     className="inline-flex items-center gap-2 text-primary-600 font-semibold text-lg"
                   >
                     <span>Tìm hiểu thêm</span>
@@ -237,8 +237,8 @@ const HomePage: React.FC = () => {
                   Những buổi tuyên truyền giúp phụ huynh phát hiện sớm dấu hiệu và hướng dẫn cách hỗ trợ con em hiệu quả.
                 </p>
                 <div className="flex items-center justify-between">
-                  <Link 
-                    to="/community-programs" 
+                  <Link
+                    to="/community-programs"
                     className="inline-flex items-center gap-2 text-green-600 font-semibold text-lg"
                   >
                     <span>Tìm hiểu thêm</span>
@@ -272,8 +272,8 @@ const HomePage: React.FC = () => {
                   Sự kiện mở rộng với nhiều hoạt động, tài liệu giáo dục và sàng lọc dành cho mọi người trong cộng đồng.
                 </p>
                 <div className="flex items-center justify-between">
-                  <Link 
-                    to="/community-programs" 
+                  <Link
+                    to="/community-programs"
                     className="inline-flex items-center gap-2 text-purple-600 font-semibold text-lg"
                   >
                     <span>Tìm hiểu thêm</span>
@@ -334,7 +334,7 @@ const HomePage: React.FC = () => {
                     ))}
                   </div>
                   <blockquote className="text-lg text-gray-700 leading-relaxed italic">
-                    "Khóa học đã giúp tôi hiểu rõ hơn về tác hại của ma túy và cách phòng tránh. 
+                    "Khóa học đã giúp tôi hiểu rõ hơn về tác hại của ma túy và cách phòng tránh.
                     Tôi cảm thấy tự tin hơn khi nói chuyện với bạn bè về vấn đề này."
                   </blockquote>
                 </div>
@@ -368,7 +368,7 @@ const HomePage: React.FC = () => {
                     ))}
                   </div>
                   <blockquote className="text-lg text-gray-700 leading-relaxed italic">
-                    "Buổi học đã giúp tôi nhận ra tầm quan trọng của việc giáo dục con cái về ma túy. 
+                    "Buổi học đã giúp tôi nhận ra tầm quan trọng của việc giáo dục con cái về ma túy.
                     Tôi cảm thấy mình có thêm công cụ để hỗ trợ con trong việc phòng tránh."
                   </blockquote>
                 </div>
@@ -402,7 +402,7 @@ const HomePage: React.FC = () => {
                     ))}
                   </div>
                   <blockquote className="text-lg text-gray-700 leading-relaxed italic">
-                    "Tài liệu và các hoạt động trong khóa học rất hữu ích. 
+                    "Tài liệu và các hoạt động trong khóa học rất hữu ích.
                     Tôi đã học được nhiều điều mới và cảm thấy có trách nhiệm hơn trong việc phòng chống ma túy."
                   </blockquote>
                 </div>

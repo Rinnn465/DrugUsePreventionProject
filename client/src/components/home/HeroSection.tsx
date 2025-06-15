@@ -24,7 +24,7 @@ const heroSlides = [
     title: "Đánh Giá & Tư Vấn",
     subtitle: "Hỗ Trợ Chuyên Nghiệp",
     description: "Nhận được sự hỗ trợ và tư vấn từ các chuyên gia tâm lý, bác sĩ và các tình nguyện viên có kinh nghiệm.",
-    image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    image: "https://th.bing.com/th/id/OIP.PTHjV-jCrsM9_z8z9-w8PQHaE7?rs=1&pid=ImgDetMain",
     gradient: "from-teal-400 to-blue-600",
     steps: [
       { icon: MessageCircle, title: "Tư vấn trực tuyến", desc: "Nhận tư vấn miễn phí từ các chuyên gia tâm lý 24/7" },
@@ -102,10 +102,10 @@ const HeroSection: React.FC = () => {
 
       <div className="container mx-auto px-4 py-24 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[600px]">
-          
+
           {/* Left Side - Content */}
           <div className={`space-y-8 transition-all duration-500 ${isAnimating ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0'}`}>
-            
+
             {/* Badge */}
             <div className="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 shadow-lg">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -149,7 +149,7 @@ const HeroSection: React.FC = () => {
                 <slide.primaryBtn.icon className="h-5 w-5" />
                 <span>{slide.primaryBtn.text}</span>
               </Link>
-              
+
               <Link
                 to={slide.secondaryBtn.link}
                 className="group inline-flex items-center justify-center space-x-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200 text-gray-700 px-8 py-4 rounded-2xl shadow-lg hover:bg-white hover:shadow-xl hover:scale-105 transition-all duration-300 text-lg font-semibold"
@@ -165,11 +165,10 @@ const HeroSection: React.FC = () => {
                 <button
                   key={index}
                   onClick={() => goToSlide(index)}
-                  className={`w-12 h-2 rounded-full transition-all duration-300 ${
-                    index === currentSlide 
-                      ? `bg-gradient-to-r ${slide.gradient}` 
+                  className={`w-12 h-2 rounded-full transition-all duration-300 ${index === currentSlide
+                      ? `bg-gradient-to-r ${slide.gradient}`
                       : 'bg-gray-300 hover:bg-gray-400'
-                  }`}
+                    }`}
                 />
               ))}
             </div>
@@ -178,7 +177,7 @@ const HeroSection: React.FC = () => {
           {/* Right Side - Image */}
           <div className="relative">
             <div className={`transition-all duration-500 ${isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
-              
+
               {/* Main Image Container */}
               <div className="relative">
                 <div className={`absolute -inset-4 bg-gradient-to-r ${slide.gradient} rounded-3xl blur-2xl opacity-20`}></div>
@@ -198,7 +197,7 @@ const HeroSection: React.FC = () => {
               >
                 <ChevronLeft className="h-6 w-6 text-gray-700" />
               </button>
-              
+
               <button
                 onClick={nextSlide}
                 className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-white hover:scale-110 transition-all duration-300"

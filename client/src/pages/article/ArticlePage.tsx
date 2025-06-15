@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import BlogPostCard from '../components/blog/BlogPostCard';
+import BlogPostCard from '../../components/blog/BlogPostCard';
 
-import { Article } from '../types/Article';
+import { Article } from '../../types/Article';
 
 const ArticlePage: React.FC = () => {
   const [blogPosts, setBlogPosts] = React.useState<Article[]>();

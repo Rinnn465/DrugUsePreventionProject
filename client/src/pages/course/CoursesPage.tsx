@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, BookOpen } from 'lucide-react';
-import CourseCard from '../components/courses/CourseCard';
-import { SqlCourse } from '../types/Course';
+import CourseCard from '../../components/courses/CourseCard';
+import { SqlCourse } from '../../types/Course';
 
 const CoursesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');

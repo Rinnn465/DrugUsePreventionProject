@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Users, Search, Calendar as CalendarIcon, User, Filter } from 'lucide-react';
-import { counselorData } from '../data/counselorData';
-import CounselorCard from '../components/counselors/CounselorCard';
-import AppointmentCalendar from '../components/appointments/AppointmentCalendar';
+import { counselorData } from '../../data/counselorData';
+import CounselorCard from '../../components/counselors/CounselorCard';
+import AppointmentCalendar from '../../components/appointments/AppointmentCalendar';
 import { Link, useLocation } from 'react-router-dom';
-import { ConsultantWithSchedule, Qualification, Specialty } from '../types/Consultant';
-import { parseDate } from '../utils/parseDateUtils';
+import { ConsultantWithSchedule, Qualification, Specialty } from '../../types/Consultant';
+import { parseDate } from '../../utils/parseDateUtils';
 
 const AppointmentsPage: React.FC = () => {
   const location = useLocation();
@@ -32,17 +32,17 @@ const AppointmentsPage: React.FC = () => {
   }, [state?.counselorId]);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/consultants')
+    fetch('http://localhost:5000/api/consultant')
       .then(response => response.json())
       .then(data => { setConsultantData(data.data) })
       .catch(error => console.error('Error fetching counselors:', error));
 
-    fetch('http://localhost:5000/api/consultants/qualifications')
+    fetch('http://localhost:5000/api/consultant/qualifications')
       .then(response => response.json())
       .then(data => setQualificationData(data.data))
       .catch(error => console.error('Error fetching qualifications:', error))
 
-    fetch('http://localhost:5000/api/consultants/specialties')
+    fetch('http://localhost:5000/api/consultant/specialties')
       .then(response => response.json())
       .then(data => { setSpecialtyData(data.data) })
       .catch(error => console.error('Error fetching specialties:', error));

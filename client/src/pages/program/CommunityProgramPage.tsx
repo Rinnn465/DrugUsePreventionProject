@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
-import { CommunityProgram } from '../types/CommunityProgram';
-import { parseDate } from '../utils/parseDateUtils';
+import { CommunityProgram } from '../../types/CommunityProgram';
+import { parseDate } from '../../utils/parseDateUtils';
 
 const CommunityProgramPage: React.FC = () => {
     const [eventSelected, setEventSelected] = useState<string>('online');
@@ -94,9 +94,12 @@ const CommunityProgramPage: React.FC = () => {
                                             </div>
                                         )} */}
                                     </div>
-                                    <p className="text-gray-600 mb-4 line-clamp-2 min-h-[48px]">{event.Description}</p>
+                                    <p className="text-gray-600 mb-4 line-clamp-2">
+                                        {event.Description}
+                                    </p>
                                     {event.IsDisabled ? (
-                                        <p className="text-center text-red-600 font-medium">Chưa có thông tin chính thức</p>
+                                        <p className="text-center text-red-600 font-medium">Chưa có thông tin chính thức
+                                        </p>
                                     ) : (
                                         <Link
                                             to={`${event.ProgramID}`}
