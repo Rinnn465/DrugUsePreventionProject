@@ -163,11 +163,11 @@ const AboutPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="bg-gradient-to-br from-white via-blue-50 to-primary-50 rounded-3xl shadow-2xl border-2 border-primary-100/40 p-8 text-center animate-fade-in">
               <img
-                src="https://images.pexels.com/photos/5393594/pexels-photo-5393594.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-                alt="Dr. Maria Anderson"
+                src="https://dingyue.ws.126.net/2022/0317/9d5cd0bfj00r8v5xl001wc000g800kam.jpg"
+                alt="Maria Fukada"
                 className="w-32 h-32 rounded-full object-cover mx-auto mb-6 border-4 border-primary-200 shadow-lg"
               />
-              <h3 className="text-2xl font-bold text-primary-700 mb-2">TS. Maria Anderson</h3>
+              <h3 className="text-2xl font-bold text-primary-700 mb-2">Maria Fukada</h3>
               <p className="text-primary-600 text-lg mb-4">Giám Đốc Điều Hành</p>
               <p className="text-gray-700 text-lg">
                 TS. Anderson có hơn 20 năm kinh nghiệm trong lĩnh vực y tế công cộng và khoa học phòng ngừa.
@@ -177,11 +177,11 @@ const AboutPage: React.FC = () => {
 
             <div className="bg-gradient-to-br from-white via-blue-50 to-primary-50 rounded-3xl shadow-2xl border-2 border-primary-100/40 p-8 text-center animate-fade-in delay-100">
               <img
-                src="https://images.pexels.com/photos/6801642/pexels-photo-6801642.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-                alt="David Kim"
+                src="https://monamie.vn/image/5e7b2d4b5fa02625fc83ac63/thumbnail.jpg"
+                alt="Ronal D Si"
                 className="w-32 h-32 rounded-full object-cover mx-auto mb-6 border-4 border-primary-200 shadow-lg"
               />
-              <h3 className="text-2xl font-bold text-primary-700 mb-2">David Kim</h3>
+              <h3 className="text-2xl font-bold text-primary-700 mb-2">Ronal D Si</h3>
               <p className="text-primary-600 text-lg mb-4">Giám Đốc Chương Trình</p>
               <p className="text-gray-700 text-lg">
                 David phụ trách phát triển và triển khai các chương trình phòng ngừa.
