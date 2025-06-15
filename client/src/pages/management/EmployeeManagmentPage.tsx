@@ -1,4 +1,4 @@
-import { useUser } from "../context/UserContext";
+import { useUser } from "../../context/UserContext";
 
 const EmployeeManagmentPage: React.FC = () => {
     const { user } = useUser();

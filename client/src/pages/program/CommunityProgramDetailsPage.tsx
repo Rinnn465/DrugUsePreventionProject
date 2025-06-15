@@ -1,10 +1,9 @@
 import React, { useEffect } from "react"
 import { Link, useParams } from "react-router-dom";
-import { CommunityProgram } from "../types/CommunityProgram";
-import { parseDate } from "../utils/parseDateUtils";
+import { CommunityProgram } from "../../types/CommunityProgram";
+import { parseDate } from "../../utils/parseDateUtils";
 
 const CommunityProgramDetails: React.FC = () => {
-
     const { programId } = useParams();
     const [programData, setProgramData] = React.useState<CommunityProgram | null>();
 

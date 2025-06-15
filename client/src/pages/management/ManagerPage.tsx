@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
-import { useUser } from "../context/UserContext";
+import { useUser } from "../../context/UserContext";
 
-const AdminPage: React.FC = () => {
+const ManagerPage: React.FC = () => {
     const { user } = useUser();
 
     return (
-        <div className="flex container flex-col mx-auto items-center justify-center min-h-screen bg-gray-100">
+        <div className="flex flex-col mx-auto items-center justify-center min-h-screen bg-gray-100">
             <div className="text-center">
                 <h1 className="text-4xl font-bold mb-8 text-gray-800">Trang Admin</h1>
                 <div className="space-y-6">
@@ -37,5 +37,6 @@ const AdminPage: React.FC = () => {
             </div>
         </div>
     );
-};
-export default AdminPage
+}
+
+export default ManagerPage

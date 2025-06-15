@@ -13,7 +13,7 @@ export const getAvailableTimeSlots = (
   }
 
   // Format the input date to match schedule Date format (DD/MM/YYYY)
-  const dateStr = parseDate(date.toISOString()); // e.g., "30/07/2025"
+  const dateStr = parseDate(date.toISOString());
   if (dateStr === "Xảy ra lỗi trong quá trình xử lý") {
     console.warn('Invalid date:', date);
     return [];

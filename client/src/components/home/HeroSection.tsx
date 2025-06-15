@@ -102,10 +102,10 @@ const HeroSection: React.FC = () => {
 
       <div className="container mx-auto px-4 py-24 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[600px]">
-          
+
           {/* Left Side - Content */}
           <div className={`space-y-8 transition-all duration-500 ${isAnimating ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0'}`}>
-            
+
             {/* Badge */}
             <div className="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 shadow-lg">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -149,7 +149,7 @@ const HeroSection: React.FC = () => {
                 <slide.primaryBtn.icon className="h-5 w-5" />
                 <span>{slide.primaryBtn.text}</span>
               </Link>
-              
+
               <Link
                 to={slide.secondaryBtn.link}
                 className="group inline-flex items-center justify-center space-x-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200 text-gray-700 px-8 py-4 rounded-2xl shadow-lg hover:bg-white hover:shadow-xl hover:scale-105 transition-all duration-300 text-lg font-semibold"
@@ -178,7 +178,7 @@ const HeroSection: React.FC = () => {
           {/* Right Side - Image */}
           <div className="relative">
             <div className={`transition-all duration-500 ${isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
-              
+
               {/* Main Image Container */}
               <div className="relative">
                 <div className={`absolute -inset-4 bg-gradient-to-r ${slide.gradient} rounded-3xl blur-2xl opacity-20`}></div>
@@ -202,7 +202,7 @@ const HeroSection: React.FC = () => {
               >
                 <ChevronLeft className="h-6 w-6 text-gray-700" />
               </button>
-              
+
               <button
                 onClick={nextSlide}
                 className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-white hover:scale-110 transition-all duration-300"

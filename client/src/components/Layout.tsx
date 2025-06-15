@@ -26,7 +26,6 @@ const Layout: React.FC = () => {
       </main>
       <Footer />
     </div>
-
   );
 };
 
