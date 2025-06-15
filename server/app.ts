@@ -2,13 +2,14 @@ import express, { Application } from "express";
 import cors from "cors";
 import apiAccountRoutes from "./routes/accountRoutes";
 import apiSurveyRoutes from "./routes/surveyRoutes";
-import authenRoutes from "./routes/authenRoutes";
-import articleRoutes from "./routes/articleRoutes";
-import programRoutes from "./routes/programRoutes";
+import apiAuthenRoutes from "./routes/authenRoutes";
+import apiArticleRoutes from "./routes/articleRoutes";
+import apiProgramRoutes from "./routes/programRoutes";
 import courseRoutes from "./routes/courseRoutes";
 import consultantRoutes from "./routes/consultantRoutes";
 import appointmentRoutes from "./routes/appointmentRoutes";
 import authorizeRoles from "./middleware/authenMiddleware";
+import apiProgramAttendeeRoutes from "./routes/programAttendeeRoutes";
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
@@ -26,9 +27,9 @@ app.use(
 app.use(
   "/api/article",
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
-  articleRoutes
+  apiArticleRoutes
 );
-app.use("/api/auth", authenRoutes);
+app.use("/api/auth", apiAuthenRoutes);
 
 app.use(
   "/api/course",
@@ -38,8 +39,15 @@ app.use(
 app.use(
   "/api/program",
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
-  programRoutes
+  apiProgramRoutes
 );
+
+app.use(
+  "/api/program-attendee",
+  authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
+  apiProgramAttendeeRoutes
+);
+
 app.use(
   "/api/consultant",
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
