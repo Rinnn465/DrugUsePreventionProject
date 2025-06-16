@@ -6,7 +6,6 @@ import {
     forgotPassword, 
     postVerifyResetToken, 
     resetPassword,
-    deleteAccountByEmail
 } from "../controllers/authenController";
 
 
@@ -30,7 +29,5 @@ router.post("/verify-token", postVerifyResetToken);
 
 router.post("/reset-token", resetPassword);
 
-// Delete account by email (for testing only)
-router.delete("/delete-account", deleteAccountByEmail);
 
 export default router;
