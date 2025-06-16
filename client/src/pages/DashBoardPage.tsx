@@ -1,15 +1,24 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 import Sidebar from "../components/sidebar/Sidebar";
 import { parseDate } from "../utils/parseDateUtils";
 import { courseData } from "../data/courseData";
-import { User, BookOpen, Calendar, Clock, Award, Users } from "lucide-react";
+import { User, BookOpen, Calendar, Clock, Users } from "lucide-react";
+import { Appointment } from "../types/Appointment";
 
 const DashBoardPage: React.FC = () => {
     const { userId } = useParams();
     const { user, setUser } = useUser();
 
+    const [appointments, setAppointments] = useState<Appointment[]>([]);
+
+    useEffect(() => {
+        fetch(`http://localhost:5000/api/appointment`)
+            .then(res => res.json())
+            .then(data => setAppointments(data.data))
+            .catch(err => console.error("Error fetching appointments:", err));
+    }, [userId])
 
     return (
         <div className="flex min-h-screen bg-gray-50">
@@ -132,22 +141,42 @@ const DashBoardPage: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="p-6">
-                        <div className="text-center py-8">
-                            <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                            <p className="text-gray-500 mb-2">Bạn chưa có lịch sử đặt lịch nào</p>
-                            <Link
-                                to="/appointments"
-                                className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors duration-200"
-                            >
-                                <Calendar className="h-4 w-4 mr-2" />
-                                Đặt lịch hẹn ngay
-                            </Link>
+                    {appointments.length > 0 ? (
+                        <div className="p-6">
+                            <ul className="space-y-4">
+                                {appointments.map((appointment) => (
+                                    <li key={appointment.AppointmentID} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg shadow-sm">
+                                        <div>
+                                            <p className="text-gray-600 text-sm">Ngày: {parseDate(appointment.Date)}</p>
+                                        </div>
+                                        <Link
+                                            to={`/appointments/${appointment.AppointmentID}`}
+                                            className="text-purple-600 hover:text-purple-800 transition-colors duration-200"
+                                        >
+                                            Chi tiết
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
-                    </div>
-                </div>
-            </main>
-        </div>
+                    ) : (
+                        <div className="p-6">
+                            <div className="text-center py-8">
+                                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                                <p className="text-gray-500 mb-2">Bạn chưa có lịch sử đặt lịch nào</p>
+                                <Link
+                                    to="/appointments"
+                                    className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors duration-200"
+                                >
+                                    <Calendar className="h-4 w-4 mr-2" />
+                                    Đặt lịch hẹn ngay
+                                </Link>
+                            </div>
+                        </div>
+                    )}
+                </div >
+            </main >
+        </div >
     );
 };
 

@@ -163,14 +163,14 @@ const AboutPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="bg-gradient-to-br from-white via-blue-50 to-primary-50 rounded-3xl shadow-2xl border-2 border-primary-100/40 p-8 text-center animate-fade-in">
               <img
-                src="https://dingyue.ws.126.net/2022/0317/9d5cd0bfj00r8v5xl001wc000g800kam.jpg"
-                alt="Maria Fukada"
+                src=""
+                alt="Trịnh Việt Linh"
                 className="w-32 h-32 rounded-full object-cover mx-auto mb-6 border-4 border-primary-200 shadow-lg"
               />
-              <h3 className="text-2xl font-bold text-primary-700 mb-2">Maria Fukada</h3>
+              <h3 className="text-2xl font-bold text-primary-700 mb-2">Trịnh Việt Linh</h3>
               <p className="text-primary-600 text-lg mb-4">Giám Đốc Điều Hành</p>
               <p className="text-gray-700 text-lg">
-                TS. Anderson có hơn 20 năm kinh nghiệm trong lĩnh vực y tế công cộng và khoa học phòng ngừa.
+                TS. Trịnh Việt Linh có hơn 20 năm kinh nghiệm trong lĩnh vực y tế công cộng và khoa học phòng ngừa.
                 Trước đây bà là chuyên gia phòng chống tại Viện Quốc gia về Lạm dụng Ma túy (NIDA).
               </p>
             </div>
@@ -178,13 +178,13 @@ const AboutPage: React.FC = () => {
             <div className="bg-gradient-to-br from-white via-blue-50 to-primary-50 rounded-3xl shadow-2xl border-2 border-primary-100/40 p-8 text-center animate-fade-in delay-100">
               <img
                 src="https://monamie.vn/image/5e7b2d4b5fa02625fc83ac63/thumbnail.jpg"
-                alt="Ronal D Si"
+                alt="Trần Quốc Nam"
                 className="w-32 h-32 rounded-full object-cover mx-auto mb-6 border-4 border-primary-200 shadow-lg"
               />
-              <h3 className="text-2xl font-bold text-primary-700 mb-2">Ronal D Si</h3>
+              <h3 className="text-2xl font-bold text-primary-700 mb-2">Trần Quốc Nam</h3>
               <p className="text-primary-600 text-lg mb-4">Giám Đốc Chương Trình</p>
               <p className="text-gray-700 text-lg">
-                David phụ trách phát triển và triển khai các chương trình phòng ngừa.
+                Quốc Nam phụ trách phát triển và triển khai các chương trình phòng ngừa.
                 Anh có nền tảng trong giáo dục và tổ chức cộng đồng, đặc biệt chú trọng đến phát triển thanh thiếu niên.
               </p>
             </div>
@@ -192,13 +192,13 @@ const AboutPage: React.FC = () => {
             <div className="bg-gradient-to-br from-white via-blue-50 to-primary-50 rounded-3xl shadow-2xl border-2 border-primary-100/40 p-8 text-center animate-fade-in delay-200">
               <img
                 src="https://images.pexels.com/photos/5792641/pexels-photo-5792641.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-                alt="Dr. Samantha Lee"
+                alt="Hưng Jamal"
                 className="w-32 h-32 rounded-full object-cover mx-auto mb-6 border-4 border-primary-200 shadow-lg"
               />
-              <h3 className="text-2xl font-bold text-primary-700 mb-2">TS. Samantha Lee</h3>
+              <h3 className="text-2xl font-bold text-primary-700 mb-2">Hưng Jamal</h3>
               <p className="text-primary-600 text-lg mb-4">Trưởng Bộ Phận Giáo Dục</p>
               <p className="text-gray-700 text-lg">
-                TS. Lee là chuyên gia về giáo dục phòng ngừa và phát triển chương trình đào tạo cho giáo viên, học sinh và phụ huynh.
+                TS. Jamal là chuyên gia về giáo dục phòng ngừa và phát triển chương trình đào tạo cho giáo viên, học sinh và phụ huynh.
                 Bà có nhiều năm kinh nghiệm trong lĩnh vực giáo dục và phát triển cộng đồng.
               </p>
             </div>

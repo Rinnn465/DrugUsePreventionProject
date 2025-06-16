@@ -21,9 +21,6 @@ const AppointmentsPage: React.FC = () => {
   //handling filter data
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('');
 
-
-
-
   useEffect(() => {
     if (state?.counselorId) {
       setSelectedCounselor(state.counselorId);

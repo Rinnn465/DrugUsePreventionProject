@@ -4,8 +4,8 @@ import { poolPromise, sql } from "../config/database";
 export async function getAppointments(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
         const pool = await poolPromise;
-        const result = await pool.request().query("SELECT * FROM Appointments");
-        res.status(200).json(result.recordset);
+        const result = await pool.request().query("SELECT * FROM Appointment");
+        res.status(200).json({ message: "Lấy danh sách lịch hẹn thành công!", data: result.recordset });
     } catch (error) {
         console.error("Error fetching appointments:", error);
         res.status(500).json({ message: "Lỗi server!" });

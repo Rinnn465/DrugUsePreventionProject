@@ -14,7 +14,13 @@ const LessonDetailsPage: React.FC = () => {
     const [answers, setAnswers] = useState<sqlLessonAnswer[] | null>(null); // Use any for now, replace with proper type later
     let score = 0;
 
-
+    const token = localStorage.getItem('token');
+    useEffect(() => {
+        if (!token) {
+            alert("Bạn cần đăng nhập để truy cập trang này!");
+            window.location.href = '/login';
+        }
+    }, [token]);
 
     useEffect(() => {
         const fetchLessonDetail = async () => {
@@ -39,14 +45,12 @@ const LessonDetailsPage: React.FC = () => {
                 const questionResponse = await fetch(`http://localhost:5000/api/course/${id}/lessons/questions`);
                 if (!questionResponse.ok) throw new Error('Failed to fetch questions');
                 const questionData = await questionResponse.json();
-                console.log(questionData.data);
 
                 setQuestions(questionData.data);
 
 
                 const answerResponse = await fetch(`http://localhost:5000/api/course/${id}/lessons/questions/answers`);
                 const data = await answerResponse.json();
-                console.log(data.data);
                 setAnswers(data.data);
 
 

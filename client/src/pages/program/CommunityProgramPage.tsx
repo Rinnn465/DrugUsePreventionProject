@@ -8,8 +8,8 @@ const CommunityProgramPage: React.FC = () => {
     const [eventSelected, setEventSelected] = useState<string>('online');
     const [events, setEvents] = useState<CommunityProgram[]>([]); // Đảm bảo khởi tạo là array rỗng
     const [user, setUser] = useState<User | null>(null);
-    const [enrollmentStatuses, setEnrollmentStatuses] = useState<{[key: number]: EnrollmentStatus}>({});
-    const [loadingEnrollments, setLoadingEnrollments] = useState<{[key: number]: boolean}>({});
+    const [enrollmentStatuses, setEnrollmentStatuses] = useState<{ [key: number]: EnrollmentStatus }>({});
+    const [loadingEnrollments, setLoadingEnrollments] = useState<{ [key: number]: boolean }>({});
     const [loading, setLoading] = useState<boolean>(true); // Thêm loading state
     const [error, setError] = useState<string | null>(null); // Thêm error state
 
@@ -29,6 +29,7 @@ const CommunityProgramPage: React.FC = () => {
         }
         return headers;
     };
+
 
     useEffect(() => {
         const fetchPrograms = async () => {
@@ -62,7 +63,7 @@ const CommunityProgramPage: React.FC = () => {
 
                         const guestData = await guestResponse.json();
                         console.log('Guest data:', guestData);
-                        
+
                         // Đảm bảo data.data là array
                         setEvents(Array.isArray(guestData.data) ? guestData.data : []);
                         setUser(null); // Guest user
@@ -74,11 +75,11 @@ const CommunityProgramPage: React.FC = () => {
 
                 const data = await response.json();
                 console.log('Fetched events:', data);
-                
+
                 // Đảm bảo data.data là array trước khi set
                 setEvents(Array.isArray(data.data) ? data.data : []);
                 setUser(data.user || null);
-                
+
                 // Nếu user đã đăng nhập, kiểm tra trạng thái đăng ký
                 if (data.user && getAuthToken() && Array.isArray(data.data)) {
                     await checkAllEnrollmentStatuses(data.data);
@@ -91,7 +92,6 @@ const CommunityProgramPage: React.FC = () => {
                 setLoading(false);
             }
         };
-
         fetchPrograms();
     }, []);
 
@@ -99,9 +99,9 @@ const CommunityProgramPage: React.FC = () => {
     const checkAllEnrollmentStatuses = async (programs: CommunityProgram[]) => {
         if (!Array.isArray(programs) || programs.length === 0) return;
 
-        const statuses: {[key: number]: EnrollmentStatus} = {};
+        const statuses: { [key: number]: EnrollmentStatus } = {};
         const token = getAuthToken();
-        
+
         if (!token) return;
 
         for (const program of programs) {
@@ -112,7 +112,7 @@ const CommunityProgramPage: React.FC = () => {
                         'Content-Type': 'application/json'
                     }
                 });
-                
+
                 if (response.ok) {
                     const data = await response.json();
                     statuses[program.ProgramID] = data;
@@ -126,14 +126,14 @@ const CommunityProgramPage: React.FC = () => {
                 console.error(`Error checking enrollment for program ${program.ProgramID}:`, error);
             }
         }
-        
+
         setEnrollmentStatuses(statuses);
     };
 
     // Xử lý đăng ký tham gia
     const handleEnroll = async (programId: number) => {
         const token = getAuthToken();
-        
+
         if (!token || !user) {
             alert('Vui lòng đăng nhập để tham gia chương trình');
             return;
@@ -249,7 +249,7 @@ const CommunityProgramPage: React.FC = () => {
                 >
                     Xem chi tiết
                 </Link>
-                
+
                 {isAuthenticated ? (
                     enrollmentStatus?.isEnrolled ? (
                         <div className="space-y-2">
@@ -305,7 +305,7 @@ const CommunityProgramPage: React.FC = () => {
                     <div className="text-red-500 text-6xl mb-4">⚠️</div>
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Có lỗi xảy ra</h2>
                     <p className="text-gray-600 mb-4">{error}</p>
-                    <button 
+                    <button
                         onClick={() => window.location.reload()}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                     >
@@ -401,7 +401,7 @@ const CommunityProgramPage: React.FC = () => {
                                     <p className="text-gray-600 mb-4 line-clamp-2">
                                         {event.Description}
                                     </p>
-                                    
+
                                     {/* Action Buttons */}
                                     {renderActionButton(event)}
                                 </div>

@@ -35,9 +35,6 @@ const BlogPostCard: React.FC<Article> = ({
           className="w-full h-full object-cover rounded-t-3xl group-hover:brightness-75 transition duration-300"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition duration-300" />
-        <div className="absolute bottom-2 left-2 bg-white/80 rounded px-2 py-1 text-xs font-semibold text-primary-700 shadow group-hover:bg-primary-500 group-hover:text-white transition">
-          {Status === 'published' ? 'Đã đăng' : 'Bản nháp'}
-        </div>
       </div>
       <div className="p-5 flex flex-col flex-1">
         <div className="flex items-center text-xs text-gray-500 mb-2 gap-1">

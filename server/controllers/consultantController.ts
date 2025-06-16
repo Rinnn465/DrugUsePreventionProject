@@ -114,11 +114,11 @@ export async function getQualifications(
 ): Promise<void> {
     try {
         const pool = await poolPromise;
-        
+
         // Join query to get qualifications with consultant associations
         const result = await pool.request().query(
             `SELECT q.QualificationID, q.Name, cq.ConsultantID  
-               FROM Qualifications q JOIN ConsultantQualification cq ON q.QualificationID = cq.QualificationID`
+               FROM Qualification q JOIN ConsultantQualification cq ON q.QualificationID = cq.QualificationID`
         );
         res
             .status(200)
@@ -152,7 +152,7 @@ export async function getSpecialties(
         // Join query to get specialties with consultant associations
         const result = await pool.request().query(
             `SELECT s.SpecialtyID, s.Name, cs.ConsultantID 
-               FROM Specialties s JOIN ConsultantSpecialty cs ON s.SpecialtyID = cs.SpecialtyID`
+               FROM Specialty s JOIN ConsultantSpecialty cs ON s.SpecialtyID = cs.SpecialtyID`
         );
         res
             .status(200)
