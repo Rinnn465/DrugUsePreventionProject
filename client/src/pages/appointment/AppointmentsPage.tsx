@@ -5,7 +5,6 @@ import CounselorCard from '../../components/counselors/CounselorCard';
 import AppointmentCalendar from '../../components/appointments/AppointmentCalendar';
 import { Link, useLocation } from 'react-router-dom';
 import { ConsultantWithSchedule, Qualification, Specialty } from '../../types/Consultant';
-import { parseDate } from '../../utils/parseDateUtils';
 
 const AppointmentsPage: React.FC = () => {
   const location = useLocation();

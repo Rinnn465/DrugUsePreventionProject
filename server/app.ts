@@ -61,7 +61,7 @@ app.use(
 
 app.use(
   "/api/appointment",
-  authorizeRoles(["Member", "Consultant", "Admin"]),
+  authorizeRoles(['Guest', "Member", "Consultant", "Admin"]),
   appointmentRoutes
 );
 

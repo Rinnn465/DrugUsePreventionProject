@@ -142,7 +142,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
       )} lúc ${formatTime(selectedTime!)}`
     );
 
-    fetch('http://localhost:5000/api/appointments', {
+    fetch('http://localhost:5000/api/appointment', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -150,7 +150,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
       body: JSON.stringify({
         consultantId,
         accountId: user?.AccountID || 0,
-        time: selectedTime,
+        time: selectedTime + ':00',
         date: selectedDate?.toISOString(),
         meetingUrl: 'https://example.com/meeting',
         status: 'pending',

@@ -37,12 +37,13 @@ export async function bookAppointment(req: Request, res: Response, next: NextFun
     try {
         const [hours, minutes, seconds] = time.split(':').map(Number);
         const timeDate = new Date(1970, 0, 1, hours, minutes, seconds);
+        const formattedTime = time.endsWith(':00') ? time : `${time}:00`; // Ensure time is in HH:MM:SS format
 
         const pool = await poolPromise;
         const result = await pool.request()
             .input("consultantId", sql.Int, consultantId)
             .input("accountId", sql.Int, accountId)
-            .input("time", sql.Time, timeDate)
+            .input("time", sql.NVarChar, formattedTime)
             .input("date", sql.Date, date)
             .input("meetingUrl", sql.NVarChar, meetingUrl)
             .input("status", sql.NVarChar, status)
@@ -50,7 +51,7 @@ export async function bookAppointment(req: Request, res: Response, next: NextFun
             .input("duration", sql.Int, duration)
             .query(`
                 INSERT INTO Appointment (ConsultantID, AccountID, Time, Date, MeetingUrl, Status, Description, Duration)
-                VALUES (@consultantId, @accountId, @time, @date, @meetingUrl, @status, @description, @duration);
+                VALUES (@consultantId, @accountId, CAST(@time as Time), @date, @meetingUrl, @status, @description, @duration);
             `);
 
         res.status(201).json({ message: "Đặt lịch hẹn thành công!" });
