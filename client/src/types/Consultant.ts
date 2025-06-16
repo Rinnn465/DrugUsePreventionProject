@@ -13,7 +13,15 @@ export interface Counselor {
 }
 
 export interface Consultant {
-
+  ConsultantID: number;
+  Name: string;
+  Title: string;
+  Specialties: Specialty[];
+  Bio: string;
+  ImageUrl: string;
+  Rating?: number;
+  Qualifications?: any[];
+  IsDisabled?: boolean;
 }
 
 export interface Qualification { QualificationID: number[]; Name: string; ConsultantID: number };

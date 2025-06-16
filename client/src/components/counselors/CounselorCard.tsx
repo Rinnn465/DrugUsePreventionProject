@@ -16,7 +16,8 @@ const CounselorCard: React.FC<CounselorCardProps> = ({ consultant, compact = fal
         <img
           src={consultant.ImageUrl}
           alt={consultant.Name}
-          className="w-14 h-14 rounded-full object-cover border-4 border-sky-200 shadow-lg"
+          className="w-14 h-14 rounded-full object-cover border-4 border-sky-200 shadow-lg flex-shrink-0"
+          style={{ aspectRatio: '1', borderRadius: '50%' }}
         />
         <div>
           <h3 className="font-bold text-sky-700 text-base">{consultant.Name}</h3>
@@ -42,6 +43,7 @@ const CounselorCard: React.FC<CounselorCardProps> = ({ consultant, compact = fal
               src={consultant.ImageUrl}
               alt={consultant.Name}
               className="w-24 h-24 rounded-full object-cover mx-auto sm:mx-0"
+              style={{ aspectRatio: '1', borderRadius: '50%' }}
             />
           </div>
           <div>

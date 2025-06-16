@@ -357,7 +357,7 @@ const CommunityProgramPage: React.FC = () => {
                     {Array.isArray(events) && events
                         .filter(event => event.Type === eventSelected)
                         .map((event, index) => (
-                            <div key={event.ProgramID || index} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                            <div key={event.ProgramID || index} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
                                 {event.ImageUrl && (
                                     <div className="relative h-48">
                                         <img
@@ -381,7 +381,7 @@ const CommunityProgramPage: React.FC = () => {
                                         )}
                                     </div>
                                 )}
-                                <div className="p-6">
+                                <div className="p-6 flex flex-col flex-grow">
                                     <h3 className="text-xl font-bold min-h-[56px] text-gray-900 mb-2 line-clamp-2">{event.ProgramName}</h3>
                                     <div className="space-y-3 mb-4">
                                         <div className="flex items-center text-gray-600">
@@ -398,12 +398,14 @@ const CommunityProgramPage: React.FC = () => {
                                             <span>{event.Location}</span>
                                         </div>
                                     </div>
-                                    <p className="text-gray-600 mb-4 line-clamp-2">
+                                    <p className="text-gray-600 mb-4 line-clamp-2 flex-grow">
                                         {event.Description}
                                     </p>
 
-                                    {/* Action Buttons */}
-                                    {renderActionButton(event)}
+                                    {/* Action Buttons - Always at bottom */}
+                                    <div className="mt-auto">
+                                        {renderActionButton(event)}
+                                    </div>
                                 </div>
                             </div>
                         ))}
