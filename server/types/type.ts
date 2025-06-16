@@ -148,3 +148,10 @@ export type CommunityProgramSurveyDTO = {
   Description: string;
   surveys: Survey[];
 };
+
+export enum Role {
+    Admin = "Admin",
+    Consultant = "Consultant",
+    Member = "Member",
+    Guest = "Guest"
+  }

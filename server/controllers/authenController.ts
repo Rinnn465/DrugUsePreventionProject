@@ -6,6 +6,7 @@ import { sql, poolPromise } from "../config/database";
 import { sendEmail } from "./mailController";
 import { welcomeTemplate } from "../templates/welcome";
 import { passwordReset } from "../templates/passwordreset";
+import { Role } from "../types/type";
 dotenv.config();
 
 /**
@@ -51,18 +52,35 @@ export async function login(
     }
     // Generate JWT token
     const token = jwt.sign(
-      { user: user },
+      { 
+        user: { 
+          AccountID: user.AccountID,
+          Username: user.Username,
+          Email: user.Email,
+          FullName: user.FullName,
+          Role: user.Role as Role, // Ép kiểu thành Role enum
+          CreatedAt: user.CreatedAt,
+          IsDisabled: user.IsDisabled
+        }
+      },
       process.env.JWT_SECRET as string,
-      { expiresIn: "1h" } // Token expires in 1 hour
+      { expiresIn: "1h" }
     );
 
-    // Send successful response with token and user data
     res.status(200).json({
       message: "Login successful",
-
       token,
-      user: { ...user }
+      user: { 
+        AccountID: user.AccountID,
+        Username: user.Username,
+        Email: user.Email,
+        FullName: user.FullName,
+        Role: user.Role as Role,
+        CreatedAt: user.CreatedAt,
+        IsDisabled: user.IsDisabled
+      }
     });
+    
   } catch (err: any) {
     console.error(err);
     res.status(500).json({ message: "Server error" });

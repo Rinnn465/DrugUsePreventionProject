@@ -14,21 +14,16 @@ const CommunityProgramPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null); // Thêm error state
 
     // Hàm lấy token xác thực từ localStorage
-    const getAuthToken = () => {
-        return localStorage.getItem('token');
-    };
+    const getAuthToken = () => localStorage.getItem('token'); 
 
     // Hàm tạo headers cho các request cần xác thực
     const getAuthHeaders = () => {
         const token = getAuthToken();
-        const headers: Record<string, string> = {
-            'Content-Type': 'application/json'
-        };
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
-        return headers;
+        return {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
     };
+  };
 
 
     useEffect(() => {
@@ -37,41 +32,34 @@ const CommunityProgramPage: React.FC = () => {
                 setLoading(true);
                 setError(null);
 
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // Timeout 10s
+
                 // Thử gọi API với headers authentication
                 const response = await fetch('http://localhost:5000/api/program', {
                     method: 'GET',
                     headers: getAuthHeaders(),
-                    credentials: 'include'
+                    credentials: 'include',
+                    signal: controller.signal
                 });
 
-                console.log('Response status:', response.status);
-                console.log('Response headers:', response.headers);
-
+                clearTimeout(timeoutId);
                 if (!response.ok) {
                     if (response.status === 403) {
                         // Nếu 403, thử gọi lại mà không có auth headers (cho Guest)
                         const guestResponse = await fetch('http://localhost:5000/api/program', {
-                            method: 'GET',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            }
-                        });
-
-                        if (!guestResponse.ok) {
-                            throw new Error(`HTTP error! status: ${guestResponse.status}`);
-                        }
-
-                        const guestData = await guestResponse.json();
-                        console.log('Guest data:', guestData);
-
-                        // Đảm bảo data.data là array
-                        setEvents(Array.isArray(guestData.data) ? guestData.data : []);
-                        setUser(null); // Guest user
-                        return;
-                    } else {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                }
+              method: 'GET',
+              headers: { 'Content-Type': 'application/json' },
+              signal: controller.signal
+            });
+            if (!guestResponse.ok) throw new Error(`HTTP error! status: ${guestResponse.status}`);
+            const guestData = await guestResponse.json();
+            setEvents(Array.isArray(guestData.data) ? guestData.data : []);
+            setUser(null);
+            return;
+          }
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
                 const data = await response.json();
                 console.log('Fetched events:', data);
@@ -106,12 +94,14 @@ const CommunityProgramPage: React.FC = () => {
 
         for (const program of programs) {
             try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // Timeout 5s
                 const response = await fetch(`http://localhost:5000/api/program-attendee/${program.ProgramID}/enrollment-status`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    signal: controller.signal
                 });
+                clearTimeout(timeoutId);
+
 
                 if (response.ok) {
                     const data = await response.json();
@@ -131,51 +121,48 @@ const CommunityProgramPage: React.FC = () => {
     };
 
     // Xử lý đăng ký tham gia
-    const handleEnroll = async (programId: number) => {
-        const token = getAuthToken();
+   const handleEnroll = async (programId: number) => {
+    const token = getAuthToken();
 
-        if (!token || !user) {
-            alert('Vui lòng đăng nhập để tham gia chương trình');
-            return;
-        }
+    if (!token || !user) {
+      alert('Vui lòng đăng nhập để tham gia chương trình');
+      return;
+    }
 
-        setLoadingEnrollments(prev => ({ ...prev, [programId]: true }));
+    setLoadingEnrollments(prev => ({ ...prev, [programId]: true }));
 
-        try {
-            const response = await fetch(`http://localhost:5000/api/program-attendee/${programId}/enroll`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // Timeout 5s
+      const response = await fetch(`http://localhost:5000/api/program-attendee/${programId}/enroll`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        credentials: 'include',
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
 
-            const data = await response.json();
-
-            if (response.ok) {
-                setEnrollmentStatuses(prev => ({
-                    ...prev,
-                    [programId]: {
-                        isEnrolled: true,
-                        status: 'registered',
-                        registrationDate: new Date().toISOString()
-                    }
-                }));
-                alert(`Đăng ký tham gia thành công! ${data.message || ''}`);
-            } else if (response.status === 401) {
-                localStorage.removeItem('token');
-                setUser(null);
-                alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-            } else {
-                alert(data.message || 'Có lỗi xảy ra khi đăng ký');
-            }
-        } catch (error) {
-            console.error('Enrollment error:', error);
-            alert('Có lỗi xảy ra khi đăng ký');
-        } finally {
-            setLoadingEnrollments(prev => ({ ...prev, [programId]: false }));
-        }
-    };
+      const data = await response.json();
+      if (response.ok) {
+        setEnrollmentStatuses(prev => ({
+          ...prev,
+          [programId]: { isEnrolled: true, status: 'registered', registrationDate: new Date().toISOString() }
+        }));
+        alert(`Đăng ký tham gia thành công! ${data.message || ''}`);
+      } else if (response.status === 401) {
+        localStorage.removeItem('token');
+        setUser(null);
+        alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      } else {
+        alert(data.message || 'Có lỗi xảy ra khi đăng ký');
+      }
+    } catch (error) {
+      console.error('Enrollment error:', error);
+      alert('Có lỗi xảy ra khi đăng ký');
+    } finally {
+      setLoadingEnrollments(prev => ({ ...prev, [programId]: false }));
+    }
+  };
 
     // Xử lý hủy đăng ký
     const handleUnenroll = async (programId: number) => {

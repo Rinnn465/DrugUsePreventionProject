@@ -14,24 +14,27 @@ const authorizeRoles =
 
     if (!token) {
       if (allowedRoles.includes("Guest")) {
-        return next(); // Allow access for Guest role without token
+        return next();
       }
       console.log("No token provided");
-      res.status(401);
+      res.status(401).json({ message: "No token provided" });
       return;
     }
 
-    jwt.verify(token, process.env.JWT_SECRET as string, (err, decoded) => {
+     jwt.verify(token, process.env.JWT_SECRET as string, (err, decoded) => {
       if (err) {
-        console.log("Token verification failed", err);
-        return res.status(403);
+        console.log("Token verification failed:", err.message);
+        res.status(403).json({ message: "Invalid or expired token" });
+        return;
       }
 
-      (req as any).user = decoded; // Attach user info to request
+      (req as any).user = decoded;
+      const userRole = (decoded as any).user?.Role as Role;
+      console.log("Decoded role:", userRole, "Allowed roles:", allowedRoles);
 
-      const userRole = (decoded as any).role as Role;
-      if (!allowedRoles.includes(userRole)) {
-        return res.status(403).json({ message: "Forbidden" });
+      if (!userRole || !allowedRoles.includes(userRole)) {
+        res.status(403).json({ message: "Forbidden: Role not allowed" });
+        return;
       }
       next();
     });
