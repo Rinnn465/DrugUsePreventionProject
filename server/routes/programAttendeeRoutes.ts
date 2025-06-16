@@ -4,14 +4,42 @@ import authorizeRoles from "../middleware/authenMiddleware";
 
 const router: Router = express.Router();
 
-// Admin routes - Get all attendees across all programs
-router.get("/", authorizeRoles(["Admin"]), programAttendeeController.getAllProgramAttendees);
+// Public route - Lấy tổng số người tham gia (tất cả có thể xem)
+router.get("/total/:programId", 
+    authorizeRoles(["Guest", "Member", "Consultant", "Admin"]), 
+    programAttendeeController.getTotalAttendeesByProgramId
+);
 
-// Admin routes - Get specific attendee by programId and accountId
-router.get("/:programId/:accountId", authorizeRoles(["Admin"]), programAttendeeController.getAttendeeById);
+// User enrollment routes - Chỉ Member, Consultant, Admin
+router.get("/:programId/enrollment-status", 
+    authorizeRoles(["Member", "Consultant", "Admin"]), 
+    programAttendeeController.checkEnrollmentStatus
+);
 
-// Public route - Get total attendees count for a program
-router.get("/total/:programId", programAttendeeController.getTotalAttendeesByProgramId);
+router.post("/:programId/enroll", 
+    authorizeRoles(["Member", "Consultant", "Admin"]), 
+    programAttendeeController.enrollInProgram
+);
 
+router.delete("/:programId/unenroll", 
+    authorizeRoles(["Member", "Consultant", "Admin"]), 
+    programAttendeeController.unenrollFromProgram
+);
+
+router.get("/my-enrollments", 
+    authorizeRoles(["Member", "Consultant", "Admin"]), 
+    programAttendeeController.getMyEnrolledPrograms
+);
+
+// Admin routes - Quản lý người tham gia (chỉ Admin)
+router.get("/", 
+    authorizeRoles(["Admin"]), 
+    programAttendeeController.getAllProgramAttendees
+);
+
+router.get("/:programId/:accountId", 
+    authorizeRoles(["Admin"]), 
+    programAttendeeController.getAttendeeById
+);
 
 export default router;
