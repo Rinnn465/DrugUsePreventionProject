@@ -12,10 +12,12 @@ const CommunityProgramDetails: React.FC = () => {
             fetch(`http://localhost:5000/api/program/${programId}`)
                 .then(response => response.json())
                 .then(data => {
-                    setProgramData(data.data); console.log(data);
+                    setProgramData(data.data);
                 })
                 .catch(error => console.error('Error fetching program data:', error));
         }
+
+
 
         fetchProgramData();
     }, [programId])
@@ -23,7 +25,7 @@ const CommunityProgramDetails: React.FC = () => {
 
 
     const handleRenderSurveyForm = () => {
-        if (programData && new Date(parseDate(programData.Date)) > new Date()) {
+        if (programData && new Date(programData.Date) > new Date()) {
             return (
                 <div className="mt-6">
                     <button
@@ -35,7 +37,7 @@ const CommunityProgramDetails: React.FC = () => {
                     </button>
                 </div>
             )
-        } else if (programData && new Date(parseDate(programData.Date)) <= new Date()) {
+        } else if (programData && new Date(programData.Date) <= new Date()) {
             return (
                 <div className="mt-6">
                     <button
@@ -48,6 +50,7 @@ const CommunityProgramDetails: React.FC = () => {
                 </div>
             )
         }
+
     }
     if (programData) {
         return (

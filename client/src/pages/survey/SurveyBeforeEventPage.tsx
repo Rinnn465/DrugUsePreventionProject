@@ -1,9 +1,9 @@
+import { Link, useParams } from "react-router-dom";
 
 
 const SurveyBeforeEventPage: React.FC = () => {
+    const { id } = useParams();
 
-
-    console.log(event);
     return (
         <div className="container px-4 py-8 mx-auto max-w-2xl">
             <h1 className="text-3xl font-bold text-center mb-4">Form khảo sát trước sự kiện</h1>
@@ -52,15 +52,15 @@ const SurveyBeforeEventPage: React.FC = () => {
                     ></textarea>
                 </div>
 
-                {/* <Link to={`/survey/${eventId}/completed`}> */}
-                <button
-                    type="submit"
-                    onClick={() => { alert('hoàn thành khỏa sát') }}
-                    className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                    Hoàn thành khảo sát
-                </button>
-                {/* </Link> */}
+                <Link to={`/survey/${id}/completed`}>
+                    <button
+                        type="submit"
+                        onClick={() => { alert('hoàn thành khỏa sát') }}
+                        className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    >
+                        Hoàn thành khảo sát
+                    </button>
+                </Link>
             </form>
         </div>
     );

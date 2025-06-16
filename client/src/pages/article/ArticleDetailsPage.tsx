@@ -19,7 +19,6 @@ const ArticleDetailsPage = () => {
                 console.error('Error fetching blog details:', error);
             }
         };
-
         fetchArticleDetails();
     }, [articleId]);
 

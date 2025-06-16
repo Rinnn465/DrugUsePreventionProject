@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Users, Search, Calendar as CalendarIcon, User, Filter } from 'lucide-react';
+import { Users, Search, Calendar as CalendarIcon, User } from 'lucide-react';
 import { counselorData } from '../../data/counselorData';
 import CounselorCard from '../../components/counselors/CounselorCard';
 import AppointmentCalendar from '../../components/appointments/AppointmentCalendar';

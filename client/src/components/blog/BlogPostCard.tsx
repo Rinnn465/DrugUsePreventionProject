@@ -54,7 +54,7 @@ const BlogPostCard: React.FC<Article> = ({
         <div className="flex items-center justify-between mt-auto">
           <span className="text-sm text-gray-500 font-medium italic">{Author}</span>
           <Link
-            to={`/blog/${BlogID}`}
+            to={`/article/${BlogID}`}
             className="inline-block bg-primary-500 text-white font-bold px-5 py-2 rounded-lg shadow hover:bg-primary-600 hover:scale-105 transition-all text-base focus:outline-none focus:ring-2 focus:ring-primary-300"
             tabIndex={0}
           >
