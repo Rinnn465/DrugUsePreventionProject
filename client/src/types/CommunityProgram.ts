@@ -10,3 +10,9 @@ export interface CommunityProgram {
     ImageUrl?: string | null;
     IsDisabled: boolean;
 }
+
+export interface EnrollmentStatus {
+    isEnrolled: boolean;
+    status: string | null;
+    registrationDate: string | null;
+}

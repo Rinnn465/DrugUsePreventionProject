@@ -36,16 +36,18 @@ app.use(
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   courseRoutes
 );
+
+// Program routes - Guest có thể xem, nhưng enrollment chỉ cho Member/Consultant/Admin
 app.use(
   "/api/program",
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   apiProgramRoutes
 );
 
+// Program attendee routes - Phân quyền cụ thể trong từng route
 app.use(
   "/api/program-attendee",
-  authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
-  apiProgramAttendeeRoutes
+  apiProgramAttendeeRoutes // Không apply middleware ở đây, để route tự xử lý
 );
 
 app.use(
