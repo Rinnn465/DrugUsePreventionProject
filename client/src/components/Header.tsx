@@ -4,37 +4,48 @@ import Tippy from '@tippyjs/react/headless';
 import { useUser } from '../context/UserContext';
 import tippy from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
+import { 
+  Info, 
+  Newspaper, 
+  BookOpen, 
+  ClipboardList, 
+  Calendar, 
+  Users, 
+  Heart, 
+  User, 
+  LogOut 
+} from 'lucide-react';
 
 const navMenus = [
   {
     to: '/about',
     label: 'Giới thiệu',
-    icon: 'ℹ️',
+    icon: Info,
   },
   {
     to: '/article',
     label: 'Blog',
-    icon: '📰',
+    icon: Newspaper,
   },
   {
     to: '/courses',
     label: 'Khóa học',
-    icon: '📚',
+    icon: BookOpen,
   },
   {
     to: '/assessments',
     label: 'Trắc nghiệm đánh giá',
-    icon: '📝',
+    icon: ClipboardList,
   },
   {
     to: '/appointments',
     label: 'Đặt lịch trực tuyến',
-    icon: '📅',
+    icon: Calendar,
   },
   {
     to: '/community-programs',
     label: 'Cộng đồng',
-    icon: '🤝',
+    icon: Users,
   },
 ];
 
@@ -77,7 +88,7 @@ const Header: React.FC<HeaderProps> = () => {
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 min-w-[160px]">
           <span className="inline-block h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
-            <span role="img" aria-label="logo" className="text-2xl">💙</span>
+            <Heart className="h-5 w-5 text-primary-600" />
           </span>
           <span className="font-bold text-xl text-primary-700 tracking-wide">DrugPrevention</span>
         </Link>
@@ -85,19 +96,22 @@ const Header: React.FC<HeaderProps> = () => {
         {/* Menu điều hướng dạng card */}
         <nav className="flex-1 flex justify-center">
           <div className="flex gap-3 overflow-x-auto scrollbar-thin pb-1">
-            {navMenus.map((item, idx) => (
-              <NavLink
-                data-tippy-content={item.label}
-                to={item.to}
-                key={idx}
-                className={({ isActive }) =>
-                  `flex flex-col items-center justify-center bg-white rounded-xl shadow-md px-4 py-2 min-w-[120px] max-w-[160px] hover:shadow-lg transition group border border-transparent hover:border-primary-200 text-center whitespace-nowrap select-none ${isActive ? 'border-primary-500 shadow-lg' : ''}`
-                }
-                style={{ minHeight: 60 }}
-              >
-                <span className="text-2xl">{item.icon}</span>
-              </NavLink>
-            ))}
+            {navMenus.map((item, idx) => {
+              const IconComponent = item.icon;
+              return (
+                <NavLink
+                  data-tippy-content={item.label}
+                  to={item.to}
+                  key={idx}
+                  className={({ isActive }) =>
+                    `flex flex-col items-center justify-center bg-white rounded-xl shadow-md px-4 py-2 min-w-[120px] max-w-[160px] hover:shadow-lg transition group border border-transparent hover:border-primary-200 text-center whitespace-nowrap select-none ${isActive ? 'border-primary-500 shadow-lg' : ''}`
+                  }
+                  style={{ minHeight: 60 }}
+                >
+                  <IconComponent className="h-6 w-6 text-primary-600 group-hover:text-primary-700 transition-colors" />
+                </NavLink>
+              );
+            })}
           </div>
         </nav>
 
@@ -110,13 +124,13 @@ const Header: React.FC<HeaderProps> = () => {
                 <div className='bg-white shadow-lg rounded-md p-4' tabIndex={-1} {...attrs}>
                   <div className="flex flex-col gap-2">
                     <Link to={`/dashboard/${user?.AccountID}`} className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
-                      <span role="img" aria-label="user" className="text-2xl">👤</span>
+                      <User className="h-5 w-5" />
                       <span>Dashboard</span>
                     </Link>
                     <button
                       onClick={handleLogout}
                       className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
-                      <span role="img" aria-label="logout">🚪</span>
+                      <LogOut className="h-5 w-5" />
                       <span>Đăng xuất</span>
                     </button>
                   </div>
@@ -124,7 +138,7 @@ const Header: React.FC<HeaderProps> = () => {
               )}
             >
               <div className='flex gap-2 items-center cursor-pointer'>
-                <span role="img" aria-label="user" className="text-3xl">👤</span>
+                <User className="h-8 w-8 text-primary-600" />
                 <span className='select-none text-black-500 font-semibold'>{user.Username}</span>
               </div>
             </Tippy>

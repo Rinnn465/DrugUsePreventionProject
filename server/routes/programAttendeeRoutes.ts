@@ -1,14 +1,17 @@
 import express, { Router } from "express";
-import * as programAttendeController from "../controllers/programAttendeeController";
+import * as programAttendeeController from "../controllers/programAttendeeController";
 import authorizeRoles from "../middleware/authenMiddleware";
 
 const router: Router = express.Router();
 
-// Get all community program attendees
-router.get("/", authorizeRoles(["Admin"]), programAttendeController.getAllProgramAttendees);
+// Admin routes - Get all attendees across all programs
+router.get("/", authorizeRoles(["Admin"]), programAttendeeController.getAllProgramAttendees);
 
-// Get community program attendees by programId
-router.get("/:id", authorizeRoles(["Admin"]), programAttendeController.getAttendeeById);
+// Admin routes - Get specific attendee by programId and accountId
+router.get("/:programId/:accountId", authorizeRoles(["Admin"]), programAttendeeController.getAttendeeById);
 
-// Get toatal account communityProgramAttende by programId
-router.get("/total/:id", programAttendeController.getTotalAttendeesByProgramId);
+// Public route - Get total attendees count for a program
+router.get("/total/:programId", programAttendeeController.getTotalAttendeesByProgramId);
+
+
+export default router;

@@ -1,23 +1,26 @@
 import express, { Router } from "express";
 import * as programController from "../controllers/programController";
+import * as programAttendeeController from "../controllers/programAttendeeController";
 import authorizeRoles from "../middleware/authenMiddleware";
 
 const router: Router = express.Router();
 
-// Get all programs
+// Public routes - Get programs
 router.get("/", programController.getAllPrograms);
-
-// Get program by ID
 router.get("/:id", programController.getProgramById);
 
-// Create new communityProgramAttende
+// Admin routes - Program management
 router.post("/", authorizeRoles(["Admin"]), programController.createProgram);
-
-// Update communityProgramAttende
 router.put("/:id", authorizeRoles(["Admin"]), programController.updateProgram);
-
-// Delete communityProgramAttende
 router.delete("/:id", authorizeRoles(["Admin"]), programController.deleteProgram);
+
+// User enrollment routes (require authentication)
+router.post("/:programId/enroll", authorizeRoles(["Member", "Admin"]), programAttendeeController.enrollInProgram);
+router.delete("/:programId/unenroll", authorizeRoles(["Member", "Admin"]), programAttendeeController.unenrollFromProgram);
+router.get("/:programId/enrollment-status", authorizeRoles(["Member", "Admin"]), programAttendeeController.checkEnrollmentStatus);
+
+// User's enrolled programs
+router.get("/user/enrolled", authorizeRoles(["Member", "Admin"]), programAttendeeController.getMyEnrolledPrograms);
 
 
 export default router;

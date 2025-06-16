@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, Award, Users, MessageCircle, CheckCircle, Play, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, BookOpen, Award, Users, MessageCircle, CheckCircle, Play, ChevronLeft, ChevronRight, Shield } from 'lucide-react';
 
 // Dữ liệu cho các slide
 const heroSlides = [
@@ -24,7 +24,7 @@ const heroSlides = [
     title: "Đánh Giá & Tư Vấn",
     subtitle: "Hỗ Trợ Chuyên Nghiệp",
     description: "Nhận được sự hỗ trợ và tư vấn từ các chuyên gia tâm lý, bác sĩ và các tình nguyện viên có kinh nghiệm.",
-    image: "https://th.bing.com/th/id/OIP.PTHjV-jCrsM9_z8z9-w8PQHaE7?rs=1&pid=ImgDetMain",
+    image: "https://images.pexels.com/photos/7659564/pexels-photo-7659564.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     gradient: "from-teal-400 to-blue-600",
     steps: [
       { icon: MessageCircle, title: "Tư vấn trực tuyến", desc: "Nhận tư vấn miễn phí từ các chuyên gia tâm lý 24/7" },
@@ -100,17 +100,34 @@ const HeroSection: React.FC = () => {
         <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-r from-green-400 to-teal-400 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="container mx-auto px-4 py-24 relative z-10">
+      {/* Professional Tagline */}
+      <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 z-20 shadow-lg">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/90 via-blue-700/90 to-indigo-700/90 backdrop-blur-sm"></div>
+        <div className="relative">
+          <div className="container mx-auto px-4 py-5">
+            <div className="flex items-center justify-center space-x-4">
+              <div className="relative">
+                <div className="absolute -inset-1 bg-white/20 rounded-full blur-sm"></div>
+                <Shield className="relative h-8 w-8 text-white drop-shadow-sm" />
+              </div>
+              <div className="relative">
+                <span className="text-white font-bold text-xl tracking-wider drop-shadow-sm">
+                  Nền tảng phòng ngừa ma túy đầu tiên của Việt Nam
+                </span>
+                <div className="absolute -bottom-1 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+              </div>
+            </div>
+          </div>
+          {/* Bottom accent line */}
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-24 pt-36 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[600px]">
 
           {/* Left Side - Content */}
           <div className={`space-y-8 transition-all duration-500 ${isAnimating ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0'}`}>
-
-            {/* Badge */}
-            <div className="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 shadow-lg">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-gray-700">Drug Use Prevention Project</span>
-            </div>
 
             {/* Main Title */}
             <div className="space-y-4 pb-4">
@@ -165,10 +182,11 @@ const HeroSection: React.FC = () => {
                 <button
                   key={index}
                   onClick={() => goToSlide(index)}
-                  className={`w-12 h-2 rounded-full transition-all duration-300 ${index === currentSlide
-                      ? `bg-gradient-to-r ${slide.gradient}`
+                  className={`w-12 h-2 rounded-full transition-all duration-300 ${
+                    index === currentSlide 
+                      ? `bg-gradient-to-r ${slide.gradient}` 
                       : 'bg-gray-300 hover:bg-gray-400'
-                    }`}
+                  }`}
                 />
               ))}
             </div>
@@ -186,6 +204,10 @@ const HeroSection: React.FC = () => {
                     src={slide.image}
                     alt={slide.title}
                     className="w-full h-96 object-cover rounded-2xl shadow-lg"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = "https://images.pexels.com/photos/5029857/pexels-photo-5029857.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2";
+                    }}
                   />
                 </div>
               </div>
