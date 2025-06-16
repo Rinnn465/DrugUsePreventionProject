@@ -80,7 +80,7 @@ export async function login(
         IsDisabled: user.IsDisabled
       }
     });
-    
+
   } catch (err: any) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -160,7 +160,7 @@ export async function register(
       .input("password", sql.NVarChar, hashedPassword)
       .input("fullName", sql.NVarChar, fullName)
       .input("dateOfBirth", sql.Date, dateOfBirth || null)
-      .input("role", sql.NVarChar, role || "member") // Default role is member
+      .input("role", sql.NVarChar, role || "Member") // Default role is member
       .input("createdAt", sql.DateTime2, new Date())
       .query(
         `INSERT INTO Account 
