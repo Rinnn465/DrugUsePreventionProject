@@ -97,18 +97,16 @@ const Header: React.FC<HeaderProps> = () => {
         <nav className="flex-1 flex justify-center">
           <div className="flex gap-3 overflow-x-auto scrollbar-thin pb-1">
             {navMenus.map((item, idx) => {
-              const IconComponent = item.icon;
               return (
                 <NavLink
-                  data-tippy-content={item.label}
                   to={item.to}
                   key={idx}
                   className={({ isActive }) =>
-                    `flex flex-col items-center justify-center bg-white rounded-xl shadow-md px-4 py-2 min-w-[120px] max-w-[160px] hover:shadow-lg transition group border border-transparent hover:border-primary-200 text-center whitespace-nowrap select-none ${isActive ? 'border-primary-500 shadow-lg' : ''}`
+                    `flex items-center justify-center bg-white rounded-xl shadow-md px-4 py-2 min-w-[120px] max-w-[160px] hover:shadow-lg transition group border border-transparent hover:border-primary-200 text-center whitespace-nowrap select-none ${isActive ? 'border-primary-500 shadow-lg text-primary-700 font-semibold' : 'text-gray-700'} hover:text-primary-700`
                   }
                   style={{ minHeight: 60 }}
                 >
-                  <IconComponent className="h-6 w-6 text-primary-600 group-hover:text-primary-700 transition-colors" />
+                  <span className="text-sm font-medium">{item.label}</span>
                 </NavLink>
               );
             })}
