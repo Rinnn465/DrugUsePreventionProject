@@ -48,9 +48,9 @@ const AssessmentsPage: React.FC = () => {
     <div className="bg-gray-50 min-h-screen py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Công Cụ Đánh Giá Nguy Cơ</h1>
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">Bài Trắc Nghiệm Đánh Giá</h1>
           <p className="text-lg text-gray-600 mb-8">
-            Hãy thực hiện các bảng câu hỏi của chúng tôi để đánh giá mức độ rủi ro và nhận được khuyến nghị cá nhân hóa.
+            Hãy thực hiện các bài trắc nghiệm của chúng tôi để đánh giá mức độ rủi ro và nhận được khuyến nghị cá nhân hóa.
           </p>
 
           <div className="bg-accent-50 border border-accent-200 rounded-lg p-6 mb-12 text-left">
