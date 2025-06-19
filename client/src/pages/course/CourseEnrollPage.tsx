@@ -3,12 +3,18 @@ import { useParams, Link } from 'react-router-dom';
 import { Clock, Users, ArrowLeft } from 'lucide-react';
 import { SqlCourse } from '../../types/Course';
 import { sqlLesson } from '../../types/Lesson';
+import useAuthToken from '../../hooks/useAuthToken';
+import useModal from '../../hooks/useModal';
+import Modal from '../../components/modal/ModalNotification';
 
 const CourseEnrollPage: React.FC = () => {
   const { id } = useParams();
   // const course = courseData.find(c => c.id === Number(id));
   const [course, setCourse] = React.useState<SqlCourse | null>(null);
   const [sqlLessons, setSqlLessons] = React.useState<sqlLesson[] | null>([]);
+
+  const { token } = useAuthToken();
+  const { isOpen, openModal, closeModal } = useModal();
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -32,7 +38,15 @@ const CourseEnrollPage: React.FC = () => {
     }
 
     fetchCourse();
-  }, [])
+  }, [id])
+
+  const handleEnroll = async () => {
+    if (!token) {
+      openModal();
+    } else {
+      window.location.href = `/course/${id}/details`;
+    }
+  }
 
   if (!course) {
     return (
@@ -56,6 +70,14 @@ const CourseEnrollPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
+      <Modal
+        isOpen={isOpen}
+        onClose={closeModal}
+        title="Bạn cần đăng nhập"
+        description="Vui lòng đăng nhập để tham gia khóa học này."
+        confirmMessage="Đăng nhập ngay"
+        confirmUrl={() => { window.location.href = '/login'; }}
+      />
       <div className="container mx-auto px-4">
         {/* Navigation */}
         <div className="max-w-4xl mx-auto mb-8">
@@ -137,13 +159,12 @@ const CourseEnrollPage: React.FC = () => {
           <p className="text-primary-700 mb-6">
             Tham gia cùng {course.EnrollCount} người khác
           </p>
-          <Link to={`/courses/${course.CourseID}/details/`}>
-            <button
-              className="bg-primary-600 text-white px-8 py-3 rounded-md shadow-md hover:bg-primary-700 transition-colors font-medium"
-            >
-              Bắt đầu học
-            </button>
-          </Link>
+          <button
+            onClick={handleEnroll}
+            className="bg-primary-600 text-white px-8 py-3 rounded-md shadow-md hover:bg-primary-700 transition-colors font-medium"
+          >
+            Bắt đầu học
+          </button>
         </div>
       </div>
     </div>
