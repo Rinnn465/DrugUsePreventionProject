@@ -32,6 +32,7 @@ import ArticlePage from './pages/article/ArticlePage';
 import ArticleDetailsPage from './pages/article/ArticleDetailsPage';
 import CommunityProgramPage from './pages/program/CommunityProgramPage';
 import CommunityProgramDetails from './pages/program/CommunityProgramDetailsPage';
+import AdminPage from './pages/management/AdminPage';
 
 function App() {
   return (
@@ -59,6 +60,7 @@ function App() {
             <Route path="survey/:programId/completed" element={<SurveyCompletePage />} />
             <Route path="dashboard/:userId" element={<DashBoardPage />} />
             <Route path="roles/:userId" element={<RolePage />} />
+            <Route path="admin" element={<AdminPage />} />
 
             <Route path="roles/:userId/course-manage" element={<CourseManagmentPage />} />
             <Route path="roles/:userId/event-manage" element={<EventManagmentPage />} />

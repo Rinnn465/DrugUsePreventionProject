@@ -4,7 +4,7 @@ export const assessmentData: Assessment[] = [
   {
     id: 1,
     title: "Bài trắc nghiệm ASSIST",
-    description: "Bài kiểm tra sàng lọc mức độ sử dụng chất gây nghiện (ASSIST) giúp xác định các kiểu sử dụng chất và các nguy cơ liên quan.",
+    description: "Bài kiểm tra sàng lọc mức độ sử dụng chất gây nghiện (ASSIST) giúp xác định các kiểu sử dụng các chất gây nghiện và các nguy cơ liên quan.",
     questionCount: 8,
     timeToComplete: 5,
     audiences: ["Người lớn", "Thanh niên", "Thiếu niên"],
@@ -29,7 +29,7 @@ export const assessmentData: Assessment[] = [
       },
       {
         id: 2,
-        text: "Trong ba tháng qua, bạn đã sử dụng các chất đã nêu ở mức độ nào?",
+        text: "Trong ba tháng qua, bạn đã sử dụng các chất gây nghiện đã nêu ở mức độ nào?",
         options: [
           { id: "aa", text: "Chưa bao giờ", value: 0 },
           { id: "bb", text: "Một hoặc hai lần", value: 2 },
@@ -40,7 +40,7 @@ export const assessmentData: Assessment[] = [
       },
       {
         id: 3,
-        text: "Bạn có cảm thấy ham muốn mạnh mẽ hoặc thôi thúc phải sử dụng chất đó không?",
+        text: "Bạn có cảm thấy ham muốn mạnh mẽ hoặc thôi thúc phải sử dụng các chất gây nghiện đó không?",
         options: [
           { id: "aa", text: "Không bao giờ", value: 0 },
           { id: "bb", text: "Hiếm khi", value: 2 },
@@ -51,7 +51,7 @@ export const assessmentData: Assessment[] = [
       },
       {
         id: 4,
-        text: "Trong ba tháng qua, việc sử dụng chất có gây ra hậu quả nào cho bạn không (như sức khỏe, tâm lý, gia đình, học tập hoặc công việc)?",
+        text: "Trong ba tháng qua, việc sử dụng các chất gây nghiện có gây ra hậu quả nào cho bạn không (như sức khỏe, tâm lý, gia đình, học tập hoặc công việc)?",
         options: [
           { id: "aa", text: "Không bao giờ", value: 0 },
           { id: "bb", text: "Hiếm khi", value: 2 },
@@ -62,7 +62,7 @@ export const assessmentData: Assessment[] = [
       },
       {
         id: 5,
-        text: "Người thân, bạn bè hoặc người khác có lo lắng về việc bạn sử dụng chất không?",
+        text: "Người thân, bạn bè hoặc người khác có lo lắng về việc bạn sử dụng các chất gây nghiện không?",
         options: [
           { id: "aa", text: "Không bao giờ", value: 0 },
           { id: "bb", text: "Có, nhưng chỉ trong năm trước", value: 3 },
@@ -71,7 +71,7 @@ export const assessmentData: Assessment[] = [
       },
       {
         id: 6,
-        text: "Bạn đã từng cố gắng nhưng không thể kiểm soát hoặc giảm bớt việc sử dụng chất đó chưa?",
+        text: "Bạn đã từng cố gắng nhưng không thể kiểm soát hoặc giảm bớt việc sử dụng các chất gây nghiện đó chưa?",
         options: [
           { id: "aa", text: "Không bao giờ", value: 0 },
           { id: "bb", text: "Hiếm khi", value: 2 },
@@ -82,7 +82,7 @@ export const assessmentData: Assessment[] = [
       },
       {
         id: 7,
-        text: "Bạn đã từng sử dụng chất đó trong tình huống có thể gây nguy hiểm không (ví dụ: lái xe, vận hành máy móc)?",
+        text: "Bạn đã từng sử dụng các chất gây nghiện đó trong tình huống có thể gây nguy hiểm không (ví dụ: lái xe, vận hành máy móc)?",
         options: [
           { id: "aa", text: "Không bao giờ", value: 0 },
           { id: "bb", text: "Hiếm khi", value: 2 },
@@ -93,7 +93,7 @@ export const assessmentData: Assessment[] = [
       },
       {
         id: 8,
-        text: "Bạn có gặp phải bất kỳ vấn đề pháp lý nào liên quan đến việc sử dụng chất đó không?",
+        text: "Bạn có gặp phải bất kỳ vấn đề pháp lý nào liên quan đến việc sử dụng các chất gây nghiện đó không?",
         options: [
           { id: "aa", text: "Không bao giờ", value: 0 },
           { id: "bb", text: "Có, nhưng chỉ trong năm trước", value: 4 },
@@ -173,7 +173,7 @@ export const assessmentData: Assessment[] = [
     questions: [
       {
         id: 1,
-        text: "Bạn đánh giá mức độ giao tiếp của gia đình về rủi ro của việc sử dụng chất gây nghiện như thế nào?",
+        text: "Bạn đánh giá mức độ giao tiếp của gia đình về rủi ro của việc sử dụng các chất gây nghiện như thế nào?",
         options: [
           { id: "a", text: "Chúng tôi thảo luận chủ đề này một cách cởi mở và thường xuyên", value: 0 },
           { id: "b", text: "Chúng tôi thỉnh thoảng nói về chủ đề này", value: 1 },
@@ -223,7 +223,7 @@ export const assessmentData: Assessment[] = [
       },
       {
         id: 6,
-        text: "Bạn có làm gương tốt về việc sử dụng chất (rượu, thuốc lá, thuốc kê đơn, v.v.) không?",
+        text: "Bạn có làm gương tốt về việc sử dụng các chất có thể gây nghiện (rượu, thuốc lá, thuốc kê đơn, v.v.) không?",
         options: [
           { id: "a", text: "Tôi không sử dụng hoặc sử dụng rất có trách nhiệm", value: 0 },
           { id: "b", text: "Thỉnh thoảng sử dụng nhưng có kiểm soát", value: 1 },
@@ -233,7 +233,7 @@ export const assessmentData: Assessment[] = [
       },
       {
         id: 7,
-        text: "Trong gia đình, có thành viên nào hiện đang sử dụng chất hoặc có tiền sử nghiện không?",
+        text: "Trong gia đình, có thành viên nào hiện đang sử dụng các chất gây nghiện hoặc có tiền sử nghiện không?",
         options: [
           { id: "a", text: "Không", value: 0 },
           { id: "b", text: "Có, nhưng đã cai nghiện thành công", value: 1 },
@@ -254,7 +254,7 @@ export const assessmentData: Assessment[] = [
     questions: [
       {
         id: 1,
-        text: "Trường của bạn có chương trình phòng ngừa sử dụng chất đầy đủ không?",
+        text: "Trường của bạn có chương trình phòng ngừa sử dụng các chất gây nghiện đầy đủ không?",
         options: [
           { id: "a", text: "Có, được triển khai tốt", value: 0 },
           { id: "b", text: "Có, nhưng triển khai còn hạn chế", value: 1 },
@@ -264,7 +264,7 @@ export const assessmentData: Assessment[] = [
       },
       {
         id: 2,
-        text: "Giáo viên có được đào tạo về cách nhận diện và xử lý sớm các hành vi nguy cơ liên quan đến chất gây nghiện không?",
+        text: "Giáo viên có được đào tạo về cách nhận diện và xử lý sớm các hành vi nguy cơ liên quan đến các chất gây nghiện không?",
         options: [
           { id: "a", text: "Được đào tạo bài bản và cập nhật thường xuyên", value: 0 },
           { id: "b", text: "Được đào tạo nhưng không thường xuyên", value: 1 },
@@ -274,7 +274,7 @@ export const assessmentData: Assessment[] = [
       },
       {
         id: 3,
-        text: "Trường có chính sách rõ ràng và thực thi nghiêm túc về phòng chống sử dụng chất không?",
+        text: "Trường có chính sách rõ ràng và thực thi nghiêm túc về phòng chống sử dụng các chất gây nghiện không?",
         options: [
           { id: "a", text: "Có chính sách rõ ràng và áp dụng hiệu quả", value: 0 },
           { id: "b", text: "Có chính sách nhưng thực thi chưa nghiêm", value: 1 },

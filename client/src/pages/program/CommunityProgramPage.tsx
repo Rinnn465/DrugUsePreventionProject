@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
+import { Users } from 'lucide-react';
 import { CommunityProgram, EnrollmentStatus } from '../../types/CommunityProgram';
 import { parseDate } from '../../utils/parseDateUtils';
 import { User } from '../../types/User';
@@ -304,18 +305,38 @@ const CommunityProgramPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Header Section */}
-                <div className="text-center mb-12">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-4">Tin tức sự kiện</h1>
-                    <p className="text-lg text-gray-600">Khám phá các sự kiện phòng chống ma túy sắp diễn ra</p>
-                    {user && (
-                        <p className="text-sm text-green-600 mt-2">
-                            Chào mừng, {user.Fullname || user.Username}!
-                        </p>
-                    )}
+        <div className="min-h-screen bg-gray-50">
+            {/* Hero Section */}
+            <div className="relative bg-gradient-to-r from-primary-600 via-primary-700 to-blue-600 overflow-hidden">
+                <div className="absolute inset-0 bg-black/10"></div>
+                <div className="absolute inset-0">
+                    <div className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
+                    <div className="absolute top-32 right-20 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+                    <div className="absolute bottom-10 left-1/3 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
                 </div>
+                
+                <div className="relative container mx-auto px-4 py-12">
+                    <div className="max-w-4xl mx-auto text-center text-white">
+                        <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight flex items-center justify-center gap-3">
+                            <div className="p-2 bg-white/20 rounded-full backdrop-blur-sm">
+                                <Users className="h-6 w-6" />
+                            </div>
+                            Tin Tức 
+                            <span className="text-yellow-300"> Sự Kiện</span>
+                        </h1>
+                        <p className="text-lg md:text-xl mb-6 text-blue-100 leading-relaxed">
+                            Khám phá các sự kiện phòng chống ma túy sắp diễn ra
+                        </p>
+                        {user && (
+                            <p className="text-sm text-green-300 mt-2">
+                                Chào mừng, {user.Fullname || user.Username}!
+                            </p>
+                        )}
+                    </div>
+                </div>
+            </div>
+            
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
                 {/* Filter Buttons */}
                 <div className="flex justify-center space-x-4 mb-12">

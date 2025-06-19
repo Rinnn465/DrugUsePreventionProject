@@ -4,17 +4,30 @@ import { Heart, Award, Users, BookOpen, Target, Globe } from 'lucide-react';
 const AboutPage: React.FC = () => {
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* Phần mở đầu */}
-      <section className="bg-primary-600 text-white py-20 bg-gradient-to-br from-primary-700 via-primary-600 to-blue-500">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 drop-shadow-lg animate-fade-in">Về Tổ Chức Chúng Tôi</h1>
-            <p className="text-2xl text-primary-100 mb-4 animate-fade-in delay-100">
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-r from-primary-600 via-primary-700 to-blue-600 overflow-hidden">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="absolute inset-0">
+          <div className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
+          <div className="absolute top-32 right-20 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+          <div className="absolute bottom-10 left-1/3 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+        </div>
+        
+        <div className="relative container mx-auto px-4 py-12">
+          <div className="max-w-4xl mx-auto text-center text-white">
+            <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight flex items-center justify-center gap-3">
+              <div className="p-2 bg-white/20 rounded-full backdrop-blur-sm">
+                <Heart className="h-6 w-6" />
+              </div>
+              Về Tổ Chức 
+              <span className="text-yellow-300"> Chúng Tôi</span>
+            </h1>
+            <p className="text-lg md:text-xl mb-6 text-blue-100 leading-relaxed">
               Cam kết phòng chống lạm dụng ma túy thông qua giáo dục, hỗ trợ và sự tham gia của cộng đồng
             </p>
           </div>
         </div>
-      </section>
+      </div>
 
       <section className="py-20 bg-gradient-to-b from-white to-blue-50">
         <div className="container mx-auto px-4">
@@ -25,7 +38,7 @@ const AboutPage: React.FC = () => {
               </div>
               <h2 className="text-3xl font-bold mb-4 text-primary-700">Sứ Mệnh Của Chúng Tôi</h2>
               <p className="text-gray-700 leading-relaxed text-lg">
-                Sứ mệnh của chúng tôi là ngăn ngừa lạm dụng và nghiện chất thông qua giáo dục dựa trên bằng chứng,
+                Sứ mệnh của chúng tôi là ngăn ngừa lạm dụng và nghiện chất kích thích thông qua giáo dục dựa trên bằng chứng,
                 can thiệp sớm và hỗ trợ từ cộng đồng. Chúng tôi nỗ lực trao quyền cho mọi người bằng kiến thức
                 và kỹ năng để đưa ra quyết định đúng đắn về các chất gây nghiện.
               </p>
@@ -64,12 +77,12 @@ const AboutPage: React.FC = () => {
               </p>
               <p>
                 Hiện nay, chúng tôi hoạt động theo mô hình phòng ngừa toàn diện, giải quyết các yếu tố phức tạp
-                dẫn đến sử dụng chất ở nhiều nhóm tuổi và cộng đồng khác nhau. Các chương trình dựa trên bằng chứng
+                dẫn đến sử dụng các chất gây nghiện ở nhiều nhóm tuổi và cộng đồng khác nhau. Các chương trình dựa trên bằng chứng
                 của chúng tôi luôn được đánh giá và cải tiến để đảm bảo hiệu quả trong bối cảnh luôn thay đổi.
               </p>
               <p>
                 Chúng tôi tự hào về sự phát triển và tác động của mình, nhưng công việc vẫn tiếp tục. Với các thách thức
-                và xu hướng sử dụng chất liên tục thay đổi, chúng tôi cam kết đổi mới, hợp tác và kết nối cộng đồng
+                và xu hướng sử dụng các chất gây nghiện liên tục thay đổi, chúng tôi cam kết đổi mới, hợp tác và kết nối cộng đồng
                 nhằm thực hiện sứ mệnh của mình.
               </p>
             </div>
@@ -88,7 +101,7 @@ const AboutPage: React.FC = () => {
               </div>
               <h3 className="text-2xl font-bold mb-4 text-primary-700">Lòng Trắc Ẩn</h3>
               <p className="text-gray-700 text-lg">
-                Chúng tôi tiếp cận công việc với sự cảm thông và thấu hiểu, nhận biết rằng vấn đề sử dụng chất
+                Chúng tôi tiếp cận công việc với sự cảm thông và thấu hiểu, nhận biết rằng vấn đề sử dụng các chất gây nghiện
                 là vấn đề phức tạp ảnh hưởng đến các cá nhân và cộng đồng theo nhiều cách khác nhau.
               </p>
             </div>
@@ -133,7 +146,7 @@ const AboutPage: React.FC = () => {
               <h3 className="text-2xl font-bold mb-4 text-warning-700">Phòng Ngừa</h3>
               <p className="text-gray-700 text-lg">
                 Chúng tôi ưu tiên các phương pháp chủ động nhằm xây dựng các yếu tố bảo vệ
-                và giảm thiểu các yếu tố rủi ro trước khi các vấn đề về sử dụng chất xuất hiện.
+                và giảm thiểu các yếu tố rủi ro trước khi các vấn đề về sử dụng các chất gây nghiện xuất hiện.
               </p>
             </div>
 
