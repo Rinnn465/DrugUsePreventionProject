@@ -44,7 +44,7 @@ export const courseData: Course[] = [
   {
     id: 4,
     title: "Xây Dựng Khả Năng Chống Chịu Cho Thanh Thiếu Niên",
-    description: "Tìm hiểu các kỹ thuật giúp trẻ em và thanh thiếu niên xây dựng khả năng chống chịu – yếu tố then chốt phòng ngừa sử dụng chất gây nghiện.",
+    description: "Tìm hiểu các kỹ thuật giúp trẻ em và thanh thiếu niên xây dựng khả năng chống chịu – yếu tố then chốt phòng ngừa sử dụng các chất gây nghiện.",
     category: "Phòng ngừa",
     audience: "Học sinh",
     duration: "3 giờ",

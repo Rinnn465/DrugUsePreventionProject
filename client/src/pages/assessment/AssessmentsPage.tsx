@@ -45,13 +45,34 @@ const colorMap: Record<AssessmentColor, { gradient: string; text: string; badge:
 
 const AssessmentsPage: React.FC = () => {
   return (
-    <div className="bg-gray-50 min-h-screen py-12">
-      <div className="container mx-auto px-4">
+    <div className="bg-gray-50 min-h-screen">
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-r from-primary-600 via-primary-700 to-blue-600 overflow-hidden">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="absolute inset-0">
+          <div className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
+          <div className="absolute top-32 right-20 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+          <div className="absolute bottom-10 left-1/3 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+        </div>
+        
+        <div className="relative container mx-auto px-4 py-12">
+          <div className="max-w-4xl mx-auto text-center text-white">
+            <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight flex items-center justify-center gap-3">
+              <div className="p-2 bg-white/20 rounded-full backdrop-blur-sm">
+                <ClipboardCheck className="h-6 w-6" />
+              </div>
+              Trắc Nghiệm 
+              <span className="text-yellow-300"> Đánh Giá</span>
+            </h1>
+            <p className="text-lg md:text-xl mb-6 text-blue-100 leading-relaxed">
+              Hãy thực hiện các bài trắc nghiệm của chúng tôi để đánh giá mức độ rủi ro và nhận được khuyến nghị cá nhân hóa
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Công Cụ Đánh Giá Nguy Cơ</h1>
-          <p className="text-lg text-gray-600 mb-8">
-            Hãy thực hiện các bảng câu hỏi của chúng tôi để đánh giá mức độ rủi ro và nhận được khuyến nghị cá nhân hóa.
-          </p>
 
           <div className="bg-accent-50 border border-accent-200 rounded-lg p-6 mb-12 text-left">
             <div className="flex gap-4">
@@ -65,7 +86,7 @@ const AssessmentsPage: React.FC = () => {
                   Câu trả lời của bạn sẽ được bảo mật và chỉ dùng để cung cấp khuyến nghị cá nhân hóa.
                 </p>
                 <p className="text-accent-700">
-                  <strong>Lưu ý:</strong> Những công cụ này không thay thế cho chẩn đoán chuyên môn. Nếu bạn lo ngại về việc sử dụng chất kích thích, vui lòng tham khảo ý kiến chuyên gia y tế.
+                  <strong>Lưu ý:</strong> Những công cụ này không thay thế cho chẩn đoán chuyên môn. Nếu bạn lo ngại về việc sử dụng các chất gây nghiện, vui lòng tham khảo ý kiến chuyên gia y tế.
                 </p>
               </div>
             </div>
@@ -127,7 +148,7 @@ const AssessmentsPage: React.FC = () => {
             <div>
               <h3 className="text-lg font-semibold text-warning-800 mb-2">Cần hỗ trợ khẩn cấp?</h3>
               <p className="text-warning-700 mb-4">
-                Nếu bạn hoặc ai đó đang gặp tình trạng khẩn cấp liên quan đến sử dụng chất kích thích hoặc khủng hoảng tâm lý,
+                Nếu bạn hoặc ai đó đang gặp tình trạng khẩn cấp liên quan đến sử dụng các chất gây nghiện hoặc khủng hoảng tâm lý,
                 vui lòng liên hệ với dịch vụ khẩn cấp hoặc đường dây hỗ trợ ngay lập tức.
               </p>
               <div className="bg-white p-4 rounded-md shadow-sm">

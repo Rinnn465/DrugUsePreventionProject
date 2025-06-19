@@ -148,52 +148,74 @@ const AppointmentsPage: React.FC = () => {
   });
 
   return (
-    <div className="bg-sky-50 min-h-screen py-12">
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4 text-sky-700">Đặt Lịch Hẹn Trực Tuyến</h1>
-          <p className="text-lg text-sky-600 mb-8">
-            Kết nối với các chuyên gia tư vấn được chứng nhận của chúng tôi để nhận hỗ trợ và hướng dẫn cá nhân hóa.
-          </p>
+    <div className="bg-gray-50 min-h-screen">
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-r from-primary-600 via-primary-700 to-blue-600 overflow-hidden">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="absolute inset-0">
+          <div className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
+          <div className="absolute top-32 right-20 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+          <div className="absolute bottom-10 left-1/3 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+        </div>
+        
+        <div className="relative container mx-auto px-4 py-12">
+          <div className="max-w-4xl mx-auto text-center text-white">
+            <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight flex items-center justify-center gap-3">
+              <div className="p-2 bg-white/20 rounded-full backdrop-blur-sm">
+                <CalendarIcon className="h-6 w-6" />
+              </div>
+              Đặt Lịch Hẹn 
+              <span className="text-yellow-300"> Trực Tuyến</span>
+            </h1>
+            <p className="text-lg md:text-xl mb-6 text-blue-100 leading-relaxed">
+              Kết nối với các chuyên gia tư vấn được chứng nhận của chúng tôi để nhận hỗ trợ và hướng dẫn cá nhân hóa
+            </p>
+          </div>
+        </div>
+             </div>
+       
+       <div className="container mx-auto px-4 py-12">
+        {/* Search Section - Full Width */}
+        <div className="max-w-6xl mx-auto mb-8">
+          <div className="bg-gradient-to-br from-primary-50 via-white to-blue-50 rounded-2xl shadow-2xl p-6 border-2 border-primary-100 animate-fade-in">
+            <h2 className="text-xl font-bold mb-6 text-primary-700 flex items-center gap-2">
+              <Search className="h-6 w-6 text-primary-400" /> Tìm Chuyên Gia Tư Vấn
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 text-primary-300 h-5 w-5" />
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm chuyên gia tư vấn..."
+                  className="w-full pl-10 pr-4 py-2 border-2 border-primary-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-300 bg-primary-50 text-primary-900 placeholder:text-primary-300 shadow-md"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div>
+                <select
+                  className="w-full pl-4 pr-8 py-2 border-2 border-primary-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-300 bg-primary-50 text-primary-900 shadow-md"
+                  value={selectedSpecialty}
+                  onChange={(e) => setSelectedSpecialty(e.target.value)}
+                >
+                  <option value="">Tất Cả Chuyên Môn</option>
+                  {specialtyOptions.map((specialty, index) => (
+                    <option key={index} value={specialty}>{specialty}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           <div className="lg:col-span-1">
-            <div className="bg-gradient-to-br from-sky-50 via-white to-blue-50 rounded-2xl shadow-2xl p-6 mb-6 border-2 border-sky-100 animate-fade-in">
-              <h2 className="text-xl font-bold mb-4 text-sky-700 flex items-center gap-2">
-                <Search className="h-6 w-6 text-sky-400" /> Tìm Chuyên Gia Tư Vấn
-              </h2>
-              <div className="space-y-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 text-sky-300 h-5 w-5" />
-                  <input
-                    type="text"
-                    placeholder="Tìm kiếm chuyên gia tư vấn..."
-                    className="w-full pl-10 pr-4 py-2 border-2 border-sky-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-300 bg-sky-50 text-sky-900 placeholder:text-sky-300 shadow-md"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <select
-                    className="w-full pl-4 pr-8 py-2 border-2 border-sky-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-300 bg-sky-50 text-sky-900 shadow-md"
-                    value={selectedSpecialty}
-                    onChange={(e) => setSelectedSpecialty(e.target.value)}
-                  >
-                    <option value="">Tất Cả Chuyên Môn</option>
-                    {specialtyOptions.map((specialty, index) => (
-                      <option key={index} value={specialty}>{specialty}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden max-h-[600px] overflow-y-auto border-2 border-sky-100 animate-fade-in">
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden max-h-[600px] overflow-y-auto border-2 border-primary-100 animate-fade-in">
               {filteredConsunltants.length > 0 ? (
                 filteredConsunltants.map((consultant) => (
                   <div
                     key={consultant.ConsultantID}
-                    className={`border-b-2 border-sky-50 last:border-b-0 cursor-pointer transition-all duration-200 ${selectedCounselor === consultant.ConsultantID ? 'bg-sky-100 scale-[1.01] shadow-lg' : 'hover:bg-gradient-to-r hover:from-sky-50 hover:to-blue-100 hover:scale-[1.01]'} animate-fade-in`}
+                    className={`border-b-2 border-primary-50 last:border-b-0 cursor-pointer transition-all duration-200 ${selectedCounselor === consultant.ConsultantID ? 'bg-primary-100 scale-[1.01] shadow-lg' : 'hover:bg-gradient-to-r hover:from-primary-50 hover:to-blue-100 hover:scale-[1.01]'} animate-fade-in`}
                     onClick={() => setSelectedCounselor(consultant.ConsultantID)}
                   >
                     <CounselorCard consultant={consultant} compact={true} />
@@ -201,26 +223,26 @@ const AppointmentsPage: React.FC = () => {
                 ))
               ) : (
                 <div className="p-6 text-center">
-                  <Users className="h-10 w-10 text-sky-200 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2 text-sky-700">Không tìm thấy chuyên gia tư vấn</h3>
-                  <p className="text-sky-400">Vui lòng điều chỉnh tiêu chí tìm kiếm của bạn</p>
+                  <Users className="h-10 w-10 text-primary-200 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2 text-primary-700">Không tìm thấy chuyên gia tư vấn</h3>
+                  <p className="text-primary-400">Vui lòng điều chỉnh tiêu chí tìm kiếm của bạn</p>
                 </div>
               )}
             </div>
           </div>
           <div className="lg:col-span-2">
             {selectedCounselor ? (
-              <div className="bg-white rounded-2xl shadow-xl p-8 border-2 border-sky-100 animate-fade-in">
+              <div className="bg-white rounded-2xl shadow-xl p-8 border-2 border-primary-100 animate-fade-in">
                 <div className="mb-6">
-                  <h2 className="text-xl font-bold mb-4 text-sky-700 flex items-center gap-2">
-                    <User className="h-6 w-6 text-sky-400" /> Đặt lịch với
+                  <h2 className="text-xl font-bold mb-4 text-primary-700 flex items-center gap-2">
+                    <User className="h-6 w-6 text-primary-400" /> Đặt lịch với
                     <Link
-                      className='text-sky-500 underline hover:text-sky-700 ml-2'
+                      className='text-primary-500 underline hover:text-primary-700 ml-2'
                       to={`/counselor/${selectedCounselor}`}>
                       {counselorData.find(c => c.id === selectedCounselor)?.name}
                     </Link>
                   </h2>
-                  <p className="text-sky-500">
+                  <p className="text-primary-500">
                     Chọn khung giờ trống để đặt lịch hẹn của bạn
                   </p>
                 </div>
@@ -230,10 +252,10 @@ const AppointmentsPage: React.FC = () => {
                 />
               </div>
             ) : (
-              <div className="bg-white rounded-2xl shadow-xl p-8 flex flex-col items-center justify-center h-full border-2 border-sky-100 animate-fade-in">
-                <CalendarIcon className="h-16 w-16 text-sky-100 mb-4" />
-                <h2 className="text-xl font-bold mb-2 text-sky-700">Chọn Chuyên Gia Tư Vấn</h2>
-                <p className="text-sky-400 text-center max-w-md">
+              <div className="bg-white rounded-2xl shadow-xl p-8 flex flex-col items-center justify-center h-full border-2 border-primary-100 animate-fade-in">
+                <CalendarIcon className="h-16 w-16 text-primary-100 mb-4" />
+                <h2 className="text-xl font-bold mb-2 text-primary-700">Chọn Chuyên Gia Tư Vấn</h2>
+                <p className="text-primary-400 text-center max-w-md">
                   Vui lòng chọn một chuyên gia tư vấn từ danh sách để xem các khung giờ hẹn có sẵn.
                 </p>
               </div>

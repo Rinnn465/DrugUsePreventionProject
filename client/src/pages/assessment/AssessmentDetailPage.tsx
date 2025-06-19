@@ -100,10 +100,15 @@ const AssessmentDetailPage: React.FC = () => {
                                 <span>⏱️ ~{assessment.timeToComplete} phút</span>
                             </div>
                         </div>
-                        {assessment.questions.map((question) => {
+                        {assessment.questions.map((question, index) => {
                             return (
                                 <div aria-labelledby="checkbox-group" key={question.id} className='mb-8 p-6 bg-white rounded-xl shadow-lg border border-accent-100'>
-                                    <p className='text-lg font-bold mb-4 text-blue-500'>{question.text}</p>
+                                    <p className='text-lg font-bold mb-4 text-blue-500'>
+                                        <span className="inline-block bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-sm font-bold mr-3">
+                                            Câu {index + 1}
+                                        </span>
+                                        {question.text}
+                                    </p>
                                     {question.options.map((option) => {
                                         return (
                                             <label key={option.id} className='block mb-3 cursor-pointer hover:bg-accent-50 rounded-lg px-3 py-2 transition-all'>
