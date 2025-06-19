@@ -1,14 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { poolPromise, sql } from "../config/database";
 
 dotenv.config();
 
-type Role = "Admin" | "Consultant" | "Member" | "Guest"; // Define roles as needed
 
 const authorizeRoles =
-  (allowedRoles: Role[]) =>
-  (req: Request, res: Response, next: NextFunction): void => {
+  (allowedRoles: string[]) =>
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
 
@@ -21,23 +21,38 @@ const authorizeRoles =
       return;
     }
 
-     jwt.verify(token, process.env.JWT_SECRET as string, (err, decoded) => {
-      if (err) {
-        console.log("Token verification failed:", err.message);
-        res.status(403).json({ message: "Invalid or expired token" });
+     try {
+      // Verify JWT token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+      (req as any).user = decoded;
+
+      const userRoleID = decoded.user?.RoleID as number;
+      if (!userRoleID) {
+        res.status(403).json({ message: "Invalid token: No role ID found" });
         return;
       }
 
-      (req as any).user = decoded;
-      const userRole = (decoded as any).user?.Role as Role;
-      console.log("Decoded role:", userRole, "Allowed roles:", allowedRoles);
+      // Query the Role table to get the RoleName
+      const pool = await poolPromise;
+      const result = await pool
+        .request()
+        .input("RoleID", sql.Int, userRoleID)
+        .query("SELECT RoleName FROM Role WHERE RoleID = @RoleID");
+      
+      const userRoleName = result.recordset[0]?.RoleName as string;
+      
+      console.log("Decoded role:", userRoleName, "Allowed roles:", allowedRoles);
 
-      if (!userRole || !allowedRoles.includes(userRole)) {
+      if (!userRoleName || !allowedRoles.includes(userRoleName)) {
         res.status(403).json({ message: "Forbidden: Role not allowed" });
         return;
       }
+
       next();
-    });
+    } catch (err: any) {
+      console.log("Token verification failed:", err.message);
+      res.status(403).json({ message: "Invalid or expired token" });
+    }
   };
 
 export default authorizeRoles;

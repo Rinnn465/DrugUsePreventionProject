@@ -71,10 +71,9 @@ app.use(
 
 app.use(
   "/api/appointment",
-  authorizeRoles(['Guest', "Member", "Consultant", "Admin"]),
+  authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   appointmentRoutes
 );
-
 
 // Admin-only Routes - Full account management including role changes
 app.use("/api/account/admin", authorizeRoles(["Admin"]), apiAccountRoutes);

@@ -5,7 +5,7 @@ export type Account = {
   Password: string;
   FullName: string;
   DateOfBirth: Date | null; // ISO date string
-  Role: string;
+  RoleID: string;
   CreatedAt: Date; // ISO datetime string
   IsDisabled: boolean;
   ResetToken?: string | null;
@@ -148,10 +148,3 @@ export type CommunityProgramSurveyDTO = {
   Description: string;
   surveys: Survey[];
 };
-
-export enum Role {
-    Admin = "Admin",
-    Consultant = "Consultant",
-    Member = "Member",
-    Guest = "Guest"
-  }

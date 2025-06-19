@@ -6,12 +6,13 @@ import { Account } from "../types/type";
 export const getAccounts = async (req: Request, res: Response) => {
   try {
     const pool = await poolPromise;
-    const result = await pool.request().query("SELECT * FROM Account");
+    const result = await pool.request().query("SELECT Account.*, Role.RoleName FROM Account JOIN Role ON Account.RoleID = Role.RoleID");
     res.json(result.recordset as Account[]);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // Get account by ID
 export const getAccountById = async (
@@ -24,7 +25,7 @@ export const getAccountById = async (
     const result = await pool
       .request()
       .input("AccountID", sql.Int, parseInt(req.params.id, 10))
-      .query("SELECT * FROM Account WHERE AccountID = @AccountID");
+      .query("SELECT Account.*, Role.RoleName FROM Account JOIN Role ON Account.RoleID = Role.RoleID WHERE AccountID = @AccountID");
 
     if (result.recordset.length === 0) {
       res.status(404).json({ message: "Account not found" });
@@ -39,9 +40,21 @@ export const getAccountById = async (
 
 // Create new account
 export const createAccount = async (req: Request, res: Response) => {
-  const { username, email, password, fullName, dateOfBirth, role } = req.body;
+  const { username, email, password, fullName, dateOfBirth, roleName } = req.body;
   try {
     const pool = await poolPromise;
+
+    // Get RoleID from RoleName
+    const roleResult = await pool
+      .request()
+      .input("roleName", sql.NVarChar, roleName || "Member")
+      .query("SELECT RoleID FROM Role WHERE RoleName = @roleName");
+    const role = roleResult.recordset[0];
+    if (!role) {
+      res.status(400).json({ message: "Invalid role" });
+      return;
+    }
+
     await pool
       .request()
       .input("Username", sql.NVarChar, username)
@@ -49,10 +62,10 @@ export const createAccount = async (req: Request, res: Response) => {
       .input("Password", sql.NVarChar, password)
       .input("FullName", sql.NVarChar, fullName)
       .input("DateOfBirth", sql.Date, dateOfBirth)
-      .input("Role", sql.NVarChar, role)
+      .input("RoleID", sql.Int, role.RoleID)
       .input("CreatedAt", sql.DateTime2, new Date()).query(`INSERT INTO Account 
-        (Username, Email, Password, FullName, DateOfBirth, Role, CreatedAt) 
-        VALUES (@Username, @Email, @Password, @FullName, @DateOfBirth, @Role, @CreatedAt)`);
+        (Username, Email, Password, FullName, DateOfBirth, RoleID, CreatedAt) 
+        VALUES (@Username, @Email, @Password, @FullName, @DateOfBirth, @RoleID, @CreatedAt)`);
     res.status(201).json({ message: "Account created" });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -64,10 +77,22 @@ export const updateAccount = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { username, email, password, fullName, dateOfBirth, role, isDisabled } =
+  const { username, email, password, fullName, dateOfBirth, roleName, isDisabled } =
     req.body;
   try {
     const pool = await poolPromise;
+
+    // Get RoleID from RoleName
+    const roleResult = await pool
+      .request()
+      .input("roleName", sql.NVarChar, roleName)
+      .query("SELECT RoleID FROM Role WHERE RoleName = @roleName");
+    const role = roleResult.recordset[0];
+    if (!role) {
+      res.status(400).json({ message: "Invalid role" });
+      return;
+    }
+
     const result = await pool
       .request()
       .input("AccountID", sql.Int, parseInt(req.params.id, 10))
@@ -76,14 +101,14 @@ export const updateAccount = async (
       .input("Password", sql.NVarChar, password)
       .input("FullName", sql.NVarChar, fullName)
       .input("DateOfBirth", sql.Date, dateOfBirth)
-      .input("Role", sql.NVarChar, role)
+      .input("RoleID", sql.Int, role.RoleID)
       .input("IsDisabled", sql.Bit, isDisabled).query(`UPDATE Account SET 
         Username=@Username, 
         Email=@Email, 
         Password=@Password, 
         FullName=@FullName, 
         DateOfBirth=@DateOfBirth, 
-        Role=@Role, 
+        RoleID=@RoleID, 
         IsDisabled=@IsDisabled
         WHERE AccountID=@AccountID`);
     if (result.rowsAffected[0] === 0) {
@@ -95,6 +120,7 @@ export const updateAccount = async (
   }
 };
 
+// Update account profile
 export const updateAccountProfile = async (
   req: Request,
   res: Response
@@ -146,28 +172,3 @@ export const deleteAccount = async (
   }
 };
 
-// export const changeAccountRole = async (
-//   req: Request,
-//   res: Response
-// ): Promise<void> => {
-//   const { role } = req.body;
-//   if (!role) {
-//     res.status(400).json({ message: "Role is required" });
-//     return;
-//   }
-//   try {
-//     const pool = await poolPromise;
-//     const result = await pool
-//       .request()
-//       .input("AccountID", sql.Int, parseInt(req.params.id, 10))
-//       .input("Role", sql.NVarChar, role)
-//       .query("UPDATE Account SET Role=@Role WHERE AccountID=@AccountID");
-//     if (result.rowsAffected[0] === 0) {
-//       res.status(404).json({ message: "Account not found" });
-//       return;
-//     }
-//     res.json({ message: "Account role updated" });
-//   } catch (err: any) {
-//     res.status(500).json({ error: err.message });
-//   }
-// };

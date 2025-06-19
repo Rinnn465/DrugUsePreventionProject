@@ -6,7 +6,6 @@ import { sql, poolPromise } from "../config/database";
 import { sendEmail } from "./mailController";
 import { welcomeTemplate } from "../templates/welcome";
 import { passwordReset } from "../templates/passwordreset";
-import { Role } from "../types/type";
 dotenv.config();
 
 /**
@@ -35,7 +34,7 @@ export async function login(
     const result = await pool
       .request()
       .input("email", sql.NVarChar, email)
-      .query("SELECT * FROM Account WHERE Email = @email");
+      .query("SELECT Account.*, Role.RoleName FROM Account JOIN Role ON Account.RoleID = Role.RoleID WHERE Email = @email");
     const user = result.recordset[0];
 
     // Validate user exists
@@ -50,6 +49,7 @@ export async function login(
       res.status(401).json({ message: "Invalid password" });
       return;
     }
+    
     // Generate JWT token
     const token = jwt.sign(
       { 
@@ -58,7 +58,8 @@ export async function login(
           Username: user.Username,
           Email: user.Email,
           FullName: user.FullName,
-          Role: user.Role as Role, // Ép kiểu thành Role enum
+          RoleID: user.RoleID, // Use RoleID instead of Role
+          RoleName: user.RoleName, // Include RoleName for convenience
           CreatedAt: user.CreatedAt,
           IsDisabled: user.IsDisabled
         }
@@ -67,7 +68,7 @@ export async function login(
       { expiresIn: "1h" }
     );
 
-    res.status(200).json({
+      res.status(200).json({
       message: "Login successful",
       token,
       user: { 
@@ -75,7 +76,8 @@ export async function login(
         Username: user.Username,
         Email: user.Email,
         FullName: user.FullName,
-        Role: user.Role as Role,
+        RoleID: user.RoleID,
+        RoleName: user.RoleName,
         CreatedAt: user.CreatedAt,
         IsDisabled: user.IsDisabled
       }
@@ -124,10 +126,12 @@ export async function register(
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  const { username, password, email, fullName, dateOfBirth, role } = req.body;
+  const { username, password, email, fullName, dateOfBirth, roleName } = req.body;
 
   try {
     const pool = await poolPromise;
+
+    
 
     // Check for existing username
     const checkUser = await pool
@@ -149,24 +153,37 @@ export async function register(
       return;
     }
 
+    // Get RoleID for default role "Member"
+    const roleResult = await pool
+      .request()
+      .input("roleName", sql.NVarChar, "Member")
+      .query("SELECT RoleID FROM Role WHERE RoleName = @roleName");
+    const role = roleResult.recordset[0];
+    if (!role) {
+      res.status(500).json({ message: "role 'Member' not found in Role table" });
+      return;
+    }
+
+    
+
     // Hash password for security
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert new user into database
+ // Insert new user into database
     await pool
       .request()
       .input("username", sql.NVarChar, username)
       .input("email", sql.NVarChar, email)
       .input("password", sql.NVarChar, hashedPassword)
       .input("fullName", sql.NVarChar, fullName)
-      .input("dateOfBirth", sql.Date, dateOfBirth || null)
-      .input("role", sql.NVarChar, role || "Member") // Default role is member
+      .input("dateOfBirth", sql.Date, dateOfBirth)
+      .input("roleID", sql.Int, role.RoleID)
       .input("createdAt", sql.DateTime2, new Date())
       .query(
         `INSERT INTO Account 
-                (Username, Email, Password, FullName, DateOfBirth, Role, CreatedAt) 
+                (Username, Email, Password, FullName, DateOfBirth, RoleID, CreatedAt) 
                 VALUES 
-                (@username, @email, @password, @fullName, @dateOfBirth, @role, @createdAt)`
+                (@username, @email, @password, @fullName, @dateOfBirth, @roleID, @createdAt)`
       );
 
     // Send welcome email
