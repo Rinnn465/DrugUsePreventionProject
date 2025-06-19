@@ -1,4 +1,6 @@
 import React from "react";
+import { useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const SurveyAfterEventPage: React.FC = () => {
 
@@ -68,7 +70,7 @@ const SurveyAfterEventPage: React.FC = () => {
                 <Link to={`/survey/${eventId}/completed`}>
                     <button
                         type="submit"
-                        onClick={() => { alert('hoàn thành khỏa sát') }}
+                        onClick={() => { toast.success('Hoàn thành khảo sát thành công!') }}
                         className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     >
                         Hoàn thành khảo sát

@@ -164,8 +164,7 @@ const AppointmentsPage: React.FC = () => {
               <div className="p-2 bg-white/20 rounded-full backdrop-blur-sm">
                 <CalendarIcon className="h-6 w-6" />
               </div>
-              Đặt Lịch Hẹn 
-              <span className="text-yellow-300"> Trực Tuyến</span>
+              Đặt Lịch Hẹn Trực Tuyến
             </h1>
             <p className="text-lg md:text-xl mb-6 text-blue-100 leading-relaxed">
               Kết nối với các chuyên gia tư vấn được chứng nhận của chúng tôi để nhận hỗ trợ và hướng dẫn cá nhân hóa

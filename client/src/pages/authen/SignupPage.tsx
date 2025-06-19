@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { useFormik } from "formik";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import * as Yup from 'yup'
+import { toast } from 'react-toastify';
 
 const SignUpPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
 
     // handle role selection
     // const roles = ['Thành viên', 'Quản trị viên', 'Quản lý', 'Nhân viên', 'Chuyên viên'];
@@ -37,16 +39,18 @@ const SignUpPage: React.FC = () => {
                 const data = await response.json();
                 
                 if (response.ok) {
-                    alert(data.message);
-                    window.location.href = '/login'; // Redirect to login page after successful registration
+                    toast.success(data.message);
+                    setTimeout(() => {
+                        navigate('/login');
+                    }, 2000);
                 } else {
-                    alert(data.message || 'Đăng ký thất bại');
+                    toast.error(data.message || 'Đăng ký thất bại');
                 }
                 
                 console.log("Form submitted with values:", transformedValues);
             } catch (err: any) {
                 console.error('Error:', err.message);
-                alert('Có lỗi xảy ra khi đăng ký');
+                toast.error('Có lỗi xảy ra khi đăng ký');
             } finally {
                 setIsLoading(false);
             }

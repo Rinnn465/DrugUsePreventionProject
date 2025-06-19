@@ -15,12 +15,11 @@ const AboutPage: React.FC = () => {
         
         <div className="relative container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto text-center text-white">
-            <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight flex items-center justify-center gap-3">
+            <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight flex items-center justify-center gap-3 text-white">
               <div className="p-2 bg-white/20 rounded-full backdrop-blur-sm">
                 <Heart className="h-6 w-6" />
               </div>
-              Về Tổ Chức 
-              <span className="text-yellow-300"> Chúng Tôi</span>
+              Về Tổ Chức Chúng Tôi
             </h1>
             <p className="text-lg md:text-xl mb-6 text-blue-100 leading-relaxed">
               Cam kết phòng chống lạm dụng ma túy thông qua giáo dục, hỗ trợ và sự tham gia của cộng đồng

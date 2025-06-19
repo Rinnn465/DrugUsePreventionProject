@@ -40,12 +40,11 @@ const ArticlePage: React.FC = () => {
         
         <div className="relative container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto text-center text-white">
-            <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight flex items-center justify-center gap-3">
+            <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight flex items-center justify-center gap-3 text-white">
               <div className="p-2 bg-white/20 rounded-full backdrop-blur-sm">
                 <Newspaper className="h-6 w-6" />
               </div>
-              Blog 
-              <span className="text-yellow-300"> Kiến thức</span>
+              Blog Kiến thức
             </h1>
             <p className="text-lg md:text-xl mb-6 text-blue-100 leading-relaxed">
               Cập nhật tin tức, kiến thức và kinh nghiệm phòng chống tệ nạn xã hội

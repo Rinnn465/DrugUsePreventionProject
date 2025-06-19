@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { toast } from 'react-toastify';
 import { ConsultantWithSchedule } from '../../types/Consultant';
 import { useUser } from '../../context/UserContext';
 
@@ -136,12 +137,15 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
   }
 
   const handleConfirmBooking = () => {
-    alert(
-      `Xác nhận đặt lịch với chuyên viên #${consultantId} vào ngày ${selectedDate?.toLocaleDateString(
+    // Show success toast instead of alert
+    toast.success(
+      `✅ Đặt lịch thành công! Bạn đã đặt lịch với chuyên viên vào ngày ${selectedDate?.toLocaleDateString(
         'vi-VN'
-      )} lúc ${formatTime(selectedTime!)}`
+      )} lúc ${formatTime(selectedTime!)}`,
+      { autoClose: 5000 }
     );
 
+    // Keep the original API call structure
     fetch('http://localhost:5000/api/appointment', {
       method: 'POST',
       headers: {
@@ -158,6 +162,17 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
         duration: 60
       }),
     })
+    .then(response => response.json())
+    .then(data => {
+      if (data.message) {
+        console.log('Server response:', data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      toast.error('❌ Có lỗi xảy ra khi đặt lịch!');
+    });
+
     setSelectedDate(null);
     setSelectedTime(null);
     setBookingStep('date');

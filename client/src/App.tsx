@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/about/AboutPage';
@@ -77,6 +78,23 @@ function App() {
             <Route path="forgot-password" element={<ForgotPasswordPage />} />
           </Route>
         </Routes>
+        <ToastContainer
+          position="top-right"
+          autoClose={4000}
+          hideProgressBar={false}
+          newestOnTop={true}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+          toastStyle={{
+            borderRadius: '12px',
+            fontFamily: 'inherit',
+            fontSize: '14px'
+          }}
+        />
       </Router>
     </UserProvider>
 

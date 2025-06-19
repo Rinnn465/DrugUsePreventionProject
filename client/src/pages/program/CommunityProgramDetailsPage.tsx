@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { CommunityProgram, EnrollmentStatus } from "../../types/CommunityProgram";
 import { parseDate } from "../../utils/parseDateUtils";
 import { User } from "../../types/User";
+import { toast } from 'react-toastify';
 
 const CommunityProgramDetails: React.FC = () => {
     const { programId } = useParams();
@@ -79,7 +80,7 @@ const CommunityProgramDetails: React.FC = () => {
     const handleEnroll = async () => {
         const token = getAuthToken();
         if (!token || !user) {
-            alert('Vui lòng đăng nhập để tham gia chương trình');
+            toast.error('Vui lòng đăng nhập để tham gia chương trình');
             return;
         }
 
@@ -101,28 +102,55 @@ const CommunityProgramDetails: React.FC = () => {
                     status: 'registered',
                     registrationDate: new Date().toISOString()
                 });
-                alert(`Đăng ký tham gia thành công! ${data.message || ''}`);
+                toast.success(`Đăng ký tham gia thành công! ${data.message || ''}`);
             } else if (response.status === 401) {
                 localStorage.removeItem('token');
                 setUser(null);
-                alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+                toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
             } else {
-                alert(data.message || 'Có lỗi xảy ra khi đăng ký');
+                toast.error(data.message || 'Có lỗi xảy ra khi đăng ký');
             }
         } catch (error) {
             console.error('Enrollment error:', error);
-            alert('Có lỗi xảy ra khi đăng ký');
+            toast.error('Có lỗi xảy ra khi đăng ký');
         }
     };
 
     const handleUnenroll = async () => {
-        if (!confirm('Bạn có chắc chắn muốn hủy đăng ký tham gia chương trình này?')) {
-            return;
-        }
+        // Show confirmation toast
+        toast.warn(
+            <div>
+                <p className="mb-3 font-medium">Bạn có chắc chắn muốn hủy đăng ký?</p>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => {
+                            toast.dismiss();
+                            performUnenroll();
+                        }}
+                        className="px-3 py-1 bg-red-500 text-white rounded text-sm font-medium hover:bg-red-600"
+                    >
+                        Xác nhận hủy
+                    </button>
+                    <button
+                        onClick={() => toast.dismiss()}
+                        className="px-3 py-1 bg-gray-500 text-white rounded text-sm font-medium hover:bg-gray-600"
+                    >
+                        Giữ lại
+                    </button>
+                </div>
+            </div>,
+            {
+                autoClose: false,
+                closeOnClick: false,
+                draggable: false,
+            }
+        );
+    };
 
+    const performUnenroll = async () => {
         const token = getAuthToken();
         if (!token) {
-            alert('Vui lòng đăng nhập để thực hiện thao tác này');
+            toast.error('Vui lòng đăng nhập để thực hiện thao tác này');
             return;
         }
 
@@ -145,17 +173,17 @@ const CommunityProgramDetails: React.FC = () => {
                     status: null,
                     registrationDate: null
                 });
-                alert(`Hủy đăng ký thành công! ${data.message || ''}`);
+                toast.success(`Hủy đăng ký thành công! ${data.message || ''}`);
             } else if (response.status === 401) {
                 localStorage.removeItem('token');
                 setUser(null);
-                alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+                toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
             } else {
-                alert(data.message || 'Có lỗi xảy ra khi hủy đăng ký');
+                toast.error(data.message || 'Có lỗi xảy ra khi hủy đăng ký');
             }
         } catch (error) {
             console.error('Unenrollment error:', error);
-            alert('Có lỗi xảy ra khi hủy đăng ký');
+            toast.error('Có lỗi xảy ra khi hủy đăng ký');
         }
     };
 

@@ -34,12 +34,11 @@ const CoursesPage: React.FC = () => {
         
         <div className="relative container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto text-center text-white">
-            <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight flex items-center justify-center gap-3">
+            <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight flex items-center justify-center gap-3 text-white">
               <div className="p-2 bg-white/20 rounded-full backdrop-blur-sm">
                 <BookOpen className="h-6 w-6" />
               </div>
-              Khóa học 
-              <span className="text-yellow-300"> Chuyên nghiệp</span>
+              Khóa học Chuyên nghiệp
             </h1>
             <p className="text-lg md:text-xl mb-6 text-blue-100 leading-relaxed">
               Tìm hiểu các kỹ năng phòng chống ma túy theo từng độ tuổi và đối tượng

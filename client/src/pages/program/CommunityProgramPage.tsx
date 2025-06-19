@@ -4,6 +4,7 @@ import { Users } from 'lucide-react';
 import { CommunityProgram, EnrollmentStatus } from '../../types/CommunityProgram';
 import { parseDate } from '../../utils/parseDateUtils';
 import { User } from '../../types/User';
+import { toast } from 'react-toastify';
 
 const CommunityProgramPage: React.FC = () => {
     const [eventSelected, setEventSelected] = useState<string>('online');
@@ -126,7 +127,7 @@ const CommunityProgramPage: React.FC = () => {
     const token = getAuthToken();
 
     if (!token || !user) {
-      alert('Vui lòng đăng nhập để tham gia chương trình');
+      toast.error('Vui lòng đăng nhập để tham gia chương trình');
       return;
     }
 
@@ -149,17 +150,17 @@ const CommunityProgramPage: React.FC = () => {
           ...prev,
           [programId]: { isEnrolled: true, status: 'registered', registrationDate: new Date().toISOString() }
         }));
-        alert(`Đăng ký tham gia thành công! ${data.message || ''}`);
+        toast.success(`Đăng ký tham gia thành công! ${data.message || ''}`);
       } else if (response.status === 401) {
         localStorage.removeItem('token');
         setUser(null);
-        alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
       } else {
-        alert(data.message || 'Có lỗi xảy ra khi đăng ký');
+        toast.error(data.message || 'Có lỗi xảy ra khi đăng ký');
       }
     } catch (error) {
       console.error('Enrollment error:', error);
-      alert('Có lỗi xảy ra khi đăng ký');
+      toast.error('Có lỗi xảy ra khi đăng ký');
     } finally {
       setLoadingEnrollments(prev => ({ ...prev, [programId]: false }));
     }
@@ -167,13 +168,40 @@ const CommunityProgramPage: React.FC = () => {
 
     // Xử lý hủy đăng ký
     const handleUnenroll = async (programId: number) => {
-        if (!confirm('Bạn có chắc chắn muốn hủy đăng ký tham gia chương trình này?')) {
-            return;
-        }
+        // Show confirmation toast
+        toast.warn(
+            <div>
+                <p className="mb-3 font-medium">Bạn có chắc chắn muốn hủy đăng ký?</p>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => {
+                            toast.dismiss();
+                            performUnenroll(programId);
+                        }}
+                        className="px-3 py-1 bg-red-500 text-white rounded text-sm font-medium hover:bg-red-600"
+                    >
+                        Xác nhận hủy
+                    </button>
+                    <button
+                        onClick={() => toast.dismiss()}
+                        className="px-3 py-1 bg-gray-500 text-white rounded text-sm font-medium hover:bg-gray-600"
+                    >
+                        Giữ lại
+                    </button>
+                </div>
+            </div>,
+            {
+                autoClose: false,
+                closeOnClick: false,
+                draggable: false,
+            }
+        );
+    };
 
+    const performUnenroll = async (programId: number) => {
         const token = getAuthToken();
         if (!token) {
-            alert('Vui lòng đăng nhập để thực hiện thao tác này');
+            toast.error('Vui lòng đăng nhập để thực hiện thao tác này');
             return;
         }
 
@@ -199,17 +227,17 @@ const CommunityProgramPage: React.FC = () => {
                         registrationDate: null
                     }
                 }));
-                alert(`Hủy đăng ký thành công! ${data.message || ''}`);
+                toast.success(`Hủy đăng ký thành công! ${data.message || ''}`);
             } else if (response.status === 401) {
                 localStorage.removeItem('token');
                 setUser(null);
-                alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+                toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
             } else {
-                alert(data.message || 'Có lỗi xảy ra khi hủy đăng ký');
+                toast.error(data.message || 'Có lỗi xảy ra khi hủy đăng ký');
             }
         } catch (error) {
             console.error('Unenrollment error:', error);
-            alert('Có lỗi xảy ra khi hủy đăng ký');
+            toast.error('Có lỗi xảy ra khi hủy đăng ký');
         } finally {
             setLoadingEnrollments(prev => ({ ...prev, [programId]: false }));
         }
@@ -263,7 +291,7 @@ const CommunityProgramPage: React.FC = () => {
                     )
                 ) : (
                     <button
-                        onClick={() => alert('Vui lòng đăng nhập để tham gia chương trình')}
+                        onClick={() => toast.info('Vui lòng đăng nhập để tham gia chương trình')}
                         className="w-full px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors duration-200"
                     >
                         Tham gia
@@ -317,12 +345,11 @@ const CommunityProgramPage: React.FC = () => {
                 
                 <div className="relative container mx-auto px-4 py-12">
                     <div className="max-w-4xl mx-auto text-center text-white">
-                        <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight flex items-center justify-center gap-3">
+                        <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight flex items-center justify-center gap-3 text-white">
                             <div className="p-2 bg-white/20 rounded-full backdrop-blur-sm">
                                 <Users className="h-6 w-6" />
                             </div>
-                            Tin Tức 
-                            <span className="text-yellow-300"> Sự Kiện</span>
+                            Tin Tức Sự Kiện
                         </h1>
                         <p className="text-lg md:text-xl mb-6 text-blue-100 leading-relaxed">
                             Khám phá các sự kiện phòng chống ma túy sắp diễn ra
