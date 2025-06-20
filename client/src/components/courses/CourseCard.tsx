@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, Users, Star, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { SqlCourse } from '../../types/Course';
 
 interface CourseCardProps {
@@ -24,12 +24,6 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
             {course.Audience}
           </span>
         </div>
-        
-        {/* Rating Badge */}
-        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
-          <Star className="h-3 w-3 text-yellow-500 fill-current" />
-          <span className="text-xs font-semibold text-gray-700">4.8</span>
-        </div>
       </div>
 
       <div className="p-6 flex flex-col flex-grow">
@@ -40,18 +34,6 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
         <p className="text-gray-600 mb-6 line-clamp-3 flex-grow leading-relaxed">
           {course.Description}
         </p>
-
-        {/* Course Stats */}
-        <div className="flex items-center justify-between mb-6 text-sm">
-          <div className="flex items-center text-gray-500 bg-gray-50 px-3 py-2 rounded-lg">
-            <Clock className="h-4 w-4 mr-2 text-primary-500" />
-            <span className="font-medium">{course.Duration}</span>
-          </div>
-          <div className="flex items-center text-gray-500 bg-gray-50 px-3 py-2 rounded-lg">
-            <Users className="h-4 w-4 mr-2 text-green-500" />
-            <span className="font-medium">{course.EnrollCount}</span>
-          </div>
-        </div>
 
         {/* CTA Button */}
         <div className="mt-auto">

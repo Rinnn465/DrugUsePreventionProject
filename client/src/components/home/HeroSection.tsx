@@ -100,30 +100,7 @@ const HeroSection: React.FC = () => {
         <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-r from-green-400 to-teal-400 rounded-full blur-3xl"></div>
       </div>
 
-      {/* Professional Tagline */}
-      <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 z-20 shadow-lg">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/90 via-blue-700/90 to-indigo-700/90 backdrop-blur-sm"></div>
-        <div className="relative">
-          <div className="container mx-auto px-4 py-5">
-            <div className="flex items-center justify-center space-x-4">
-              <div className="relative">
-                <div className="absolute -inset-1 bg-white/20 rounded-full blur-sm"></div>
-                <Shield className="relative h-8 w-8 text-white drop-shadow-sm" />
-              </div>
-              <div className="relative">
-                <span className="text-white font-bold text-xl tracking-wider drop-shadow-sm">
-                  Nền tảng phòng ngừa ma túy đầu tiên của Việt Nam
-                </span>
-                <div className="absolute -bottom-1 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
-              </div>
-            </div>
-          </div>
-          {/* Bottom accent line */}
-          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-4 py-24 pt-36 relative z-10">
+      <div className="container mx-auto px-4 py-24 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[600px]">
 
           {/* Left Side - Content */}
@@ -131,7 +108,7 @@ const HeroSection: React.FC = () => {
 
             {/* Main Title */}
             <div className="space-y-4 pb-4">
-              <h1 className={`text-5xl lg:text-6xl font-bold bg-gradient-to-r ${slide.gradient} bg-clip-text text-transparent leading-loose pb-4`}>
+              <h1 className="text-5xl lg:text-6xl font-extrabold bg-gradient-to-r from-primary-600 via-blue-600 to-primary-800 bg-clip-text text-transparent leading-loose pb-4">
                 {slide.title}
               </h1>
               <h2 className="text-2xl lg:text-3xl font-semibold text-gray-800">
@@ -169,7 +146,7 @@ const HeroSection: React.FC = () => {
 
               <Link
                 to={slide.secondaryBtn.link}
-                className="group inline-flex items-center justify-center space-x-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200 text-gray-700 px-8 py-4 rounded-2xl shadow-lg hover:bg-white hover:shadow-xl hover:scale-105 transition-all duration-300 text-lg font-semibold"
+                className="group inline-flex items-center justify-center space-x-3 bg-white/80 backdrop-blur-sm border-2 border-primary-200 text-primary-700 px-8 py-4 rounded-2xl shadow-lg hover:bg-white hover:shadow-xl hover:scale-105 transition-all duration-300 text-lg font-semibold"
               >
                 <span>{slide.secondaryBtn.text}</span>
                 <slide.secondaryBtn.icon className="h-5 w-5 group-hover:translate-x-1 transition-transform" />

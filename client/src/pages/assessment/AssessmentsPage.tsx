@@ -118,12 +118,12 @@ const AssessmentsPage: React.FC = () => {
                           ))}
                         </div>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm text-gray-600 font-semibold">
-                          <span>{assessment.questionCount} câu hỏi</span>
-                          <span className="mx-2">•</span>
-                          <span>~{assessment.timeToComplete} phút</span>
-                        </div>
+                      <div className="text-sm text-gray-600 font-semibold mb-4">
+                        <span>{assessment.questionCount} câu hỏi</span>
+                        <span className="mx-2">•</span>
+                        <span>~{assessment.timeToComplete} phút</span>
+                      </div>
+                      <div className="mt-6">
                         <Link
                           to={`/assessments/${assessment.id}`}
                           className={`bg-gradient-to-r ${colorMap[colorKey].button} text-white font-bold py-2 px-5 rounded-xl transition-all shadow-lg`}

@@ -172,7 +172,7 @@ const HomePage: React.FC = () => {
             <span className="inline-block bg-gradient-to-r from-primary-100 to-blue-100 text-primary-800 px-6 py-3 rounded-full text-sm font-semibold mb-6">
               🌟 Chương Trình Nổi Bật
             </span>
-            <h2 className="text-5xl md:text-6xl font-extrabold mb-12 bg-gradient-to-r from-blue-500 to-blue-600 bg-clip-text text-transparent leading-loose pb-4">
+            <h2 className="text-5xl md:text-6xl font-extrabold mb-12 bg-gradient-to-r from-primary-600 via-blue-600 to-primary-800 bg-clip-text text-transparent leading-loose pb-4">
               Hoạt động cộng đồng
             </h2>
             <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
@@ -183,7 +183,7 @@ const HomePage: React.FC = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
             {/* Card 1 */}
-            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col h-full">
               <div className="relative overflow-hidden">
                 <img
                   src="https://images.pexels.com/photos/3184433/pexels-photo-3184433.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
@@ -194,31 +194,31 @@ const HomePage: React.FC = () => {
                   🎓 Giáo dục
                 </div>
               </div>
-              <div className="p-8">
+              <div className="p-8 flex flex-col flex-grow">
                 <h3 className="text-2xl font-bold mb-4 text-primary-700">
                   Workshop Môi Trường Học Đường
                 </h3>
-                <p className="text-gray-600 mb-6 text-lg leading-relaxed">
+                <p className="text-gray-600 mb-6 text-lg leading-relaxed flex-grow">
                   Những buổi workshop được tổ chức trực tiếp nhằm giúp học sinh nhận thức rõ về các vấn đề liên quan đến ma túy.
                 </p>
-                <div className="flex items-center justify-between">
+                <div className="mt-auto">
+                  <div className="flex items-center gap-1 text-gray-500 text-sm mb-4">
+                    <Users className="h-4 w-4" />
+                    <span>500+ học sinh</span>
+                  </div>
                   <Link
                     to="/community-programs"
-                    className="inline-flex items-center gap-2 text-primary-600 font-semibold text-lg"
+                    className="inline-flex items-center gap-2 text-primary-600 font-semibold text-lg hover:text-primary-700 transition-colors"
                   >
                     <span>Tìm hiểu thêm</span>
                     <ArrowRight className="h-5 w-5" />
                   </Link>
-                  <div className="flex items-center gap-1 text-gray-500 text-sm">
-                    <Users className="h-4 w-4" />
-                    <span>500+ học sinh</span>
-                  </div>
                 </div>
               </div>
             </div>
 
             {/* Card 2 */}
-            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col h-full">
               <div className="relative overflow-hidden">
                 <img
                   src="https://images.pexels.com/photos/7551442/pexels-photo-7551442.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
@@ -229,31 +229,31 @@ const HomePage: React.FC = () => {
                   👪 Gia đình
                 </div>
               </div>
-              <div className="p-8">
-                <h3 className="text-2xl font-bold mb-4 text-green-700">
+              <div className="p-8 flex flex-col flex-grow">
+                <h3 className="text-2xl font-bold mb-4 text-primary-700">
                   Hỗ Trợ Phụ Huynh
                 </h3>
-                <p className="text-gray-600 mb-6 text-lg leading-relaxed">
+                <p className="text-gray-600 mb-6 text-lg leading-relaxed flex-grow">
                   Những buổi tuyên truyền giúp phụ huynh phát hiện sớm dấu hiệu và hướng dẫn cách hỗ trợ con em hiệu quả.
                 </p>
-                <div className="flex items-center justify-between">
+                <div className="mt-auto">
+                  <div className="flex items-center gap-1 text-gray-500 text-sm mb-4">
+                    <Users className="h-4 w-4" />
+                    <span>300+ gia đình</span>
+                  </div>
                   <Link
                     to="/community-programs"
-                    className="inline-flex items-center gap-2 text-green-600 font-semibold text-lg"
+                    className="inline-flex items-center gap-2 text-primary-600 font-semibold text-lg hover:text-primary-700 transition-colors"
                   >
                     <span>Tìm hiểu thêm</span>
                     <ArrowRight className="h-5 w-5" />
                   </Link>
-                  <div className="flex items-center gap-1 text-gray-500 text-sm">
-                    <Users className="h-4 w-4" />
-                    <span>300+ gia đình</span>
-                  </div>
                 </div>
               </div>
             </div>
 
             {/* Card 3 */}
-            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col h-full">
               <div className="relative overflow-hidden">
                 <img
                   src="https://images.pexels.com/photos/3184405/pexels-photo-3184405.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
@@ -264,25 +264,25 @@ const HomePage: React.FC = () => {
                   🌍 Cộng đồng
                 </div>
               </div>
-              <div className="p-8">
-                <h3 className="text-2xl font-bold mb-4 text-purple-700">
+              <div className="p-8 flex flex-col flex-grow">
+                <h3 className="text-2xl font-bold mb-4 text-primary-700">
                   Ngày Hội Cộng Đồng
                 </h3>
-                <p className="text-gray-600 mb-6 text-lg leading-relaxed">
+                <p className="text-gray-600 mb-6 text-lg leading-relaxed flex-grow">
                   Sự kiện mở rộng với nhiều hoạt động, tài liệu giáo dục và sàng lọc dành cho mọi người trong cộng đồng.
                 </p>
-                <div className="flex items-center justify-between">
+                <div className="mt-auto">
+                  <div className="flex items-center gap-1 text-gray-500 text-sm mb-4">
+                    <Users className="h-4 w-4" />
+                    <span>1000+ người</span>
+                  </div>
                   <Link
                     to="/community-programs"
-                    className="inline-flex items-center gap-2 text-purple-600 font-semibold text-lg"
+                    className="inline-flex items-center gap-2 text-primary-600 font-semibold text-lg hover:text-primary-700 transition-colors"
                   >
                     <span>Tìm hiểu thêm</span>
                     <ArrowRight className="h-5 w-5" />
                   </Link>
-                  <div className="flex items-center gap-1 text-gray-500 text-sm">
-                    <Users className="h-4 w-4" />
-                    <span>1000+ người</span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -313,10 +313,10 @@ const HomePage: React.FC = () => {
             <span className="inline-block bg-gradient-to-r from-yellow-100 to-orange-100 text-orange-800 px-6 py-3 rounded-full text-sm font-semibold mb-6">
               💬 Phản Hồi Tích Cực
             </span>
-            <h2 className="text-5xl md:text-6xl font-extrabold mb-6 pb-6 bg-gradient-to-r from-orange-600 via-red-500 to-pink-600 bg-clip-text text-transparent">
+            <h2 className="text-5xl md:text-6xl font-extrabold mb-6 pb-6 bg-gradient-to-r from-primary-600 via-blue-600 to-primary-800 bg-clip-text text-transparent leading-loose pb-4">
               Câu Chuyện Truyền Cảm Hứng
             </h2>
-            <div className="w-32 h-1 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 mx-auto mb-8 rounded-full"></div>
+            <div className="w-32 h-1 bg-gradient-to-r from-primary-500 via-red-500 to-pink-500 mx-auto mb-8 rounded-full"></div>
             <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
               Lắng nghe tiếng nói của những người đã tham gia chương trình và cảm nhận sự thay đổi tích cực trong cuộc sống.
             </p>
