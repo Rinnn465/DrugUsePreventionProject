@@ -354,11 +354,6 @@ const CommunityProgramPage: React.FC = () => {
                         <p className="text-lg md:text-xl mb-6 text-blue-100 leading-relaxed">
                             Khám phá các sự kiện phòng chống ma túy sắp diễn ra
                         </p>
-                        {user && (
-                            <p className="text-sm text-green-300 mt-2">
-                                Chào mừng, {user.Fullname || user.Username}!
-                            </p>
-                        )}
                     </div>
                 </div>
             </div>
