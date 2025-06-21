@@ -60,6 +60,10 @@ function App() {
             <Route path="survey/:programId/after" element={<SurveyAfterEventPage />} />
             <Route path="survey/:programId/completed" element={<SurveyCompletePage />} />
             <Route path="dashboard/:userId" element={<DashBoardPage />} />
+            <Route path="dashboard/:userId/profile" element={<DashBoardPage />} />
+            <Route path="dashboard/:userId/courses" element={<DashBoardPage />} />
+            <Route path="dashboard/:userId/events" element={<DashBoardPage />} />
+            <Route path="dashboard/:userId/appointments" element={<DashBoardPage />} />
             <Route path="roles/:userId" element={<RolePage />} />
             <Route path="admin" element={<AdminPage />} />
 
