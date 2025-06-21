@@ -6,6 +6,8 @@ import { toast } from 'react-toastify';
 const SurveyBeforeEventPage: React.FC = () => {
     const { id } = useParams();
 
+
+
     return (
         <div className="container px-4 py-8 mx-auto max-w-2xl">
             <h1 className="text-3xl font-bold text-center mb-4">Form khảo sát trước sự kiện</h1>

@@ -18,7 +18,13 @@ export async function getCourses(req: Request, res: Response): Promise<void> {
         // Get database connection
         const pool = await poolPromise;
         // Query all courses
-        const result = await pool.request().query('SELECT * FROM Course');
+        const result = await pool.request().query(`
+            SELECT c.CourseID, c.CourseName, c.Risk, c.Description, c.ImageUrl, 
+            c.EnrollCount, cc.CategoryID, cate.CategoryName 
+            FROM CourseCategory cc JOIN Course c ON cc.CourseID = c.CourseID 
+                                   JOIN Category cate ON cate.CategoryID = cc.CategoryID
+            WHERE c.IsDisabled = 0
+            `);
         res.status(200).json({
             message: 'Courses fetched successfully',
             data: result.recordset
@@ -34,6 +40,39 @@ export async function getCourses(req: Request, res: Response): Promise<void> {
         return;
     }
 }
+
+/**
+ * Retrieves all course categories from the database
+ * 
+ * @route GET /api/courses/category
+ * @access Public
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object
+ * @returns {Promise<void>} JSON response with array of course categories
+ * @throws {500} If database error occurs
+ */
+export async function getCourseCategories(req: Request, res: Response): Promise<void> {
+    try {
+        // Get database connection
+        const pool = await poolPromise;
+        // Query all course categories
+        const result = await pool.request().query('SELECT * FROM Category');
+        res.status(200).json({
+            message: 'Course categories fetched successfully',
+            data: result.recordset
+        });
+        return;
+    } catch (err: any) {
+        // Log error and send error response
+        console.error('Error in getCourseCategories:', err);
+        res.status(500).json({
+            message: 'Error fetching course categories',
+            error: err.message
+        });
+        return;
+    }
+}
+
 
 /**
  * Retrieves a specific course by its ID
@@ -76,6 +115,78 @@ export async function getCourseById(req: Request, res: Response): Promise<void> 
             message: 'Error fetching course',
             error: err.message
         });
+        return;
+    }
+}
+
+export async function enrollCourse(req: Request, res: Response): Promise<void> {
+    const { courseId, accountId, enrollmentDate, status } = req.body;
+
+    try {
+        const pool = await poolPromise;
+        await pool.request()
+            .input('CourseId', sql.Int, courseId)
+            .input('AccountId', sql.Int, accountId)
+            .input('EnrollmentDate', sql.DateTime, enrollmentDate)
+            .input('Status', sql.VarChar(50), status)
+            .query('INSERT INTO Enrollment (CourseID, AccountID, EnrollmentDate, Status) VALUES (@CourseId, @AccountId, @EnrollmentDate, @Status)');
+
+        res.status(201).json({ message: 'Enrollment successful', data: { courseId, accountId, enrollmentDate, status } });
+        return;
+    } catch (err: any) {
+        console.error('Error in enrollCourse:', err);
+        res.status(500).json({ message: 'Cõ lối trong quá trình xử lý', error: err.message });
+        return;
+    }
+}
+
+/**
+ * Retrieves all courses that the user is enrolled in
+ * 
+ * @route GET /api/courses/enrolled
+ * @access Private
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object
+ * @returns {Promise<void>} JSON response with enrolled courses
+ * @throws {500} If database error occurs
+ */
+export async function getEnrolledCourses(req: Request, res: Response): Promise<void> {
+    const accountId = req.params.id;
+
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('AccountId', sql.Int, accountId)
+            .query('SELECT * FROM Enrollment WHERE AccountID = @AccountId');
+
+        res.status(200).json({
+            message: 'Enrolled courses fetched successfully',
+            data: result.recordset
+        });
+        return;
+    } catch (err: any) {
+        console.error('Error in getEnrolledCourses:', err);
+        res.status(500).json({
+            message: 'Error fetching enrolled courses',
+            error: err.message
+        });
+        return;
+    }
+}
+
+export async function completeCourse(req: Request, res: Response): Promise<void> {
+    const { courseId, accountId } = req.body;
+
+    try {
+        const pool = await poolPromise;
+        await pool.request()
+            .input('CourseId', sql.Int, courseId)
+            .input('AccountId', sql.Int, accountId)
+            .query('UPDATE Enrollment SET Status = \'Completed\' WHERE CourseID = @CourseId AND AccountID = @AccountId');
+        res.status(200).json({ message: 'Hoàn thành khóa học' });
+        return;
+    } catch (err: any) {
+        res.status(500).json({ message: 'Cõ lối trong quá trình xử lý', error: err.message });
         return;
     }
 }
