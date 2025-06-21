@@ -1,33 +1,27 @@
-import { Lesson, sqlLesson } from './Lesson';
-
-export interface Course {
-  id: number;
-  title: string;
-  description: string;
-  category: string;
-  audience: string;
-  duration: string;
-  lesson: Lesson[];
-  imageUrl: string;
-  enrolledCount: number;
-  isCertified: boolean;
-  risk: string;
+export interface SqlCourse {
+  CourseID: number;
+  CourseName: string;
+  Risk: string;
+  Description: string;
+  ImageUrl: string;
+  EnrollCount: number;
+  Duration: number | null;
+  IsDisabled?: boolean; // Optional if not always present
+  Status?: string; // Optional if not always present
+  Category: Category[];
 }
 
-//////////////////////////////////////////////////////////////////
-//real course from db 
-export interface SqlCourse {
-  CourseID: number;        // matches CourseID int primary key
-  CourseName: string;
-  Duration: number    // matches CourseName nvarchar(255)
-  Risk: string;            // matches Risk nvarchar(10)
-  Audience?: string;       // matches Audience nvarchar(100), optional if nullable
-  Description?: string;    // matches Description nvarchar(1000), optional if nullable
-  EnrollCount: number;     // matches EnrollCount int (non-negative)
-  ImageUrl?: string;       // matches ImageUrl nvarchar(300), optional if nullable
-  Status: string;          // matches Status nvarchar(40)
-  IsDisabled: boolean;     // matches IsDisabled BIT
+export interface Category {
+  CategoryID: number;      // matches CategoryID int primary
+  CategoryName: string;    // matches CategoryName nvarchar(255)
+}
 
+export interface Enrollment {
+  CourseID: number;        // matches CourseID int primary
+  AccountID: number;          // matches UserID int primary
+  EnrollDate: Date;        // matches EnrollDate datetime
+  Status: string;         // matches Status nvarchar(50), e.g., 'enrolled', 'completed'
+  CompletionDate?: Date;   // matches CompletionDate datetime, optional if not always present
 }
 
 

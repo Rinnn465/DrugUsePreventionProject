@@ -16,6 +16,8 @@ const SurveyBeforeEventPage = () => {
         setFormData({ ...formData, [name]: value });
     };
 
+
+
     return (
         <div className="container px-4 py-8 mx-auto max-w-2xl bg-gray-100 rounded-lg shadow-md">
             <h1 className="text-3xl font-bold text-center mb-4 text-gray-800">Khảo Sát Trước Khi Tham Gia Chương Trình Cộng Đồng</h1>

@@ -8,8 +8,27 @@ const router: Router = express.Router();
 // fetch all availalbe courses
 router.get("/", courseController.getCourses);
 
+// fetch all course categories
+router.get("/category", courseController.getCourseCategories);
+
 // fetch course by id
 router.get("/:id", courseController.getCourseById);
+
+// enroll in a course
+router.post("/:id/enroll", courseController.enrollCourse);
+
+//get all enrolled courses by user id
+router.get("/:id/enrolled/user", courseController.getEnrolledCourses);
+
+
+// unenroll from a course
+// router.post("/:id/unenroll", courseController.unenrollCourse);
+
+//complete course
+router.patch("/:id/complete", courseController.completeCourse);
+
+//fetch all enrolled courses
+router.get("/enrolled", courseController.getEnrolledCourses);
 
 // fetch lesson by course id
 router.get("/:id/lessons", lessonController.getLesson);
