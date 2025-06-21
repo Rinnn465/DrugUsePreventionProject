@@ -45,6 +45,7 @@ const CoursesPage: React.FC = () => {
         console.error('Error fetching course categories:', error);
         setError('Không thể tải danh mục. Vui lòng thử lại sau.');
       });
+
   }, []);
 
   // Filter courses with memoization
