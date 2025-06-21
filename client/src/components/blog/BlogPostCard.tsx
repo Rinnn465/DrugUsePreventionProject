@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, User, ArrowRight, Clock } from 'lucide-react';
+import { Calendar, User, ArrowRight } from 'lucide-react';
 import { Article } from '../../types/Article';
 
 function formatDate(dateString: string) {
@@ -40,14 +40,6 @@ const BlogPostCard: React.FC<Article> = ({
             <span className="text-sm font-semibold text-gray-700">
               {formatDate(PublishedDate)}
             </span>
-          </div>
-        </div>
-        
-        {/* Reading Time Badge */}
-        <div className="absolute top-4 right-4">
-          <div className="bg-primary-600 text-white rounded-full px-3 py-1.5 flex items-center gap-1">
-            <Clock className="h-3 w-3" />
-            <span className="text-xs font-semibold">5 phút đọc</span>
           </div>
         </div>
       </div>

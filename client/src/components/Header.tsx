@@ -85,37 +85,37 @@ const Header: React.FC<HeaderProps> = () => {
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm border-b">
-      <div className="container mx-auto px-4 py-2 flex items-center justify-between gap-4">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 min-w-[160px]">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+        {/* Logo - Góc trái */}
+        <Link to="/" className="flex items-center gap-2 flex-shrink-0">
           <span className="inline-block h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
             <Heart className="h-5 w-5 text-primary-600" />
           </span>
           <span className="font-bold text-xl text-primary-700 tracking-wide">DrugPrevention</span>
         </Link>
 
-        {/* Menu điều hướng dạng card */}
-        <nav className="flex-1 flex justify-center">
-          <div className="flex gap-3 overflow-x-auto scrollbar-thin pb-1">
+        {/* Menu điều hướng - Giữa */}
+        <nav className="hidden lg:flex justify-center flex-1 px-8">
+          <div className="flex gap-2 overflow-x-auto scrollbar-thin">
             {navMenus.map((item, idx) => {
               return (
                 <NavLink
                   to={item.to}
                   key={idx}
                   className={({ isActive }) =>
-                    `flex items-center justify-center bg-white rounded-xl shadow-md px-4 py-2 min-w-[120px] max-w-[160px] hover:shadow-lg transition group border border-transparent hover:border-primary-200 text-center whitespace-nowrap select-none ${isActive ? 'border-primary-500 shadow-lg text-primary-700 font-semibold' : 'text-gray-700'} hover:text-primary-700`
+                    `flex items-center justify-center bg-white rounded-lg shadow-sm px-3 py-2 min-w-[100px] hover:shadow-md transition-all group border border-transparent hover:border-primary-200 text-center whitespace-nowrap select-none ${isActive ? 'border-primary-500 shadow-md text-primary-700 font-semibold' : 'text-gray-700'} hover:text-primary-700`
                   }
-                  style={{ minHeight: 60 }}
+                  style={{ minHeight: 45 }}
                 >
-                  <span className="text-sm font-medium">{item.label}</span>
+                  <span className="text-xs font-medium">{item.label}</span>
                 </NavLink>
               );
             })}
           </div>
         </nav>
 
-        {/* User/account */}
-        <div className="min-w-[120px] flex justify-end">
+        {/* User/account - Góc phải */}
+        <div className="flex items-center gap-3 flex-shrink-0">
           {user ? (
             <Tippy
               interactive
@@ -144,20 +144,20 @@ const Header: React.FC<HeaderProps> = () => {
             >
               <div className='flex gap-2 items-center cursor-pointer'>
                 <User className="h-8 w-8 text-primary-600" />
-                <span className='select-none text-black-500 font-semibold'>{user.Username}</span>
+                <span className='select-none text-gray-700 font-semibold'>{user.Username}</span>
               </div>
             </Tippy>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Link
                 to="/login"
-                className="inline-block bg-white text-primary-600 px-4 py-2 rounded-md shadow hover:bg-gray-100 transition-colors font-medium border border-primary-100"
+                className="inline-flex items-center justify-center bg-white text-primary-600 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50 hover:shadow-md transition-all duration-300 font-semibold border border-primary-200 text-sm whitespace-nowrap"
               >
                 Đăng nhập
               </Link>
               <Link
                 to="/signup"
-                className="inline-block bg-primary-600 text-white px-4 py-2 rounded-md shadow hover:bg-primary-700 transition-colors font-medium border border-primary-100"
+                className="inline-flex items-center justify-center bg-primary-600 text-white px-4 py-2 rounded-lg shadow-sm hover:bg-primary-700 hover:shadow-md transition-all duration-300 font-semibold text-sm whitespace-nowrap"
               >
                 Đăng ký
               </Link>
