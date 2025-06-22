@@ -4,7 +4,7 @@ import { useUser } from "../context/UserContext";
 import Sidebar from "../components/sidebar/Sidebar";
 import { parseDate } from "../utils/parseDateUtils";
 import { courseData } from "../data/courseData";
-import { User, BookOpen, Calendar, Clock, Users, Phone, Mail, MapPin, Edit, ArrowRight, Lock } from "lucide-react";
+import { User, BookOpen, Calendar, Clock, Users, Mail, Edit, ArrowRight, Lock } from "lucide-react";
 import { Appointment } from "../types/Appointment";
 
 interface ProfileFormData {
@@ -120,41 +120,45 @@ const DashBoardPage: React.FC = () => {
       return;
     }
 
-    // Check if data has changed
-    if (
-      profileForm.username === user?.Username &&
-      profileForm.email === user?.Email &&
-      profileForm.fullName === user?.FullName &&
-      profileForm.dateOfBirth === (user?.DateOfBirth ? new Date(user.DateOfBirth).toISOString().split('T')[0] : "")
-    ) {
+    // Determine changed fields
+    const changedFields: Partial<ProfileFormData> = {};
+    if (profileForm.username !== user?.Username) changedFields.username = profileForm.username;
+    if (profileForm.email !== user?.Email) changedFields.email = profileForm.email;
+    if (profileForm.fullName !== user?.FullName) changedFields.fullName = profileForm.fullName;
+    if (profileForm.dateOfBirth !== (user?.DateOfBirth ? new Date(user.DateOfBirth).toISOString().split('T')[0] : "")) {
+      changedFields.dateOfBirth = profileForm.dateOfBirth;
+    }
+
+    // Check if any data has changed
+    if (Object.keys(changedFields).length === 0) {
       setMessage({ type: "success", text: "Không có thay đổi để lưu" });
       setIsEditingProfile(false);
       setIsLoading(false);
       return;
     }
 
-    // Client-side validation
-    if (!profileForm.username || profileForm.username.length < 3 || profileForm.username.length > 50) {
+    // Client-side validation for changed fields
+    if (changedFields.username && (!changedFields.username || changedFields.username.length < 3 || changedFields.username.length > 50)) {
       setMessage({ type: "error", text: "Tên người dùng phải từ 3 đến 50 ký tự" });
       setIsLoading(false);
       return;
     }
-    if (!isValidUsername(profileForm.username)) {
+    if (changedFields.username && !isValidUsername(changedFields.username)) {
       setMessage({ type: "error", text: "Tên người dùng chỉ được chứa chữ cái và số" });
       setIsLoading(false);
       return;
     }
-    if (!profileForm.email || !isValidEmail(profileForm.email)) {
+    if (changedFields.email && (!changedFields.email || !isValidEmail(changedFields.email))) {
       setMessage({ type: "error", text: "Email không hợp lệ" });
       setIsLoading(false);
       return;
     }
-    if (!profileForm.fullName || profileForm.fullName.length < 2 || profileForm.fullName.length > 100) {
+    if (changedFields.fullName && (!changedFields.fullName || changedFields.fullName.length < 2 || changedFields.fullName.length > 100)) {
       setMessage({ type: "error", text: "Họ tên phải từ 2 đến 100 ký tự" });
       setIsLoading(false);
       return;
     }
-    if (profileForm.dateOfBirth && new Date(profileForm.dateOfBirth) > new Date()) {
+    if (changedFields.dateOfBirth && new Date(changedFields.dateOfBirth) > new Date()) {
       setMessage({ type: "error", text: "Ngày sinh không được là ngày trong tương lai" });
       setIsLoading(false);
       return;
@@ -167,7 +171,7 @@ const DashBoardPage: React.FC = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(profileForm),
+        body: JSON.stringify(changedFields), // Send only changed fields
       });
 
       const result = await response.json();
@@ -357,17 +361,17 @@ const DashBoardPage: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
-                      <Phone className="h-5 w-5 text-gray-400" />
+                      <User className="h-5 w-5 text-gray-400" />
                       <div>
-                        <p className="text-sm text-gray-600">Số điện thoại</p>
-                        <p className="font-medium text-gray-800">Chưa cập nhật</p>
+                        <p className="text-sm text-gray-600">Họ và tên</p>
+                        <p className="font-medium text-gray-800">{user?.FullName || "Chưa cập nhật"}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg md:col-span-2">
-                      <MapPin className="h-5 w-5 text-gray-400" />
+                      <Calendar className="h-5 w-5 text-gray-400" />
                       <div>
-                        <p className="text-sm text-gray-600">Địa chỉ</p>
-                        <p className="font-medium text-gray-800">Chưa cập nhật</p>
+                        <p className="text-sm text-gray-600">Ngày sinh</p>
+                        <p className="font-medium text-gray-800">{user?.DateOfBirth ? parseDate(user.DateOfBirth) : "Chưa cập nhật"}</p>
                       </div>
                     </div>
                   </div>

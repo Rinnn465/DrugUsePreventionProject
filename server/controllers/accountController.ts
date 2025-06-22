@@ -141,7 +141,7 @@ export const updateAccountProfile = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { username, email, fullName, dateOfBirth } = req.body;
+  const { username, email, fullName, dateOfBirth } = req.body; // Partial data allowed
   const accountId = parseInt(req.params.id, 10);
   const user = (req as any).user; // From JWT middleware
 
@@ -164,69 +164,59 @@ export const updateAccountProfile = async (
       return;
     }
 
-    // Input validation
-    if (!username || username.length < 3 || username.length > 50) {
-      res.status(400).json({ message: "Tên người dùng phải từ 3 đến 50 ký tự" });
-      return;
-    }
-    if (!isValidUsername(username)) {
-      res.status(400).json({ message: "Tên người dùng chỉ được chứa chữ cái và số" });
-      return;
-    }
-    if (!email || !isValidEmail(email)) {
-      res.status(400).json({ message: "Email không hợp lệ" });
-      return;
-    }
-    if (!fullName || fullName.length < 2 || fullName.length > 100) {
-      res.status(400).json({ message: "Họ tên phải từ 2 đến 100 ký tự" });
-      return;
-    }
-    if (dateOfBirth && new Date(dateOfBirth) > new Date()) {
-      res.status(400).json({ message: "Ngày sinh không được là ngày trong tương lai" });
-      return;
-    }
-
-    // Check for existing username (excluding current user)
-    const checkUser = await poolPromise
-      .then(pool => pool
-        .request()
-        .input("username", sql.NVarChar, username)
-        .input("accountId", sql.Int, accountId)
-        .query("SELECT * FROM Account WHERE Username = @username AND AccountID != @accountId")
-      );
-    if (checkUser.recordset.length > 0) {
-      res.status(400).json({ message: "Tên người dùng đã tồn tại" });
-      return;
-    }
-
-    // Check for existing email (excluding current user)
-    const checkEmail = await poolPromise
-      .then(pool => pool
-        .request()
-        .input("email", sql.NVarChar, email)
-        .input("accountId", sql.Int, accountId)
-        .query("SELECT * FROM Account WHERE Email = @email AND AccountID != @accountId")
-      );
-    if (checkEmail.recordset.length > 0) {
-      res.status(400).json({ message: "Email đã tồn tại" });
-      return;
-    }
-
+    // Build dynamic SQL update query
     const pool = await poolPromise;
-    const result = await pool
-      .request()
-      .input("AccountID", sql.Int, accountId)
-      .input("Username", sql.NVarChar, username)
-      .input("Email", sql.NVarChar, email)
-      .input("FullName", sql.NVarChar, fullName)
-      .input("DateOfBirth", sql.Date, dateOfBirth || null)
-      .query(`UPDATE Account SET 
-        Username=@Username, 
-        Email=@Email, 
-        FullName=@FullName, 
-        DateOfBirth=@DateOfBirth
-        WHERE AccountID=@AccountID`);
-    
+    const request = pool.request();
+    request.input("AccountID", sql.Int, accountId);
+
+    const updates: string[] = [];
+    if (username !== undefined) {
+      if (!username || username.length < 3 || username.length > 50) {
+        res.status(400).json({ message: "Tên người dùng phải từ 3 đến 50 ký tự" });
+        return;
+      }
+      if (!isValidUsername(username)) {
+        res.status(400).json({ message: "Tên người dùng chỉ được chứa chữ cái và số" });
+        return;
+      }
+      request.input("Username", sql.NVarChar, username);
+      updates.push("Username = @Username");
+    }
+    if (email !== undefined) {
+      if (!email || !isValidEmail(email)) {
+        res.status(400).json({ message: "Email không hợp lệ" });
+        return;
+      }
+      request.input("Email", sql.NVarChar, email);
+      updates.push("Email = @Email");
+    }
+    if (fullName !== undefined) {
+      if (!fullName || fullName.length < 2 || fullName.length > 100) {
+        res.status(400).json({ message: "Họ tên phải từ 2 đến 100 ký tự" });
+        return;
+      }
+      request.input("FullName", sql.NVarChar, fullName);
+      updates.push("FullName = @FullName");
+    }
+    if (dateOfBirth !== undefined) {
+      if (dateOfBirth && new Date(dateOfBirth) > new Date()) {
+        res.status(400).json({ message: "Ngày sinh không được là ngày trong tương lai" });
+        return;
+      }
+      request.input("DateOfBirth", sql.Date, dateOfBirth || null);
+      updates.push("DateOfBirth = @DateOfBirth");
+    }
+
+    // Check if any field is provided for update
+    if (updates.length === 0) {
+      res.status(400).json({ message: "Không có trường nào được cập nhật" });
+      return;
+    }
+
+    // Execute dynamic update query
+    const query = `UPDATE Account SET ${updates.join(", ")} WHERE AccountID = @AccountID`;
+    const result = await request.query(query);
+
     if (result.rowsAffected[0] === 0) {
       res.status(404).json({ message: "Tài khoản không tồn tại" });
       return;
@@ -238,8 +228,8 @@ export const updateAccountProfile = async (
       .input("AccountID", sql.Int, accountId)
       .query("SELECT Account.*, Role.RoleName FROM Account JOIN Role ON Account.RoleID = Role.RoleID WHERE AccountID = @AccountID");
 
-    res.json({ 
-      message: "Hồ sơ đã được cập nhật", 
+    res.json({
+      message: "Hồ sơ đã được cập nhật",
       user: updatedUser.recordset[0]
     });
   } catch (err: any) {
@@ -296,7 +286,7 @@ export const updatePassword = async (
       .request()
       .input("AccountID", sql.Int, accountId)
       .query("SELECT Password FROM Account WHERE AccountID = @AccountID");
-    
+
     if (result.recordset.length === 0) {
       res.status(404).json({ message: "Tài khoản không tồn tại" });
       return;
