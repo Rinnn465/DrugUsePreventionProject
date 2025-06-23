@@ -10,10 +10,6 @@ import AppointmentsPage from './pages/appointment/AppointmentsPage';
 import DashBoardPage from './pages/DashBoardPage';
 import SurveyBeforeEventPage from './pages/survey/SurveyBeforeEventPage';
 import CourseEnrollPage from './pages/course/CourseEnrollPage';
-// import ProgramsPage from './pages/ProgramsPage';
-// import ProgramDetailPage from './pages/ProgramDetailPage';
-// import CounselorsPage from './pages/CounselorsPage';
-// import CounselorDetailPage from './pages/CounselorDetailPage';
 import NotFoundPage from './pages/NotFoundPage';
 import LoginPage from './pages/authen/LoginPage';
 import SignUpPage from './pages/authen/SignupPage';
@@ -37,7 +33,7 @@ import AdminPage from './pages/management/AdminPage';
 
 function App() {
   return (
-    <UserProvider >
+    <UserProvider>
       <Router>
         <Routes>
           {/* header and footer included */}
@@ -53,7 +49,6 @@ function App() {
             <Route path="assessments" element={<AssessmentsPage />} />
             <Route path="assessments/:assessmentId" element={<AssessmentDetailPage />} />
             <Route path="appointments" element={<AppointmentsPage />} />
-            {/* <Route path="profile/:userId" element={<ProfilePage />} /> */}
             <Route path="community-programs" element={<CommunityProgramPage />} />
             <Route path="community-programs/:programId" element={<CommunityProgramDetails />} />
             <Route path="survey/:programId/before" element={<SurveyBeforeEventPage />} />
@@ -61,19 +56,18 @@ function App() {
             <Route path="survey/:programId/completed" element={<SurveyCompletePage />} />
             <Route path="dashboard/:userId" element={<DashBoardPage />} />
             <Route path="dashboard/:userId/profile" element={<DashBoardPage />} />
+            <Route path="dashboard/:userId/security" element={<DashBoardPage />} /> {/* Thêm tuyến đường này */}
             <Route path="dashboard/:userId/courses" element={<DashBoardPage />} />
             <Route path="dashboard/:userId/events" element={<DashBoardPage />} />
             <Route path="dashboard/:userId/appointments" element={<DashBoardPage />} />
             <Route path="roles/:userId" element={<RolePage />} />
             <Route path="admin" element={<AdminPage />} />
-
             <Route path="roles/:userId/course-manage" element={<CourseManagmentPage />} />
             <Route path="roles/:userId/event-manage" element={<EventManagmentPage />} />
             <Route path="roles/:userId/employee-manage" element={<EmployeeManagmentPage />} />
             <Route path="roles/:userId/member-manage" element={<MemberManagmentPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
-
 
           {/* different layout with no header and footer included */}
           <Route path="" element={<AuthLayout />}>
@@ -101,7 +95,6 @@ function App() {
         />
       </Router>
     </UserProvider>
-
   );
 }
 
