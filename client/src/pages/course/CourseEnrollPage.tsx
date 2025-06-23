@@ -23,6 +23,7 @@ const CourseEnrollPage: React.FC = () => {
   const { token } = useAuthToken();
   const { user } = useUser();
   const { isOpen, openModal, closeModal } = useModal();
+  let isCourseCompleted = false;
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -75,9 +76,24 @@ const CourseEnrollPage: React.FC = () => {
     }
   };
 
+  const fetchCompleteCourseData = async () => {
+    if (token) {
+      const response = await fetch(`${API_URL}/api/course/${id}/completed/${user?.AccountID}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      });
+      const data = await response.json();
+      if (data.data[0].Status === 'Completed') {
+        isCourseCompleted = true;
+      }
+    }
+  }
+
   useEffect(() => {
     fetchCourseData();
     fetchEnrolledCourses();
+    fetchCompleteCourseData();
   }, [id, token, user]);
 
   const handleEnroll = async () => {
@@ -96,7 +112,11 @@ const CourseEnrollPage: React.FC = () => {
     );
 
     if (isEnrolled) {
-      navigate(`/courses/${id}/details`);
+      navigate(`/courses/${id}/details`, {
+        state: {
+          isCompleted: true
+        }
+      });
       return;
     }
 

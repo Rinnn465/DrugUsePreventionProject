@@ -9,6 +9,18 @@ interface AppointmentCalendarProps {
   schedule: ConsultantWithSchedule | undefined;
 }
 
+interface Appointment {
+  AppointmentID: number;
+  ConsultantID: number;
+  AccountID: number;
+  Time: string;
+  Date: string;
+  MeetingURL?: string;
+  Status: string;
+  Description?: string;
+  Duration: number;
+}
+
 const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId, schedule }) => {
   const { user } = useUser();
 
@@ -17,27 +29,68 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [bookingStep, setBookingStep] = useState<'date' | 'time' | 'booking' | 'confirm'>('date');
   const [note, setNote] = useState<string>('');
+  const [bookedAppointments, setBookedAppointments] = useState<Appointment[]>([]);
 
   // Auto-navigate to earliest available month
   useEffect(() => {
-    console.log('Schedule prop:', schedule);
     if (schedule && schedule.Schedule && schedule.Schedule.length > 0) {
-      const earliestDate = new Date(
-        Math.min(...schedule.Schedule.map((sched) => new Date(sched.Date).getTime()))
-      );
-      setCurrentDate(new Date(earliestDate.getFullYear(), earliestDate.getMonth(), 1));
+      const dates = schedule.Schedule
+        .map((sched) => {
+          // Parse date as is, assuming ISO format (e.g., 2025-08-01T00:00:00.000Z)
+          const date = new Date(sched.Date);
+          if (isNaN(date.getTime())) {
+            console.warn('Invalid schedule date:', sched.Date);
+            return null;
+          }
+          console.log('Parsed schedule date:', sched.Date, '->', date.toISOString());
+          return date;
+        })
+        .filter((date): date is Date => date !== null);
+      if (dates.length > 0) {
+        const earliestDate = new Date(Math.min(...dates.map((date) => date.getTime())));
+        console.log('Earliest date:', earliestDate.toISOString());
+        // Use UTC to avoid timezone shifts
+        setCurrentDate(new Date(Date.UTC(earliestDate.getUTCFullYear(), earliestDate.getUTCMonth(), 1)));
+      }
     }
   }, [schedule]);
+
+  // useEffect(() => {
+  //   if (selectedDate) {
+  //     const newCurrentDate = new Date(Date.UTC(selectedDate.getUTCFullYear(), selectedDate.getUTCMonth(), 1));
+  //     if (newCurrentDate.getTime() !== currentDate.getTime()) {
+  //       console.log('Updating currentDate:', newCurrentDate.toISOString());
+  //       setCurrentDate(newCurrentDate);
+  //     }
+  //   }
+  // }, [selectedDate, currentDate]);
+
+  // Fetch booked appointments for the consultant
+
+
+  useEffect(() => {
+    if (selectedDate) {
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      // Fix: Change the URL to match your route
+      fetch(`http://localhost:5000/api/appointment/filter?consultantId=${consultantId}&date=${dateStr}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log('Fetched booked appointments:', data);
+          setBookedAppointments(data.data || []);
+        })
+        .catch(error => console.error('Error fetching appointments:', error));
+    }
+  }, [consultantId, selectedDate]);
 
 
   // Get days in current month
   const getDaysInMonth = (year: number, month: number) => {
-    return new Date(year, month + 1, 0).getDate();
+    return new Date(Date.UTC(year, month + 1, 0)).getDate();
   };
 
   // Get day of week for first day of month
   const getFirstDayOfMonth = (year: number, month: number) => {
-    return new Date(year, month, 1).getDay();
+    return new Date(Date.UTC(year, month, 1)).getDay();
   };
 
   // Check if a date is available based on schedule
@@ -46,42 +99,128 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
       console.warn('Invalid schedule:', { schedule, consultantId });
       return false;
     }
-    const dateStr = new Date(year, month, day).toISOString().split('T')[0];
+    const dateStr = new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
     return schedule.Schedule.some((sched) => {
       const schedDate = sched.Date.split('T')[0];
       return schedDate === dateStr;
     });
   };
 
-  // Generate one-hour time slots for the selected date
-  const getOneHourTimeSlots = (selectedDate: Date) => {
+  // Predefined time slots
+  const timeSlots = [
+    { start: '08:00', end: '09:00', period: 'Sáng' },
+    { start: '09:30', end: '10:30', period: 'Sáng' },
+    { start: '11:00', end: '12:00', period: 'Sáng' },
+    { start: '13:30', end: '14:30', period: 'Chiều' },
+    { start: '15:00', end: '16:00', period: 'Chiều' },
+    { start: '16:30', end: '17:30', period: 'Chiều' },
+    { start: '19:00', end: '20:00', period: 'Tối' },
+  ];
+
+  // Get available time slots for the selected date
+  const getAvailableTimeSlots = (selectedDate: Date) => {
     if (!schedule || !schedule.Schedule || schedule.ConsultantID !== consultantId) {
+      console.warn('Invalid schedule or consultant ID mismatch:', { schedule, consultantId });
       return [];
     }
     const dateStr = selectedDate.toISOString().split('T')[0];
+    console.log('Getting slots for date:', dateStr);
+    console.log('Current booked appointments:', bookedAppointments);
+
+    // Filter schedules for the selected date
     const relevantSchedules = schedule.Schedule.filter(
       (sched) => sched.Date.split('T')[0] === dateStr
     );
+    console.log('Relevant schedules:', relevantSchedules);
 
-    const timeSlots: string[] = [];
-    relevantSchedules.forEach((sched) => {
-      const start = new Date(sched.StartTime);
-      const end = new Date(sched.EndTime);
-      let currentTime = start;
+    const availableSlots = timeSlots.filter((slot) => {
+      const [slotStartHour, slotStartMinute] = slot.start.split(':').map(Number);
+      const [slotEndHour, slotEndMinute] = slot.end.split(':').map(Number);
+      const slotStartMinutes = slotStartHour * 60 + slotStartMinute;
+      const slotEndMinutes = slotEndHour * 60 + slotEndMinute;
 
-      while (currentTime < end) {
-        const hours = (currentTime.getUTCHours() + 7) % 24; // UTC+7 for Vietnam
-        const minutes = currentTime.getUTCMinutes();
-        if (minutes === 0) {
-          timeSlots.push(
-            `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
-          );
+      return relevantSchedules.some((sched) => {
+        try {
+          // Extract time portion from StartTime and EndTime
+          let startTimeStr, endTimeStr;
+          if (sched.StartTime.includes('T')) {
+            // ISO format (e.g., 1970-01-01T08:00:00.000Z)
+            const startTime = new Date(sched.StartTime);
+            const endTime = new Date(sched.EndTime);
+            startTimeStr = `${startTime.getUTCHours().toString().padStart(2, '0')}:${startTime.getUTCMinutes().toString().padStart(2, '0')}:00`;
+            endTimeStr = `${endTime.getUTCHours().toString().padStart(2, '0')}:${endTime.getUTCMinutes().toString().padStart(2, '0')}:00`;
+          } else {
+            // Already in HH:mm:ss format
+            startTimeStr = sched.StartTime;
+            endTimeStr = sched.EndTime;
+          }
+
+          // Combine with selected date in UTC
+          const schedStart = new Date(`${dateStr}T${startTimeStr}Z`);
+          const schedEnd = new Date(`${dateStr}T${endTimeStr}Z`);
+
+          if (isNaN(schedStart.getTime()) || isNaN(schedEnd.getTime())) {
+            console.warn('Invalid schedule time format:', sched);
+            return false;
+          }
+
+          // Extract hours and minutes in UTC
+          const schedStartHour = schedStart.getUTCHours();
+          const schedStartMinute = schedStart.getUTCMinutes();
+          const schedEndHour = schedEnd.getUTCHours();
+          const schedEndMinute = schedEnd.getUTCMinutes();
+
+          const schedStartMinutes = schedStartHour * 60 + schedStartMinute;
+          const schedEndMinutes = schedEndHour * 60 + schedEndMinute;
+
+          console.log('Comparing slot:', {
+            slot: `${slot.start}-${slot.end}`,
+            slotMinutes: `${slotStartMinutes}-${slotEndMinutes}`,
+            schedule: `${startTimeStr}-${endTimeStr}`,
+            scheduleMinutes: `${schedStartMinutes}-${schedEndMinutes}`,
+          });
+
+          // Check if the slot is within the schedule
+          return slotStartMinutes >= schedStartMinutes && slotEndMinutes <= schedEndMinutes;
+        } catch (error) {
+          console.error('Error parsing schedule times:', error, sched);
+          return false;
         }
-        currentTime = new Date(currentTime.getTime() + 60 * 60 * 1000); // 1-hour increments
-      }
+      });
     });
 
-    return [...new Set(timeSlots)].sort();
+    // Fix: Update the booking status logic to handle the ISO time format
+    const slotsWithBookingStatus = availableSlots.map((slot) => {
+      // Check if this slot is booked by comparing the start time
+      const isBooked = bookedAppointments.some((appt) => {
+        const appointmentDate = appt.Date.split('T')[0]; // Extract date part
+
+        // Fix: Handle the ISO time format from database
+        const appointmentTimeISO = new Date(appt.Time);
+        const appointmentTime = `${appointmentTimeISO.getUTCHours().toString().padStart(2, '0')}:${appointmentTimeISO.getUTCMinutes().toString().padStart(2, '0')}`;
+
+        console.log('Checking booking status:', {
+          slotDate: dateStr,
+          slotTime: slot.start,
+          appointmentDate,
+          appointmentTimeRaw: appt.Time,
+          appointmentTimeParsed: appointmentTime,
+          isMatch: appointmentDate === dateStr && appointmentTime === slot.start
+        });
+
+        return appointmentDate === dateStr && appointmentTime === slot.start;
+      });
+
+      console.log(`Slot ${slot.start} is ${isBooked ? 'BOOKED' : 'AVAILABLE'}`);
+
+      return {
+        ...slot,
+        isBooked,
+      };
+    });
+
+    console.log('Final slots with booking status:', slotsWithBookingStatus);
+    return slotsWithBookingStatus;
   };
 
   // Format time for display (12-hour format)
@@ -92,8 +231,8 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
     return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
   };
 
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
+  const year = currentDate.getUTCFullYear();
+  const month = currentDate.getUTCMonth();
   const daysInMonth = getDaysInMonth(year, month);
   const firstDayOfMonth = getFirstDayOfMonth(year, month);
 
@@ -105,17 +244,26 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
   const dayNames = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
 
   const handlePrevMonth = () => {
-    setCurrentDate(new Date(year, month - 1, 1));
+    const newCurrentDate = new Date(Date.UTC(year, month - 1, 1));
+    console.log('Navigating to previous month:', newCurrentDate.toISOString());
+    setCurrentDate(newCurrentDate);
   };
 
   const handleNextMonth = () => {
-    setCurrentDate(new Date(year, month + 1, 1));
+    const newCurrentDate = new Date(Date.UTC(year, month + 1, 1));
+    console.log('Navigating to next month:', newCurrentDate.toISOString());
+    setCurrentDate(newCurrentDate);
   };
 
   const handleDateClick = (day: number) => {
-    const selectedDate = new Date(year, month, day);
-    setSelectedDate(selectedDate);
-    setBookingStep('time');
+    const selectedDate = new Date(Date.UTC(year, month, day));
+    console.log('Date clicked:', selectedDate.toISOString());
+    if (isDateAvailable(year, month, day)) {
+      setSelectedDate(selectedDate);
+      setBookingStep('time');
+    } else {
+      console.warn('Selected date is not available:', selectedDate.toISOString());
+    }
   };
 
   const handleTimeClick = (time: string) => {
@@ -134,10 +282,9 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
 
   const handleBackToNote = () => {
     setBookingStep('booking');
-  }
+  };
 
   const handleConfirmBooking = () => {
-    // Show success toast instead of alert
     toast.success(
       `✅ Đặt lịch thành công! Bạn đã đặt lịch với chuyên viên vào ngày ${selectedDate?.toLocaleDateString(
         'vi-VN'
@@ -145,7 +292,6 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
       { autoClose: 5000 }
     );
 
-    // Keep the original API call structure
     fetch('http://localhost:5000/api/appointment', {
       method: 'POST',
       headers: {
@@ -159,19 +305,19 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
         meetingUrl: 'https://example.com/meeting',
         status: 'pending',
         description: note,
-        duration: 60
+        duration: 60,
       }),
     })
-    .then(response => response.json())
-    .then(data => {
-      if (data.message) {
-        console.log('Server response:', data.message);
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      toast.error('❌ Có lỗi xảy ra khi đặt lịch!');
-    });
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          console.log('Server response:', data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        toast.error('❌ Có lỗi xảy ra khi đặt lịch!');
+      });
 
     setSelectedDate(null);
     setSelectedTime(null);
@@ -180,17 +326,17 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
   };
 
   const today = new Date();
-  const currentDay = today.getDate();
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
+  const currentDay = today.getUTCDate();
+  const currentMonth = today.getUTCMonth();
+  const currentYear = today.getUTCFullYear();
 
   const isToday = (day: number) => {
     return currentDay === day && currentMonth === month && currentYear === year;
   };
 
   const isPast = (day: number) => {
-    const date = new Date(year, month, day);
-    return date < new Date(currentYear, currentMonth, currentDay);
+    const date = new Date(Date.UTC(year, month, day));
+    return date < new Date(Date.UTC(currentYear, currentMonth, currentDay));
   };
 
   const renderCalendar = () => {
@@ -217,8 +363,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
               : isSelectable
                 ? 'hover:bg-sky-100 hover:text-sky-700 text-blue-700'
                 : 'text-gray-300 cursor-not-allowed'
-            }
-          `}
+            }`}
         >
           {day}
         </button>
@@ -235,8 +380,8 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
       </div>
     );
   }
-
-  const availableTimeSlots = selectedDate ? getOneHourTimeSlots(selectedDate) : [];
+  const availableTimeSlots = getAvailableTimeSlots(selectedDate || new Date());
+  console.log('Rendering calendar with currentDate:', currentDate.toISOString(), 'month:', monthNames[month], 'year:', year);
 
   return (
     <div className="bg-gradient-to-br from-sky-50 via-white to-blue-50 rounded-2xl p-6 border-2 border-sky-100 shadow-2xl animate-fade-in">
@@ -291,17 +436,44 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
             </h3>
           </div>
           {availableTimeSlots.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {availableTimeSlots.map((time, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleTimeClick(time)}
-                  className="bg-white hover:bg-gradient-to-r hover:from-sky-100 hover:to-blue-100 text-sky-700 font-bold py-3 px-4 rounded-xl border-2 border-sky-200 shadow-lg transition-all flex items-center justify-center gap-2"
-                >
-                  <Clock className="h-4 w-4 text-sky-500" />
-                  {formatTime(time)}
-                </button>
-              ))}
+            <div className="space-y-4">
+              {['Sáng', 'Chiều', 'Tối'].map((period) => {
+                const slots = availableTimeSlots.filter((slot) => slot.period === period);
+                if (slots.length === 0) return null;
+                return (
+                  <div key={period}>
+                    <h4 className="text-md font-semibold text-sky-600 mb-2">{period}</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {slots.map((slot, index) => (
+                        <button
+                          key={index}
+                          onClick={() => !slot.isBooked && handleTimeClick(slot.start)}
+                          disabled={slot.isBooked}
+                          className={`py-3 px-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2
+                            ${slot.isBooked
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed border-gray-300 opacity-50'
+                              : 'bg-white hover:bg-gradient-to-r hover:from-sky-100 hover:to-blue-100 text-sky-700 font-bold border-sky-200 shadow-lg'
+                            }`}
+                        >
+                          <Clock className={`h-4 w-4 ${slot.isBooked ? 'text-gray-400' : 'text-sky-500'}`} />
+                          {slot.isBooked ? (
+                            <span className="line-through">
+                              {formatTime(slot.start)} - {formatTime(slot.end)}
+                            </span>
+                          ) : (
+                            <span>
+                              {formatTime(slot.start)} - {formatTime(slot.end)}
+                            </span>
+                          )}
+                          {slot.isBooked && (
+                            <span className="text-xs text-red-500 ml-2">(Đã đặt)</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-8">

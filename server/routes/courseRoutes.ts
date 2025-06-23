@@ -30,6 +30,9 @@ router.patch("/:id/complete", courseController.completeCourse);
 //fetch all enrolled courses
 router.get("/enrolled", courseController.getEnrolledCourses);
 
+//fetch all completed courses
+router.get("/:courseId/completed/:accountId", courseController.getCompletedCourseById);
+
 // fetch lesson by course id
 router.get("/:id/lessons", lessonController.getLesson);
 

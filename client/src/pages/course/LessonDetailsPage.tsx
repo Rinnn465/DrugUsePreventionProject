@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { sqlLesson, sqlLessonAnswer, sqlLessonQuestion } from "../../types/Lesson";
 import { toast } from "react-toastify";
@@ -7,6 +7,9 @@ import { useUser } from "@/context/UserContext";
 const LessonDetailsPage: React.FC = () => {
     const { id } = useParams();
     const { user } = useUser();
+    const location = useLocation();
+    const isCompleted = location?.state.isCompleted;
+
     const [selected, setSelected] = useState<string | number>("lesson");
     const [lesson, setLesson] = useState<sqlLesson[] | null>(null);
     const [questions, setQuestions] = useState<sqlLessonQuestion[] | null>(null);
@@ -61,6 +64,7 @@ const LessonDetailsPage: React.FC = () => {
                 console.error("Fetch questions/answers error:", error);
             }
         };
+
 
         const fetchData = async () => {
             await Promise.all([fetchLessonDetail(), fetchQuestionsAndAnswers()]);

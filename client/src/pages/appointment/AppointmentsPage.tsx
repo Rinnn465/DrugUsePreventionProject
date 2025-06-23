@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Users, Search, Calendar as CalendarIcon, User } from 'lucide-react';
-import { counselorData } from '../../data/counselorData';
 import CounselorCard from '../../components/counselors/CounselorCard';
 import AppointmentCalendar from '../../components/appointments/AppointmentCalendar';
 import { Link, useLocation } from 'react-router-dom';
@@ -13,12 +12,12 @@ const AppointmentsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCounselor, setSelectedCounselor] = useState<number | null>(null);
 
-  //set data from fetching
+  // Set data from fetching
   const [consultantData, setConsultantData] = useState<ConsultantWithSchedule[]>([]);
   const [specialtyData, setSpecialtyData] = useState<Specialty[]>([]);
   const [qualificationData, setQualificationData] = useState<Qualification[]>([]);
 
-  //handling filter data
+  // Handling filter data
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('');
 
   useEffect(() => {
@@ -36,14 +35,13 @@ const AppointmentsPage: React.FC = () => {
     fetch('http://localhost:5000/api/consultant/qualifications')
       .then(response => response.json())
       .then(data => setQualificationData(data.data))
-      .catch(error => console.error('Error fetching qualifications:', error))
+      .catch(error => console.error('Error fetching qualifications:', error));
 
     fetch('http://localhost:5000/api/consultant/specialties')
       .then(response => response.json())
       .then(data => { setSpecialtyData(data.data) })
       .catch(error => console.error('Error fetching specialties:', error));
-  }, [])
-
+  }, []);
 
   const mergeDataIntoConsultants = (
     consultantData: any[],
@@ -86,8 +84,6 @@ const AppointmentsPage: React.FC = () => {
         };
       }
 
-
-      // Add schedule to the consultant's Schedule array
       if (item.ScheduleID && item.Date && item.StartTime && item.EndTime) {
         groupedByConsultant[consultantId].Schedule.push({
           ScheduleID: item.ScheduleID || 0,
@@ -137,7 +133,6 @@ const AppointmentsPage: React.FC = () => {
     );
   };
 
-
   const mergedConsultants = mergeDataIntoConsultants(consultantData, specialtyData, qualificationData);
   const specialtyOptions = specialtyData.map(specialty => specialty.Name);
 
@@ -146,6 +141,9 @@ const AppointmentsPage: React.FC = () => {
     const matchesSpecialty = selectedSpecialty ? consultant.Specialties.some(s => s.Name === selectedSpecialty) : true;
     return matchesSearch && matchesSpecialty;
   });
+
+  const selectedConsultant = filteredConsunltants.find(c => c.ConsultantID === selectedCounselor);
+
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -157,7 +155,7 @@ const AppointmentsPage: React.FC = () => {
           <div className="absolute top-32 right-20 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
           <div className="absolute bottom-10 left-1/3 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
         </div>
-        
+
         <div className="relative container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto text-center text-white">
             <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight flex items-center justify-center gap-3">
@@ -171,9 +169,9 @@ const AppointmentsPage: React.FC = () => {
             </p>
           </div>
         </div>
-             </div>
-       
-       <div className="container mx-auto px-4 py-12">
+      </div>
+
+      <div className="container mx-auto px-4 py-12">
         {/* Search Section - Full Width */}
         <div className="max-w-6xl mx-auto mb-8">
           <div className="bg-gradient-to-br from-primary-50 via-white to-blue-50 rounded-2xl shadow-2xl p-6 border-2 border-primary-100 animate-fade-in">
@@ -230,15 +228,16 @@ const AppointmentsPage: React.FC = () => {
             </div>
           </div>
           <div className="lg:col-span-2">
-            {selectedCounselor ? (
+            {selectedCounselor && selectedConsultant ? (
               <div className="bg-white rounded-2xl shadow-xl p-8 border-2 border-primary-100 animate-fade-in">
                 <div className="mb-6">
                   <h2 className="text-xl font-bold mb-4 text-primary-700 flex items-center gap-2">
                     <User className="h-6 w-6 text-primary-400" /> Đặt lịch với
                     <Link
-                      className='text-primary-500 underline hover:text-primary-700 ml-2'
-                      to={`/counselor/${selectedCounselor}`}>
-                      {counselorData.find(c => c.id === selectedCounselor)?.name}
+                      className="text-primary-500 underline hover:text-primary-700 ml-2"
+                      to={`/counselor/${selectedCounselor}`}
+                    >
+                      {selectedConsultant.Name}
                     </Link>
                   </h2>
                   <p className="text-primary-500">
@@ -246,7 +245,7 @@ const AppointmentsPage: React.FC = () => {
                   </p>
                 </div>
                 <AppointmentCalendar
-                  schedule={filteredConsunltants.find(c => c.ConsultantID === selectedCounselor) || undefined}
+                  schedule={selectedConsultant}
                   consultantId={selectedCounselor}
                 />
               </div>

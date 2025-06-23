@@ -3,32 +3,54 @@ import { useFormik } from "formik";
 import { Link, useNavigate } from "react-router-dom";
 import * as Yup from 'yup'
 import { toast } from 'react-toastify';
+import { parseSqlDate } from "@/utils/parseSqlDateUtils";
 
 const SignUpPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const days = Array.from({ length: 31 }, (_, i) => i + 1);
+    const months = Array.from({ length: 12 }, (_, i) => i + 1);
+    const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
 
-    // handle role selection
-    // const roles = ['Thành viên', 'Quản trị viên', 'Quản lý', 'Nhân viên', 'Chuyên viên'];
+    const handleDateChange = (key: string, value: number | string) => {
+        const [day = '', month = '', year = ''] = formik.values.date.split('-');
+
+        const newDate = {
+            day,
+            month,
+            year,
+            [key]: value
+        };
+
+        if (newDate.year && newDate.month && newDate.day) {
+            console.log("Full date selected:", newDate);
+
+            formik.setFieldValue('date', `${newDate.year}-${newDate.month}-${newDate.day}`);
+        } else {
+            console.log("Partial date selected:", newDate);
+            formik.setFieldValue('date', `${newDate.year || ''}-${newDate.month || ''}-${newDate.day || ''}`);
+        }
+    }
+
     const formik = useFormik({
         initialValues: {
             email: '',
             fullName: '',
             username: '',
             date: '',
-            // role: '',
             password: '',
             confirmPassword: ''
         },
-        onSubmit: async (values, { resetForm }) => {
+        onSubmit: async (values) => {
             setIsLoading(true);
+            console.log("Form values before transformation:", values);
+
             try {
                 const transformedValues = {
                     ...values,
-                    dateOfBirth: values.date
-                    
+                    dateOfBirth: parseSqlDate(new Date(values.date).toISOString()),
                 }
-                
+
                 const response = await fetch('http://localhost:5000/api/auth/register', {
                     method: 'POST',
                     headers: {
@@ -38,7 +60,7 @@ const SignUpPage: React.FC = () => {
                 });
 
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     toast.success(data.message);
                     setTimeout(() => {
@@ -47,7 +69,7 @@ const SignUpPage: React.FC = () => {
                 } else {
                     toast.error(data.message || 'Đăng ký thất bại');
                 }
-                
+
                 console.log("Form submitted with values:", transformedValues);
             } catch (err: any) {
                 console.error('Error:', err.message);
@@ -72,17 +94,14 @@ const SignUpPage: React.FC = () => {
                 .min(2, 'Tên đăng nhập phải có ít nhất 2 ký tự')
                 .required('Không được để trống'),
             date: Yup.string()
-                .required('Không được để trống'),
-            // .matches(/^\d{1,2}-\d{1,2}-\d{4}$/, 'Ngày sinh không hợp lệ')
-            // .test('date', 'Ngày sinh không hợp lệ', (value) => {
-            //     if (!value) return false;
-            //     const [day, month, year] = value.split('-').map(Number);
-            //     const date = new Date(year, month - 1, day);
-            //     return date.getDate() === day && date.getMonth() + 1 === month && date.getFullYear() === year;
-            // }),
-            // role: Yup.string()
-            //     .required('Không được để trống')
-            //     .oneOf(roles, 'Vai trò không hợp lệ'),
+                .required('Không được để trống')
+                .matches(/^\d{4}-\d{1,2}-\d{1,2}$/, 'Ngày sinh không hợp lệ')
+                .test('date', 'Ngày sinh không hợp lệ', (value) => {
+                    if (!value) return false;
+                    const [year, month, day] = value.split('-').map(Number);
+                    const date = new Date(year, month - 1, day);
+                    return date.getFullYear() === year && date.getMonth() + 1 === month && date.getDate() === day;
+                }),
             password: Yup.string()
                 .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
                 .required('Không được để trống'),
@@ -93,7 +112,7 @@ const SignUpPage: React.FC = () => {
         })
     })
 
-
+    const [year = "", month = "", day = ""] = formik.values.date.split("-");
     return (
         <form
             onSubmit={formik.handleSubmit}
@@ -164,7 +183,7 @@ const SignUpPage: React.FC = () => {
                     Ngày sinh (ngày / tháng / năm)
                 </label>
                 <div className="flex justify-between">
-                    {/* <select
+                    <select
                         name="dob_day"
                         id="dob_day"
                         value={day}
@@ -204,42 +223,12 @@ const SignUpPage: React.FC = () => {
                                 {y}
                             </option>
                         ))}
-                    </select> */}
-                    <input type="date" name="date" id="date"
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        value={formik.values.date || ""}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
+                    </select>
                 </div>
                 {formik.touched.date && formik.errors.date ? <p className="text-red-600">
                     {formik.errors.date}
                 </p> : null}
 
-                {/* role field */}
-                {/* <label htmlFor="dob" className="block text-sm font-medium text-gray-700 mb-1">
-                    Chọn role (các vai trò khác ngoài member đều cần sự phê duyệt của quản trị viên)
-                </label>
-                <select
-                    name="role"
-                    id="role"
-                    value={formik.values.role}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                >
-                    <option>Chọn role</option>
-                    {roles.map((role) => (
-                        <option key={role} value={role}>
-                            {role}
-                        </option>
-                    ))}
-                </select>
-
-                {formik.touched.role && formik.errors.role ? <p className="text-red-600">
-                    {formik.errors.role}
-                </p> : null} */}
-
-                {/* Password Field */}
                 <div>
                     <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                         Mật khẩu
@@ -282,11 +271,10 @@ const SignUpPage: React.FC = () => {
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className={`py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center ${
-                        isLoading 
-                            ? 'bg-gray-400 cursor-not-allowed' 
-                            : 'bg-blue-500 hover:bg-blue-600 text-white'
-                    }`}
+                    className={`py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center ${isLoading
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-blue-500 hover:bg-blue-600 text-white'
+                        }`}
                 >
                     {isLoading ? (
                         <>
@@ -306,8 +294,8 @@ const SignUpPage: React.FC = () => {
             <div className="mt-6 space-y-4">
                 <div className="text-center">
                     <p className="text-sm text-gray-600 mb-3">Bạn đã có tài khoản?</p>
-                    <Link 
-                        to="/login" 
+                    <Link
+                        to="/login"
                         className="inline-flex items-center justify-center w-full px-4 py-2 border border-green-500 text-green-600 bg-white rounded-lg hover:bg-green-50 hover:border-green-600 hover:text-green-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
                     >
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -316,10 +304,10 @@ const SignUpPage: React.FC = () => {
                         Đăng nhập ngay
                     </Link>
                 </div>
-                
+
                 <div className="text-center border-t pt-4">
-                    <Link 
-                        to="/" 
+                    <Link
+                        to="/"
                         className="inline-flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors duration-200 font-medium"
                     >
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

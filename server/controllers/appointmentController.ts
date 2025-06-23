@@ -61,3 +61,27 @@ export async function bookAppointment(req: Request, res: Response, next: NextFun
         res.status(500).json({ message: "Lỗi server!" });
     }
 };
+
+
+export async function getAppointmentsByFilter(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const consultantId = req.query.consultantId as string;
+    const date = req.query.date as string;
+
+    console.log(`Fetching appointments for Consultant ID: ${consultantId} on Date: ${date}`);
+
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input("consultantId", sql.Int, parseInt(consultantId))
+            .input("date", sql.Date, new Date(date))
+            .query(`
+                SELECT * FROM Appointment
+                WHERE ConsultantID = @consultantId AND CAST(Date AS DATE) = CAST(@date AS DATE);
+            `);
+
+        res.status(200).json({ message: "Lấy lịch hẹn thành công!", data: result.recordset });
+    } catch (error) {
+        console.error("Error fetching appointments by filter:", error);
+        res.status(500).json({ message: "Lỗi server!" });
+    }
+}

@@ -127,11 +127,10 @@ export async function register(
   next: NextFunction
 ): Promise<void> {
   const { username, password, email, fullName, dateOfBirth, roleName } = req.body;
+  console.log(req.body);
 
   try {
     const pool = await poolPromise;
-
-
 
     // Check for existing username
     const checkUser = await pool

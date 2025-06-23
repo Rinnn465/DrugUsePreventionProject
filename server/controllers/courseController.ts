@@ -190,3 +190,33 @@ export async function completeCourse(req: Request, res: Response): Promise<void>
         return;
     }
 }
+
+export async function getCompletedCourseById(req: Request, res: Response): Promise<void> {
+    const { courseId, accountId } = req.params;
+
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('CourseId', sql.Int, courseId)
+            .input('AccountId', sql.Int, accountId)
+            .query('SELECT * FROM Enrollment WHERE CourseID = @CourseId AND AccountID = @AccountId AND Status = \'Completed\'');
+
+        if (result.recordset.length === 0) {
+            res.status(404).json({ message: 'Enrollment not found' });
+            return;
+        }
+
+        res.status(200).json({
+            message: 'Course progress fetched successfully',
+            data: result.recordset
+        });
+        return;
+    } catch (err: any) {
+        console.error('Error in getCourseProgress:', err);
+        res.status(500).json({
+            message: 'Error fetching course progress',
+            error: err.message
+        });
+        return;
+    }
+}
