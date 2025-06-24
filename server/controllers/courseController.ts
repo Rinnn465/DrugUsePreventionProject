@@ -2,6 +2,14 @@ import dotenv from 'dotenv';
 import { sql, poolPromise } from "../config/database";
 import { Request, Response } from 'express';
 
+interface Course {
+    CourseID: number;
+    CourseName: string;
+    Description: string;
+    ImageUrl?: string | null;
+    IsDisabled: boolean;    
+}
+
 dotenv.config();
 /**
  * Retrieves all active courses from the database

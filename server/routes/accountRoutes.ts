@@ -1,15 +1,33 @@
+/**
+ * Account-related API routes.
+ * Provides endpoints for creating, updating, and managing user accounts and profiles.
+ *
+ * @module routes/accountRoutes
+ */
 import express, { Router } from "express";
 import * as accountController from "../controllers/accountController";
 
 const router: Router = express.Router();
 
-// Create new account
+/**
+ * @route POST /api/accounts
+ * @desc Create a new account
+ * @access Public
+ */
 router.post("/", accountController.createAccount);
 
-// Update account
+/**
+ * @route PUT /api/accounts/:id
+ * @desc Update an account by ID
+ * @access Admin/Member/Consultant (as configured)
+ */
 router.put("/:id", accountController.updateAccount);
 
-// Update account profile (for Member/Consultant)
+/**
+ * @route PUT /api/accounts/profile
+ * @desc Update the profile of the current user (Member/Consultant)
+ * @access Member/Consultant (as configured)
+ */
 router.put("/profile", accountController.updateAccountProfile);
 
 export default router;
