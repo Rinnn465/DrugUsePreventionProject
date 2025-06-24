@@ -164,6 +164,16 @@ export async function getSpecialties(
     }
 }
 
+/** * Retrieves the schedule of all consultants
+ * Fetches all records from ConsultantSchedule table
+ * @route GET /api/consultants/schedule
+ * @access Public
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object
+ * @param {NextFunction} next - Express next middleware function
+ * * @returns {Promise<void>} JSON response with consultant schedules
+ * * @throws {500} If database error occurs
+ */
 export async function getSchedule(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
         const pool = await poolPromise;

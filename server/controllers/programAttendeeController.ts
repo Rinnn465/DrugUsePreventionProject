@@ -1,10 +1,20 @@
 import { Request, Response } from 'express';
 import { sql, poolPromise } from '../config/database';
 
-// Get all Program Attendees
+/**
+ * Retrieves all program attendees with joined program and account details.
+ *
+ * @route GET /api/program-attendees
+ * @access Admin (or as configured)
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object
+ * @returns {Promise<void>} JSON array of attendees with program and user info
+ * @throws {500} If database error occurs
+ */
 export async function getAllProgramAttendees(req: Request, res: Response): Promise<void> {
     try {
         const pool = await poolPromise;
+        // Query all attendees with program and account info
         const result = await pool.request().query(`
             SELECT 
                 cpa.*,
@@ -22,11 +32,21 @@ export async function getAllProgramAttendees(req: Request, res: Response): Promi
     }
 }
 
-//Get Total Attendees by ProgramID
+/**
+ * Retrieves the total number of attendees for a given program.
+ *
+ * @route GET /api/program-attendees/total/:programId
+ * @access Public/Admin (as configured)
+ * @param {Request} req - Express request object with programId param
+ * @param {Response} res - Express response object
+ * @returns {Promise<void>} JSON object with total count
+ * @throws {500} If database error occurs
+ */
 export async function getTotalAttendeesByProgramId(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
     try {
         const pool = await poolPromise;
+        // Count attendees for the given program
         const result = await pool.request()
             .input('ProgramID', sql.Int, programId)
             .query(`
@@ -41,14 +61,23 @@ export async function getTotalAttendeesByProgramId(req: Request, res: Response):
 }
 
 /**
- * Get specific attendee by ProgramID and AccountID
- * This function is kept but can also serve as enrollment status check
+ * Retrieves a specific attendee by ProgramID and AccountID.
+ * Can also be used to check enrollment status for a user in a program.
+ *
+ * @route GET /api/program-attendees/:programId/:accountId
+ * @access Public/Admin (as configured)
+ * @param {Request} req - Express request object with programId and accountId params
+ * @param {Response} res - Express response object
+ * @returns {Promise<void>} JSON object with attendee details
+ * @throws {404} If attendee not found
+ * @throws {500} If database error occurs
  */
 export async function getAttendeeById(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
     const accountId = Number(req.params.accountId);
     try {
         const pool = await poolPromise;
+        // Query for attendee by program and account ID
         const result = await pool.request()
             .input('ProgramID', sql.Int, programId)
             .input('AccountID', sql.Int, accountId)
@@ -75,8 +104,15 @@ export async function getAttendeeById(req: Request, res: Response): Promise<void
 }
 
 /**
- * Check enrollment status for current authenticated user
- * This is a simplified version that uses the current user's ID
+ * Checks if the current authenticated user is enrolled in a specific program.
+ *
+ * @route GET /api/program-attendees/enrollment-status/:programId
+ * @access Authenticated users
+ * @param {Request} req - Express request object with user and programId param
+ * @param {Response} res - Express response object
+ * @returns {Promise<void>} JSON object with enrollment status and registration date
+ * @throws {401} If user is not authenticated
+ * @throws {500} If database error occurs
  */
 export async function checkEnrollmentStatus(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
@@ -89,6 +125,7 @@ export async function checkEnrollmentStatus(req: Request, res: Response): Promis
 
     try {
         const pool = await poolPromise;
+        // Query for enrollment status
         const result = await pool.request()
             .input('ProgramID', sql.Int, programId)
             .input('AccountID', sql.Int, accountId)
@@ -121,7 +158,17 @@ export async function checkEnrollmentStatus(req: Request, res: Response): Promis
 }
 
 /**
- * Enroll current user into a community program
+ * Enrolls the current authenticated user into a community program.
+ *
+ * @route POST /api/program-attendees/enroll/:programId
+ * @access Authenticated users
+ * @param {Request} req - Express request object with user and programId param
+ * @param {Response} res - Express response object
+ * @returns {Promise<void>} JSON object with enrollment confirmation
+ * @throws {401} If user is not authenticated
+ * @throws {404} If program not found or disabled
+ * @throws {400} If already enrolled
+ * @throws {500} If database error occurs
  */
 export async function enrollInProgram(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
@@ -191,7 +238,16 @@ export async function enrollInProgram(req: Request, res: Response): Promise<void
 }
 
 /**
- * Unenroll current user from a community program
+ * Unenrolls the current authenticated user from a community program.
+ *
+ * @route DELETE /api/program-attendees/unenroll/:programId
+ * @access Authenticated users
+ * @param {Request} req - Express request object with user and programId param
+ * @param {Response} res - Express response object
+ * @returns {Promise<void>} JSON object with unenrollment confirmation
+ * @throws {401} If user is not authenticated
+ * @throws {404} If enrollment not found
+ * @throws {500} If database error occurs
  */
 export async function unenrollFromProgram(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
@@ -205,6 +261,7 @@ export async function unenrollFromProgram(req: Request, res: Response): Promise<
     try {
         const pool = await poolPromise;
 
+        // Delete enrollment for user and program
         const result = await pool.request()
             .input('ProgramID', sql.Int, programId)
             .input('AccountID', sql.Int, accountId)
@@ -230,7 +287,15 @@ export async function unenrollFromProgram(req: Request, res: Response): Promise<
 }
 
 /**
- * Get all programs that current user is enrolled in
+ * Retrieves all programs that the current authenticated user is enrolled in.
+ *
+ * @route GET /api/program-attendees/my-programs
+ * @access Authenticated users
+ * @param {Request} req - Express request object with user info
+ * @param {Response} res - Express response object
+ * @returns {Promise<void>} JSON array of enrolled programs and total count
+ * @throws {401} If user is not authenticated
+ * @throws {500} If database error occurs
  */
 export async function getMyEnrolledPrograms(req: Request, res: Response): Promise<void> {
     const accountId = (req as any).user?.user?.AccountID;
@@ -243,6 +308,7 @@ export async function getMyEnrolledPrograms(req: Request, res: Response): Promis
     try {
         const pool = await poolPromise;
 
+        // Query all programs the user is enrolled in
         const result = await pool.request()
             .input('AccountID', sql.Int, accountId)
             .query(`

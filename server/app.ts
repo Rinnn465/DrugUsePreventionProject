@@ -23,12 +23,20 @@ app.use(
   })
 ); // Enable CORS with credentials
 
-// Public Routes (accessible to all including guests)
+// Public Article Routes (accessible to all including guests)
 app.use(
   "/api/article",
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   apiArticleRoutes
 );
+
+//Protected Article Routes (accessible to Staff and Admin)
+app.use(
+  "/api/article/admin",
+  authorizeRoles(["Staff", "Manager" ,"Admin"]),
+  apiArticleRoutes
+);
+
 app.use("/api/auth", apiAuthenRoutes);
 
 app.use(
@@ -36,6 +44,7 @@ app.use(
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   courseRoutes
 );
+
 
 // Program routes - Guest có thể xem, nhưng enrollment chỉ cho Member/Consultant/Admin
 app.use(

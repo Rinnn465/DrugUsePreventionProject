@@ -1,154 +1,112 @@
-import { Request, Response } from "express";
-import { sql, poolPromise } from "../config/database";
+import { Request, Response } from 'express';
+import { poolPromise } from '../config/database';
 
-// GET ALL Surveys (with SurveyCategoryName)
-export async function getAllSurveys(
-  req: Request,
-  res: Response
-): Promise<void> {
-  try {
-    const pool = await poolPromise;
-    const result = await pool.request().query(`
-            SELECT s.*, c.SurveyCategoryName
+/**
+ * Interface representing a Survey in the database
+ * Combines data from Survey, SurveyBeforeProgram, and SurveyAfterProgram tables
+ */
+interface Survey {
+    SurveyID: number;          // Unique identifier for the survey
+    Type: string;              // Type of survey (before/after program)
+    IsDisabled: boolean;       // Survey visibility/availability status
+    Expected: string | null;   // Expected outcomes (from before-program survey)
+    Improvement: string | null; // Suggested improvements (from after-program survey)
+}
+
+/**
+ * Retrieves all active surveys with their associated before/after program data
+ * Uses LEFT JOINs to combine data from multiple survey-related tables
+ * 
+ * @route GET /api/surveys
+ * @access Public
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object
+ * @returns {Promise<void>} JSON response with array of surveys and user data
+ * @throws {500} If database error occurs
+ */
+export const getAllSurveys = async (req: Request, res: Response): Promise<void> => {
+    try {
+        console.log("Fetching all surveys from database...");
+        const pool = await poolPromise;
+
+        // Complex query joining multiple survey tables
+        const result = await pool.request().query(`
+            SELECT 
+                s.SurveyID,    -- Primary survey identifier
+                s.Type,        -- Survey type
+                s.IsDisabled,  -- Availability status
+                sbp.Expected,  -- Before-program expectations
+                sap.Improvement -- After-program feedback
             FROM Survey s
-            LEFT JOIN SurveyCategory c ON s.SurveyCategoryID = c.SurveyCategoryID
+            -- Join with before-program survey data
+            LEFT JOIN SurveyBeforeProgram sbp ON s.SurveyID = sbp.SurveyID
+            -- Join with after-program survey data
+            LEFT JOIN SurveyAfterProgram sap ON s.SurveyID = sap.SurveyID
+            WHERE s.IsDisabled = 0  -- Only show active surveys
+            ORDER BY s.SurveyID DESC -- Most recent first
         `);
-    res.json(result.recordset);
-  } catch (err) {
-    res.status(500).json({ message: "Server error" });
-  }
-}
 
-// GET Survey by ID (with SurveyCategoryName)
-export async function getSurveyById(
-  req: Request,
-  res: Response
-): Promise<void> {
-  const id = Number(req.params.id);
-  try {
-    const pool = await poolPromise;
-    const result = await pool.request().input("id", sql.Int, id).query(`
-                SELECT s.*, c.SurveyCategoryName
-                FROM Survey s
-                LEFT JOIN SurveyCategory c ON s.SurveyCategoryID = c.SurveyCategoryID
-                WHERE s.SurveyID = @id
-            `);
-    const survey = result.recordset[0];
-    if (!survey) {
-      res.status(404).json({ message: "Survey not found" });
-      return;
+        console.log("Surveys fetched:", result.recordset);
+        // Return surveys with user context if available
+        res.status(200).json({
+            data: result.recordset,
+            user: (req as any).user ? { ...((req as any).user).user } : null
+        });
+    } catch (error) {
+        console.error("Error fetching surveys:", error);
+        res.status(500).json({ message: "Error occurred when fetching surveys" });
     }
-    res.json(survey);
-  } catch (err) {
-    res.status(500).json({ message: "Server error" });
-  }
-}
+};
 
-// CREATE Survey
-export async function createSurvey(req: Request, res: Response): Promise<void> {
-  const { Description, Type, SurveyCategoryID } = req.body;
-  try {
-    const pool = await poolPromise;
-    const insertResult = await pool
-      .request()
-      .input("Description", sql.NVarChar, Description)
-      .input("Type", sql.Bit, Type)
-      .input(
-        "SurveyCategoryID",
-        SurveyCategoryID ? sql.Int : sql.Int,
-        SurveyCategoryID || null
-      ).query(`
-                INSERT INTO Survey (Description, Type, SurveyCategoryID)
-                OUTPUT INSERTED.SurveyID
-                VALUES (@Description, @Type, @SurveyCategoryID)
-            `);
-    const newId = insertResult.recordset[0].SurveyID;
-    // Return the created survey with category name
-    const result = await pool.request().input("id", sql.Int, newId).query(`
-                SELECT s.*, c.SurveyCategoryName
+/**
+ * Retrieves a specific survey by its ID with associated before/after program data
+ * 
+ * @route GET /api/surveys/:id
+ * @access Public
+ * @param {Request} req - Express request object with survey ID in params
+ * @param {Response} res - Express response object
+ * @returns {Promise<void>} JSON response with survey details and user data
+ * @throws {404} If survey is not found
+ * @throws {500} If server error occurs
+ */
+export const getSurveyById = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+        console.log(`Fetching survey with ID: ${id}...`);
+
+        const pool = await poolPromise;
+        // Query specific survey with parameterized query for security
+        const result = await pool.request()
+            .input('id', id) // Parameterized input for SQL injection prevention
+            .query(`
+                SELECT 
+                    s.SurveyID,    -- Primary survey identifier
+                    s.Type,        -- Survey type
+                    s.IsDisabled,  -- Availability status
+                    sbp.Expected,  -- Before-program expectations
+                    sap.Improvement -- After-program feedback
                 FROM Survey s
-                LEFT JOIN SurveyCategory c ON s.SurveyCategoryID = c.SurveyCategoryID
-                WHERE s.SurveyID = @id
+                -- Join with before-program survey data
+                LEFT JOIN SurveyBeforeProgram sbp ON s.SurveyID = sbp.SurveyID
+                -- Join with after-program survey data
+                LEFT JOIN SurveyAfterProgram sap ON s.SurveyID = sap.SurveyID
+                WHERE s.SurveyID = @id AND s.IsDisabled = 0
             `);
-    res.status(201).json(result.recordset[0]);
-  } catch (err) {
-    res.status(500).json({ message: "Server error" });
-  }
-}
 
-// UPDATE Survey
-export async function updateSurvey(req: Request, res: Response): Promise<void> {
-  const id = Number(req.params.id);
-  const { Description, Type, SurveyCategoryID } = req.body;
-  try {
-    const pool = await poolPromise;
-    const updateResult = await pool
-      .request()
-      .input("id", sql.Int, id)
-      .input("Description", sql.NVarChar, Description)
-      .input("Type", sql.Bit, Type)
-      .input(
-        "SurveyCategoryID",
-        SurveyCategoryID ? sql.Int : sql.Int,
-        SurveyCategoryID || null
-      ).query(`
-                UPDATE Survey
-                SET Description = @Description, Type = @Type, SurveyCategoryID = @SurveyCategoryID
-                WHERE SurveyID = @id
-            `);
-    if (updateResult.rowsAffected[0] === 0) {
-      res.status(404).json({ message: "Survey not found" });
-      return;
+        // Check if survey exists and is active
+        if (result.recordset.length === 0) {
+            res.status(404).json({ message: "Survey not found" });
+            return;
+        }
+
+        console.log("Survey fetched:", result.recordset[0]);
+        // Return survey with user context if available
+        res.status(200).json({
+            data: result.recordset[0],
+            user: (req as any).user ? { ...((req as any).user).user } : null
+        });
+    } catch (error) {
+        console.error("Error fetching survey:", error);
+        res.status(500).json({ message: "Error occurred when fetching survey" });
     }
-    // Return the updated survey with category name
-    const result = await pool.request().input("id", sql.Int, id).query(`
-                SELECT s.*, c.SurveyCategoryName
-                FROM Survey s
-                LEFT JOIN SurveyCategory c ON s.SurveyCategoryID = c.SurveyCategoryID
-                WHERE s.SurveyID = @id
-            `);
-    res.json(result.recordset[0]);
-  } catch (err) {
-    res.status(500).json({ message: "Server error" });
-  }
-}
-
-// DELETE Survey
-export async function deleteSurvey(req: Request, res: Response): Promise<void> {
-  const id = Number(req.params.id);
-  try {
-    const pool = await poolPromise;
-    const deleteResult = await pool
-      .request()
-      .input("id", sql.Int, id)
-      .query("DELETE FROM Survey WHERE SurveyID = @id");
-    if (deleteResult.rowsAffected[0] === 0) {
-      res.status(404).json({ message: "Survey not found" });
-      return;
-    }
-    res.status(204).send();
-  } catch (err) {
-    res.status(500).json({ message: "Server error" });
-  }
-}
-
-// GET Surveys by CategoryID (with SurveyCategoryName)
-export async function getSurveyByCategoryId(
-  req: Request,
-  res: Response
-): Promise<void> {
-  const categoryId = Number(req.params.categoryId);
-  try {
-    const pool = await poolPromise;
-    const result = await pool.request().input("categoryId", sql.Int, categoryId)
-      .query(`
-                SELECT s.*, c.SurveyCategoryName
-                FROM Survey s
-                LEFT JOIN SurveyCategory c ON s.SurveyCategoryID = c.SurveyCategoryID
-                WHERE s.SurveyCategoryID = @categoryId
-            `);
-    res.json(result.recordset);
-  } catch (err) {
-    res.status(500).json({ message: "Server error" });
-  }
-}
+};
