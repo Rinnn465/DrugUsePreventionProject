@@ -7,7 +7,7 @@ export const assessmentData: Assessment[] = [
     description: "Bài kiểm tra sàng lọc mức độ sử dụng chất gây nghiện (ASSIST) giúp xác định các kiểu sử dụng các chất gây nghiện và các nguy cơ liên quan.",
     questionCount: 8,
     timeToComplete: 5,
-    audiences: ["Người lớn", "Thanh niên", "Thiếu niên"],
+    audiences: ["Người lớn", "Sinh viên", "Học sinh"],
     color: "primary",
     questions: [
       {
@@ -109,7 +109,7 @@ export const assessmentData: Assessment[] = [
     description: "Một công cụ sàng lọc ngắn dành cho thanh thiếu niên để đánh giá mức độ rủi ro liên quan đến rượu và các chất gây nghiện khác.",
     questionCount: 6,
     timeToComplete: 3,
-    audiences: ["Thiếu niên", "Thanh niên"],
+    audiences: ["Học Sinh ", "Sinh viên"],
     color: "primary",
     questions: [
       {
@@ -168,7 +168,7 @@ export const assessmentData: Assessment[] = [
     description: "Giúp phụ huynh đánh giá các yếu tố nguy cơ tiềm ẩn trong môi trường gia đình và cách nuôi dạy con.",
     questionCount: 7,
     timeToComplete: 5,
-    audiences: ["Phụ huynh", "Người giám hộ"],
+    audiences: ["Phụ huynh", "Giáo viên"],
     color: "primary",
     questions: [
       {
@@ -249,7 +249,7 @@ export const assessmentData: Assessment[] = [
     description: "Dành cho giáo viên để đánh giá môi trường phòng ngừa của trường học và xác định các lĩnh vực cần cải thiện.",
     questionCount: 8,
     timeToComplete: 6,
-    audiences: ["Giáo viên", "Ban giám hiệu nhà trường"],
+    audiences: ["Giáo viên"],
     color: "primary",
     questions: [
       {

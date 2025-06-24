@@ -23,6 +23,7 @@ interface PasswordFormData {
 const DashBoardPage: React.FC = () => {
   const { userId } = useParams();
   const { user, setUser } = useUser();
+
   const location = useLocation();
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -371,7 +372,8 @@ const DashBoardPage: React.FC = () => {
                       <Calendar className="h-5 w-5 text-gray-400" />
                       <div>
                         <p className="text-sm text-gray-600">Ngày sinh</p>
-                        <p className="font-medium text-gray-800">{user?.DateOfBirth ? parseDate(user.DateOfBirth) : "Chưa cập nhật"}</p>
+
+                        <p className="font-medium text-gray-800">{user?.DateOfBirth ? parseDate(user.DateOfBirth.toString()) : "Chưa cập nhật"}</p>
                       </div>
                     </div>
                   </div>

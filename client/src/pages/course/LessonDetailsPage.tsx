@@ -1,4 +1,4 @@
-import { useLocation, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { sqlLesson, sqlLessonAnswer, sqlLessonQuestion } from "../../types/Lesson";
 import { toast } from "react-toastify";
@@ -7,8 +7,7 @@ import { useUser } from "@/context/UserContext";
 const LessonDetailsPage: React.FC = () => {
     const { id } = useParams();
     const { user } = useUser();
-    const location = useLocation();
-    const isCompleted = location?.state.isCompleted;
+    const isSkippable = import.meta.env.VITE_IS_UNSKIPPABLE === 'true';
 
     const [selected, setSelected] = useState<string | number>("lesson");
     const [lesson, setLesson] = useState<sqlLesson[] | null>(null);
@@ -140,13 +139,25 @@ const LessonDetailsPage: React.FC = () => {
                     );
                     return newProgress;
                 });
-                setLastValidTime((prev) => {
-                    const newTime = Math.max(prev[lessonId.toString()] || 0, currentTime);
-                    console.log(
-                        `Last valid time for lesson ${lessonId}: ${newTime}s (isSeeking: ${isSeekingRef.current})`
-                    );
-                    return { ...prev, [lessonId.toString()]: newTime };
-                });
+
+                // In development mode, always allow seeking
+                if (!isSkippable) {
+                    setLastValidTime((prev) => {
+                        const newTime = currentTime; // Allow any time in development
+                        console.log(
+                            `Last valid time for lesson ${lessonId} (dev mode): ${newTime}s`
+                        );
+                        return { ...prev, [lessonId.toString()]: newTime };
+                    });
+                } else {
+                    setLastValidTime((prev) => {
+                        const newTime = Math.max(prev[lessonId.toString()] || 0, currentTime);
+                        console.log(
+                            `Last valid time for lesson ${lessonId} (prod mode): ${newTime}s`
+                        );
+                        return { ...prev, [lessonId.toString()]: newTime };
+                    });
+                }
             }
         }
     };
@@ -169,9 +180,12 @@ const LessonDetailsPage: React.FC = () => {
             const currentTime = videoRef.current.currentTime;
             const duration = videoRef.current.duration;
             const lastTime = lastValidTime[lessonId.toString()] || 0;
+
             if (duration && !isNaN(duration)) {
                 const watchedProgress = (lastTime / duration) * 100;
-                if (currentTime > lastTime && watchedProgress < 80) {
+
+                // Only prevent seeking in production mode (when isSkippable is true)
+                if (isSkippable && currentTime > lastTime && watchedProgress < 80) {
                     isSeekingRef.current = true;
                     videoRef.current.currentTime = lastTime;
                     toast.info("Vui lòng xem ít nhất 80% video trước khi hoàn thành bài học.");
@@ -194,8 +208,11 @@ const LessonDetailsPage: React.FC = () => {
 
     const isLessonVideoWatched = (lessonId: string | number) => {
         const progress = videoProgress[lessonId.toString()] || 0;
-        console.log(`Checking if lesson ${lessonId} watched: ${progress}% (threshold: 80%)`);
-        return progress >= 80;
+        console.log(`Checking if lesson ${lessonId} watched: ${progress}% (threshold: 80%, dev mode: ${!isSkippable})`);
+
+        // In development mode, allow completion with any progress
+        // In production mode, require 80% progress
+        return !isSkippable ? true : progress >= 80;
     };
 
     const handleAnswerChange = (questionId: number, answerId: string, isChecked: boolean) => {
@@ -261,12 +278,13 @@ const LessonDetailsPage: React.FC = () => {
             } else {
                 checkCourseCompletion();
             }
-        } else if (!isLessonVideoWatched(selected)) {
+        } else if (!isLessonVideoWatched(selected) && isSkippable) {
             toast.info("Vui lòng xem ít nhất 80% video trước khi hoàn thành bài học.");
         } else {
             checkCourseCompletion();
         }
     };
+
 
     const handleSubmitQuestion = (e: React.FormEvent) => {
         e.preventDefault();
@@ -314,9 +332,9 @@ const LessonDetailsPage: React.FC = () => {
                         height="400px"
                         controls
                         className="rounded-lg border shadow-md"
-                        onTimeUpdate={() => handleVideoTimeUpdate(selectedLesson.LessonID)}
-                        onSeeking={() => handleSeeking(selectedLesson.LessonID)}
-                        onSeeked={() => handleSeeked(selectedLesson.LessonID)}
+                        onTimeUpdate={() => handleVideoTimeUpdate(selectedLesson.LessonID)} // Always track progress
+                        onSeeking={() => handleSeeking(selectedLesson.LessonID)} // Always handle seeking
+                        onSeeked={() => handleSeeked(selectedLesson.LessonID)} // Always handle seeked
                         onEnded={() => handleVideoEnded(selectedLesson.LessonID)}
                         onError={() => toast.error("Không thể tải video. Vui lòng thử lại.")}
                     >
@@ -332,7 +350,7 @@ const LessonDetailsPage: React.FC = () => {
                         : "bg-gray-400 text-gray-200 cursor-not-allowed"
                         }`}
                 >
-                    Hoàn thành bài học
+                    {!isSkippable ? "Hoàn thành bài học (Dev Mode)" : "Hoàn thành bài học"}
                 </button>
             </div>
         );

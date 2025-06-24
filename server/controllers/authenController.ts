@@ -58,6 +58,7 @@ export async function login(
           Username: user.Username,
           Email: user.Email,
           FullName: user.FullName,
+          DateOfBirth: user.DateOfBirth,
           RoleID: user.RoleID, // Use RoleID instead of Role
           RoleName: user.RoleName, // Include RoleName for convenience
           CreatedAt: user.CreatedAt,
@@ -76,6 +77,7 @@ export async function login(
         Username: user.Username,
         Email: user.Email,
         FullName: user.FullName,
+        DateOfBirth: user.DateOfBirth,
         RoleID: user.RoleID,
         RoleName: user.RoleName,
         CreatedAt: user.CreatedAt,

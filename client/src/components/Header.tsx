@@ -4,15 +4,15 @@ import Tippy from '@tippyjs/react/headless';
 import { useUser } from '../context/UserContext';
 import tippy from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
-import { 
-  Info, 
-  Newspaper, 
-  BookOpen, 
-  ClipboardList, 
-  Calendar, 
-  Users, 
-  Heart, 
-  User, 
+import {
+  Info,
+  Newspaper,
+  BookOpen,
+  ClipboardList,
+  Calendar,
+  Users,
+  Heart,
+  User,
   LogOut,
   Settings
 } from 'lucide-react';
@@ -55,7 +55,7 @@ type HeaderProps = {
 }
 
 const Header: React.FC<HeaderProps> = () => {
-  let { user, setUser } = useUser();
+  const { user, setUser } = useUser();
 
   useEffect(() => {
     tippy('[data-tippy-content]');
@@ -126,7 +126,7 @@ const Header: React.FC<HeaderProps> = () => {
                       <User className="h-5 w-5" />
                       <span>Dashboard</span>
                     </Link>
-                    {user.Role === 'Admin' && (
+                    {user.RoleName === 'Admin' && (
                       <Link to="/admin" className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
                         <Settings className="h-5 w-5" />
                         <span>Admin Panel</span>

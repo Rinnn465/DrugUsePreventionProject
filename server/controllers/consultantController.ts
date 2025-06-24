@@ -16,17 +16,6 @@ interface Consultant {
     IsAvailable: boolean;
 }
 
-/**
- * Retrieves all consultants from the database
- *
- * @route GET /api/consultants
- * @access Public
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response with array of consultants
- * @throws {500} If database error occurs
- */
 export async function getConsultants(
     req: Request,
     res: Response,
@@ -48,6 +37,104 @@ export async function getConsultants(
         res.status(500).json({ message: "Server error", error: err.message });
     }
 }
+
+/**
+ * Retrieves all consultants from the database
+ *
+ * @route GET /api/consultants
+ * @access Public
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response with array of consultants
+ * @throws {500} If database error occurs
+ */
+
+
+export async function getConsultantWithCategory(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request().query(`
+            SELECT 
+                c.ConsultantID, 
+                c.Name, 
+                c.Bio, 
+                c.Title, 
+                c.ImageUrl, 
+                c.IsDisabled,
+                cc.CategoryID,
+                cat.CategoryName
+            FROM Consultant c 
+            LEFT JOIN ConsultantCategory cc ON c.ConsultantID = cc.ConsultantID
+            LEFT JOIN Category cat ON cc.CategoryID = cat.CategoryID
+            WHERE (c.IsDisabled = 0 OR c.IsDisabled IS NULL)
+            ORDER BY c.ConsultantID, cc.CategoryID
+        `);
+
+        console.log('Raw query result:', result.recordset);
+
+        // Group consultants by ID and collect their categories
+        const consultantsMap = new Map();
+
+        result.recordset.forEach(row => {
+            const consultantId = row.ConsultantID;
+
+            console.log(`Processing row for consultant ${consultantId}:`, {
+                ConsultantID: row.ConsultantID,
+                Name: row.Name,
+                CategoryID: row.CategoryID,
+                CategoryName: row.CategoryName
+            });
+
+            if (!consultantsMap.has(consultantId)) {
+                consultantsMap.set(consultantId, {
+                    ConsultantID: row.ConsultantID,
+                    Name: row.Name,
+                    Bio: row.Bio,
+                    Title: row.Title,
+                    ImageUrl: row.ImageUrl,
+                    IsDisabled: row.IsDisabled || false,
+                    Categories: []
+                });
+            }
+
+            // Add category if it exists and is not already added
+            if (row.CategoryID && row.CategoryName) {
+                const consultant = consultantsMap.get(consultantId);
+                const categoryExists = consultant.Categories.some(
+                    (cat: any) => cat.CategoryID === row.CategoryID
+                );
+
+                if (!categoryExists) {
+                    consultant.Categories.push({
+                        CategoryID: row.CategoryID,
+                        CategoryName: row.CategoryName
+                    });
+                }
+            }
+        });
+
+        const groupedConsultants = Array.from(consultantsMap.values());
+        groupedConsultants.map(c => ({
+            name: c.Name,
+            categories: c.Categories.map((cat: any) => cat.CategoryName)
+        }));
+
+        res.status(200).json({
+            message: "Tải dữ liệu chuyên viên thành công",
+            data: groupedConsultants,
+        });
+    } catch (err: any) {
+        console.error('Error in getConsultants:', err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+}
+
+// ...existing code...
 
 /**
  * Retrieves a specific consultant by their ID
@@ -194,6 +281,33 @@ export async function getConsultantSchedule(req: Request, res: Response, next: N
         res.status(200).json(result.recordset);
     } catch (error) {
         console.error('Error fetching consultant schedule:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+export async function getConsulantCategory(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { consultantId } = req.params;
+
+    if (!consultantId) {
+        res.status(400).json({ message: 'Consultant ID is required' });
+        return;
+    }
+
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('ConsultantID', sql.Int, consultantId)
+            .query(`
+                SELECT c.ConsultantID, cc.CategoryID, cat.CategoryName
+                FROM Consultant c
+                JOIN ConsultantCategory cc ON c.ConsultantID = cc.ConsultantID
+				JOIN Category cat ON cat.CategoryID = cc.CategoryID
+                WHERE c.ConsultantID = @ConsultantID
+            `);
+
+        res.status(200).json(result.recordset);
+    } catch (error) {
+        console.error('Error fetching consultant category:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 }

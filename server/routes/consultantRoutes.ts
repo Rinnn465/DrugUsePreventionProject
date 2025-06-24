@@ -1,6 +1,6 @@
 import express, { Router } from 'express';
 import dotenv from 'dotenv';
-import { getConsultants, getConsultantById, getQualifications, getSpecialties } from '../controllers/consultantController';
+import { getConsultants, getConsultantWithCategory, getConsultantById, getQualifications, getSpecialties, getConsulantCategory } from '../controllers/consultantController';
 
 
 dotenv.config();
@@ -16,6 +16,9 @@ router.get('/qualifications', getQualifications)
 
 // Get qualifications
 router.get('/specialties', getSpecialties)
+
+//get categories
+router.get('/category', getConsultantWithCategory);
 
 // Get consultant by ID
 router.get('/:id', getConsultantById);

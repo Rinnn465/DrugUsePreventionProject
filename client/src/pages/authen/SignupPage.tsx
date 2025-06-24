@@ -13,12 +13,12 @@ const SignUpPage: React.FC = () => {
     const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
 
     const handleDateChange = (key: string, value: number | string) => {
-        const [day = '', month = '', year = ''] = formik.values.date.split('-');
+        const [year = '', month = '', day = ''] = formik.values.date.split('-');
 
         const newDate = {
-            day,
-            month,
             year,
+            month,
+            day,
             [key]: value
         };
 
