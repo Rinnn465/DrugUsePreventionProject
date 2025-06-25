@@ -12,10 +12,10 @@ const RolePage: React.FC = () => {
             return <AdminPage />
         case "consultant":
             return <div>consultant Dashboard</div>;
-        case "staff":
-            return <StaffPage />
         case "manager":
             return <ManagerPage />
+        case "staff":
+            return <StaffPage />
         default:
             return null;
     }

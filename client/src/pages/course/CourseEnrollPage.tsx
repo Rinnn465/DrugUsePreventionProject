@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Clock, Users, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Enrollment, SqlCourse } from '../../types/Course';
 import { sqlLesson } from '../../types/Lesson';
 import useAuthToken from '../../hooks/useAuthToken';
@@ -231,16 +231,6 @@ const CourseEnrollPage: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-900 mb-4">{course.CourseName}</h1>
             <p className="text-gray-600 text-lg mb-6">{course.Description}</p>
 
-            <div className="flex flex-wrap gap-6 text-gray-600">
-              <div className="flex items-center">
-                <Clock className="h-5 w-5 mr-2 text-primary-600" />
-                <span>{course.Duration || 'N/A'}</span>
-              </div>
-              <div className="flex items-center">
-                <Users className="h-5 w-5 mr-2 text-primary-600" />
-                <span>{course.EnrollCount} người đã tham gia</span>
-              </div>
-            </div>
           </div>
         </div>
 

@@ -30,6 +30,7 @@ import ArticleDetailsPage from './pages/article/ArticleDetailsPage';
 import CommunityProgramPage from './pages/program/CommunityProgramPage';
 import CommunityProgramDetails from './pages/program/CommunityProgramDetailsPage';
 import AdminPage from './pages/management/AdminPage';
+import ConsultantPage from './pages/management/ConsultantPage';
 
 function App() {
   return (
@@ -56,12 +57,13 @@ function App() {
             <Route path="survey/:programId/completed" element={<SurveyCompletePage />} />
             <Route path="dashboard/:userId" element={<DashBoardPage />} />
             <Route path="dashboard/:userId/profile" element={<DashBoardPage />} />
-            <Route path="dashboard/:userId/security" element={<DashBoardPage />} /> {/* Thêm tuyến đường này */}
+            <Route path="dashboard/:userId/security" element={<DashBoardPage />} />
             <Route path="dashboard/:userId/courses" element={<DashBoardPage />} />
             <Route path="dashboard/:userId/events" element={<DashBoardPage />} />
             <Route path="dashboard/:userId/appointments" element={<DashBoardPage />} />
             <Route path="roles/:userId" element={<RolePage />} />
             <Route path="admin" element={<AdminPage />} />
+            <Route path="consultant" element={<ConsultantPage />} />
             <Route path="roles/:userId/course-manage" element={<CourseManagmentPage />} />
             <Route path="roles/:userId/event-manage" element={<EventManagmentPage />} />
             <Route path="roles/:userId/employee-manage" element={<EmployeeManagmentPage />} />

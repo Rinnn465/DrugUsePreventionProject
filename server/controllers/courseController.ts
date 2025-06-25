@@ -15,23 +15,72 @@ dotenv.config();
  */
 export async function getCourses(req: Request, res: Response): Promise<void> {
     try {
-        // Get database connection
         const pool = await poolPromise;
-        // Query all courses
+
+        // Use JSON aggregation to group categories
         const result = await pool.request().query(`
-            SELECT c.CourseID, c.CourseName, c.Risk, c.Description, c.ImageUrl, 
-            c.EnrollCount, cc.CategoryID, cate.CategoryName 
-            FROM CourseCategory cc JOIN Course c ON cc.CourseID = c.CourseID 
-                                   JOIN Category cate ON cate.CategoryID = cc.CategoryID
+            SELECT 
+                c.CourseID, 
+                c.CourseName, 
+                c.Risk, 
+                c.Description, 
+                c.ImageUrl, 
+                c.EnrollCount,
+                c.Duration,
+                c.IsDisabled,
+                c.Status,
+                (
+                    SELECT cc.CategoryID, cate.CategoryName
+                    FROM CourseCategory cc
+                    JOIN Category cate ON cate.CategoryID = cc.CategoryID
+                    WHERE cc.CourseID = c.CourseID
+                    FOR JSON PATH
+                ) AS CategoryJSON
+            FROM Course c
             WHERE c.IsDisabled = 0
-            `);
+        `);
+
+        console.log('Raw query result:', result.recordset); // Debug log
+
+        // Parse the JSON categories properly
+        const courses = result.recordset.map(course => {
+            let categories = [];
+
+            // Handle the CategoryJSON parsing
+            if (course.CategoryJSON) {
+                try {
+                    // Parse the JSON string
+                    categories = JSON.parse(course.CategoryJSON);
+                    console.log('Parsed categories for course', course.CourseID, ':', categories);
+                } catch (parseError) {
+                    console.error('Error parsing CategoryJSON for course', course.CourseID, ':', parseError);
+                    categories = [];
+                }
+            }
+
+            // Return course with properly parsed categories
+            return {
+                CourseID: course.CourseID,
+                CourseName: course.CourseName,
+                Risk: course.Risk,
+                Description: course.Description,
+                ImageUrl: course.ImageUrl,
+                EnrollCount: course.EnrollCount,
+                Duration: course.Duration,
+                IsDisabled: course.IsDisabled,
+                Status: course.Status,
+                Category: categories // This should now be an array
+            };
+        });
+
+        console.log('Final processed courses:', JSON.stringify(courses, null, 2)); // Debug log
+
         res.status(200).json({
             message: 'Courses fetched successfully',
-            data: result.recordset
+            data: courses
         });
         return;
     } catch (err: any) {
-        // Log error and send error response
         console.error('Error in getCourses:', err);
         res.status(500).json({
             message: 'Error fetching courses',

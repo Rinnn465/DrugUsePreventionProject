@@ -16,17 +16,6 @@ interface Consultant {
     IsAvailable: boolean;
 }
 
-/**
- * Retrieves all consultants from the database
- *
- * @route GET /api/consultants
- * @access Public
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response with array of consultants
- * @throws {500} If database error occurs
- */
 export async function getConsultants(
     req: Request,
     res: Response,
@@ -35,8 +24,8 @@ export async function getConsultants(
     try {
         const pool = await poolPromise;
         const result = await pool.request().query(`
-        SELECT c.ConsultantID ,c.Name, c.Bio, c.Title, c.ImageUrl, c.IsDisabled, cs.ScheduleID, cs.Date, cs.StartTime, cs.EndTime
-        FROM Consultant c JOIN ConsultantSchedule cs ON c.ConsultantID = cs.ConsultantID 
+        SELECT c.AccountID ,c.Name, c.Bio, c.Title, c.ImageUrl, c.IsDisabled, cs.ScheduleID, cs.Date, cs.StartTime, cs.EndTime
+        FROM Consultant c JOIN ConsultantSchedule cs ON c.AccountID = cs.AccountID 
         WHERE c.IsDisabled = 0
         `);
         res.status(200).json({
@@ -48,6 +37,104 @@ export async function getConsultants(
         res.status(500).json({ message: "Server error", error: err.message });
     }
 }
+
+/**
+ * Retrieves all consultants from the database
+ *
+ * @route GET /api/consultants
+ * @access Public
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object
+ * @param {NextFunction} next - Express next middleware function
+ * @returns {Promise<void>} JSON response with array of consultants
+ * @throws {500} If database error occurs
+ */
+
+
+export async function getConsultantWithCategory(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request().query(`
+            SELECT 
+                c.AccountID, 
+                c.Name, 
+                c.Bio, 
+                c.Title, 
+                c.ImageUrl, 
+                c.IsDisabled,
+                cc.CategoryID,
+                cat.CategoryName
+            FROM Consultant c 
+            LEFT JOIN ConsultantCategory cc ON c.AccountID = cc.AccountID
+            LEFT JOIN Category cat ON cc.CategoryID = cat.CategoryID
+            WHERE (c.IsDisabled = 0 OR c.IsDisabled IS NULL)
+            ORDER BY c.AccountID, cc.CategoryID
+        `);
+
+        console.log('Raw query result:', result.recordset);
+
+        // Group consultants by ID and collect their categories
+        const consultantsMap = new Map();
+
+        result.recordset.forEach(row => {
+            const consultantId = row.AccountID;
+
+            console.log(`Processing row for consultant ${consultantId}:`, {
+                ConsultantID: row.ConsultantID,
+                Name: row.Name,
+                CategoryID: row.CategoryID,
+                CategoryName: row.CategoryName
+            });
+
+            if (!consultantsMap.has(consultantId)) {
+                consultantsMap.set(consultantId, {
+                    ConsultantID: row.ConsultantID,
+                    Name: row.Name,
+                    Bio: row.Bio,
+                    Title: row.Title,
+                    ImageUrl: row.ImageUrl,
+                    IsDisabled: row.IsDisabled || false,
+                    Categories: []
+                });
+            }
+
+            // Add category if it exists and is not already added
+            if (row.CategoryID && row.CategoryName) {
+                const consultant = consultantsMap.get(consultantId);
+                const categoryExists = consultant.Categories.some(
+                    (cat: any) => cat.CategoryID === row.CategoryID
+                );
+
+                if (!categoryExists) {
+                    consultant.Categories.push({
+                        CategoryID: row.CategoryID,
+                        CategoryName: row.CategoryName
+                    });
+                }
+            }
+        });
+
+        const groupedConsultants = Array.from(consultantsMap.values());
+        groupedConsultants.map(c => ({
+            name: c.Name,
+            categories: c.Categories.map((cat: any) => cat.CategoryName)
+        }));
+
+        res.status(200).json({
+            message: "Tải dữ liệu chuyên viên thành công",
+            data: groupedConsultants,
+        });
+    } catch (err: any) {
+        console.error('Error in getConsultants:', err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+}
+
+// ...existing code...
 
 /**
  * Retrieves a specific consultant by their ID
@@ -68,6 +155,12 @@ export async function getConsultantById(
 ): Promise<void> {
     const consultantId = req.params.id;
 
+    // Validate that consultantId is a valid number
+    if (isNaN(Number(consultantId))) {
+        res.status(400).json({ message: "Invalid consultant ID. Must be a number." });
+        return;
+    }
+
     try {
 
         // Query consultant with parameterized query for security
@@ -76,7 +169,7 @@ export async function getConsultantById(
             .request()
             .input("consultantId", sql.Int, consultantId)
             .query(`SELECT * 
-            FROM Consultant c JOIN ConsultantSchedule cs ON c.ConsultantID = cs.ConsultantID 
+            FROM Consultant c JOIN ConsultantSchedule cs ON c.AccountID = cs.ConsultantID 
             WHERE cs.ConsultantId = @consultantId`);
 
         // Check if consultant exists
@@ -117,7 +210,7 @@ export async function getQualifications(
 
         // Join query to get qualifications with consultant associations
         const result = await pool.request().query(
-            `SELECT q.QualificationID, q.Name, cq.ConsultantID  
+            `SELECT q.QualificationID, q.Name, cq.AccountID  
                FROM Qualification q JOIN ConsultantQualification cq ON q.QualificationID = cq.QualificationID`
         );
         res
@@ -151,7 +244,7 @@ export async function getSpecialties(
         const pool = await poolPromise;
         // Join query to get specialties with consultant associations
         const result = await pool.request().query(
-            `SELECT s.SpecialtyID, s.Name, cs.ConsultantID 
+            `SELECT s.SpecialtyID, s.Name, cs.AccountID 
                FROM Specialty s JOIN ConsultantSpecialty cs ON s.SpecialtyID = cs.SpecialtyID`
         );
         res
@@ -180,20 +273,214 @@ export async function getSchedule(req: Request, res: Response, next: NextFunctio
 export async function getConsultantSchedule(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { consultantId } = req.params;
 
+    console.log('getConsultantSchedule called with consultantId:', consultantId);
+
     if (!consultantId) {
+        console.log('No consultantId provided');
         res.status(400).json({ message: 'Consultant ID is required' });
         return
     }
 
     try {
         const pool = await poolPromise;
+
+        console.log('Checking if consultantId is AccountID...');
+
+        // First, check if consultantId is actually an AccountID and get the ConsultantID
+        let actualConsultantId = consultantId;
+
+        // Try to find consultant by AccountID first
+        try {
+            const consultantCheck = await pool.request()
+                .input('AccountID', sql.Int, consultantId)
+                .query('SELECT AccountID FROM Consultant WHERE AccountID = @AccountID');
+
+            console.log('Consultant check result:', consultantCheck.recordset);
+
+            if (consultantCheck.recordset.length > 0) {
+                actualConsultantId = consultantCheck.recordset[0].AccountID;
+                console.log('Found ConsultantID from AccountID:', actualConsultantId);
+            } else {
+                console.log('No consultant found with AccountID, using original ID as ConsultantID');
+            }
+        } catch (accountCheckError) {
+            console.log('Error checking AccountID, might not have AccountID column:', accountCheckError);
+            // If AccountID column doesn't exist, just use the original ID
+        }
+
         const result = await pool.request()
-            .input('ConsultantID', sql.Int, consultantId)
-            .query('SELECT * FROM ConsultantSchedule WHERE ConsultantID = @ConsultantID');
+            .input('ConsultantID', sql.Int, actualConsultantId)
+            .query('SELECT * FROM ConsultantSchedule WHERE AccountID = @ConsultantID');
+
+        console.log('Schedule query result:', result.recordset);
 
         res.status(200).json(result.recordset);
     } catch (error) {
         console.error('Error fetching consultant schedule:', error);
+        res.status(500).json({
+            message: 'Internal server error',
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
+    }
+}
+
+export async function updateConsultantSchedule(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { scheduleId } = req.params;
+    const { date, startTime, endTime } = req.body;
+
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('ScheduleID', sql.Int, scheduleId)
+            .input('Date', sql.Date, date)
+            .input('StartTime', sql.Time, startTime)
+            .input('EndTime', sql.Time, endTime)
+            .query(`
+                UPDATE ConsultantSchedule 
+                SET Date = @Date, StartTime = @StartTime, EndTime = @EndTime
+                WHERE ScheduleID = @ScheduleID
+            `);
+
+        res.status(200).json({ message: 'Cập nhật lịch làm việc thành công' });
+    } catch (error) {
+        console.error('Error updating consultant schedule:', error);
+        res.status(500).json({ message: 'Lỗi server khi cập nhật lịch làm việc' });
+    }
+}
+
+/**
+ * Delete consultant schedule
+ */
+export async function deleteConsultantSchedule(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { scheduleId } = req.params;
+
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('ScheduleID', sql.Int, scheduleId)
+            .query(`
+                DELETE FROM ConsultantSchedule 
+                WHERE ScheduleID = @ScheduleID
+            `);
+
+        res.status(200).json({ message: 'Xóa lịch làm việc thành công' });
+    } catch (error) {
+        console.error('Error deleting consultant schedule:', error);
+        res.status(500).json({ message: 'Lỗi server khi xóa lịch làm việc' });
+    }
+}
+
+export async function addConsultantSchedule(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { consultantId, date, startTime, endTime } = req.body;
+
+    try {
+        const pool = await poolPromise;
+
+        // First, check if consultantId is actually an AccountID and get the ConsultantID
+        let actualConsultantId = consultantId;
+
+        // Try to find consultant by AccountID first
+        const consultantCheck = await pool.request()
+            .input('AccountID', sql.Int, consultantId)
+            .query('SELECT AccountID FROM Consultant WHERE AccountID = @AccountID');
+
+        if (consultantCheck.recordset.length > 0) {
+            actualConsultantId = consultantCheck.recordset[0].AccountID;
+        }
+
+        const result = await pool.request()
+            .input('ConsultantID', sql.Int, actualConsultantId)
+            .input('Date', sql.Date, date)
+            .input('StartTime', sql.Time, startTime)
+            .input('EndTime', sql.Time, endTime)
+            .query(`
+                INSERT INTO ConsultantSchedule (AccountID, Date, StartTime, EndTime)
+                VALUES (@ConsultantID, @Date, @StartTime, @EndTime)
+            `);
+
+        res.status(201).json({ message: 'Thêm lịch làm việc thành công' });
+    } catch (error) {
+        console.error('Error adding consultant schedule:', error);
+        res.status(500).json({ message: 'Lỗi server khi thêm lịch làm việc' });
+    }
+}
+
+export async function getPendingAppointments(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { consultantId } = req.params;
+
+    console.log('getPendingAppointments called with consultantId:', consultantId);
+
+    try {
+        const pool = await poolPromise;
+
+        console.log('Checking if consultantId is AccountID...');
+
+        // First, check if consultantId is actually an AccountID and get the ConsultantID
+        let actualConsultantId = consultantId;
+
+        // Try to find consultant by AccountID first
+        const consultantCheck = await pool.request()
+            .input('AccountID', sql.Int, consultantId)
+            .query('SELECT AccountID FROM Consultant WHERE AccountID = @AccountID');
+
+        console.log('Consultant check result for pending appointments:', consultantCheck.recordset);
+
+        if (consultantCheck.recordset.length > 0) {
+            actualConsultantId = consultantCheck.recordset[0].AccountID;
+            console.log('Found ConsultantID from AccountID:', actualConsultantId);
+        } else {
+            console.log('No consultant found with AccountID, using original ID as ConsultantID');
+        }
+
+        const result = await pool.request()
+            .input('ConsultantID', sql.Int, actualConsultantId)
+            .query(`
+                SELECT 
+                    a.*,
+                    acc.FullName as CustomerName,
+                    acc.Email as CustomerEmail
+                FROM Appointment a
+                LEFT JOIN Account acc ON a.AccountID = acc.AccountID
+                WHERE a.ConsultantID = @ConsultantID 
+                AND a.Status = 'pending'
+                ORDER BY a.Date ASC, a.Time ASC
+            `);
+
+        console.log('Pending appointments query result:', result.recordset);
+
+        res.status(200).json({
+            message: 'Lấy danh sách cuộc hẹn chờ duyệt thành công',
+            data: result.recordset
+        });
+    } catch (error) {
+        console.error('Error fetching pending appointments:', error);
+        res.status(500).json({ message: 'Lỗi server khi lấy danh sách cuộc hẹn' });
+    }
+}
+
+export async function getConsulantCategory(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { consultantId } = req.params;
+
+    if (!consultantId) {
+        res.status(400).json({ message: 'Consultant ID is required' });
+        return;
+    }
+
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('ConsultantID', sql.Int, consultantId)
+            .query(`
+                SELECT c.AccountID, cc.CategoryID, cat.CategoryName
+                FROM Consultant c
+                JOIN ConsultantCategory cc ON c.AccountID = cc.AccountID
+				JOIN Category cat ON cat.CategoryID = cc.CategoryID
+                WHERE c.AccountID = @ConsultantID
+            `);
+
+        res.status(200).json(result.recordset);
+    } catch (error) {
+        console.error('Error fetching consultant category:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 }

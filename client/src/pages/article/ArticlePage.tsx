@@ -7,7 +7,6 @@ const ArticlePage: React.FC = () => {
   const [blogPosts, setBlogPosts] = useState<Article[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     fetch('http://localhost:5000/api/article')
       .then(response => response.json())

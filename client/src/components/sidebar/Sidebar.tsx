@@ -10,7 +10,6 @@ const Sidebar = () => {
 
   const menuItems = [
     { path: userId ? `/dashboard/${userId}` : '/', label: 'Dashboard', icon: Home },
-    { path: userId ? `/dashboard/${userId}/profile` : '#', label: 'Hồ sơ', icon: User },
     { path: userId ? `/dashboard/${userId}/security` : '#', label: 'Bảo mật', icon: Lock },
     { path: userId ? `/dashboard/${userId}/courses` : '#', label: 'Khóa học', icon: BookOpen },
     { path: userId ? `/dashboard/${userId}/events` : '#', label: 'Sự kiện', icon: Users },
@@ -18,10 +17,6 @@ const Sidebar = () => {
   ];
 
   const isActiveRoute = (itemPath: string) => {
-    // Special handling for profile route
-    if (itemPath.includes('/profile')) {
-      return location.pathname.includes('/profile');
-    }
     // Special handling for security route
     if (itemPath.includes('/security')) {
       return location.pathname.includes('/security');
@@ -41,7 +36,6 @@ const Sidebar = () => {
     // For dashboard main page
     if (
       itemPath.includes('/dashboard') &&
-      !itemPath.includes('/profile') &&
       !itemPath.includes('/security') &&
       !itemPath.includes('/courses') &&
       !itemPath.includes('/events') &&
@@ -49,7 +43,6 @@ const Sidebar = () => {
     ) {
       return (
         location.pathname.includes('/dashboard') &&
-        !location.pathname.includes('/profile') &&
         !location.pathname.includes('/security') &&
         !location.pathname.includes('/courses') &&
         !location.pathname.includes('/events') &&
