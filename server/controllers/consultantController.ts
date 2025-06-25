@@ -174,36 +174,36 @@ export async function getSpecialties(
  * * @returns {Promise<void>} JSON response with consultant schedules
  * * @throws {500} If database error occurs
  */
-export async function getSchedule(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-        const pool = await poolPromise;
-        const result = await pool.request()
-            .execute('SELECT * FROM ConsultantSchedule');
+// export async function getSchedule(req: Request, res: Response, next: NextFunction): Promise<void> {
+//     try {
+//         const pool = await poolPromise;
+//         const result = await pool.request()
+//             .execute('SELECT * FROM ConsultantSchedule');
 
-        res.status(200).json(result.recordset);
-    } catch (error) {
-        console.error('Error fetching schedule:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-}
+//         res.status(200).json(result.recordset);
+//     } catch (error) {
+//         console.error('Error fetching schedule:', error);
+//         res.status(500).json({ message: 'Internal server error' });
+//     }
+// }
 
-export async function getConsultantSchedule(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const { consultantId } = req.params;
+// export async function getConsultantSchedule(req: Request, res: Response, next: NextFunction): Promise<void> {
+//     const { consultantId } = req.params;
 
-    if (!consultantId) {
-        res.status(400).json({ message: 'Consultant ID is required' });
-        return
-    }
+//     if (!consultantId) {
+//         res.status(400).json({ message: 'Consultant ID is required' });
+//         return
+//     }
 
-    try {
-        const pool = await poolPromise;
-        const result = await pool.request()
-            .input('ConsultantID', sql.Int, consultantId)
-            .query('SELECT * FROM ConsultantSchedule WHERE ConsultantID = @ConsultantID');
+//     try {
+//         const pool = await poolPromise;
+//         const result = await pool.request()
+//             .input('ConsultantID', sql.Int, consultantId)
+//             .query('SELECT * FROM ConsultantSchedule WHERE ConsultantID = @ConsultantID');
 
-        res.status(200).json(result.recordset);
-    } catch (error) {
-        console.error('Error fetching consultant schedule:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-}
+//         res.status(200).json(result.recordset);
+//     } catch (error) {
+//         console.error('Error fetching consultant schedule:', error);
+//         res.status(500).json({ message: 'Internal server error' });
+//     }
+// }

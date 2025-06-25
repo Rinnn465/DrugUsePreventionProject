@@ -1,6 +1,6 @@
 /**
  * Community program-related API routes.
- * Provides endpoints for viewing, creating, updating, and deleting community programs.
+ * Provides endpoints for viewing, creating, updating, and deleting community programs and categories.
  * Includes role-based authorization for admin management.
  *
  * @module routes/programRoutes
@@ -25,7 +25,28 @@ router.get("/", programController.getAllPrograms);
  * @desc Get a community program by ID
  * @access Public/Guest
  */
-router.get(":/id", programController.getProgramById);
+router.get("/:id", programController.getProgramById);
+
+/**
+ * @route GET /api/programs/upcoming
+ * @desc Get all upcoming community programs
+ * @access Public/Guest
+ */
+router.get("/upcoming", programController.getUpcomingPrograms);
+
+/**
+ * @route GET /api/programs/past
+ * @desc Get all past community programs
+ * @access Public/Guest
+ */
+router.get("/past", programController.getPastPrograms);
+
+/**
+ * @route GET /api/programs/category/:categoryId
+ * @desc Get all programs for a specific category
+ * @access Public/Guest
+ */
+router.get("/category/:categoryId", programController.getProgramsByCategory);
 
 // Admin routes - Program management
 /**
@@ -40,16 +61,52 @@ router.post("/", authorizeRoles(["Admin"]), programController.createProgram);
  * @desc Update a community program by ID
  * @access Admin
  */
-router.put(":/id", authorizeRoles(["Admin"]), programController.updateProgram);
+router.put("/:id", authorizeRoles(["Admin"]), programController.updateProgram);
 
 /**
  * @route DELETE /api/programs/:id
  * @desc Delete a community program by ID
  * @access Admin
  */
-router.delete(":/id", authorizeRoles(["Admin"]), programController.deleteProgram);
+router.delete("/:id", authorizeRoles(["Admin"]), programController.deleteProgram);
 
-// Admin routes - Course management (to be implemented)
+// Program category routes
+/**
+ * @route GET /api/program-categories
+ * @desc Get all program categories
+ * @access Public/Guest
+ */
+router.get("/categories", programController.getProgramCategories);
+
+/**
+ * @route GET /api/program-categories/:id
+ * @desc Get a program category by ID
+ * @access Public/Guest
+ */
+router.get("/categories/:id", programController.getProgramCategoryById);
+
+/**
+ * @route POST /api/program-categories
+ * @desc Create a new program category
+ * @access Admin
+ */
+router.post("/categories", authorizeRoles(["Admin"]), programController.createProgramCategory);
+
+/**
+ * @route PUT /api/program-categories/:id
+ * @desc Update a program category by ID
+ * @access Admin
+ */
+router.put("/categories/:id", authorizeRoles(["Admin"]), programController.updateProgramCategory);
+
+/**
+ * @route DELETE /api/program-categories/:id
+ * @desc Delete a program category by ID
+ * @access Admin
+ */
+router.delete("/categories/:id", authorizeRoles(["Admin"]), programController.deleteProgramCategory);
+
+// Admin routes - Get all attendees for a specific program
 /**
  * @route GET /api/programs/:programId/attendees
  * @desc Get all attendees for a specific program

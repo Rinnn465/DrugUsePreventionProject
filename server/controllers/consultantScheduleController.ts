@@ -20,7 +20,7 @@ interface ConsultantSchedule {
  * @returns {Promise<void>} JSON response with all consultant schedules
  * @throws {500} If server error occurs
  */
-export async function getConsultantSchedules(
+export async function getSchedules(
     req: Request,
     res: Response,
     next: NextFunction
@@ -55,7 +55,7 @@ export async function getConsultantSchedules(
  * @throws {404} If schedule is not found
  * @throws {500} If server error occurs
  */
-export async function getConsultantScheduleByScheduleId(
+export async function getScheduleByScheduleId(
     req: Request,
     res: Response,
     next: NextFunction
@@ -95,7 +95,7 @@ export async function getConsultantScheduleByScheduleId(
  * @throws {404} If no schedules are found for the consultant
  * @throws {500} If server error occurs
  */
-export async function getConsultantSchedulesByConsultantId(
+export async function getSchedulesByConsultantId(
     req: Request,
     res: Response,
     next: NextFunction
@@ -135,7 +135,7 @@ export async function getConsultantSchedulesByConsultantId(
  * @throws {400} If required fields are missing or invalid
  * @throws {500} If server error occurs
  */
-export async function createConsultantSchedule(
+export async function createSchedule(
     req: Request,
     res: Response,
     next: NextFunction
@@ -175,7 +175,7 @@ export async function createConsultantSchedule(
  * @throws {404} If schedule is not found
  * @throws {500} If server error occurs
  */
-export async function updateConsultantSchedule(
+export async function updateSchedule(
     req: Request,
     res: Response,
     next: NextFunction
@@ -224,7 +224,7 @@ export async function updateConsultantSchedule(
  * @throws {404} If schedule is not found
  * @throws {500} If server error occurs
  */
-export async function deleteConsultantSchedule(
+export async function deleteSchedule(
     req: Request,
     res: Response,
     next: NextFunction

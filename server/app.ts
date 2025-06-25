@@ -30,64 +30,73 @@ app.use(
   apiArticleRoutes
 );
 
-//Protected Article Routes (accessible to Staff and Admin)
+// Protected Article Routes (accessible to Staff, Manager, Admin)
 app.use(
   "/api/article/admin",
   authorizeRoles(["Staff", "Manager" ,"Admin"]),
   apiArticleRoutes
 );
 
+// Authentication routes (login, register, password reset, etc.)
 app.use("/api/auth", apiAuthenRoutes);
 
+// Course routes (viewable by all roles)
 app.use(
   "/api/course",
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   courseRoutes
 );
 
-
-// Program routes - Guest có thể xem, nhưng enrollment chỉ cho Member/Consultant/Admin
+// Program routes (viewable by all roles, enrollment restricted in controller)
 app.use(
   "/api/program",
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   apiProgramRoutes
 );
 
-// Program attendee routes - Phân quyền cụ thể trong từng route
+// Program attendee routes (role-based authorization handled in each route)
 app.use(
   "/api/program-attendee",
-  apiProgramAttendeeRoutes // Không apply middleware ở đây, để route tự xử lý
+  apiProgramAttendeeRoutes // No global middleware, handled per route
 );
 
+// Consultant routes (viewable by all roles)
 app.use(
   "/api/consultant",
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   consultantRoutes
 );
 
+// Survey routes (restricted to Member, Consultant, Admin)
 app.use(
   "/api/survey",
   authorizeRoles(["Member", "Consultant", "Admin"]),
   apiSurveyRoutes
 );
 
-// Protected Routes - Member/Consultant can update profiles (excluding role changes)
+// Account routes (profile update for Member, Consultant, Admin)
 app.use(
   "/api/account",
   authorizeRoles(["Member", "Consultant", "Admin"]),
   apiAccountRoutes
 );
 
+// Appointment routes (viewable by all roles)
 app.use(
   "/api/appointment",
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   appointmentRoutes
 );
 
-// Admin-only Routes - Full account management including role changes
+// Admin-only routes (full management for each resource)
 app.use("/api/account/admin", authorizeRoles(["Admin"]), apiAccountRoutes);
-// Admin-only Routes - Full survey management
 app.use("/api/survey/admin", authorizeRoles(["Admin"]), apiSurveyRoutes);
+app.use("/api/program/admin", authorizeRoles(["Admin"]), apiProgramRoutes);
+app.use("/api/article/admin", authorizeRoles(["Admin"]), apiArticleRoutes);
+app.use("/api/course/admin", authorizeRoles(["Admin"]), courseRoutes);
+app.use("/api/consultant/admin", authorizeRoles(["Admin"]), consultantRoutes);
+app.use("/api/appointment/admin", authorizeRoles(["Admin"]), appointmentRoutes);
+
 
 // Start the server
 app.listen(PORT, () => {

@@ -52,42 +52,42 @@ router.get('/:id', getConsultantById);
  * @desc Get consultant's schedule by consultant ID
  * @access Public
  */
-router.get('/:id/schedule', consultantScheduleController.getConsultantScheduleByScheduleId);
+router.get('/:id/schedule', consultantScheduleController.getScheduleByScheduleId);
 
 /**
  * @route GET /api/consultants/schedule
  * @desc Get all consultants' schedules
  * @access Public
  */
-router.get('/schedule', consultantScheduleController.getConsultantSchedules);
+router.get('/schedule', consultantScheduleController.getSchedules);
 
 /**
  * @route GET /api/consultants/schedule/:consultantId
  * @desc Get schedule for a specific consultant by ID
  * @access Public
  */
- router.get('/schedule/:consultantId', consultantScheduleController.getConsultantSchedulesByConsultantId); // Uncomment if needed
+ router.get('/schedule/:consultantId', consultantScheduleController.getSchedulesByConsultantId); // Uncomment if needed
 
 /**
  * @route POST /api/consultants/schedule
  * @desc Create a new consultant schedule
  * @access Consultant
  */
-router.post('/schedule', consultantScheduleController.createConsultantSchedule); // Uncomment if needed
+router.post('/schedule', consultantScheduleController.createSchedule); // Uncomment if needed
 
 /**
  * @route PUT /api/consultants/schedule/:id
  * @desc Update a consultant's schedule by ID
  * @access Consultant
  */
-router.put('/schedule/:id', consultantScheduleController.updateConsultantSchedule); // Uncomment if needed
+router.put('/schedule/:id', consultantScheduleController.updateSchedule); // Uncomment if needed
 
 /**
  * @route DELETE /api/consultants/schedule/:id
  * @desc Delete a consultant's schedule by ID
  * @access Consultant
  */
-router.delete('/schedule/:id', consultantScheduleController.deleteConsultantSchedule); // Uncomment if needed
+router.delete('/schedule/:id', consultantScheduleController.deleteSchedule); // Uncomment if needed
 
 export default router;
 
