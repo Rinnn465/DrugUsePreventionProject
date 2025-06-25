@@ -133,7 +133,7 @@ const AdminPage: React.FC = () => {
                         const IconComponent = card.icon;
                         return (
                             <Link key={index} to={card.link} className="group">
-                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-200 group-hover:border-primary-200">
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-200 group-hover:border-primary-200 flex flex-col h-full">
                                     <div className="flex items-start justify-between mb-4">
                                         <div className={`p-3 rounded-xl ${card.color} group-hover:scale-110 transition-transform`}>
                                             <IconComponent className="h-6 w-6 text-white" />
@@ -145,10 +145,10 @@ const AdminPage: React.FC = () => {
                                     <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
                                         {card.title}
                                     </h3>
-                                    <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+                                    <p className="text-gray-600 text-sm mb-4 leading-relaxed flex-grow">
                                         {card.description}
                                     </p>
-                                    <div className="flex items-center text-primary-600 font-medium text-sm group-hover:text-primary-700">
+                                    <div className="flex items-center text-primary-600 font-medium text-sm group-hover:text-primary-700 mt-auto">
                                         <span>Quản lý ngay</span>
                                         <Activity className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
                                     </div>
