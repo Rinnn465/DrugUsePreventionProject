@@ -44,13 +44,15 @@ const LoginPage: React.FC = () => {
                     localStorage.setItem('token', data.token);
 
                     // Redirect based on user role
-                    const userRole = data.user.Role;
+                    const userRole = data.user.RoleName;
                     if (userRole === 'Admin') {
                         window.location.href = '/roles/admin';
                     } else if (userRole === 'Consultant') {
                         window.location.href = '/roles/consultant';
                     } else if (userRole === 'Manager') {
                         window.location.href = '/roles/manager';
+                    } else if (userRole === 'Staff') {
+                        window.location.href = '/roles/staff';
                     } else {
                         window.location.href = '/';
                     }
