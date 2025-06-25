@@ -104,17 +104,17 @@ export type Article = {
   Content: string;
   IsDisabled: boolean;
 };
-export type CommunityProgram = {
-  ProgramID: number;
-  ProgramName: string;
-  Type?: string | null; // "online" | "offline"
-  Date: string; // ISO date
-  Description?: string | null;
-  Organizer?: string | null;
-  Location?: string | null;
-  Url?: string | null;
-  ImageUrl?: string | null;
-  IsDisabled: boolean;
+export interface CommunityProgram {
+    ProgramID: number;
+    ProgramName: string;
+    Type?: string; // 'online'
+    Date: string; // ISO date string
+    Description?: string | null;
+    Organizer?: string | null;
+    Url: string;
+    ImageUrl?: string | null;
+    IsDisabled: boolean;
+    Status: string; // 'upcoming' | 'ongoing' | 'completed'
 };
 export type CommunityProgramAttendee = {
   ProgramID: number;
@@ -126,11 +126,13 @@ export type SurveyCategory = {
   SurveyCategoryID: number;
   SurveyCategoryName?: string | null;
 };
-export type Survey = {
+interface Survey{
   SurveyID: number;
   Description: string;
-  Type: boolean; // true for content, false for checkbox
+  Type: boolean;
   SurveyCategoryID?: number | null;
+  SurveyCategoryName?: string | null;
+  SurveyType: string; // 'before' | 'after'
 };
 export type SurveyResponse = {
   SurveyResponseID: number;
@@ -141,7 +143,6 @@ export type CommunityProgramSurvey = {
   SurveyID: number;
   ProgramID: number;
 };
-
 export type CommunityProgramSurveyDTO = {
   ProgramID: number;
   Name: string;

@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
-import { sql, poolPromise } from   '../config/database';
+import { sql, poolPromise } from '../config/database';
 
-//Get all surveys for a specific program
-
+// Get all surveys for a specific program
 export async function getAllProgramSurveys(req: Request, res: Response): Promise<void> {
     try {
         const pool = await poolPromise;
@@ -17,7 +16,7 @@ export async function getAllProgramSurveys(req: Request, res: Response): Promise
     }
 }
 
-// Get survey by ID ((with SurveyCategoryName))
+// Get survey by ID (with SurveyCategoryName)
 export async function getProgramSurveyById(req: Request, res: Response): Promise<void> {
     const id = Number(req.params.id);
     try {
@@ -38,6 +37,36 @@ export async function getProgramSurveyById(req: Request, res: Response): Promise
         res.json(survey);
     } catch (err) {
         res.status(500).json({ message: "Server error" });
+    }
+}
+
+// Get surveys by ProgramID
+export async function getSurveysByProgramId(req: Request, res: Response): Promise<void> {
+    const programId = Number(req.params.programId);
+    
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('ProgramID', sql.Int, programId)
+            .query(`
+                SELECT 
+                    s.SurveyID, 
+                    s.Description, 
+                    s.Type, 
+                    s.SurveyCategoryID,
+                    sc.SurveyCategoryName,
+                    cps.SurveyType
+                FROM Survey s
+                INNER JOIN CommunityProgramSurvey cps ON s.SurveyID = cps.SurveyID
+                LEFT JOIN SurveyCategory sc ON s.SurveyCategoryID = sc.SurveyCategoryID
+                WHERE cps.ProgramID = @ProgramID
+            `);
+        
+        console.log('Program surveys result:', result.recordset);
+        res.status(200).json(result.recordset);
+    } catch (err) {
+        console.error('Error fetching program surveys:', err);
+        res.status(500).json({ message: 'Server error' });
     }
 }
 
@@ -104,7 +133,7 @@ export async function updateProgramSurvey(req: Request, res: Response): Promise<
     }
 }
 
-//Delete survey for a program
+// Delete survey for a program
 export async function deleteProgramSurvey(req: Request, res: Response): Promise<void> {
     const id = Number(req.params.id);
     try {
@@ -124,7 +153,7 @@ export async function deleteProgramSurvey(req: Request, res: Response): Promise<
 
 // Get surveys by Category ID
 export async function getProgramSurveyByCategoryId(req: Request, res: Response): Promise<void> {
-     const categoryId = Number(req.params.categoryId);
+    const categoryId = Number(req.params.categoryId);
     try {
         const pool = await poolPromise;
         const result = await pool.request()

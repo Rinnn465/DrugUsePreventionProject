@@ -10,6 +10,8 @@ import consultantRoutes from "./routes/consultantRoutes";
 import appointmentRoutes from "./routes/appointmentRoutes";
 import authorizeRoles from "./middleware/authenMiddleware";
 import apiProgramAttendeeRoutes from "./routes/programAttendeeRoutes";
+import apiProgramSurveyRoutes from "./routes/programSurveyRoutes";
+import { updateProgramStatus } from "./controllers/scheduledProgram";
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
@@ -62,6 +64,14 @@ app.use(
   apiSurveyRoutes
 );
 
+// Program survey routes
+app.use(
+  "/api/program-survey",
+  authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
+  apiProgramSurveyRoutes
+);
+
+
 // Protected Routes - Member/Consultant can update profiles (excluding role changes)
 app.use(
   "/api/account",
@@ -79,7 +89,8 @@ app.use(
 app.use("/api/account/admin", authorizeRoles(["Admin"]), apiAccountRoutes);
 // Admin-only Routes - Full survey management
 app.use("/api/survey/admin", authorizeRoles(["Admin"]), apiSurveyRoutes);
-
+// Start scheduled program status updates
+updateProgramStatus();
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);

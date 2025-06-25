@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams } from "react-router-dom";
 import { toast } from 'react-toastify';
 
 const SurveyBeforeEventPage = () => {
-    const { id } = useParams();
+    const { programId } = useParams(); // Nhận programId từ URL
+    const [programData, setProgramData] = useState<any>(null);
     const [formData, setFormData] = useState({
         fullName: '',
         age: '',
@@ -11,19 +12,81 @@ const SurveyBeforeEventPage = () => {
         expectation: ''
     });
 
+    const getAuthHeaders = () => {
+        const token = localStorage.getItem('token');
+        return {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+        };
+    };
+
+    useEffect(() => {
+        // Fetch program data để hiển thị tên chương trình
+        const fetchProgramData = async () => {
+            try {
+                const response = await fetch(`http://localhost:5000/api/program/${programId}`, {
+                    headers: getAuthHeaders()
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setProgramData(data.data);
+                }
+            } catch (error) {
+                console.error('Error fetching program data:', error);
+            }
+        };
+
+        if (programId) {
+            fetchProgramData();
+        }
+    }, [programId]);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
     };
 
+    const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+        const surveyType = window.location.pathname.includes('/before') ? 'before' : 'after';
+        
+        const response = await fetch(`http://localhost:5000/api/survey/submit`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({
+                programId: parseInt(programId!),
+                surveyType: surveyType,
+                surveyData: formData
+            })
+        });
 
+        if (response.ok) {
+            toast.success('Hoàn thành khảo sát thành công!');
+            setTimeout(() => {
+                window.location.href = `/survey/${programId}/completed`;
+            }, 1500);
+        } else {
+            const error = await response.json();
+            toast.error(error.message || 'Có lỗi xảy ra');
+        }
+    } catch (error) {
+        console.error('Error submitting survey:', error);
+        toast.error('Có lỗi xảy ra khi gửi khảo sát');
+    }
+};
 
     return (
         <div className="container px-4 py-8 mx-auto max-w-2xl bg-gray-100 rounded-lg shadow-md">
-            <h1 className="text-3xl font-bold text-center mb-4 text-gray-800">Khảo Sát Trước Khi Tham Gia Chương Trình Cộng Đồng</h1>
-            <h2 className="text-2xl font-semibold text-center mb-6 text-gray-700">Tên sự kiện</h2>
+            <h1 className="text-3xl font-bold text-center mb-4 text-gray-800">
+                Khảo Sát Trước Khi Tham Gia Chương Trình Cộng Đồng
+            </h1>
+            <h2 className="text-2xl font-semibold text-center mb-6 text-gray-700">
+                {programData?.ProgramName || 'Đang tải tên sự kiện...'}
+            </h2>
 
-            <form className="space-y-6">
+            <form className="space-y-6" onSubmit={handleSubmit}>
                 <div>
                     <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
                         Họ và tên
@@ -106,15 +169,12 @@ const SurveyBeforeEventPage = () => {
                     ></textarea>
                 </div>
 
-                <Link to={`/survey/${id}/completed`}>
-                    <button
-                        type="submit"
-                        onClick={() => toast.success('Hoàn thành khảo sát thành công!')}
-                        className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                    >
-                        Hoàn thành khảo sát
-                    </button>
-                </Link>
+                <button
+                    type="submit"
+                    className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                    Hoàn thành khảo sát
+                </button>
             </form>
         </div>
     );

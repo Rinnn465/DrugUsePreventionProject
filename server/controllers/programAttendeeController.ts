@@ -22,7 +22,7 @@ export async function getAllProgramAttendees(req: Request, res: Response): Promi
     }
 }
 
-//Get Total Attendees by ProgramID
+// Get Total Attendees by ProgramID
 export async function getTotalAttendeesByProgramId(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
     try {
@@ -40,10 +40,6 @@ export async function getTotalAttendeesByProgramId(req: Request, res: Response):
     }
 }
 
-/**
- * Get specific attendee by ProgramID and AccountID
- * This function is kept but can also serve as enrollment status check
- */
 export async function getAttendeeById(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
     const accountId = Number(req.params.accountId);
@@ -74,10 +70,6 @@ export async function getAttendeeById(req: Request, res: Response): Promise<void
     }
 }
 
-/**
- * Check enrollment status for current authenticated user
- * This is a simplified version that uses the current user's ID
- */
 export async function checkEnrollmentStatus(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
     const accountId = (req as any).user?.user?.AccountID;
@@ -93,7 +85,7 @@ export async function checkEnrollmentStatus(req: Request, res: Response): Promis
             .input('ProgramID', sql.Int, programId)
             .input('AccountID', sql.Int, accountId)
             .query(`
-                SELECT Status, RegistrationDate 
+                SELECT Status, RegistrationDate, SurveyBeforeCompleted, SurveyAfterCompleted
                 FROM CommunityProgramAttendee 
                 WHERE ProgramID = @ProgramID AND AccountID = @AccountID
             `);
@@ -102,7 +94,9 @@ export async function checkEnrollmentStatus(req: Request, res: Response): Promis
             res.json({ 
                 isEnrolled: false,
                 status: null,
-                registrationDate: null
+                registrationDate: null,
+                SurveyBeforeCompleted: false,
+                SurveyAfterCompleted: false
             });
             return;
         }
@@ -111,18 +105,16 @@ export async function checkEnrollmentStatus(req: Request, res: Response): Promis
         res.json({
             isEnrolled: true,
             status: enrollment.Status,
-            registrationDate: enrollment.RegistrationDate
+            registrationDate: enrollment.RegistrationDate,
+            SurveyBeforeCompleted: enrollment.SurveyBeforeCompleted,
+            SurveyAfterCompleted: enrollment.SurveyAfterCompleted
         });
-
     } catch (err) {
         console.error("Check enrollment status error:", err);
         res.status(500).json({ message: "Server error" });
     }
 }
 
-/**
- * Enroll current user into a community program
- */
 export async function enrollInProgram(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
     const accountId = (req as any).user?.user?.AccountID;
@@ -171,28 +163,30 @@ export async function enrollInProgram(req: Request, res: Response): Promise<void
             .input('AccountID', sql.Int, accountId)
             .input('RegistrationDate', sql.DateTime2, new Date())
             .input('Status', sql.NVarChar, 'registered')
+            .input('SurveyBeforeCompleted', sql.Bit, 0)
+            .input('SurveyAfterCompleted', sql.Bit, 0)
             .query(`
                 INSERT INTO CommunityProgramAttendee 
-                (ProgramID, AccountID, RegistrationDate, Status)
-                VALUES (@ProgramID, @AccountID, @RegistrationDate, @Status)
+                (ProgramID, AccountID, RegistrationDate, Status, SurveyBeforeCompleted, SurveyAfterCompleted)
+                VALUES (@ProgramID, @AccountID, @RegistrationDate, @Status, @SurveyBeforeCompleted, @SurveyAfterCompleted)
             `);
 
         res.status(201).json({ 
             message: "Successfully enrolled in program",
             programId: programId,
             programName: programCheck.recordset[0].ProgramName,
-            status: 'registered'
+            status: 'registered',
+            isEnrolled: true,
+            registrationDate: new Date().toISOString(),
+            SurveyBeforeCompleted: false,
+            SurveyAfterCompleted: false
         });
-
     } catch (err) {
         console.error("Enrollment error:", err);
         res.status(500).json({ message: "Server error during enrollment" });
     }
 }
 
-/**
- * Unenroll current user from a community program
- */
 export async function unenrollFromProgram(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
     const accountId = (req as any).user?.user?.AccountID;
@@ -220,18 +214,19 @@ export async function unenrollFromProgram(req: Request, res: Response): Promise<
 
         res.status(200).json({ 
             message: "Successfully unenrolled from program",
-            programId: programId
+            programId: programId,
+            isEnrolled: false,
+            status: null,
+            registrationDate: null,
+            SurveyBeforeCompleted: false,
+            SurveyAfterCompleted: false
         });
-
     } catch (err) {
         console.error("Unenrollment error:", err);
         res.status(500).json({ message: "Server error during unenrollment" });
     }
 }
 
-/**
- * Get all programs that current user is enrolled in
- */
 export async function getMyEnrolledPrograms(req: Request, res: Response): Promise<void> {
     const accountId = (req as any).user?.user?.AccountID;
 
@@ -253,11 +248,12 @@ export async function getMyEnrolledPrograms(req: Request, res: Response): Promis
                     cp.Date,
                     cp.Description,
                     cp.Organizer,
-                    cp.Location,
                     cp.Url,
                     cp.ImageUrl,
                     cpa.RegistrationDate,
-                    cpa.Status
+                    cpa.Status,
+                    cpa.SurveyBeforeCompleted,
+                    cpa.SurveyAfterCompleted
                 FROM CommunityProgram cp
                 INNER JOIN CommunityProgramAttendee cpa ON cp.ProgramID = cpa.ProgramID
                 WHERE cpa.AccountID = @AccountID AND cp.IsDisabled = 0
@@ -268,7 +264,6 @@ export async function getMyEnrolledPrograms(req: Request, res: Response): Promis
             data: result.recordset,
             total: result.recordset.length
         });
-
     } catch (err) {
         console.error("Get enrolled programs error:", err);
         res.status(500).json({ message: "Server error" });
