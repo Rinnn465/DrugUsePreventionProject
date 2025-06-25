@@ -51,6 +51,8 @@ const LoginPage: React.FC = () => {
                         window.location.href = '/roles/consultant';
                     } else if (userRole === 'Manager') {
                         window.location.href = '/roles/manager';
+                    } else if (userRole === 'Staff') {
+                        window.location.href = '/roles/staff';
                     } else {
                         window.location.href = '/';
                     }
