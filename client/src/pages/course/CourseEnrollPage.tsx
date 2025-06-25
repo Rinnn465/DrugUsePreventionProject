@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Clock, Users, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Enrollment, SqlCourse } from '../../types/Course';
 import { sqlLesson } from '../../types/Lesson';
 import useAuthToken from '../../hooks/useAuthToken';

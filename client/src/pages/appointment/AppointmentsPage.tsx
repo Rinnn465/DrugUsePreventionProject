@@ -62,16 +62,16 @@ const AppointmentsPage: React.FC = () => {
     const groupedByConsultant: { [key: number]: ConsultantWithSchedule } = {};
 
     consultantData.forEach((item) => {
-      if (!item || typeof item !== 'object' || !item.ConsultantID) {
+      if (!item || typeof item !== 'object' || !item.AccountID) {
         console.warn('Invalid consultant item:', item);
         return;
       }
 
-      const consultantId = item.ConsultantID;
-      if (!groupedByConsultant[consultantId]) {
+      const AccountID = item.AccountID;
+      if (!groupedByConsultant[AccountID]) {
         // Initialize consultant object
-        groupedByConsultant[consultantId] = {
-          ConsultantID: item.ConsultantID || 0,
+        groupedByConsultant[AccountID] = {
+          ConsultantID: item.AccountID || 0,
           Name: item.Name || 'Unknown Consultant',
           Rating: item.Rating || 0,
           Bio: item.Bio || '',
@@ -85,7 +85,7 @@ const AppointmentsPage: React.FC = () => {
       }
 
       if (item.ScheduleID && item.Date && item.StartTime && item.EndTime) {
-        groupedByConsultant[consultantId].Schedule.push({
+        groupedByConsultant[AccountID].Schedule.push({
           ScheduleID: item.ScheduleID || 0,
           Date: item.Date || '',
           StartTime: item.StartTime || '',
@@ -96,14 +96,14 @@ const AppointmentsPage: React.FC = () => {
 
     // Process specialty data
     specialtyData.forEach((item) => {
-      if (!item || typeof item !== 'object' || !item.ConsultantID || !item.SpecialtyID) {
+      if (!item || typeof item !== 'object' || !item.AccountID) {
         console.warn('Invalid specialty item:', item);
         return;
       }
 
-      const consultantId = item.ConsultantID;
-      if (groupedByConsultant[consultantId]) {
-        groupedByConsultant[consultantId].Specialties.push({
+      const AccountID = item.AccountID;
+      if (groupedByConsultant[AccountID]) {
+        groupedByConsultant[AccountID].Specialties.push({
           SpecialtyID: item.SpecialtyID,
           Name: item.Name || '',
         });
@@ -112,14 +112,14 @@ const AppointmentsPage: React.FC = () => {
 
     // Process qualification data
     qualificationData.forEach((item) => {
-      if (!item || typeof item !== 'object' || !item.ConsultantID || !item.QualificationID) {
+      if (!item || typeof item !== 'object' || !item.AccountID) {
         console.warn('Invalid qualification item:', item);
         return;
       }
 
-      const consultantId = item.ConsultantID;
-      if (groupedByConsultant[consultantId]) {
-        groupedByConsultant[consultantId].Qualifications.push({
+      const AccountID = item.AccountID;
+      if (groupedByConsultant[AccountID]) {
+        groupedByConsultant[AccountID].Qualifications.push({
           QualificationID: item.QualificationID,
           Name: item.Name || '',
         });

@@ -37,7 +37,7 @@ const AssessmentDetailPage: React.FC = () => {
             setResult(parsedResult.total);
             setRisk(parsedResult.risk);
         }
-    }, [risk, result]);
+    }, [risk, result, assessmentId]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -46,13 +46,11 @@ const AssessmentDetailPage: React.FC = () => {
                 // Fetch courses
                 const coursesResponse = await fetch('http://localhost:5000/api/course');
                 const coursesData = await coursesResponse.json();
-                console.log('Fetched courses:', coursesData);
                 setCourses(coursesData.data || []);
 
                 // Fetch consultants - make sure the endpoint is correct
                 const consultantsResponse = await fetch('http://localhost:5000/api/consultant/category');
                 const consultantsData = await consultantsResponse.json();
-                console.log('Fetched consultants:', consultantsData);
 
                 // The API already returns grouped data, just filter out disabled ones
                 const filteredConsultants = (consultantsData.data || []).filter(

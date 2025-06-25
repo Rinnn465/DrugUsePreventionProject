@@ -6,9 +6,14 @@ router.get('/', appointmentController.getAppointments);
 
 router.get('/filter', appointmentController.getAppointmentsByFilter);
 
+router.put('/:appointmentId/approve', appointmentController.approveAppointment);
+router.put('/:appointmentId/reject', appointmentController.rejectAppointment);
+
 router.get('/:id', appointmentController.getAppointmentById);
 
 router.post('/', appointmentController.bookAppointment);
+
+
 
 
 export default router;
