@@ -63,6 +63,59 @@ export async function bookAppointment(req: Request, res: Response, next: NextFun
 };
 
 
+
+export async function approveAppointment(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { appointmentId } = req.params;
+
+    try {
+        const pool = await poolPromise;
+
+        // Generate meeting URL (you can integrate with your preferred meeting platform)
+        const meetingUrl = `https://meet.example.com/appointment-${appointmentId}`;
+
+        const result = await pool.request()
+            .input('AppointmentID', sql.Int, appointmentId)
+            .input('MeetingURL', sql.NVarChar, meetingUrl)
+            .query(`
+                UPDATE Appointment 
+                SET Status = 'confirmed', MeetingURL = @MeetingURL
+                WHERE AppointmentID = @AppointmentID
+            `);
+
+        res.status(200).json({
+            message: 'Phê duyệt cuộc hẹn thành công',
+            meetingUrl: meetingUrl
+        });
+    } catch (error) {
+        console.error('Error approving appointment:', error);
+        res.status(500).json({ message: 'Lỗi server khi phê duyệt cuộc hẹn' });
+    }
+}
+
+/**
+ * Reject appointment
+ */
+export async function rejectAppointment(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { appointmentId } = req.params;
+
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('AppointmentID', sql.Int, appointmentId)
+            .query(`
+                UPDATE Appointment 
+                SET Status = 'rejected'
+                WHERE AppointmentID = @AppointmentID
+            `);
+
+        res.status(200).json({ message: 'Từ chối cuộc hẹn thành công' });
+    } catch (error) {
+        console.error('Error rejecting appointment:', error);
+        res.status(500).json({ message: 'Lỗi server khi từ chối cuộc hẹn' });
+    }
+}
+
+
 export async function getAppointmentsByFilter(req: Request, res: Response, next: NextFunction): Promise<void> {
     const consultantId = req.query.consultantId as string;
     const date = req.query.date as string;

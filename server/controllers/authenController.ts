@@ -50,21 +50,35 @@ export async function login(
       return;
     }
 
+    const userData = {
+      AccountID: user.AccountID,
+      Username: user.Username,
+      Email: user.Email,
+      FullName: user.FullName,
+      DateOfBirth: user.DateOfBirth,
+      RoleID: user.RoleID,
+      RoleName: user.RoleName,
+      CreatedAt: user.CreatedAt,
+      IsDisabled: user.IsDisabled
+    };
+
+    // Include consultant data if user is a consultant
+    if (user.RoleName === "Consultant" && user.ConsultantID) {
+      Object.assign(userData, {
+        Consultant: {
+          ConsultantID: user.ConsultantID,
+          Name: user.ConsultantName,
+          Bio: user.Bio,
+          Title: user.Title,
+          ImageUrl: user.ImageUrl,
+          IsDisabled: user.ConsultantIsDisabled
+        }
+      });
+    }
+
     // Generate JWT token
     const token = jwt.sign(
-      {
-        user: {
-          AccountID: user.AccountID,
-          Username: user.Username,
-          Email: user.Email,
-          FullName: user.FullName,
-          DateOfBirth: user.DateOfBirth,
-          RoleID: user.RoleID, // Use RoleID instead of Role
-          RoleName: user.RoleName, // Include RoleName for convenience
-          CreatedAt: user.CreatedAt,
-          IsDisabled: user.IsDisabled
-        }
-      },
+      { user: userData },
       process.env.JWT_SECRET as string,
       { expiresIn: "1h" }
     );
@@ -72,17 +86,7 @@ export async function login(
     res.status(200).json({
       message: "Login successful",
       token,
-      user: {
-        AccountID: user.AccountID,
-        Username: user.Username,
-        Email: user.Email,
-        FullName: user.FullName,
-        DateOfBirth: user.DateOfBirth,
-        RoleID: user.RoleID,
-        RoleName: user.RoleName,
-        CreatedAt: user.CreatedAt,
-        IsDisabled: user.IsDisabled
-      }
+      user: userData
     });
 
   } catch (err: any) {

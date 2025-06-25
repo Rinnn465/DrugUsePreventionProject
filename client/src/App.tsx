@@ -57,7 +57,7 @@ function App() {
             <Route path="survey/:programId/completed" element={<SurveyCompletePage />} />
             <Route path="dashboard/:userId" element={<DashBoardPage />} />
             <Route path="dashboard/:userId/profile" element={<DashBoardPage />} />
-            <Route path="dashboard/:userId/security" element={<DashBoardPage />} /> {/* Thêm tuyến đường này */}
+            <Route path="dashboard/:userId/security" element={<DashBoardPage />} />
             <Route path="dashboard/:userId/courses" element={<DashBoardPage />} />
             <Route path="dashboard/:userId/events" element={<DashBoardPage />} />
             <Route path="dashboard/:userId/appointments" element={<DashBoardPage />} />

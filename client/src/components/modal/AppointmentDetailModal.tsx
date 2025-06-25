@@ -1,7 +1,7 @@
 import React from 'react';
-import { X, Calendar, Clock, User, MapPin, MessageSquare, Phone, AlertCircle } from 'lucide-react';
-import { Appointment } from '../../types/Appointment';
-import { parseDate } from '../../utils/parseDateUtils';
+import { X, Calendar, Clock, User, MapPin, MessageSquare, AlertCircle } from 'lucide-react';
+import { Appointment } from '@/types/Appointment';
+import { parseDate } from '@/utils/parseDateUtils';
 
 interface AppointmentDetailModalProps {
   appointment: Appointment | null;
@@ -77,7 +77,7 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-gray-800">
-                Cuộc hẹn #{appointment.AppointmentID}
+                Cuộc hẹn
               </h3>
             </div>
           </div>
@@ -130,7 +130,7 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
               </div>
               <p className="text-gray-700">{parseDate(appointment.Date)}</p>
             </div>
-            
+
             <div className="bg-blue-50 rounded-lg p-4">
               <div className="flex items-center mb-2">
                 <Clock className="h-5 w-5 text-blue-600 mr-2" />
@@ -139,19 +139,19 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
               <p className="text-gray-700">
                 {(() => {
                   if (!appointment.Time) return 'Chưa xác định';
-                  
+
                   // Nếu là chuỗi ISO với T, chuyển đổi
                   if (appointment.Time.includes('T')) {
                     const date = new Date(appointment.Time);
                     if (isNaN(date.getTime())) return 'Chưa xác định';
                     return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
                   }
-                  
+
                   // Nếu đã là format HH:mm hoặc HH:mm:ss
                   if (appointment.Time.match(/^\d{2}:\d{2}(:\d{2})?$/)) {
                     return appointment.Time.substring(0, 5); // Chỉ lấy HH:mm
                   }
-                  
+
                   // Trả về như cũ nếu không match
                   return appointment.Time;
                 })()}
@@ -162,22 +162,22 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
                   Kết thúc dự kiến: {(() => {
                     try {
                       let timeStr = appointment.Time;
-                      
+
                       // Xử lý nếu là ISO string
                       if (timeStr.includes('T')) {
                         const date = new Date(timeStr);
                         if (isNaN(date.getTime())) return 'Không xác định';
                         timeStr = date.toTimeString().substr(0, 5);
                       }
-                      
+
                       // Xử lý nếu là HH:mm:ss, chỉ lấy HH:mm
                       if (timeStr.match(/^\d{2}:\d{2}:\d{2}$/)) {
                         timeStr = timeStr.substring(0, 5);
                       }
-                      
+
                       const [hours, minutes] = timeStr.split(':').map(Number);
                       if (isNaN(hours) || isNaN(minutes)) return 'Không xác định';
-                      
+
                       const endTime = new Date();
                       endTime.setHours(hours, minutes + appointment.Duration);
                       return endTime.toTimeString().substr(0, 5);
@@ -226,7 +226,7 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
               <h5 className="font-medium text-gray-800">Lưu ý</h5>
             </div>
             <p className="text-sm text-gray-600">
-              Vui lòng tham gia cuộc hẹn đúng giờ. Nếu có bất kỳ thay đổi nào, 
+              Vui lòng tham gia cuộc hẹn đúng giờ. Nếu có bất kỳ thay đổi nào,
               hãy liên hệ với chúng tôi ít nhất 24 giờ trước cuộc hẹn.
             </p>
           </div>
