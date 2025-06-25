@@ -45,98 +45,98 @@ export async function getSurveyById(
 }
 
 export const submitSurveyResponse = async (req: Request, res: Response): Promise<void> => {
-    const { programId, surveyType, surveyData } = req.body;
-    const accountId = (req as any).user?.AccountID;
+  const { accountId, programId, surveyType, surveyData } = req.body;
 
-    // Thêm logging chi tiết
-    console.log('=== SUBMIT SURVEY DEBUG ===');
-    console.log('Request body:', req.body);
-    console.log('AccountID:', accountId);
-    console.log('ProgramID:', programId);
-    console.log('SurveyType:', surveyType);
-    console.log('SurveyData:', surveyData);
 
-    try {
-        const pool = await poolPromise;
-        
-        // Kiểm tra user có tồn tại không
-        if (!accountId) {
-            console.log('❌ No AccountID found in user token');
-            res.status(401).json({ message: 'Không tìm thấy thông tin người dùng' });
-            return;
-        }
+  // Thêm logging chi tiết
+  console.log('=== SUBMIT SURVEY DEBUG ===');
+  console.log('Request body:', req.body);
+  console.log('AccountID:', accountId);
+  console.log('ProgramID:', programId);
+  console.log('SurveyType:', surveyType);
+  console.log('SurveyData:', surveyData);
 
-        // Kiểm tra dữ liệu đầu vào
-        if (!programId || !surveyType || !surveyData) {
-            console.log('❌ Missing required fields');
-            res.status(400).json({ message: 'Thiếu thông tin bắt buộc' });
-            return;
-        }
+  try {
+    const pool = await poolPromise;
 
-        console.log('✅ Checking for existing response...');
-        
-        // Kiểm tra xem user đã làm khảo sát này chưa
-        const existingResponse = await pool.request()
-            .input('AccountID', sql.Int, accountId)
-            .input('ProgramID', sql.Int, programId)
-            .input('SurveyType', sql.NVarChar, surveyType)
-            .query(`
+    // Kiểm tra user có tồn tại không
+    if (!accountId) {
+      console.log('❌ No AccountID found in user token');
+      res.status(401).json({ message: 'Không tìm thấy thông tin người dùng' });
+      return;
+    }
+
+    // Kiểm tra dữ liệu đầu vào
+    if (!programId || !surveyType || !surveyData) {
+      console.log('❌ Missing required fields');
+      res.status(400).json({ message: 'Thiếu thông tin bắt buộc' });
+      return;
+    }
+
+    console.log('✅ Checking for existing response...');
+
+    // Kiểm tra xem user đã làm khảo sát này chưa
+    const existingResponse = await pool.request()
+      .input('AccountID', sql.Int, accountId)
+      .input('ProgramID', sql.Int, programId)
+      .input('SurveyType', sql.NVarChar, surveyType)
+      .query(`
                 SELECT ResponseID FROM SurveyResponse 
                 WHERE AccountID = @AccountID AND ProgramID = @ProgramID AND SurveyType = @SurveyType
             `);
 
-        console.log('Existing response check result:', existingResponse.recordset);
+    console.log('Existing response check result:', existingResponse.recordset);
 
-        if (existingResponse.recordset.length > 0) {
-            console.log('❌ Survey already completed');
-            res.status(400).json({ message: 'Bạn đã hoàn thành khảo sát này rồi' });
-            return;
-        }
+    if (existingResponse.recordset.length > 0) {
+      console.log('❌ Survey already completed');
+      res.status(400).json({ message: 'Bạn đã hoàn thành khảo sát này rồi' });
+      return;
+    }
 
-        console.log('✅ Inserting new survey response...');
+    console.log('✅ Inserting new survey response...');
 
-        // Lưu response mới với JSON data
-        const insertResult = await pool.request()
-            .input('AccountID', sql.Int, accountId)
-            .input('ProgramID', sql.Int, programId)
-            .input('SurveyType', sql.NVarChar, surveyType)
-            .input('ResponseData', sql.NVarChar, JSON.stringify(surveyData))
-            .query(`
+    // Lưu response mới với JSON data
+    const insertResult = await pool.request()
+      .input('AccountID', sql.Int, accountId)
+      .input('ProgramID', sql.Int, programId)
+      .input('SurveyType', sql.NVarChar, surveyType)
+      .input('ResponseData', sql.NVarChar, JSON.stringify(surveyData))
+      .query(`
                 INSERT INTO SurveyResponse (AccountID, ProgramID, SurveyType, ResponseData)
                 VALUES (@AccountID, @ProgramID, @SurveyType, @ResponseData)
             `);
 
-        console.log('✅ Survey response inserted successfully');
+    console.log('✅ Survey response inserted successfully');
 
-        console.log('✅ Updating attendee status...');
+    console.log('✅ Updating attendee status...');
 
-        // Cập nhật trạng thái khảo sát trong CommunityProgramAttendee
-        const updateField = surveyType === 'before' ? 'SurveyBeforeCompleted' : 'SurveyAfterCompleted';
-        const updateResult = await pool.request()
-            .input('AccountID', sql.Int, accountId)
-            .input('ProgramID', sql.Int, programId)
-            .query(`
+    // Cập nhật trạng thái khảo sát trong CommunityProgramAttendee
+    const updateField = surveyType === 'before' ? 'SurveyBeforeCompleted' : 'SurveyAfterCompleted';
+    const updateResult = await pool.request()
+      .input('AccountID', sql.Int, accountId)
+      .input('ProgramID', sql.Int, programId)
+      .query(`
                 UPDATE CommunityProgramAttendee 
                 SET ${updateField} = 1 
                 WHERE AccountID = @AccountID AND ProgramID = @ProgramID
             `);
 
-        console.log('Update result:', updateResult.rowsAffected);
-        console.log('✅ Survey submission completed successfully');
+    console.log('Update result:', updateResult.rowsAffected);
+    console.log('✅ Survey submission completed successfully');
 
-        res.status(201).json({ 
-            message: 'Lưu khảo sát thành công'
-        });
+    res.status(201).json({
+      message: 'Lưu khảo sát thành công'
+    });
 
-    } catch (error: any) {
-        console.error('❌ Error submitting survey response:', error);
-        console.error('Error details:', {
-            message: error.message,
-            stack: error.stack,
-            sql: error.originalError || 'No SQL error'
-        });
-        res.status(500).json({ message: 'Lỗi server khi lưu khảo sát', error: error.message });
-    }
+  } catch (error: any) {
+    console.error('❌ Error submitting survey response:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      sql: error.originalError || 'No SQL error'
+    });
+    res.status(500).json({ message: 'Lỗi server khi lưu khảo sát', error: error.message });
+  }
 };
 
 // CREATE Survey

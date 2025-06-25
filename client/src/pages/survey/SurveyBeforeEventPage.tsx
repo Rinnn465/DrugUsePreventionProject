@@ -1,3 +1,4 @@
+import { useUser } from '@/context/UserContext';
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from "react-router-dom";
 import { toast } from 'react-toastify';
@@ -11,6 +12,8 @@ const SurveyBeforeEventPage = () => {
         experience: '',
         expectation: ''
     });
+
+    const { user } = useUser();
 
     const getAuthHeaders = () => {
         const token = localStorage.getItem('token');
@@ -47,35 +50,36 @@ const SurveyBeforeEventPage = () => {
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-        const surveyType = window.location.pathname.includes('/before') ? 'before' : 'after';
-        
-        const response = await fetch(`http://localhost:5000/api/survey/submit`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({
-                programId: parseInt(programId!),
-                surveyType: surveyType,
-                surveyData: formData
-            })
-        });
+        e.preventDefault();
 
-        if (response.ok) {
-            toast.success('Hoàn thành khảo sát thành công!');
-            setTimeout(() => {
-                window.location.href = `/survey/${programId}/completed`;
-            }, 1500);
-        } else {
-            const error = await response.json();
-            toast.error(error.message || 'Có lỗi xảy ra');
+        try {
+            const surveyType = window.location.pathname.includes('/before') ? 'before' : 'after';
+
+            const response = await fetch(`http://localhost:5000/api/survey/submit`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    accountId: user?.AccountID, // Lấy AccountID từ User đã đăng nhập
+                    programId: parseInt(programId!),
+                    surveyType: surveyType,
+                    surveyData: formData
+                })
+            });
+
+            if (response.ok) {
+                toast.success('Hoàn thành khảo sát thành công!');
+                setTimeout(() => {
+                    window.location.href = `/survey/${programId}/completed`;
+                }, 1500);
+            } else {
+                const error = await response.json();
+                toast.error(error.message || 'Có lỗi xảy ra');
+            }
+        } catch (error) {
+            console.error('Error submitting survey:', error);
+            toast.error('Có lỗi xảy ra khi gửi khảo sát');
         }
-    } catch (error) {
-        console.error('Error submitting survey:', error);
-        toast.error('Có lỗi xảy ra khi gửi khảo sát');
-    }
-};
+    };
 
     return (
         <div className="container px-4 py-8 mx-auto max-w-2xl bg-gray-100 rounded-lg shadow-md">

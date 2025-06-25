@@ -22,8 +22,8 @@ export async function getProgramSurveyById(req: Request, res: Response): Promise
     try {
         const pool = await poolPromise;
         const result = await pool.request()
-        .input('id', sql.Int, id)
-        .query(`
+            .input('id', sql.Int, id)
+            .query(`
             SELECT s.*, c.SurveyCategoryName
             FROM Survey s
             LEFT JOIN SurveyCategory c ON s.SurveyCategoryID = c.SurveyCategoryID
@@ -43,7 +43,7 @@ export async function getProgramSurveyById(req: Request, res: Response): Promise
 // Get surveys by ProgramID
 export async function getSurveysByProgramId(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
-    
+
     try {
         const pool = await poolPromise;
         const result = await pool.request()
@@ -52,16 +52,15 @@ export async function getSurveysByProgramId(req: Request, res: Response): Promis
                 SELECT 
                     s.SurveyID, 
                     s.Description, 
-                    s.Type, 
                     s.SurveyCategoryID,
                     sc.SurveyCategoryName,
-                    cps.SurveyType
+                    cps.Type
                 FROM Survey s
                 INNER JOIN CommunityProgramSurvey cps ON s.SurveyID = cps.SurveyID
                 LEFT JOIN SurveyCategory sc ON s.SurveyCategoryID = sc.SurveyCategoryID
-                WHERE cps.ProgramID = @ProgramID
+                WHERE cps.ProgramID =1
             `);
-        
+
         console.log('Program surveys result:', result.recordset);
         res.status(200).json(result.recordset);
     } catch (err) {

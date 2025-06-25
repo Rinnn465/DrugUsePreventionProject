@@ -15,7 +15,7 @@ import LoginPage from './pages/authen/LoginPage';
 import SignUpPage from './pages/authen/SignupPage';
 import AuthLayout from './components/AuthLayout';
 import ConsultantDetailsPage from './pages/appointment/ConsultantDetailsPage';
-import RolePage from './pages/management/RolePage';
+// import RolePage from './pages/management/RolePage';
 import LessonDetailsPage from './pages/course/LessonDetailsPage';
 import SurveyCompletePage from './pages/survey/SurveyCompletePage';
 import SurveyAfterEventPage from './pages/survey/SurveyAfterEventPage';
@@ -61,7 +61,7 @@ function App() {
             <Route path="dashboard/:userId/courses" element={<DashBoardPage />} />
             <Route path="dashboard/:userId/events" element={<DashBoardPage />} />
             <Route path="dashboard/:userId/appointments" element={<DashBoardPage />} />
-            <Route path="roles/:userId" element={<RolePage />} />
+            {/* <Route path="roles/:userId" element={<RolePage />} /> */}
             <Route path="admin" element={<AdminPage />} />
             <Route path="consultant" element={<ConsultantPage />} />
             <Route path="roles/:userId/course-manage" element={<CourseManagmentPage />} />

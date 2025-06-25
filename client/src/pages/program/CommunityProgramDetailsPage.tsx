@@ -51,27 +51,27 @@ const CommunityProgramDetails: React.FC = () => {
       }
     };
 
-const fetchSurveys = async () => {
-  try {
-    console.log('Fetching surveys for program:', programId);
-    const response = await fetch(`http://localhost:5000/api/program-survey/${programId}`, {
-      method: 'GET',
-      headers: getAuthHeaders()
-    });
-    
-    if (response.ok) {
-      const surveysData = await response.json();
-      console.log('Surveys data received:', surveysData);
-      setSurveys(surveysData);
-    } else {
-      console.error('Failed to fetch surveys:', response.status, await response.text());
-      setSurveys([]);
-    }
-  } catch (error) {
-    console.error('Error fetching surveys:', error);
-    setSurveys([]);
-  }
-};
+    const fetchSurveys = async () => {
+      try {
+        console.log('Fetching surveys for program:', programId);
+        const response = await fetch(`http://localhost:5000/api/program-survey/${programId}`, {
+          method: 'GET',
+          headers: getAuthHeaders()
+        });
+
+        if (response.ok) {
+          const surveysData = await response.json();
+          console.log('Surveys data received:', surveysData);
+          setSurveys(surveysData);
+        } else {
+          console.error('Failed to fetch surveys:', response.status, await response.text());
+          setSurveys([]);
+        }
+      } catch (error) {
+        console.error('Error fetching surveys:', error);
+        setSurveys([]);
+      }
+    };
 
     const checkEnrollmentStatus = async () => {
       const token = getAuthToken();
@@ -215,21 +215,24 @@ const fetchSurveys = async () => {
       toast.error('Có lỗi xảy ra khi hủy đăng ký');
     }
   };
-  
+
   const handleRenderSurveyForm = () => {
     console.log('=== SURVEY FORM DEBUG ===');
     console.log('programData:', programData);
     console.log('surveys:', surveys);
     console.log('surveys.length:', surveys.length);
     console.log('enrollmentStatus?.isEnrolled:', enrollmentStatus?.isEnrolled);
-    
+
     if (!programData || !surveys.length || !enrollmentStatus?.isEnrolled) {
       console.log('Missing requirements for survey form');
       return null;
     }
 
-    const beforeSurvey = surveys.find(s => s.SurveyType === 'before');
-    const afterSurvey = surveys.find(s => s.SurveyType === 'after');
+
+    console.log(surveys);
+
+    const beforeSurvey = surveys.find(s => s.Type === 'before');
+    const afterSurvey = surveys.find(s => s.Type === 'after');
     const isBeforeCompleted = enrollmentStatus?.SurveyBeforeCompleted;
     const isAfterCompleted = enrollmentStatus?.SurveyAfterCompleted;
 
@@ -239,6 +242,7 @@ const fetchSurveys = async () => {
     // Tạo URL đơn giản hơn (bỏ surveyId)
     const beforeSurveyUrl = `/survey/${programData.ProgramID}/before`;
     const afterSurveyUrl = `/survey/${programData.ProgramID}/after`;
+
 
     if (programData.Status === 'upcoming' && beforeSurvey && !isBeforeCompleted) {
       console.log('✅ Rendering before survey button with URL:', beforeSurveyUrl);
@@ -263,7 +267,7 @@ const fetchSurveys = async () => {
         </div>
       );
     }
-  
+
     console.log('No survey conditions met');
     return null;
   };
@@ -294,6 +298,9 @@ const fetchSurveys = async () => {
       </div>
     );
   }
+
+  console.log(programData);
+
 
   return (
     <div className="min-h-screen bg-gray-100 py-10">

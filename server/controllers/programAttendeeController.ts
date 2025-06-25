@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import e, { Request, Response } from 'express';
 import { sql, poolPromise } from '../config/database';
 
 // Get all Program Attendees
@@ -91,7 +91,7 @@ export async function checkEnrollmentStatus(req: Request, res: Response): Promis
             `);
 
         if (result.recordset.length === 0) {
-            res.json({ 
+            res.json({
                 isEnrolled: false,
                 status: null,
                 registrationDate: null,
@@ -118,6 +118,7 @@ export async function checkEnrollmentStatus(req: Request, res: Response): Promis
 export async function enrollInProgram(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
     const accountId = (req as any).user?.user?.AccountID;
+    console.log("Enrolling in program:", programId, "for account:", accountId);
 
     if (!accountId) {
         res.status(401).json({ message: "Authentication required" });
@@ -150,7 +151,7 @@ export async function enrollInProgram(req: Request, res: Response): Promise<void
             `);
 
         if (existingEnrollment.recordset.length > 0) {
-            res.status(400).json({ 
+            res.status(400).json({
                 message: "You are already enrolled in this program",
                 enrollmentStatus: existingEnrollment.recordset[0].Status
             });
@@ -171,7 +172,7 @@ export async function enrollInProgram(req: Request, res: Response): Promise<void
                 VALUES (@ProgramID, @AccountID, @RegistrationDate, @Status, @SurveyBeforeCompleted, @SurveyAfterCompleted)
             `);
 
-        res.status(201).json({ 
+        res.status(201).json({
             message: "Successfully enrolled in program",
             programId: programId,
             programName: programCheck.recordset[0].ProgramName,
@@ -181,9 +182,9 @@ export async function enrollInProgram(req: Request, res: Response): Promise<void
             SurveyBeforeCompleted: false,
             SurveyAfterCompleted: false
         });
-    } catch (err) {
-        console.error("Enrollment error:", err);
-        res.status(500).json({ message: "Server error during enrollment" });
+    } catch (err: any) {
+        console.log("Enrollment error:", err);
+        res.status(500).json({ message: "Server error during enrollment" + err, error: err });
     }
 }
 
@@ -212,7 +213,7 @@ export async function unenrollFromProgram(req: Request, res: Response): Promise<
             return;
         }
 
-        res.status(200).json({ 
+        res.status(200).json({
             message: "Successfully unenrolled from program",
             programId: programId,
             isEnrolled: false,
