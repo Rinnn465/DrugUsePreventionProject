@@ -1,5 +1,5 @@
 
-const MemberManagmentPage: React.FC = () => {
+const MemberManagementPage: React.FC = () => {
     // const filteredUsers = userData.filter(user => user.role === "member");
 
     return (
@@ -32,4 +32,4 @@ const MemberManagmentPage: React.FC = () => {
     )
 }
 
-export default MemberManagmentPage
+export default MemberManagementPage

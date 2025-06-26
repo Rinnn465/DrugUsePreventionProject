@@ -15,14 +15,14 @@ import LoginPage from './pages/authen/LoginPage';
 import SignUpPage from './pages/authen/SignupPage';
 import AuthLayout from './components/AuthLayout';
 import ConsultantDetailsPage from './pages/appointment/ConsultantDetailsPage';
-// import RolePage from './pages/management/RolePage';
 import LessonDetailsPage from './pages/course/LessonDetailsPage';
 import SurveyCompletePage from './pages/survey/SurveyCompletePage';
 import SurveyAfterEventPage from './pages/survey/SurveyAfterEventPage';
 import CourseManagmentPage from './pages/course/CourseManagmentPage';
-import EventManagmentPage from './pages/program/ProgramManagmentPage';
-import EmployeeManagmentPage from './pages/management/EmployeeManagmentPage';
-import MemberManagmentPage from './pages/management/MemberManagmentPage';
+import ProgramDashboardPage from './pages/program/ProgramDashboardPage';
+import ProgramManagementPage from './pages/management/ProgramManagementPage';
+import EmployeeManagmentPage from './pages/management/EmployeeManagementPage';
+import MemberManagmentPage from './pages/management/MemberManagementPage';
 import ForgotPasswordPage from './pages/authen/ForgotPasswordPage';
 import { UserProvider } from './context/UserContext';
 import ArticlePage from './pages/article/ArticlePage';
@@ -61,11 +61,11 @@ function App() {
             <Route path="dashboard/:userId/courses" element={<DashBoardPage />} />
             <Route path="dashboard/:userId/events" element={<DashBoardPage />} />
             <Route path="dashboard/:userId/appointments" element={<DashBoardPage />} />
-            {/* <Route path="roles/:userId" element={<RolePage />} /> */}
             <Route path="admin" element={<AdminPage />} />
             <Route path="consultant" element={<ConsultantPage />} />
             <Route path="roles/:userId/course-manage" element={<CourseManagmentPage />} />
-            <Route path="roles/:userId/event-manage" element={<EventManagmentPage />} />
+            <Route path="roles/:userId/program-manage" element={<ProgramManagementPage />} />
+            <Route path="roles/:userId/program-dashboard" element={<ProgramDashboardPage />} />
             <Route path="roles/:userId/employee-manage" element={<EmployeeManagmentPage />} />
             <Route path="roles/:userId/member-manage" element={<MemberManagmentPage />} />
             <Route path="*" element={<NotFoundPage />} />

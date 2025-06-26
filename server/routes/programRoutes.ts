@@ -1,6 +1,5 @@
 import express, { Router } from "express";
 import * as programController from "../controllers/programController";
-import * as programAttendeeController from "../controllers/programAttendeeController";
 import authorizeRoles from "../middleware/authenMiddleware";
 
 const router: Router = express.Router();

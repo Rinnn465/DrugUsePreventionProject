@@ -58,7 +58,7 @@ const AdminPage: React.FC = () => {
             icon: Calendar,
             color: "bg-blue-500",
             hoverColor: "hover:bg-blue-600",
-            link: `/roles/${user?.Role}/event-manage`,
+            link: `/roles/${user?.RoleID}/program-dashboard`,
             stats: "23 sự kiện"
         },
         {
@@ -67,7 +67,7 @@ const AdminPage: React.FC = () => {
             icon: BookOpen,
             color: "bg-green-500",
             hoverColor: "hover:bg-green-600",
-            link: `/roles/${user?.Role}/course-manage`,
+            link: `/roles/${user?.RoleID}/course-manage`,
             stats: "45 khóa học"
         },
         {
@@ -76,7 +76,7 @@ const AdminPage: React.FC = () => {
             icon: UserCheck,
             color: "bg-purple-500",
             hoverColor: "hover:bg-purple-600",
-            link: `/roles/${user?.Role}/employee-manage`,
+            link: `/roles/${user?.RoleID}/employee-manage`,
             stats: "156 nhân viên"
         }
     ];
@@ -93,7 +93,7 @@ const AdminPage: React.FC = () => {
                             </div>
                             <div>
                                 <h1 className="text-3xl font-bold text-gray-900">Dashboard Admin</h1>
-                                <p className="text-gray-600 mt-1">Chào mừng trở lại, {user?.Fullname || user?.Username}</p>
+                                <p className="text-gray-600 mt-1">Chào mừng trở lại, {user?.FullName ?? user?.Username}</p>
                             </div>
                         </div>
 
@@ -104,10 +104,10 @@ const AdminPage: React.FC = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Stats Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    {statsCards.map((card, index) => {
+                    {statsCards.map((card) => {
                         const IconComponent = card.icon;
                         return (
-                            <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                            <div key={card.title} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
                                 <div className="flex items-center justify-between">
                                     <div className="flex-1">
                                         <p className="text-sm font-medium text-gray-600 mb-1">{card.title}</p>
@@ -129,10 +129,10 @@ const AdminPage: React.FC = () => {
 
                 {/* Management Cards */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    {managementCards.map((card, index) => {
+                    {managementCards.map((card) => {
                         const IconComponent = card.icon;
                         return (
-                            <Link key={index} to={card.link} className="group">
+                            <Link key={card.title} to={card.link} className="group">
                                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-200 group-hover:border-primary-200 flex flex-col h-full">
                                     <div className="flex items-start justify-between mb-4">
                                         <div className={`p-3 rounded-xl ${card.color} group-hover:scale-110 transition-transform`}>

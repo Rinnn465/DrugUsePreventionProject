@@ -1,6 +1,6 @@
 import { useUser } from "../../context/UserContext";
 
-const EmployeeManagmentPage: React.FC = () => {
+const EmployeeManagementPage: React.FC = () => {
     const { user } = useUser();
 
     // if (user?.role === 'admin') {
@@ -39,4 +39,4 @@ const EmployeeManagmentPage: React.FC = () => {
     )
 }
 
-export default EmployeeManagmentPage
+export default EmployeeManagementPage
