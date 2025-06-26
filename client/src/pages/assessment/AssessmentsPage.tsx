@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ClipboardCheck, AlertTriangle, InfoIcon } from 'lucide-react';
+import { ClipboardCheck, AlertTriangle, InfoIcon, Filter, X } from 'lucide-react';
 import { assessmentData } from '../../data/assessmentData';
 
 type AssessmentColor = 'primary' | 'secondary' | 'accent' | 'success' | 'warning' | 'error';
@@ -44,6 +44,68 @@ const colorMap: Record<AssessmentColor, { gradient: string; text: string; badge:
 };
 
 const AssessmentsPage: React.FC = () => {
+  const [selectedAudience, setSelectedAudience] = useState<string>('all');
+  const [selectedTimeRange, setSelectedTimeRange] = useState<string>('all');
+  const [selectedQuestionRange, setSelectedQuestionRange] = useState<string>('all');
+
+  // Get unique audiences from assessment data
+  const audiences = useMemo(() => {
+    const allAudiences = assessmentData.flatMap(assessment => assessment.audiences);
+    return [...new Set(allAudiences)];
+  }, []);
+
+  // Filter assessments based on selected filters
+  const filteredAssessments = useMemo(() => {
+    return assessmentData.filter(assessment => {
+      // Filter by audience
+      if (selectedAudience !== 'all' && !assessment.audiences.includes(selectedAudience)) {
+        return false;
+      }
+
+      // Filter by time range
+      if (selectedTimeRange !== 'all') {
+        const time = assessment.timeToComplete;
+        switch (selectedTimeRange) {
+          case 'short':
+            if (time > 5) return false;
+            break;
+          case 'medium':
+            if (time <= 5 || time > 10) return false;
+            break;
+          case 'long':
+            if (time <= 10) return false;
+            break;
+        }
+      }
+
+      // Filter by question count
+      if (selectedQuestionRange !== 'all') {
+        const questions = assessment.questionCount;
+        switch (selectedQuestionRange) {
+          case 'few':
+            if (questions > 5) return false;
+            break;
+          case 'medium':
+            if (questions <= 5 || questions > 10) return false;
+            break;
+          case 'many':
+            if (questions <= 10) return false;
+            break;
+        }
+      }
+
+      return true;
+    });
+  }, [selectedAudience, selectedTimeRange, selectedQuestionRange]);
+
+  const clearFilters = () => {
+    setSelectedAudience('all');
+    setSelectedTimeRange('all');
+    setSelectedQuestionRange('all');
+  };
+
+  const hasActiveFilters = selectedAudience !== 'all' || selectedTimeRange !== 'all' || selectedQuestionRange !== 'all';
+
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Hero Section */}
@@ -71,9 +133,86 @@ const AssessmentsPage: React.FC = () => {
       </div>
       
       <div className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto text-center mb-12">
+        <div className="max-w-6xl mx-auto mb-12">
+          {/* Filter Section */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <Filter className="h-5 w-5 text-blue-600" />
+              <h2 className="text-xl font-bold text-gray-800">Lọc bài trắc nghiệm</h2>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="ml-auto flex items-center gap-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                  Xóa bộ lọc
+                </button>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Audience Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Đối tượng
+                </label>
+                <select
+                  value={selectedAudience}
+                  onChange={(e) => setSelectedAudience(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                >
+                  <option value="all">Tất cả đối tượng</option>
+                  {audiences.map((audience) => (
+                    <option key={audience} value={audience}>
+                      {audience}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          <div className="bg-accent-50 border border-accent-200 rounded-lg p-6 mb-12 text-left">
+              {/* Time Range Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Thời gian hoàn thành
+                </label>
+                <select
+                  value={selectedTimeRange}
+                  onChange={(e) => setSelectedTimeRange(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                >
+                  <option value="all">Tất cả thời gian</option>
+                  <option value="short">Ngắn (≤ 5 phút)</option>
+                  <option value="medium">Trung bình (6-10 phút)</option>
+                  <option value="long">Dài (&gt; 10 phút)</option>
+                </select>
+              </div>
+
+              {/* Question Count Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Số câu hỏi
+                </label>
+                <select
+                  value={selectedQuestionRange}
+                  onChange={(e) => setSelectedQuestionRange(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                >
+                  <option value="all">Tất cả</option>
+                  <option value="few">Ít (≤ 5 câu)</option>
+                  <option value="medium">Trung bình (6-10 câu)</option>
+                  <option value="many">Nhiều (&gt; 10 câu)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Results Count */}
+            <div className="mt-4 text-sm text-gray-600">
+              Hiển thị <span className="font-semibold text-blue-600">{filteredAssessments.length}</span> / {assessmentData.length} bài trắc nghiệm
+            </div>
+          </div>
+
+          {/* Info Section */}
+          <div className="bg-accent-50 border border-accent-200 rounded-lg p-6 mb-8 text-left">
             <div className="flex gap-4">
               <div className="flex-shrink-0">
                 <InfoIcon className="h-6 w-6 text-accent-600" />
@@ -92,51 +231,75 @@ const AssessmentsPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {assessmentData.map((assessment) => {
+        <div className="flex flex-col gap-6 max-w-6xl mx-auto">
+          {filteredAssessments.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+                <ClipboardCheck className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                  Không tìm thấy bài trắc nghiệm phù hợp
+                </h3>
+                <p className="text-gray-500 mb-4">
+                  Hãy thử điều chỉnh bộ lọc để tìm thấy bài trắc nghiệm phù hợp với bạn.
+                </p>
+                <button
+                  onClick={clearFilters}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Xóa tất cả bộ lọc
+                </button>
+              </div>
+            </div>
+          ) : (
+            filteredAssessments.map((assessment) => {
             const colorKey = (assessment.color || 'primary') as AssessmentColor;
             return (
               <div key={assessment.id} className="bg-gradient-to-br from-white via-primary-50 to-accent-50 rounded-2xl shadow-2xl overflow-hidden transform transition duration-300 hover:-translate-y-1 hover:shadow-2xl border-2 border-accent-100 animate-fade-in">
                 <div className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className={`p-4 rounded-full bg-gradient-to-br ${colorMap[colorKey].gradient} ${colorMap[colorKey].text} shadow-lg`}>
-                      <ClipboardCheck className="h-8 w-8" />
+                  <div className="flex items-center gap-6">
+                    <div className={`flex-shrink-0 p-4 rounded-full bg-gradient-to-br ${colorMap[colorKey].gradient} ${colorMap[colorKey].text} shadow-lg`}>
+                      <ClipboardCheck className="h-10 w-10" />
                     </div>
-                    <div>
-                      <h3 className={`text-xl font-bold mb-2 min-h-[56px] ${colorMap[colorKey].text}`}>{assessment.title}</h3>
-                      <p className="h-[96px] text-gray-600 mb-4 font-medium">{assessment.description}</p>
-                      <div className="mb-4">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Đề xuất cho:</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {assessment.audiences.map((audience, index) => (
-                            <span
-                              key={index}
-                              className={`text-xs px-3 py-1 rounded-full font-bold shadow ${colorMap[colorKey].badge}`}
-                            >
-                              {audience}
-                            </span>
-                          ))}
+                    <div className="flex-grow">
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div className="flex-grow">
+                          <h3 className={`text-2xl font-bold mb-2 ${colorMap[colorKey].text}`}>{assessment.title}</h3>
+                          <p className="text-gray-600 mb-4 font-medium text-lg leading-relaxed">{assessment.description}</p>
+                          <div className="flex flex-wrap items-center gap-4 mb-4">
+                            <div className="flex flex-wrap gap-2">
+                              <span className="text-sm font-semibold text-gray-700">Đề xuất cho:</span>
+                              {assessment.audiences.map((audience, index) => (
+                                <span
+                                  key={index}
+                                  className={`text-sm px-3 py-1 rounded-full font-bold shadow ${colorMap[colorKey].badge}`}
+                                >
+                                  {audience}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-gray-600 font-semibold">
+                            <span>{assessment.questionCount} câu hỏi</span>
+                            <span>•</span>
+                            <span>~{assessment.timeToComplete} phút</span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="text-sm text-gray-600 font-semibold mb-4">
-                        <span>{assessment.questionCount} câu hỏi</span>
-                        <span className="mx-2">•</span>
-                        <span>~{assessment.timeToComplete} phút</span>
-                      </div>
-                      <div className="mt-6">
-                        <Link
-                          to={`/assessments/${assessment.id}`}
-                          className={`bg-gradient-to-r ${colorMap[colorKey].button} text-white font-bold py-2 px-5 rounded-xl transition-all shadow-lg`}
-                        >
-                          Bắt đầu đánh giá
-                        </Link>
+                        <div className="flex-shrink-0">
+                          <Link
+                            to={`/assessments/${assessment.id}`}
+                            className={`inline-block bg-gradient-to-r ${colorMap[colorKey].button} text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl text-lg`}
+                          >
+                            Bắt đầu đánh giá
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
 
         <div className="max-w-4xl mx-auto mt-12 p-6 bg-warning-50 border border-warning-200 rounded-lg">

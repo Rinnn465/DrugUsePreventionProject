@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Star, ArrowRight } from 'lucide-react';
+import { Star, ArrowRight } from 'lucide-react';
 import { SqlCourse } from '../../types/Course';
 
 interface CourseCardProps {
@@ -83,13 +83,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
           </p>
 
 
-          {/* Course Stats */}
-          <div className="flex items-center justify-between mb-6 text-sm">
-            <div className="flex items-center text-gray-500 bg-gray-50 px-3 py-2 rounded-lg">
-              <Users className="h-4 w-4 mr-2 text-green-500" />
-              <span className="font-medium">{course.EnrollCount} người đã tham gia</span>
-            </div>
-          </div>
+
 
 
           {/* CTA Button */}

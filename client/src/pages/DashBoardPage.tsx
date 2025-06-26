@@ -553,6 +553,15 @@ const DashBoardPage: React.FC = () => {
   // Handle appointment detail modal
   const handleAppointmentDetail = async (appointment: Appointment) => {
     setSelectedAppointment(appointment);
+    
+    // Set loading state for consultant details
+    setConsultantDetails({
+      name: 'Đang tải thông tin...',
+      title: '',
+      imageUrl: '',
+      specialties: []
+    });
+    
     setIsModalOpen(true);
 
     // Reset consultant details to show loading state
@@ -578,15 +587,12 @@ const DashBoardPage: React.FC = () => {
           imageUrl: data.data?.ImageUrl || '',
           specialties: data.data?.Specialties?.map((s: { Name: string }) => s.Name) || []
         });
-      } else {
-        console.error('Failed to fetch consultant details:', response.status, response.statusText);
-        throw new Error(`HTTP ${response.status}`);
       }
     } catch (error) {
       console.error('Error fetching consultant details:', error);
       setConsultantDetails({
         name: 'Chuyên gia tư vấn',
-        title: 'Không thể tải thông tin',
+        title: '',
         imageUrl: '',
         specialties: []
       });

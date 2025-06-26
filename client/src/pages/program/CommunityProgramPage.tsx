@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import React, { useEffect, useState } from 'react';
-import { Users } from 'lucide-react';
+import React, { useEffect, useState, useMemo } from 'react';
+import { Users, Filter, X } from 'lucide-react';
 import { CommunityProgram, EnrollmentStatus } from '../../types/CommunityProgram';
 import { parseDate } from '../../utils/parseDateUtils';
 import { User } from '../../types/User';
@@ -13,6 +13,11 @@ const CommunityProgramPage: React.FC = () => {
   const [loadingEnrollments, setLoadingEnrollments] = useState<{ [key: number]: boolean }>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Filter states
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const [selectedRegistrationStatus, setSelectedRegistrationStatus] = useState<string>('all');
 
   const getAuthToken = () => localStorage.getItem('token');
 
@@ -23,6 +28,65 @@ const CommunityProgramPage: React.FC = () => {
       ...(token && { 'Authorization': `Bearer ${token}` })
     };
   };
+
+  // Filter logic
+  const filteredEvents = useMemo(() => {
+    return events.filter(event => {
+      // Filter by status
+      if (selectedStatus !== 'all' && event.Status !== selectedStatus) {
+        return false;
+      }
+
+      // Filter by month
+      if (selectedMonth !== 'all') {
+        const eventDate = new Date(event.Date);
+        const eventMonth = eventDate.getMonth();
+        const selectedMonthNum = parseInt(selectedMonth);
+        if (eventMonth !== selectedMonthNum) {
+          return false;
+        }
+      }
+
+      // Filter by registration status
+      if (selectedRegistrationStatus !== 'all') {
+        const enrollmentStatus = enrollmentStatuses[event.ProgramID];
+        if (selectedRegistrationStatus === 'registered' && !enrollmentStatus?.isEnrolled) {
+          return false;
+        }
+        if (selectedRegistrationStatus === 'not_registered' && enrollmentStatus?.isEnrolled) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [events, selectedStatus, selectedMonth, selectedRegistrationStatus, enrollmentStatuses]);
+
+  const clearFilters = () => {
+    setSelectedStatus('all');
+    setSelectedMonth('all');
+    setSelectedRegistrationStatus('all');
+  };
+
+  const hasActiveFilters = selectedStatus !== 'all' || selectedMonth !== 'all' || selectedRegistrationStatus !== 'all';
+
+  // Get unique months from events
+  const availableMonths = useMemo(() => {
+    const months = events.map(event => {
+      const date = new Date(event.Date);
+      return {
+        value: date.getMonth(),
+        label: date.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })
+      };
+    });
+    
+    // Remove duplicates
+    const uniqueMonths = months.filter((month, index, self) => 
+      index === self.findIndex(m => m.value === month.value)
+    );
+    
+    return uniqueMonths.sort((a, b) => a.value - b.value);
+  }, [events]);
 
   useEffect(() => {
     const fetchPrograms = async () => {
@@ -363,18 +427,89 @@ const CommunityProgramPage: React.FC = () => {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Filter Buttons - Chỉ hiển thị Online */}
-        <div className="flex justify-center mb-12">
-          <button
-            className="px-6 py-3 rounded-full font-medium bg-blue-600 text-white shadow-lg"
-          >
-            Sự kiện Online
-          </button>
+        {/* Filter Section */}
+        <div className="max-w-6xl mx-auto mb-12">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <Filter className="h-5 w-5 text-blue-600" />
+              <h2 className="text-xl font-bold text-gray-800">Lọc sự kiện</h2>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="ml-auto flex items-center gap-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                  Xóa bộ lọc
+                </button>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Status Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Trạng thái sự kiện
+                </label>
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                >
+                  <option value="all">Tất cả trạng thái</option>
+                  <option value="upcoming">Sắp diễn ra</option>
+                  <option value="ongoing">Đang diễn ra</option>
+                  <option value="completed">Đã hoàn thành</option>
+                </select>
+              </div>
+
+              {/* Month Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Tháng
+                </label>
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                >
+                  <option value="all">Tất cả tháng</option>
+                  {availableMonths.map((month) => (
+                    <option key={month.value} value={month.value}>
+                      {month.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Registration Status Filter */}
+              {user && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Trạng thái đăng ký
+                  </label>
+                  <select
+                    value={selectedRegistrationStatus}
+                    onChange={(e) => setSelectedRegistrationStatus(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  >
+                    <option value="all">Tất cả</option>
+                    <option value="registered">Đã đăng ký</option>
+                    <option value="not_registered">Chưa đăng ký</option>
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {/* Results Count */}
+            <div className="mt-4 text-sm text-gray-600">
+              Hiển thị <span className="font-semibold text-blue-600">{filteredEvents.length}</span> / {events.length} sự kiện
+            </div>
+          </div>
         </div>
 
         {/* Events Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {Array.isArray(events) && events.map((event, index) => (
+          {Array.isArray(filteredEvents) && filteredEvents.map((event, index) => (
             <div key={event.ProgramID || index} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
               {event.ImageUrl && (
                 <div className="relative h-48">
@@ -435,6 +570,27 @@ const CommunityProgramPage: React.FC = () => {
         </div>
 
         {/* Empty state */}
+        {Array.isArray(filteredEvents) && filteredEvents.length === 0 && events.length > 0 && (
+          <div className="text-center py-12">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+              <Filter className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                Không tìm thấy sự kiện phù hợp
+              </h3>
+              <p className="text-gray-500 mb-4">
+                Hãy thử điều chỉnh bộ lọc để tìm thấy sự kiện phù hợp với bạn.
+              </p>
+              <button
+                onClick={clearFilters}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Xóa tất cả bộ lọc
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {/* No events at all */}
         {Array.isArray(events) && events.length === 0 && (
           <div className="text-center py-12">
             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -442,7 +598,7 @@ const CommunityProgramPage: React.FC = () => {
             </svg>
             <h3 className="mt-2 text-sm font-medium text-gray-900">Không có sự kiện nào</h3>
             <p className="mt-1 text-sm text-gray-500">
-              Hiện tại chưa có sự kiện Online nào được tổ chức.
+              Hiện tại chưa có sự kiện nào được tổ chức.
             </p>
           </div>
         )}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Formik, Field, Form, ErrorMessage } from 'formik';
+import { Formik, Field, Form, ErrorMessage, useFormikContext, FormikProps } from 'formik';
 import * as Yup from 'yup';
 
 import { assessmentData } from '../../data/assessmentData';
@@ -19,6 +19,105 @@ interface GroupedConsultant {
     }>;
 }
 
+interface NavigationButtonsProps {
+    currentIndex: number;
+    totalQuestions: number;
+    onNext: () => void;
+    onPrev: () => void;
+}
+
+interface NavigationButtonsPropsWithAssessment extends NavigationButtonsProps {
+    assessment: any;
+    formikProps: FormikProps<{ [key: string]: string | string[] }>;
+}
+
+const NavigationButtons: React.FC<NavigationButtonsPropsWithAssessment> = ({ 
+    currentIndex, 
+    totalQuestions, 
+    onNext, 
+    onPrev, 
+    assessment,
+    formikProps
+}) => {
+    const { values, errors, touched } = formikProps;
+    const currentQuestion = assessment.questions[currentIndex];
+    
+    // Check if current question is answered
+    const isCurrentQuestionAnswered = () => {
+        const answer = values[currentQuestion.id];
+        if (currentQuestion.type === 'checkbox') {
+            return Array.isArray(answer) && answer.length > 0;
+        }
+        return Boolean(answer && answer !== '');
+    };
+
+    // Manual validation for the current question
+    const validateCurrentQuestion = () => {
+        if (!isCurrentQuestionAnswered()) {
+            const message = currentQuestion.type === 'checkbox' ? 'Chọn ít nhất một lựa chọn' : 'Không được để trống';
+            return message;
+        }
+        return null;
+    };
+
+    const handleNextClick = () => {
+        const validationError = validateCurrentQuestion();
+        if (validationError) {
+            // Set error manually for this specific field
+            formikProps.setFieldError(currentQuestion.id, validationError);
+            formikProps.setFieldTouched(currentQuestion.id, true);
+        } else {
+            // Clear any previous errors and proceed
+            formikProps.setFieldError(currentQuestion.id, undefined);
+            onNext();
+        }
+    };
+
+    return (
+        <div className="flex justify-between items-center mt-6">
+            <button
+                type="button"
+                onClick={onPrev}
+                disabled={currentIndex === 0}
+                className={`px-6 py-3 rounded-xl font-bold transition-all shadow-lg ${
+                    currentIndex === 0
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-gray-500 to-gray-400 text-white hover:from-gray-600 hover:to-gray-500'
+                }`}
+            >
+                ← Quay lại
+            </button>
+            
+            {currentIndex < totalQuestions - 1 ? (
+                <button
+                    type="button"
+                    onClick={handleNextClick}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-bold shadow-lg"
+                >
+                    Tiếp theo →
+                </button>
+            ) : (
+                <button
+                    className='px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-bold shadow-lg'
+                    type='button'
+                    onClick={() => {
+                        const validationError = validateCurrentQuestion();
+                        if (validationError) {
+                            formikProps.setFieldError(currentQuestion.id, validationError);
+                            formikProps.setFieldTouched(currentQuestion.id, true);
+                        } else {
+                            formikProps.setFieldError(currentQuestion.id, undefined);
+                            formikProps.submitForm();
+                        }
+                    }}
+                >
+                    Hoàn thành đánh giá
+                </button>
+            )}
+        </div>
+    );
+};
+
 const AssessmentDetailPage: React.FC = () => {
     const { assessmentId } = useParams<{ assessmentId: string }>();
 
@@ -28,6 +127,13 @@ const AssessmentDetailPage: React.FC = () => {
     const [courses, setCourses] = useState<SqlCourse[]>([]);
     const [consultants, setConsultants] = useState<GroupedConsultant[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
+
+    // Smooth scroll to top when changing questions
+    const handleQuestionChange = (newIndex: number) => {
+        setCurrentQuestionIndex(newIndex);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -234,6 +340,28 @@ const AssessmentDetailPage: React.FC = () => {
     };
 
     const handleSubmit = (values: typeof initialValues) => {
+        // Validate all questions before submitting
+        let hasErrors = false;
+        assessment.questions.forEach(question => {
+            const answer = values[question.id];
+            let isAnswered = false;
+            
+            if (question.type === 'checkbox') {
+                isAnswered = Array.isArray(answer) && answer.length > 0;
+            } else {
+                isAnswered = Boolean(answer && answer !== '');
+            }
+            
+            if (!isAnswered) {
+                hasErrors = true;
+            }
+        });
+
+        if (hasErrors) {
+            // If there are validation errors, don't submit
+            return;
+        }
+
         const total = calculateScore(values);
         let calculatedRisk = 'thấp';
 
@@ -262,6 +390,7 @@ const AssessmentDetailPage: React.FC = () => {
         // Reset state
         setResult(0);
         setRisk('thấp');
+        setCurrentQuestionIndex(0);
 
         // Scroll to top for better UX
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -278,74 +407,104 @@ const AssessmentDetailPage: React.FC = () => {
                     initialValues={initialValues}
                     validationSchema={validationSchema}
                     onSubmit={handleSubmit}
+                    validateOnChange={false}
+                    validateOnBlur={false}
+                    validate={(values) => {
+                        // Custom validation logic - only validate fields that have been touched
+                        const errors: { [key: string]: string } = {};
+                        return errors; // Return empty errors to prevent automatic validation
+                    }}
                 >
-                    <Form className='max-w-2xl mx-auto py-8 px-6 bg-gradient-to-br from-white via-primary-50 to-accent-50 rounded-2xl shadow-2xl border-2 border-accent-100 animate-fade-in'>
+                    {(formikProps: FormikProps<{ [key: string]: string | string[] }>) => (
+                        <Form className='max-w-2xl mx-auto py-8 px-6 bg-gradient-to-br from-white via-primary-50 to-accent-50 rounded-2xl shadow-2xl border-2 border-accent-100'>
                         <div className='text-center mb-8'>
                             <h1 className='text-3xl font-extrabold text-primary-700 mb-2'>
-                                📋 {assessment.title}
+                                {assessment.title}
                             </h1>
                             <p className='text-gray-600 text-lg'>
                                 {assessment.description}
                             </p>
                             <div className='mt-4 flex justify-center items-center gap-4 text-sm text-gray-500'>
-                                <span>📝 {assessment.questionCount} câu hỏi</span>
+                                <span>{assessment.questionCount} câu hỏi</span>
                                 <span>•</span>
-                                <span>⏱️ ~{assessment.timeToComplete} phút</span>
+                                <span>~{assessment.timeToComplete} phút</span>
+                            </div>
+                            <div className="mt-4 bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div 
+                                    className="bg-blue-600 h-full transition-all duration-300"
+                                    style={{ width: `${((currentQuestionIndex + 1) / assessment.questions.length) * 100}%` }}
+                                ></div>
+                            </div>
+                            <div className="text-center mt-2 text-sm text-gray-600">
+                                Câu {currentQuestionIndex + 1} / {assessment.questions.length}
                             </div>
                         </div>
-                        {assessment.questions.map((question, index) => {
+                        {(() => {
+                            const question = assessment.questions[currentQuestionIndex];
                             return (
-                                <div aria-labelledby="checkbox-group" key={question.id} className='mb-8 p-6 bg-white rounded-xl shadow-lg border border-accent-100'>
-                                    <p className='text-lg font-bold mb-4 text-blue-500'>
+                                <div 
+                                    aria-labelledby="checkbox-group" 
+                                    key={`${question.id}-${currentQuestionIndex}`} 
+                                    className='mb-8 p-6 bg-white rounded-xl shadow-lg border border-accent-100'
+                                    style={{ minHeight: '300px' }}
+                                >
+                                    <p className='text-lg font-bold mb-6 text-blue-500'>
                                         <span className="inline-block bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-sm font-bold mr-3">
-                                            Câu {index + 1}
+                                            Câu {currentQuestionIndex + 1}
                                         </span>
                                         {question.text}
                                     </p>
-                                    {question.options.map((option) => {
-                                        return (
-                                            <label key={option.id} className='block mb-3 cursor-pointer hover:bg-accent-50 rounded-lg px-3 py-2 transition-all'>
-                                                {question.type === 'checkbox' ? (
-                                                    <Field
-                                                        type='checkbox'
-                                                        name={question.id}
-                                                        value={String(option.value)}
-                                                        className='mr-3 accent-accent-500 scale-150'
-                                                    />
-                                                ) : (
-                                                    <Field
-                                                        type='radio'
-                                                        name={question.id}
-                                                        value={String(option.value)}
-                                                        className='mr-3 accent-accent-500 scale-150'
-                                                    />
-                                                )}
-                                                <span className='font-medium text-blue-500'>{option.text}</span>
-                                            </label>
-                                        )
-                                    })}
-                                    <ErrorMessage
-                                        name={String(question.id)}
-                                        component={'div'}
-                                        className='text-red-500 text-sm mt-1'
-                                    />
+                                    <div className="space-y-3">
+                                        {question.options.map((option) => {
+                                            return (
+                                                <label key={option.id} className='flex items-center cursor-pointer hover:bg-accent-50 rounded-lg px-4 py-3 transition-all border border-transparent hover:border-accent-200'>
+                                                    {question.type === 'checkbox' ? (
+                                                        <Field
+                                                            type='checkbox'
+                                                            name={question.id}
+                                                            value={String(option.value)}
+                                                            className='mr-4 accent-accent-500 w-5 h-5'
+                                                        />
+                                                    ) : (
+                                                        <Field
+                                                            type='radio'
+                                                            name={question.id}
+                                                            value={String(option.value)}
+                                                            className='mr-4 accent-accent-500 w-5 h-5'
+                                                        />
+                                                    )}
+                                                    <span className='font-medium text-blue-500 text-base'>{option.text}</span>
+                                                </label>
+                                            )
+                                        })}
+                                    </div>
+                                    {formikProps.errors[question.id] && formikProps.touched[question.id] && (
+                                        <div className='text-red-500 text-sm mt-4 p-2 bg-red-50 rounded border border-red-200'>
+                                            {formikProps.errors[question.id]}
+                                        </div>
+                                    )}
                                 </div>
-                            )
-                        })}
-                        <button
-                            className='w-full py-3 bg-gradient-to-r from-accent-500 to-primary-500 text-white rounded-xl hover:from-primary-600 hover:to-accent-600 transition-all font-bold shadow-lg text-lg mt-4'
-                            type='submit'>
-                            Hoàn thành đánh giá
-                        </button>
-                    </Form>
+                            );
+                        })()}
+                        
+                            <NavigationButtons
+                                currentIndex={currentQuestionIndex}
+                                totalQuestions={assessment.questions.length}
+                                onNext={() => handleQuestionChange(Math.min(assessment.questions.length - 1, currentQuestionIndex + 1))}
+                                onPrev={() => handleQuestionChange(Math.max(0, currentQuestionIndex - 1))}
+                                assessment={assessment}
+                                formikProps={formikProps}
+                            />
+                        </Form>
+                    )}
                 </Formik>
             )}
 
             {result !== null && result > 0 && (
-                <div className="my-10 max-w-3xl mx-auto bg-gradient-to-br from-white via-primary-50 to-accent-50 rounded-2xl shadow-2xl border-2 border-accent-100 p-8 animate-fade-in">
+                <div className="my-10 max-w-3xl mx-auto bg-gradient-to-br from-white via-primary-50 to-accent-50 rounded-2xl shadow-2xl border-2 border-accent-100 p-8">
                     <div className="flex justify-between items-start mb-4">
                         <h2 className="text-3xl font-extrabold text-accent-700 flex items-center gap-3">
-                            🎉 Kết quả đánh giá
+                            Kết quả đánh giá
                         </h2>
                         <button
                             onClick={handleRedoAssessment}
@@ -386,7 +545,7 @@ const AssessmentDetailPage: React.FC = () => {
                                         />
                                         <h4 className="text-lg font-bold text-primary-700 mb-2">{course.CourseName}</h4>
                                         <p className="mb-2 text-gray-700">{course.Description}</p>
-                                        <div className="text-xs text-gray-500 mb-2">Đã đăng ký: {course.EnrollCount} người</div>
+
                                         <div className="text-xs text-gray-500 mb-2">Mức độ rủi ro: {course.Risk}</div>
                                         <div className="text-xs text-gray-500 mb-2">
                                             Đối tượng: {course.Category?.map((category, index) => (
