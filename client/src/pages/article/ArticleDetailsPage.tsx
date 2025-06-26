@@ -100,7 +100,7 @@ const ArticleDetailsPage = () => {
                     </div>
                     <div className="h-8 w-px bg-gray-300"></div>
                     <div>
-                        <p className="text-sm text-gray-500">Ngày xuất bản</p>
+                        <p className="text-sm text-gray-500">Ngày đăng</p>
                         <p className="font-medium text-gray-900">
                             {article?.PublishedDate ? new Date(article.PublishedDate).toLocaleDateString('vi-VN', {
                                 year: 'numeric',
