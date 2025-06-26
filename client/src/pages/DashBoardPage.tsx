@@ -599,11 +599,8 @@ const DashBoardPage: React.FC = () => {
     setConsultantDetails(null);
   };
 
-<<<<<<< HEAD
-=======
 
   // Main Dashboard Page (modified to include consultant sections)
->>>>>>> 5746e5533530e0d5431e92fef1b8a5106f7f2d07
   if (!isCoursesPage && !isEventsPage && !isAppointmentsPage && !isSecurityPage) {
     return (
       <div className="flex min-h-screen bg-gray-50">
