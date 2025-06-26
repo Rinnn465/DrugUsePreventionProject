@@ -454,8 +454,14 @@ const CommunityProgramDetails: React.FC = () => {
                     className="w-full h-80 object-cover rounded-xl shadow-lg"
                   />
                 </div>
+              )}
+              
+              <div className="prose max-w-none">
+                <p className="text-gray-700 text-lg leading-relaxed">
+                  {programData.Description}
+                </p>
               </div>
-            )}
+            </div>
 
             {/* Survey Section */}
             {handleRenderSurveyForm() && (
