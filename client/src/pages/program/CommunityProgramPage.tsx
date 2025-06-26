@@ -394,14 +394,6 @@ const CommunityProgramPage: React.FC = () => {
                       {event.Status === 'upcoming' ? 'Sắp diễn ra' : event.Status === 'ongoing' ? 'Đang diễn ra' : 'Đã hoàn thành'}
                     </span>
                   </div>
-                  {/* Badge trạng thái đăng ký */}
-                  {enrollmentStatuses[event.ProgramID]?.isEnrolled && (
-                    <div className="absolute top-12 left-4">
-                      <span className="px-2 py-1 bg-green-500 text-white text-xs rounded-full">
-                        Đã đăng ký
-                      </span>
-                    </div>
-                  )}
                 </div>
               )}
               <div className="p-6 flex flex-col flex-grow">
