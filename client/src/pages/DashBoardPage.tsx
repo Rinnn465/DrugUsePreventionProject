@@ -377,12 +377,13 @@ const DashBoardPage: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/appointment`, {
+      const response = await fetch(`http://localhost:5000/api/appointment/user/${userId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       const data = await response.json();
+
       setAppointments(data.data || []);
     } catch (err) {
       console.error("Error fetching appointments:", err);
@@ -1378,7 +1379,7 @@ const DashBoardPage: React.FC = () => {
                     className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors duration-200"
                   >
                     <Calendar className="h-4 w-4 mr-2" />
-                    Đặt lịch hẹn
+                    Lịch hẹn
                   </Link>
                 )}
               </div>

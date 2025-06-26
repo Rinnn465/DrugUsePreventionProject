@@ -32,6 +32,28 @@ export async function getAppointmentById(req: Request, res: Response, next: Next
     }
 };
 
+export async function getAppointmentByUserId(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const userId = req.params.id;
+    console.log('this is the user ID ' + userId);
+
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input("userId", sql.Int, userId)
+            .query("SELECT * FROM Appointment WHERE AccountID = @userId");
+
+        if (result.recordset.length === 0) {
+            res.status(404).json({ message: "Không tìm thấy lịch hẹn cho người dùng này!", data: [] });
+            return;
+        }
+
+        res.status(200).json({ message: "Không tìm thấy lịch hẹn cho người dùng này!", data: result.recordset });
+    } catch (error) {
+        console.error("Error fetching appointment by user ID: ", error);
+        res.status(500).json({ message: "Lỗi server!" });
+    }
+};
+
 export async function bookAppointment(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { consultantId, accountId, time, date, meetingUrl, status, description, duration } = req.body;
     try {

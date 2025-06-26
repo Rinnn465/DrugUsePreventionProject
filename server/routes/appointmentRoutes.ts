@@ -2,7 +2,10 @@ import express from 'express';
 import * as appointmentController from '../controllers/appointmentController';
 const router = express.Router();
 
+
 router.get('/', appointmentController.getAppointments);
+
+router.get('/user/:id', appointmentController.getAppointmentByUserId);
 
 router.get('/filter', appointmentController.getAppointmentsByFilter);
 

@@ -9,6 +9,7 @@ const AppointmentsPage: React.FC = () => {
   const location = useLocation();
   const state = location.state as { counselorId?: number };
 
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCounselor, setSelectedCounselor] = useState<number | null>(null);
 
@@ -23,6 +24,11 @@ const AppointmentsPage: React.FC = () => {
   useEffect(() => {
     if (state?.counselorId) {
       setSelectedCounselor(state.counselorId);
+      console.log(`Selected counselor ID from state: ${state.counselorId}`);
+
+    } else {
+      console.log('No counselor ID found in state, defaulting to null');
+
     }
   }, [state?.counselorId]);
 

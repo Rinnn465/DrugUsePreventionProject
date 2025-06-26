@@ -92,7 +92,7 @@ export async function getConsultantWithCategory(
 
             if (!consultantsMap.has(consultantId)) {
                 consultantsMap.set(consultantId, {
-                    ConsultantID: row.ConsultantID,
+                    AccountID: row.AccountID,
                     Name: row.Name,
                     Bio: row.Bio,
                     Title: row.Title,
