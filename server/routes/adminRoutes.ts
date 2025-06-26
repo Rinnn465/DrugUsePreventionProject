@@ -1,6 +1,6 @@
 /**
- * Admin account management API routes.
- * Provides endpoints for administrators to manage user accounts.
+ * Các route API quản lý tài khoản cho quản trị viên.
+ * Cung cấp các endpoint để quản trị viên quản lý tài khoản người dùng.
  *
  * @module routes/adminRoutes
  */
@@ -11,22 +11,22 @@ const router: Router = express.Router();
 
 /**
  * @route GET /api/admin/accounts
- * @desc Get all user accounts
- * @access Admin
+ * @desc Lấy tất cả tài khoản người dùng
+ * @access Quản trị viên
  */
 router.get("/", accountController.getAccounts);
 
 /**
  * @route GET /api/admin/accounts/:id
- * @desc Get a user account by ID
- * @access Admin
+ * @desc Lấy tài khoản người dùng theo ID
+ * @access Quản trị viên
  */
 router.get("/:id", accountController.getAccountById);
 
 /**
  * @route DELETE /api/admin/accounts/:id
- * @desc Delete a user account by ID
- * @access Admin
+ * @desc Xóa tài khoản người dùng theo ID
+ * @access Quản trị viên
  */
 router.delete("/:id", accountController.deleteAccount);
 

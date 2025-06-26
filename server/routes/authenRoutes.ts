@@ -1,6 +1,6 @@
 /**
- * Authentication-related API routes.
- * Provides endpoints for user login, registration, logout, and password reset flows.
+ * Các route API liên quan đến xác thực.
+ * Cung cấp các endpoint cho đăng nhập, đăng ký, đăng xuất và quy trình đặt lại mật khẩu.
  *
  * @module routes/authenRoutes
  */
@@ -19,43 +19,43 @@ const router: Router = express.Router();
 
 /**
  * @route POST /api/auth/login
- * @desc User login
- * @access Public
+ * @desc Đăng nhập người dùng
+ * @access Công khai
  */
 router.post("/login", login);
 
 /**
  * @route POST /api/auth/register
- * @desc User registration
- * @access Public
+ * @desc Đăng ký người dùng
+ * @access Công khai
  */
 router.post("/register", register);
 
 /**
  * @route POST /api/auth/logout
- * @desc User logout
- * @access Authenticated users
+ * @desc Đăng xuất người dùng
+ * @access Người dùng đã xác thực
  */
 router.post("/logout", logout);
 
 /**
  * @route POST /api/auth/forgot-password
- * @desc Initiate password reset (send reset email)
- * @access Public
+ * @desc Khởi tạo đặt lại mật khẩu (gửi email đặt lại)
+ * @access Công khai
  */
 router.post("/forgot-password", forgotPassword);
 
 /**
  * @route POST /api/auth/verify-token
- * @desc Verify password reset token
- * @access Public
+ * @desc Xác minh mã đặt lại mật khẩu
+ * @access Công khai
  */
 router.post("/verify-token", postVerifyResetToken);
 
 /**
  * @route POST /api/auth/reset-token
- * @desc Reset password using a valid reset token
- * @access Public
+ * @desc Đặt lại mật khẩu bằng mã hợp lệ
+ * @access Công khai
  */
 router.post("/reset-token", resetPassword);
 

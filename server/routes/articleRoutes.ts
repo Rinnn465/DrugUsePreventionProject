@@ -1,7 +1,7 @@
 /**
- * Article-related API routes.
- * Provides endpoints for retrieving, creating, updating, and deleting articles.
- * Includes both public and protected routes with role-based authorization.
+ * Các route API liên quan đến bài viết.
+ * Cung cấp các endpoint để lấy, tạo, cập nhật và xóa bài viết.
+ * Bao gồm cả route công khai và route bảo vệ với phân quyền theo vai trò.
  *
  * @module routes/articleRoutes
  */
@@ -14,37 +14,37 @@ const router = express.Router();
 // Public routes for articles
 /**
  * @route GET /api/articles
- * @desc Get all articles
- * @access Public
+ * @desc Lấy tất cả bài viết
+ * @access Công khai
  */
 router.get('/', articleController.getArticles);
 
 /**
  * @route GET /api/articles/:id
- * @desc Get article by ID
- * @access Public
+ * @desc Lấy bài viết theo ID
+ * @access Công khai
  */
 router.get('/:id', articleController.getArticleById);
 
 // Protected routes for articles (Staff, Manager, Admin)
 /**
  * @route POST /api/articles
- * @desc Create a new article
- * @access Staff, Manager, Admin
+ * @desc Tạo bài viết mới
+ * @access Nhân viên, Quản lý, Quản trị viên
  */
 router.post('/',  authorizeRoles(["Staff","Manager","Admin"]), articleController.createArticle);
 
 /**
  * @route PUT /api/articles/:id
- * @desc Update an article by ID
- * @access Staff, Manager, Admin
+ * @desc Cập nhật bài viết theo ID
+ * @access Nhân viên, Quản lý, Quản trị viên
  */
 router.put('/:id', authorizeRoles(["Staff","Manager","Admin"]), articleController.updateArticle);
 
 /**
  * @route DELETE /api/articles/:id
- * @desc Delete an article by ID
- * @access Staff, Manager, Admin
+ * @desc Xóa bài viết theo ID
+ * @access Nhân viên, Quản lý, Quản trị viên
  */
 router.delete('/:id', authorizeRoles(["Staff","Manager","Admin"]), articleController.deleteArticle);
 

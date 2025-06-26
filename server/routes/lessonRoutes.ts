@@ -1,6 +1,6 @@
 /**
- * Lesson-related API routes.
- * Provides endpoints for retrieving, creating, updating, and managing lessons, questions, and answers.
+ * Các route API liên quan đến bài học.
+ * Cung cấp các endpoint để lấy, tạo, cập nhật và quản lý bài học, câu hỏi, đáp án.
  *
  * @module routes/lessonRoute
  */
@@ -12,127 +12,127 @@ const router: Router = express.Router();
 
 /**
  * @route GET /api/lessons/:id
- * @desc Get all lessons for a course by course ID
- * @access Public
+ * @desc Lấy tất cả bài học của một khóa học theo ID khóa học
+ * @access Công khai
  */
 router.get("/:id", lessonController.getLesson);
 
 /**
  * @route GET /api/lessons/content/:id
- * @desc Get lesson content and questions for a course by course ID
- * @access Public
+ * @desc Lấy nội dung bài học và câu hỏi cho một khóa học theo ID khóa học
+ * @access Công khai
  */
 router.get("/content/:id", lessonController.getLessonContent);
 
 /**
  * @route GET /api/lessons/questions/:id
- * @desc Get all questions for a lesson by lesson ID
- * @access Public
+ * @desc Lấy tất cả câu hỏi của một bài học theo ID bài học
+ * @access Công khai
  */
 router.get("/questions/:id", lessonController.getQuestions);
 
 /**
  * @route GET /api/lessons/answers/:id
- * @desc Get all answers for questions in a course by course ID
- * @access Public
+ * @desc Lấy tất cả đáp án cho các câu hỏi trong một khóa học theo ID khóa học
+ * @access Công khai
  */
 router.get("/answers/:id", lessonController.getAnswers);
 
 /**
  * @route GET /api/lessons/course/:id/details
- * @desc Get all lessons, questions, and answers for a course by course ID
- * @access Public
+ * @desc Lấy tất cả bài học, câu hỏi và đáp án cho một khóa học theo ID khóa học
+ * @access Công khai
  */
 router.get("/course/:id/details", lessonController.getLessonDetails);
 
 /**
  * @route GET /api/lessons/lesson/:id
- * @desc Get a specific lesson by lesson ID
- * @access Public
+ * @desc Lấy một bài học cụ thể theo ID bài học
+ * @access Công khai
  */
 router.get("/lesson/:id", lessonController.getLessonById);
 
 /**
  * @route POST /api/lessons
- * @desc Create a new lesson
- * @access Admin
+ * @desc Tạo mới bài học
+ * @access Quản trị viên
  */
 router.post("/", lessonController.createLesson);
 
 /**
  * @route PUT /api/lessons/:id
- * @desc Update a lesson by lesson ID
- * @access Admin
+ * @desc Cập nhật bài học theo ID bài học
+ * @access Quản trị viên
  */
 router.put("/:id", lessonController.updateLesson);
 
 /**
  * @route DELETE /api/lessons/:id
- * @desc Delete a lesson by lesson ID
- * @access Admin
+ * @desc Xóa bài học theo ID bài học
+ * @access Quản trị viên
  */
 router.delete("/:id", lessonController.deleteLesson);
 
 /**
  * @route PUT /api/lessons/content/:id
- * @desc Update lesson content by lesson ID
- * @access Admin
+ * @desc Cập nhật nội dung bài học theo ID bài học
+ * @access Quản trị viên
  */
 router.put("/content/:id", lessonController.updateLessonContent);
 
 /**
  * @route POST /api/lessons/questions
- * @desc Create a new lesson question
- * @access Admin
+ * @desc Tạo mới câu hỏi cho bài học
+ * @access Quản trị viên
  */
 router.post("/questions", lessonController.createLessonQuestion);
 
 /**
  * @route PUT /api/lessons/questions/:id
- * @desc Update a lesson question by question ID
- * @access Admin
+ * @desc Cập nhật câu hỏi bài học theo ID câu hỏi
+ * @access Quản trị viên
  */
 router.put("/questions/:id", lessonController.updateLessonQuestion);
 
 /**
  * @route DELETE /api/lessons/questions/:id
- * @desc Delete a lesson question by question ID
- * @access Admin
+ * @desc Xóa câu hỏi bài học theo ID câu hỏi
+ * @access Quản trị viên
  */
 router.delete("/questions/:id", lessonController.deleteLessonQuestion);
 
 /**
  * @route POST /api/lessons/answers
- * @desc Create a new lesson answer
- * @access Admin
+ * @desc Tạo mới đáp án cho bài học
+ * @access Quản trị viên
  */
 router.post("/answers", lessonController.createLessonAnswer);
 
 /**
  * @route PUT /api/lessons/answers/:id
- * @desc Update a lesson answer by answer ID
- * @access Admin
+ * @desc Cập nhật đáp án bài học theo ID đáp án
+ * @access Quản trị viên
  */
 router.put("/answers/:id", lessonController.updateLessonAnswer);
 
 /**
  * @route DELETE /api/lessons/answers/:id
- * @desc Delete a lesson answer by answer ID
- * @access Admin
+ * @desc Xóa đáp án bài học theo ID đáp án
+ * @access Quản trị viên
  */
 router.delete("/answers/:id", lessonController.deleteLessonAnswer);
 
 /**
  * @route PUT /api/lessons/deactivate/:id
- * @desc Deactivate a lesson by lesson ID
- * @access Admin
+ * @desc Vô hiệu hóa bài học theo ID bài học
+ * @access Quản trị viên
  */
 router.put("/deactivate/:id", lessonController.deactivateLesson);
 
 /**
  * @route PUT /api/lessons/activate/:id
- * @desc Activate a lesson by lesson ID
- * @access Admin
+ * @desc Kích hoạt bài học theo ID bài học
+ * @access Quản trị viên
  */
 router.put("/activate/:id", lessonController.activateLesson);
 

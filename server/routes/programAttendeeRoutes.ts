@@ -1,7 +1,7 @@
 /**
- * Program attendee-related API routes.
- * Provides endpoints for enrollment, unenrollment, status checks, and admin management of program attendees.
- * Includes role-based authorization for each route.
+ * Các route API liên quan đến người tham gia chương trình.
+ * Cung cấp các endpoint cho đăng ký, hủy đăng ký, kiểm tra trạng thái và quản lý người tham gia chương trình (dành cho admin).
+ * Bao gồm phân quyền theo vai trò cho từng route.
  *
  * @module routes/programAttendeeRoutes
  */
@@ -13,8 +13,8 @@ const router: Router = express.Router();
 
 /**
  * @route GET /api/program-attendees/total/:programId
- * @desc Get total number of attendees for a program
- * @access Guest, Member, Consultant, Admin
+ * @desc Lấy tổng số người tham gia của một chương trình
+ * @access Khách, Thành viên, Tư vấn viên, Quản trị viên
  */
 router.get("/total/:programId", 
     authorizeRoles(["Guest", "Member", "Consultant", "Admin"]), 
@@ -23,8 +23,8 @@ router.get("/total/:programId",
 
 /**
  * @route GET /api/program-attendees/:programId/enrollment-status
- * @desc Check enrollment status for current user in a program
- * @access Member, Consultant, Admin
+ * @desc Kiểm tra trạng thái đăng ký của người dùng hiện tại với một chương trình
+ * @access Thành viên, Tư vấn viên, Quản trị viên
  */
 router.get("/:programId/enrollment-status", 
     authorizeRoles(["Member", "Consultant", "Admin"]), 
@@ -33,8 +33,8 @@ router.get("/:programId/enrollment-status",
 
 /**
  * @route POST /api/program-attendees/:programId/enroll
- * @desc Enroll current user in a program
- * @access Member, Consultant, Admin
+ * @desc Đăng ký chương trình cho người dùng hiện tại
+ * @access Thành viên, Tư vấn viên, Quản trị viên
  */
 router.post("/:programId/enroll", 
     authorizeRoles(["Member", "Consultant", "Admin"]), 
@@ -43,8 +43,8 @@ router.post("/:programId/enroll",
 
 /**
  * @route DELETE /api/program-attendees/:programId/unenroll
- * @desc Unenroll current user from a program
- * @access Member, Consultant, Admin
+ * @desc Hủy đăng ký chương trình cho người dùng hiện tại
+ * @access Thành viên, Tư vấn viên, Quản trị viên
  */
 router.delete("/:programId/unenroll", 
     authorizeRoles(["Member", "Consultant", "Admin"]), 
@@ -53,8 +53,8 @@ router.delete("/:programId/unenroll",
 
 /**
  * @route GET /api/program-attendees/my-enrollments
- * @desc Get all programs the current user is enrolled in
- * @access Member, Consultant, Admin
+ * @desc Lấy tất cả chương trình mà người dùng hiện tại đã đăng ký
+ * @access Thành viên, Tư vấn viên, Quản trị viên
  */
 router.get("/my-enrollments", 
     authorizeRoles(["Member", "Consultant", "Admin"]), 
@@ -63,8 +63,8 @@ router.get("/my-enrollments",
 
 /**
  * @route GET /api/program-attendees
- * @desc Get all program attendees (admin only)
- * @access Admin
+ * @desc Lấy tất cả người tham gia chương trình (chỉ admin)
+ * @access Quản trị viên
  */
 router.get("/", 
     authorizeRoles(["Admin"]), 
@@ -73,8 +73,8 @@ router.get("/",
 
 /**
  * @route GET /api/program-attendees/:programId/:accountId
- * @desc Get a specific attendee by program ID and account ID (admin only)
- * @access Admin
+ * @desc Lấy thông tin người tham gia cụ thể theo programId và accountId (chỉ admin)
+ * @access Quản trị viên
  */
 router.get("/:programId/:accountId", 
     authorizeRoles(["Admin"]), 

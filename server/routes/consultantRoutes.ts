@@ -1,6 +1,6 @@
 /**
- * Consultant-related API routes.
- * Provides endpoints for retrieving consultants, their qualifications, specialties, and schedules.
+ * Các route API liên quan đến tư vấn viên.
+ * Cung cấp các endpoint để lấy thông tin tư vấn viên, bằng cấp, chuyên môn và lịch làm việc.
  *
  * @module routes/consultantRoutes
  */
@@ -21,71 +21,71 @@ const router: Router = express.Router();
 
 /**
  * @route GET /api/consultants
- * @desc Get all consultants
- * @access Public
+ * @desc Lấy tất cả tư vấn viên
+ * @access Công khai
  */
 router.get('/', getConsultants);
 
 /**
  * @route GET /api/consultants/qualifications
- * @desc Get all consultant qualifications
- * @access Public
+ * @desc Lấy tất cả bằng cấp của tư vấn viên
+ * @access Công khai
  */
 router.get('/qualifications', getQualifications)
 
 /**
  * @route GET /api/consultants/specialties
- * @desc Get all consultant specialties
- * @access Public
+ * @desc Lấy tất cả chuyên môn của tư vấn viên
+ * @access Công khai
  */
 router.get('/specialties', getSpecialties)
 
 /**
  * @route GET /api/consultants/:id
- * @desc Get consultant by ID
- * @access Public
+ * @desc Lấy tư vấn viên theo ID
+ * @access Công khai
  */
 router.get('/:id', getConsultantById);
 
 /**
  * @route GET /api/consultants/:id/schedule
- * @desc Get consultant's schedule by consultant ID
- * @access Public
+ * @desc Lấy lịch làm việc của tư vấn viên theo ID tư vấn viên
+ * @access Công khai
  */
 router.get('/:id/schedule', consultantScheduleController.getScheduleByScheduleId);
 
 /**
  * @route GET /api/consultants/schedule
- * @desc Get all consultants' schedules
- * @access Public
+ * @desc Lấy tất cả lịch làm việc của tư vấn viên
+ * @access Công khai
  */
 router.get('/schedule', consultantScheduleController.getSchedules);
 
 /**
  * @route GET /api/consultants/schedule/:consultantId
- * @desc Get schedule for a specific consultant by ID
- * @access Public
+ * @desc Lấy lịch làm việc cho một tư vấn viên cụ thể theo ID
+ * @access Công khai
  */
  router.get('/schedule/:consultantId', consultantScheduleController.getSchedulesByConsultantId); // Uncomment if needed
 
 /**
  * @route POST /api/consultants/schedule
- * @desc Create a new consultant schedule
- * @access Consultant
+ * @desc Tạo mới lịch làm việc cho tư vấn viên
+ * @access Tư vấn viên
  */
 router.post('/schedule', consultantScheduleController.createSchedule); // Uncomment if needed
 
 /**
  * @route PUT /api/consultants/schedule/:id
- * @desc Update a consultant's schedule by ID
- * @access Consultant
+ * @desc Cập nhật lịch làm việc của tư vấn viên theo ID
+ * @access Tư vấn viên
  */
 router.put('/schedule/:id', consultantScheduleController.updateSchedule); // Uncomment if needed
 
 /**
  * @route DELETE /api/consultants/schedule/:id
- * @desc Delete a consultant's schedule by ID
- * @access Consultant
+ * @desc Xóa lịch làm việc của tư vấn viên theo ID
+ * @access Tư vấn viên
  */
 router.delete('/schedule/:id', consultantScheduleController.deleteSchedule); // Uncomment if needed
 
