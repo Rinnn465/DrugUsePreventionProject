@@ -256,6 +256,9 @@ const CommunityProgramPage: React.FC = () => {
       );
     }
 
+    // Check if program is completed
+    const isProgramCompleted = event.Status === 'completed';
+
     return (
       <div className="space-y-2">
         <Link
@@ -265,7 +268,11 @@ const CommunityProgramPage: React.FC = () => {
           Xem chi tiết
         </Link>
 
-        {isAuthenticated ? (
+        {isProgramCompleted ? (
+          <div className="text-center text-gray-600 font-medium text-sm bg-gray-100 py-3 rounded-lg">
+            Chương trình đã hoàn thành
+          </div>
+        ) : isAuthenticated ? (
           enrollmentStatus?.isEnrolled ? (
             <div className="space-y-2">
               <div className="text-center text-green-600 font-medium text-sm bg-green-50 py-2 rounded-lg">

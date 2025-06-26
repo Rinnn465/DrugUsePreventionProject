@@ -59,7 +59,6 @@ const SurveyBeforeEventPage = () => {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({
-                    accountId: user?.AccountID, // Lấy AccountID từ User đã đăng nhập
                     programId: parseInt(programId!),
                     surveyType: surveyType,
                     surveyData: formData

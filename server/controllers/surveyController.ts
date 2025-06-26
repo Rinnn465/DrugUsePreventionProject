@@ -45,13 +45,15 @@ export async function getSurveyById(
 }
 
 export const submitSurveyResponse = async (req: Request, res: Response): Promise<void> => {
-  const { accountId, programId, surveyType, surveyData } = req.body;
+  const { programId, surveyType, surveyData } = req.body;
 
+  // Lấy accountId từ JWT token thay vì từ request body để bảo mật
+  const accountId = (req as any).user?.user?.AccountID;
 
   // Thêm logging chi tiết
   console.log('=== SUBMIT SURVEY DEBUG ===');
   console.log('Request body:', req.body);
-  console.log('AccountID:', accountId);
+  console.log('AccountID from token:', accountId);
   console.log('ProgramID:', programId);
   console.log('SurveyType:', surveyType);
   console.log('SurveyData:', surveyData);

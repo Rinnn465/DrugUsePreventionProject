@@ -132,12 +132,22 @@ export async function enrollInProgram(req: Request, res: Response): Promise<void
         const programCheck = await pool.request()
             .input('ProgramID', sql.Int, programId)
             .query(`
-                SELECT ProgramID, ProgramName FROM CommunityProgram 
+                SELECT ProgramID, ProgramName, Status FROM CommunityProgram 
                 WHERE ProgramID = @ProgramID AND IsDisabled = 0
             `);
 
         if (programCheck.recordset.length === 0) {
             res.status(404).json({ message: "Program not found or is disabled" });
+            return;
+        }
+
+        // Check if program status allows enrollment (only upcoming and ongoing programs)
+        const program = programCheck.recordset[0];
+        if (program.Status === 'completed') {
+            res.status(400).json({ 
+                message: "Cannot enroll in a completed program",
+                programStatus: program.Status 
+            });
             return;
         }
 
@@ -199,6 +209,29 @@ export async function unenrollFromProgram(req: Request, res: Response): Promise<
 
     try {
         const pool = await poolPromise;
+
+        // Check if program exists and get its status
+        const programCheck = await pool.request()
+            .input('ProgramID', sql.Int, programId)
+            .query(`
+                SELECT ProgramID, ProgramName, Status FROM CommunityProgram 
+                WHERE ProgramID = @ProgramID AND IsDisabled = 0
+            `);
+
+        if (programCheck.recordset.length === 0) {
+            res.status(404).json({ message: "Program not found or is disabled" });
+            return;
+        }
+
+        // Check if program status allows unenrollment (only upcoming and ongoing programs)
+        const program = programCheck.recordset[0];
+        if (program.Status === 'completed') {
+            res.status(400).json({ 
+                message: "Cannot unenroll from a completed program",
+                programStatus: program.Status 
+            });
+            return;
+        }
 
         const result = await pool.request()
             .input('ProgramID', sql.Int, programId)

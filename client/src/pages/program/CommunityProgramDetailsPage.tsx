@@ -350,7 +350,11 @@ const CommunityProgramDetails: React.FC = () => {
 
           {user && (
             <div className="mt-6 space-y-2">
-              {!enrollmentStatus?.isEnrolled ? (
+              {programData.Status === 'completed' ? (
+                <div className="text-center text-gray-600 font-medium text-sm bg-gray-100 py-3 rounded-lg">
+                  Chương trình đã hoàn thành
+                </div>
+              ) : !enrollmentStatus?.isEnrolled ? (
                 <button
                   onClick={handleEnroll}
                   className="w-full md:w-auto px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
