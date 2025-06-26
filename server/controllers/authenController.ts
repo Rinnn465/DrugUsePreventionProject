@@ -9,17 +9,17 @@ import { passwordReset } from "../templates/passwordreset";
 dotenv.config();
 
 /**
- * Authenticates a user and generates a JWT token
+ * Xác thực người dùng và tạo mã thông báo JWT
  * 
  * @route POST /api/auth/login
  * @access Public
- * @param {Request} req - Express request object with email and password in body
- * @param {Response} res - Express response object
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response with token and user data
- * @throws {400} If user is not found
- * @throws {401} If password is invalid
- * @throws {500} If server error occurs
+ * @param {Request} req - Đối tượng request của Express chứa email và mật khẩu trong body
+ * @param {Response} res - Đối tượng response của Express
+ * @param {NextFunction} next - Hàm middleware tiếp theo của Express
+ * @returns {Promise<void>} Phản hồi JSON chứa mã thông báo và dữ liệu người dùng
+ * @throws {400} Nếu không tìm thấy người dùng
+ * @throws {401} Nếu mật khẩu không hợp lệ
+ * @throws {500} Nếu xảy ra lỗi máy chủ
  */
 export async function login(
   req: Request,
@@ -29,7 +29,7 @@ export async function login(
   const { email, password } = req.body;
 
   try {
-    // Get database connection and find user by email
+    // Lấy kết nối cơ sở dữ liệu và tìm người dùng theo email
     const pool = await poolPromise;
     const result = await pool
       .request()
@@ -37,20 +37,20 @@ export async function login(
       .query("SELECT Account.*, Role.RoleName FROM Account JOIN Role ON Account.RoleID = Role.RoleID WHERE Email = @email");
     const user = result.recordset[0];
 
-    // Validate user exists
+    // Kiểm tra người dùng tồn tại
     if (!user) {
-      res.status(400).json({ message: "User not found" });
+      res.status(400).json({ message: "Không tìm thấy người dùng" });
       return;
     }
 
-    // Verify password
+    // Xác thực mật khẩu
     const isMatch = await bcrypt.compare(password, user.Password);
     if (!isMatch) {
-      res.status(401).json({ message: "Invalid password" });
+      res.status(401).json({ message: "Mật khẩu không hợp lệ" });
       return;
     }
     
-    // Generate JWT token
+    // Tạo mã thông báo JWT
     const token = jwt.sign(
       { 
         user: { 
@@ -58,8 +58,8 @@ export async function login(
           Username: user.Username,
           Email: user.Email,
           FullName: user.FullName,
-          RoleID: user.RoleID, // Use RoleID instead of Role
-          RoleName: user.RoleName, // Include RoleName for convenience
+          RoleID: user.RoleID, // Sử dụng RoleID thay vì Role
+          RoleName: user.RoleName, // Bao gồm RoleName cho tiện lợi
           CreatedAt: user.CreatedAt,
           IsDisabled: user.IsDisabled
         }
@@ -69,7 +69,7 @@ export async function login(
     );
 
       res.status(200).json({
-      message: "Login successful",
+      message: "Đăng nhập thành công",
       token,
       user: { 
         AccountID: user.AccountID,
@@ -85,17 +85,17 @@ export async function login(
 
   } catch (err: any) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi máy chủ" });
   }
 }
 
 /**
- * Handles user logout
- * Since JWT is stateless, this primarily serves as a client-side cleanup endpoint
+ * Xử lý đăng xuất người dùng
+ * Vì JWT là trạng thái không, điểm này chủ yếu phục vụ cho việc dọn dẹp phía khách hàng
  * 
  * @route POST /api/auth/logout
  * @access Public
- * @returns {Promise<void>} Success message
+ * @returns {Promise<void>} Thông báo thành công
  */
 export async function logout(
   req: Request,
@@ -103,23 +103,23 @@ export async function logout(
   next: NextFunction
 ): Promise<void> {
   try {
-    // Since JWT is stateless, logout is handled client-side by clearing the token
-    res.status(200).json({ message: "Logout successful" });
+    // Vì JWT là trạng thái không, đăng xuất được xử lý ở phía khách hàng bằng cách xóa mã thông báo
+    res.status(200).json({ message: "Đăng xuất thành công" });
   } catch (err: any) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi máy chủ" });
   }
 }
 
 /**
- * Registers a new user in the system
+ * Đăng ký người dùng mới vào hệ thống
  * 
  * @route POST /api/auth/register
  * @access Public
- * @param {Request} req - Express request object with registration details in body
- * @returns {Promise<void>} Success message
- * @throws {400} If username or email already exists
- * @throws {500} If server error occurs
+ * @param {Request} req - Đối tượng request của Express chứa thông tin đăng ký trong body
+ * @returns {Promise<void>} Thông báo thành công
+ * @throws {400} Nếu tên đăng nhập hoặc email đã tồn tại
+ * @throws {500} Nếu xảy ra lỗi máy chủ
  */
 export async function register(
   req: Request,
@@ -131,45 +131,41 @@ export async function register(
   try {
     const pool = await poolPromise;
 
-    
-
-    // Check for existing username
+    // Kiểm tra tên đăng nhập đã tồn tại chưa
     const checkUser = await pool
       .request()
       .input("username", sql.NVarChar, username)
       .query("SELECT * FROM Account WHERE Username = @username");
     if (checkUser.recordset.length > 0) {
-      res.status(400).json({ message: "Username already exists" });
+      res.status(400).json({ message: "Tên đăng nhập đã tồn tại" });
       return;
     }
 
-    // Check for existing email
+    // Kiểm tra email đã tồn tại chưa
     const checkEmail = await pool
       .request()
       .input("email", sql.NVarChar, email)
       .query("SELECT * FROM Account WHERE Email = @email");
     if (checkEmail.recordset.length > 0) {
-      res.status(400).json({ message: "Email already exists" });
+      res.status(400).json({ message: "Email đã tồn tại" });
       return;
     }
 
-    // Get RoleID for default role "Member"
+    // Lấy RoleID cho vai trò mặc định "Member"
     const roleResult = await pool
       .request()
       .input("roleName", sql.NVarChar, "Member")
       .query("SELECT RoleID FROM Role WHERE RoleName = @roleName");
     const role = roleResult.recordset[0];
     if (!role) {
-      res.status(500).json({ message: "role 'Member' not found in Role table" });
+      res.status(500).json({ message: "Không tìm thấy vai trò 'Member' trong bảng Role" });
       return;
     }
 
-    
-
-    // Hash password for security
+    // Mã hóa mật khẩu để bảo mật
     const hashedPassword = await bcrypt.hash(password, 10);
 
- // Insert new user into database
+    // Thêm người dùng mới vào cơ sở dữ liệu
     await pool
       .request()
       .input("username", sql.NVarChar, username)
@@ -186,41 +182,41 @@ export async function register(
                 (@username, @email, @password, @fullName, @dateOfBirth, @roleID, @createdAt)`
       );
 
-    // Send welcome email
+    // Gửi email chào mừng
     try {
       await sendEmail(
         email,
-        "🎉 Welcome to Our App!",
+        "🎉 Chào mừng bạn đến với ứng dụng!",
         welcomeTemplate(fullName, username)
       );
     } catch (emailErr) {
-      console.warn("Email sending failed:", emailErr); // Non-critical error
+      console.warn("Gửi email thất bại:", emailErr); // Lỗi không nghiêm trọng
     }
 
-    res.status(201).json({ message: "User registered successfully" });
+    res.status(201).json({ message: "Đăng ký người dùng thành công" });
   } catch (err: any) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi máy chủ" });
   }
 }
 
 /**
- * Initiates the password reset process
- * Generates a reset token and sends it via email
+ * Khởi tạo quá trình quên mật khẩu
+ * Sinh token đặt lại mật khẩu và gửi qua email
  * 
  * @route POST /api/auth/forgot-password
  * @access Public
- * @param {Request} req - Express request object with email in body
- * @returns {Promise<void>} Success message
- * @throws {404} If email is not found
- * @throws {500} If server error occurs
+ * @param {Request} req - Đối tượng request của Express chứa email trong body
+ * @returns {Promise<void>} Thông báo thành công
+ * @throws {404} Nếu không tìm thấy email
+ * @throws {500} Nếu xảy ra lỗi máy chủ
  */
 export async function forgotPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { email } = req.body;
 
     try {
         const pool = await poolPromise;
-        // Check if user exists
+        // Kiểm tra người dùng tồn tại
         const result = await pool
             .request()
             .input('email', sql.VarChar, email)
@@ -228,48 +224,48 @@ export async function forgotPassword(req: Request, res: Response, next: NextFunc
         const user = result.recordset[0];
 
         if (!user) {
-            res.status(404).json({ message: "Email not found" });
+            res.status(404).json({ message: "Không tìm thấy email" });
             return;
         }
 
-        // Generate secure random reset token
+        // Sinh token đặt lại mật khẩu ngẫu nhiên và thời hạn
         const resetToken = (Math.random().toString(36).substr(2) + Date.now().toString(36));
-        const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour expiry
+        const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // Hết hạn sau 1 giờ
 
-        // Store reset token in database
+        // Lưu token vào cơ sở dữ liệu
         await pool.request()
             .input('userId', sql.Int, user.AccountID)
             .input('resetToken', sql.VarChar, resetToken)
             .input('resetTokenExpiry', sql.DateTime2, resetTokenExpiry)
             .query('UPDATE Account SET ResetToken = @resetToken, ResetTokenExpiry = @resetTokenExpiry WHERE AccountID = @userId');
 
-        // Generate reset link and send email
+        // Tạo link đặt lại mật khẩu và gửi email
         const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
         await sendEmail(
             email,
-            '🔑 Password Reset Request',
+            '🔑 Yêu cầu đặt lại mật khẩu',
             passwordReset(user.FullName, resetLink)
         );
         
-        res.json({ message: "Password reset email sent" });
+        res.json({ message: "Đã gửi email đặt lại mật khẩu" });
     } catch (err: any) {
         console.error(err);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Lỗi máy chủ" });
     }
 }
 
 /**
- * Verifies a password reset token's validity
+ * Kiểm tra tính hợp lệ của token đặt lại mật khẩu
  * 
  * @route POST /api/auth/verify-reset-token
  * @access Public
- * @param {Request} req - Express request object with token in body
- * @returns {Promise<void>} Token validity status
+ * @param {Request} req - Đối tượng request của Express chứa token trong body
+ * @returns {Promise<void>} Trạng thái hợp lệ của token
  */
 export async function postVerifyResetToken(req: Request, res: Response): Promise<void> {
     const { token } = req.body;
     if (!token) {
-        res.status(400).json({ valid: false, message: "Token is required" });
+        res.status(400).json({ valid: false, message: "Token là bắt buộc" });
         return;
     }
 
@@ -281,73 +277,73 @@ export async function postVerifyResetToken(req: Request, res: Response): Promise
         const user = result.recordset[0];
 
         if (!user) {
-            res.json({ valid: false, message: "Invalid or expired token" });
+            res.json({ valid: false, message: "Token không hợp lệ hoặc đã hết hạn" });
             return;
         }
 
         if (!user.ResetTokenExpiry || new Date(user.ResetTokenExpiry) < new Date()) {
-            res.json({ valid: false, message: "Token has expired" });
+            res.json({ valid: false, message: "Token đã hết hạn" });
             return;
         }
 
         res.json({ valid: true });
     } catch (err) {
-        res.json({ valid: false, message: "Server error" });
+        res.json({ valid: false, message: "Lỗi máy chủ" });
     }
 }
 
 /**
- * Completes the password reset process
+ * Hoàn tất quá trình đặt lại mật khẩu
  * 
  * @route POST /api/auth/reset-password
  * @access Public
- * @param {Request} req - Express request object with token and new password
- * @returns {Promise<void>} Success message
- * @throws {400} If passwords don't match or token is invalid
+ * @param {Request} req - Đối tượng request của Express chứa token và mật khẩu mới
+ * @returns {Promise<void>} Thông báo thành công
+ * @throws {400} Nếu mật khẩu không khớp hoặc token không hợp lệ
  */
 export async function resetPassword(req: Request, res: Response): Promise<void> {
     const { token, newPassword, confirmPassword } = req.body;
     if (!token || !newPassword || !confirmPassword) {
-        res.status(400).json({ message: "Token, new password, and confirm password are required" });
+        res.status(400).json({ message: "Token, mật khẩu mới và xác nhận mật khẩu là bắt buộc" });
         return;
     }
 
     if (newPassword !== confirmPassword) {
-        res.status(400).json({ message: "Passwords do not match" });
+        res.status(400).json({ message: "Mật khẩu không khớp" });
         return;
     }
 
     try {
         const pool = await poolPromise;
 
-        // Find user by reset token and check expiry
+        // Tìm người dùng theo token và kiểm tra hạn sử dụng
         const result = await pool.request()
             .input('resetToken', sql.VarChar, token)
             .query('SELECT AccountID, ResetTokenExpiry FROM Account WHERE ResetToken = @resetToken');
         const user = result.recordset[0];
 
         if (!user) {
-            res.status(400).json({ message: "Invalid or expired token" });
+            res.status(400).json({ message: "Token không hợp lệ hoặc đã hết hạn" });
             return;
         }
 
-        // Check if token is expired
+        // Kiểm tra token đã hết hạn chưa
         if (!user.ResetTokenExpiry || new Date(user.ResetTokenExpiry) < new Date()) {
-            res.status(400).json({ message: "Token has expired" });
+            res.status(400).json({ message: "Token đã hết hạn" });
             return;
         }
 
-        // Hash new password
+        // Mã hóa mật khẩu mới
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        // Update password and invalidate reset token
+        // Cập nhật mật khẩu và xóa token đặt lại
         await pool.request()
             .input('userId', sql.Int, user.AccountID)
             .input('password', sql.VarChar, hashedPassword)
             .query('UPDATE Account SET Password = @password, ResetToken = NULL, ResetTokenExpiry = NULL WHERE AccountID = @userId');
 
-        res.json({ message: "Password has been reset successfully" });
+        res.json({ message: "Đặt lại mật khẩu thành công" });
     } catch (err) {
-        res.status(400).json({ message: "Invalid or expired token" });
+        res.status(400).json({ message: "Token không hợp lệ hoặc đã hết hạn" });
     }
 }

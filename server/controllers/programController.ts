@@ -1,49 +1,24 @@
 import { Request, Response } from 'express';
 import { poolPromise } from '../config/database';
+//import { Program } from '../types/type';
 
 /**
- * Interface representing a Community Program in the database
- * Maps to the CommunityProgram table structure
- */
-interface Program {
-  ProgramID: number;        // Unique identifier for the program
-  ProgramName: string;      // Name of the community program
-  Type: string;            // Type/category of the program
-  Date: Date;              // Program date and time
-  Description: string | null; // Detailed program description
-  Organizer: string;       // Organization running the program
-  Location: string;        // Program venue/location
-  ImageUrl: string | null; // URL for program banner/image
-  IsDisabled: boolean;     // Program visibility status
-}
-
-/**
- * Interface representing a ProgramCategory in the database
- * Maps to the ProgramCategory table structure
- */
-interface ProgramCategory {
-  CategoryID: number;       // Unique identifier for the category
-  CategoryName: string;     // Name of the category
-  Description: string | null; // Optional description of the category
-  IsDisabled: boolean;      // Category visibility status
-}
-
-/**
- * Retrieves all active community programs
- * Returns programs ordered by date, newest first
+ * Lấy tất cả các chương trình cộng đồng đang hoạt động
+ * Trả về danh sách chương trình được sắp xếp theo ngày mới nhất
  * 
  * @route GET /api/programs
  * @access Public
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with array of programs and user data
- * @throws {500} If database error occurs
+ * @param {Request} req - Đối tượng request của Express
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON chứa mảng chương trình và dữ liệu người dùng
+ * @throws {500} Nếu xảy ra lỗi cơ sở dữ liệu
  */
 export const getAllPrograms = async (req: Request, res: Response): Promise<void> => {
   try {
-    console.log("Fetching all programs from database...");
+    // Kết nối tới pool cơ sở dữ liệu
+    console.log("Đang lấy tất cả chương trình từ cơ sở dữ liệu...");
     const pool = await poolPromise;
-    // Query all active programs, ordered by date
+    // Truy vấn tất cả chương trình đang hoạt động, sắp xếp theo ngày
     const result = await pool.request().query(`
             SELECT 
                 ProgramID,
@@ -59,37 +34,40 @@ export const getAllPrograms = async (req: Request, res: Response): Promise<void>
             WHERE IsDisabled = 0
             ORDER BY Date DESC
         `);
-    console.log("Programs fetched:", result.recordset);
-    // Return programs with user context if available
+    // Log kết quả truy vấn
+    console.log("Đã lấy chương trình:", result.recordset);
+    // Trả về chương trình cùng thông tin người dùng nếu có
     res.status(200).json({
       data: result.recordset,
       user: (req as any).user ? { ...((req as any).user).user } : null
     });
   } catch (error) {
-    console.error("Error fetching programs:", error);
-    res.status(500).json({ message: "Error occurred when fetching programs" });
+    // Xử lý lỗi truy vấn
+    console.error("Lỗi khi lấy chương trình:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi lấy chương trình" });
   }
 };
 
 /**
- * Retrieves a specific program by its ID
- * Only returns active (non-disabled) programs
+ * Lấy thông tin một chương trình cụ thể theo ID
+ * Chỉ trả về chương trình đang hoạt động (chưa bị vô hiệu hóa)
  * 
  * @route GET /api/programs/:id
  * @access Public
- * @param {Request} req - Express request object with program ID in params
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with program details and user data
- * @throws {404} If program is not found
- * @throws {500} If server error occurs
+ * @param {Request} req - Đối tượng request của Express, chứa ID chương trình trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON chứa chi tiết chương trình và dữ liệu người dùng
+ * @throws {404} Nếu không tìm thấy chương trình
+ * @throws {500} Nếu xảy ra lỗi máy chủ
  */
 export const getProgramById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    console.log(`Fetching program with ID: ${id}...`);
+    // Log ID chương trình cần lấy
+    console.log(`Đang lấy chương trình với ID: ${id}...`);
 
     const pool = await poolPromise;
-    // Query specific program with parameterized query for security
+    // Truy vấn chương trình cụ thể với tham số hóa để bảo mật
     const result = await pool.request()
       .input('id', id)
       .query(`
@@ -107,39 +85,42 @@ export const getProgramById = async (req: Request, res: Response): Promise<void>
                 WHERE ProgramID = @id AND IsDisabled = 0
             `);
 
-    // Check if program exists
+    // Kiểm tra chương trình có tồn tại không
     if (result.recordset.length === 0) {
-      res.status(404).json({ message: "Program not found" });
+      res.status(404).json({ message: "Không tìm thấy chương trình" });
       return;
     }
 
-    console.log("Program fetched:", result.recordset[0]);
+    // Log chương trình lấy được
+    console.log("Đã lấy chương trình:", result.recordset[0]);
     res.status(200).json({
       data: result.recordset[0],
       user: (req as any).user ? { ...((req as any).user).user } : null
     });
   } catch (error) {
-    console.error("Error fetching program:", error);
-    res.status(500).json({ message: "Error occurred when fetching program" });
+    // Xử lý lỗi truy vấn
+    console.error("Lỗi khi lấy chương trình:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi lấy chương trình" });
   }
 };
 
 /**
- * Retrieves all upcoming community programs
- * Returns only programs with dates in the future, ordered by date
+ * Lấy tất cả các chương trình cộng đồng sắp diễn ra
+ * Chỉ trả về chương trình có ngày tổ chức trong tương lai, sắp xếp theo ngày
  * 
  * @route GET /api/programs/upcoming
  * @access Public
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with array of upcoming programs
- * @throws {500} If database error occurs
+ * @param {Request} req - Đối tượng request của Express
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON chứa mảng chương trình sắp diễn ra
+ * @throws {500} Nếu xảy ra lỗi cơ sở dữ liệu
  */
 export const getUpcomingPrograms = async (req: Request, res: Response): Promise<void> => {
   try {
-    console.log("Fetching upcoming programs...");
+    // Log truy vấn chương trình sắp diễn ra
+    console.log("Đang lấy chương trình sắp diễn ra...");
     const pool = await poolPromise;
-    // Query future programs using SQL Server's GETDATE()
+    // Truy vấn chương trình trong tương lai sử dụng GETDATE() của SQL Server
     const result = await pool.request().query(`
             SELECT 
                 ProgramID,
@@ -155,30 +136,33 @@ export const getUpcomingPrograms = async (req: Request, res: Response): Promise<
             WHERE Date > GETDATE() AND IsDisabled = 0
             ORDER BY Date ASC
         `);
-    console.log("Upcoming programs fetched:", result.recordset);
+    // Log kết quả truy vấn
+    console.log("Đã lấy chương trình sắp diễn ra:", result.recordset);
     res.status(200).json(result.recordset);
   } catch (error) {
-    console.error("Error fetching upcoming programs:", error);
-    res.status(500).json({ message: "Error occurred when fetching upcoming programs" });
+    // Xử lý lỗi truy vấn
+    console.error("Lỗi khi lấy chương trình sắp diễn ra:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi lấy chương trình sắp diễn ra" });
   }
 }
 
 /**
- * Retrieves all past community programs
- * Returns only programs with dates in the past, ordered by date
+ * Lấy tất cả các chương trình cộng đồng đã diễn ra
+ * Chỉ trả về chương trình có ngày tổ chức trong quá khứ, sắp xếp theo ngày
  * 
  * @route GET /api/programs/past
  * @access Public
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with array of past programs
- * @throws {500} If database error occurs
+ * @param {Request} req - Đối tượng request của Express
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON chứa mảng chương trình đã diễn ra
+ * @throws {500} Nếu xảy ra lỗi cơ sở dữ liệu
  */
 export const getPastPrograms = async (req: Request, res: Response): Promise<void> => {
   try {
-    console.log("Fetching past programs...");
+    // Log truy vấn chương trình đã diễn ra
+    console.log("Đang lấy chương trình đã diễn ra...");
     const pool = await poolPromise;
-    // Query past programs using SQL Server's GETDATE()
+    // Truy vấn chương trình trong quá khứ sử dụng GETDATE() của SQL Server
     const result = await pool.request().query(`
             SELECT 
                 ProgramID,
@@ -194,32 +178,34 @@ export const getPastPrograms = async (req: Request, res: Response): Promise<void
             WHERE Date < GETDATE() AND IsDisabled = 0
             ORDER BY Date DESC
         `);
-    console.log("Past programs fetched:", result.recordset);
+    // Log kết quả truy vấn
+    console.log("Đã lấy chương trình đã diễn ra:", result.recordset);
     res.status(200).json(result.recordset);
   } catch (error) {
-    console.error("Error fetching past programs:", error);
-    res.status(500).json({ message: "Error occurred when fetching past programs" });
+    // Xử lý lỗi truy vấn
+    console.error("Lỗi khi lấy chương trình đã diễn ra:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi lấy chương trình đã diễn ra" });
   }
 }
 
 /** 
- * Deletes a specific community program by its ID
- * Marks the program as disabled instead of deleting it 
- * * @route DELETE /api/programs/:id
- * @access Admin
- * @param {Request} req - Express request object with program ID in params
- * @param {Response} res - Express response object
- *  * @returns {Promise<void>} JSON response with success message
- * * @throws {404} If program is not found
- * * @throws {500} If server error occurs
- * */
+ * Xóa (vô hiệu hóa) một chương trình cộng đồng theo ID
+ * Đánh dấu chương trình là đã vô hiệu hóa thay vì xóa khỏi cơ sở dữ liệu
+ * @route DELETE /api/programs/:id
+ * @access Quản trị viên
+ * @param {Request} req - Đối tượng request của Express, chứa ID chương trình trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với thông báo thành công
+ * @throws {404} Nếu không tìm thấy chương trình
+ * @throws {500} Nếu xảy ra lỗi máy chủ
+ */
 export const deleteProgram = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    console.log(`Deleting program with ID: ${id}...`);
+    console.log(`Đang xóa chương trình với ID: ${id}...`);
 
     const pool = await poolPromise;
-    // Update program to mark as disabled
+    // Cập nhật trạng thái chương trình thành đã vô hiệu hóa
     const result = await pool.request()
       .input('id', id)
       .query(`
@@ -227,38 +213,37 @@ export const deleteProgram = async (req: Request, res: Response): Promise<void> 
                 SET IsDisabled = 1
                 WHERE ProgramID = @id AND IsDisabled = 0
             `);
-
-    // Check if any rows were affected
+    // Kiểm tra có dòng nào bị ảnh hưởng không
     if (result.rowsAffected[0] === 0) {
-      res.status(404).json({ message: "Program not found or already disabled" });
+      res.status(404).json({ message: "Không tìm thấy chương trình hoặc đã bị vô hiệu hóa" });
       return;
     }
 
-    console.log("Program deleted successfully");
-    res.status(200).json({ message: "Program deleted successfully" });
+    console.log("Đã xóa chương trình thành công");
+    res.status(200).json({ message: "Đã xóa chương trình thành công" });
   } catch (error) {
-    console.error("Error deleting program:", error);
-    res.status(500).json({ message: "Error occurred when deleting program" });
+    console.error("Lỗi khi xóa chương trình:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi xóa chương trình" });
   }
 }
 
 /**
- * Creates a new community program
+ * Tạo mới một chương trình cộng đồng
  * 
  * @route POST /api/programs
- * @access Admin
- * @param {Request} req - Express request object with program data in body
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with created program details
- * @throws {500} If database error occurs
+ * @access Quản trị viên
+ * @param {Request} req - Đối tượng request của Express, chứa dữ liệu chương trình trong body
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với chi tiết chương trình vừa tạo
+ * @throws {500} Nếu xảy ra lỗi cơ sở dữ liệu
  */
 export const createProgram = async (req: Request, res: Response): Promise<void> => {
   try {
     const { ProgramName, Type, Date, Description, Organizer, Location, ImageUrl } = req.body;
-    console.log("Creating new program:", req.body);
+    console.log("Đang tạo chương trình mới:", req.body);
 
     const pool = await poolPromise;
-    // Insert new program into database
+    // Thêm chương trình mới vào cơ sở dữ liệu
     const result = await pool.request()
       .input('ProgramName', ProgramName)
       .input('Type', Type)
@@ -270,13 +255,13 @@ export const createProgram = async (req: Request, res: Response): Promise<void> 
       .query(`
                 INSERT INTO CommunityProgram (ProgramName, Type, Date, Description, Organizer, Location, ImageUrl, IsDisabled)
                 VALUES (@ProgramName, @Type, @Date, @Description, @Organizer, @Location, @ImageUrl, 0);
-                SELECT SCOPE_IDENTITY() AS ProgramID; -- Get the ID of the newly created program
+                SELECT SCOPE_IDENTITY() AS ProgramID; -- Lấy ID của chương trình vừa tạo
             `);
 
     const newProgramId = result.recordset[0].ProgramID;
-    console.log("New program created with ID:", newProgramId);
+    console.log("Đã tạo chương trình mới với ID:", newProgramId);
     
-    // Fetch the newly created program details
+    // Lấy chi tiết chương trình vừa tạo
     const newProgramResult = await pool.request()
       .input('id', newProgramId)
       .query(`
@@ -296,30 +281,30 @@ export const createProgram = async (req: Request, res: Response): Promise<void> 
 
     res.status(201).json(newProgramResult.recordset[0]);
   } catch (error) {
-    console.error("Error creating program:", error);
-    res.status(500).json({ message: "Error occurred when creating program" });
+    console.error("Lỗi khi tạo chương trình:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi tạo chương trình" });
   }
 }
 
 /**
- * Updates an existing community program by its ID
+ * Cập nhật một chương trình cộng đồng theo ID
  * 
  * @route PUT /api/programs/:id
- * @access Admin
- * @param {Request} req - Express request object with program ID in params and updated data in body
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with updated program details
- * @throws {404} If program is not found
- * @throws {500} If server error occurs
+ * @access Quản trị viên
+ * @param {Request} req - Đối tượng request của Express, chứa ID chương trình trong params và dữ liệu cập nhật trong body
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với chi tiết chương trình đã cập nhật
+ * @throws {404} Nếu không tìm thấy chương trình
+ * @throws {500} Nếu xảy ra lỗi máy chủ
  */
 export const updateProgram = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { ProgramName, Type, Date, Description, Organizer, Location, ImageUrl } = req.body;
-    console.log(`Updating program with ID: ${id}`, req.body);
+    console.log(`Đang cập nhật chương trình với ID: ${id}`, req.body);
 
     const pool = await poolPromise;
-    // Update program details
+    // Cập nhật thông tin chương trình
     const result = await pool.request()
       .input('id', id)
       .input('ProgramName', ProgramName)
@@ -342,15 +327,15 @@ export const updateProgram = async (req: Request, res: Response): Promise<void> 
                 WHERE ProgramID = @id AND IsDisabled = 0;
             `);
 
-    // Check if any rows were affected
+    // Kiểm tra có dòng nào bị ảnh hưởng không
     if (result.rowsAffected[0] === 0) {
-      res.status(404).json({ message: "Program not found or already disabled" });
+      res.status(404).json({ message: "Không tìm thấy chương trình hoặc đã bị vô hiệu hóa" });
       return;
     }
 
-    console.log("Program updated successfully");
+    console.log("Đã cập nhật chương trình thành công");
 
-    // Fetch the updated program details
+    // Lấy chi tiết chương trình đã cập nhật
     const updatedProgramResult = await pool.request()
       .input('id', id)
       .query(`
@@ -370,26 +355,26 @@ export const updateProgram = async (req: Request, res: Response): Promise<void> 
 
     res.status(200).json(updatedProgramResult.recordset[0]);
   } catch (error) {
-    console.error("Error updating program:", error);
-    res.status(500).json({ message: "Error occurred when updating program" });
+    console.error("Lỗi khi cập nhật chương trình:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi cập nhật chương trình" });
   }
 }
 
 /**
- * Retrieves all program categories
+ * Lấy tất cả danh mục chương trình
  * 
  * @route GET /api/program-categories
  * @access Public
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with array of program categories
- * @throws {500} If database error occurs
+ * @param {Request} req - Đối tượng request của Express
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON chứa mảng danh mục chương trình
+ * @throws {500} Nếu xảy ra lỗi cơ sở dữ liệu
  */   
 export const getProgramCategories = async (req: Request, res: Response): Promise<void> => {
   try {
-    console.log("Fetching all program categories...");
+    console.log("Đang lấy tất cả danh mục chương trình...");
     const pool = await poolPromise;
-    // Query all program categories
+    // Truy vấn tất cả danh mục chương trình
     const result = await pool.request().query(`
             SELECT 
                 CategoryID,
@@ -400,32 +385,32 @@ export const getProgramCategories = async (req: Request, res: Response): Promise
             WHERE IsDisabled = 0
             ORDER BY CategoryName ASC
         `);
-    console.log("Program categories fetched:", result.recordset);
+    console.log("Đã lấy danh mục chương trình:", result.recordset);
     res.status(200).json(result.recordset);
   } catch (error) {
-    console.error("Error fetching program categories:", error);
-    res.status(500).json({ message: "Error occurred when fetching program categories" });
+    console.error("Lỗi khi lấy danh mục chương trình:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi lấy danh mục chương trình" });
   }
 }
 
 /**
- * Retrieves a specific program category by its ID
+ * Lấy thông tin một danh mục chương trình theo ID
  * 
  * @route GET /api/program-categories/:id
  * @access Public
- * @param {Request} req - Express request object with category ID in params
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with program category details
- * @throws {404} If category is not found
- * @throws {500} If server error occurs
+ * @param {Request} req - Đối tượng request của Express, chứa ID danh mục trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON chứa chi tiết danh mục chương trình
+ * @throws {404} Nếu không tìm thấy danh mục
+ * @throws {500} Nếu xảy ra lỗi máy chủ
  */
 export const getProgramCategoryById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    console.log(`Fetching program category with ID: ${id}...`);
+    console.log(`Đang lấy danh mục chương trình với ID: ${id}...`);
 
     const pool = await poolPromise;
-    // Query specific category with parameterized query for security
+    // Truy vấn danh mục cụ thể với tham số hóa để bảo mật
     const result = await pool.request()
       .input('id', id)
       .query(`
@@ -438,51 +423,51 @@ export const getProgramCategoryById = async (req: Request, res: Response): Promi
                 WHERE CategoryID = @id AND IsDisabled = 0
             `);
 
-    // Check if category exists
+    // Kiểm tra danh mục có tồn tại không
     if (result.recordset.length === 0) {
-      res.status(404).json({ message: "Program category not found" });
+      res.status(404).json({ message: "Không tìm thấy danh mục chương trình" });
       return;
     }
 
-    console.log("Program category fetched:", result.recordset[0]);
+    console.log("Đã lấy danh mục chương trình:", result.recordset[0]);
     res.status(200).json(result.recordset[0]);
   } catch (error) {
-    console.error("Error fetching program category:", error);
-    res.status(500).json({ message: "Error occurred when fetching program category" });
+    console.error("Lỗi khi lấy danh mục chương trình:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi lấy danh mục chương trình" });
   }
 }
 
 /**
- * Creates a new program category
+ * Tạo mới một danh mục chương trình
  * 
  * @route POST /api/program-categories
- * @access Admin
- * @param {Request} req - Express request object with category data in body
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with created category details
- * @throws {500} If database error occurs
+ * @access Quản trị viên
+ * @param {Request} req - Đối tượng request của Express, chứa dữ liệu danh mục trong body
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với chi tiết danh mục vừa tạo
+ * @throws {500} Nếu xảy ra lỗi cơ sở dữ liệu
  */
 
 export const createProgramCategory = async (req: Request, res: Response): Promise<void> => {
   try {
     const { CategoryName, Description } = req.body;
-    console.log("Creating new program category:", req.body);
+    console.log("Đang tạo danh mục chương trình mới:", req.body);
 
     const pool = await poolPromise;
-    // Insert new category into database
+    // Thêm danh mục mới vào cơ sở dữ liệu
     const result = await pool.request()
       .input('CategoryName', CategoryName)
       .input('Description', Description)
       .query(`
                 INSERT INTO ProgramCategory (CategoryName, Description, IsDisabled)
                 VALUES (@CategoryName, @Description, 0);
-                SELECT SCOPE_IDENTITY() AS CategoryID; -- Get the ID of the newly created category
+                SELECT SCOPE_IDENTITY() AS CategoryID; -- Lấy ID của danh mục vừa tạo
             `);
 
     const newCategoryId = result.recordset[0].CategoryID;
-    console.log("New program category created with ID:", newCategoryId);
+    console.log("Đã tạo danh mục chương trình mới với ID:", newCategoryId);
     
-    // Fetch the newly created category details
+    // Lấy chi tiết danh mục vừa tạo
     const newCategoryResult = await pool.request()
       .input('id', newCategoryId)
       .query(`
@@ -497,30 +482,32 @@ export const createProgramCategory = async (req: Request, res: Response): Promis
 
     res.status(201).json(newCategoryResult.recordset[0]);
   } catch (error) {
-    console.error("Error creating program category:", error);
-    res.status(500).json({ message: "Error occurred when creating program category" });
+    console.error("Lỗi khi tạo danh mục chương trình:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi tạo danh mục chương trình" });
   }
 }
 
+
 /**
- * Updates an existing program category by its ID
+ * Cập nhật một danh mục chương trình theo ID
  * 
  * @route PUT /api/program-categories/:id
- * @access Admin
- * @param {Request} req - Express request object with category ID in params and updated data in body
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with updated category details
- * @throws {404} If category is not found
- * @throws {500} If server error occurs
+ * @access Quản trị viên
+ * @param {Request} req - Đối tượng request của Express, chứa ID danh mục trong params và dữ liệu cập nhật trong body
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với chi tiết danh mục đã cập nhật
+ * @throws {404} Nếu không tìm thấy danh mục
+ * @throws {500} Nếu xảy ra lỗi máy chủ
  */
+
 export const updateProgramCategory = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { CategoryName, Description } = req.body;
-    console.log(`Updating program category with ID: ${id}`, req.body);
+    console.log(`Đang cập nhật danh mục chương trình với ID: ${id}`, req.body);
 
     const pool = await poolPromise;
-    // Update category details
+    // Cập nhật thông tin danh mục
     const result = await pool.request()
       .input('id', id)
       .input('CategoryName', CategoryName)
@@ -533,15 +520,15 @@ export const updateProgramCategory = async (req: Request, res: Response): Promis
                 WHERE CategoryID = @id AND IsDisabled = 0;
             `);
 
-    // Check if any rows were affected
+    // Kiểm tra có dòng nào bị ảnh hưởng không
     if (result.rowsAffected[0] === 0) {
-      res.status(404).json({ message: "Program category not found or already disabled" });
+      res.status(404).json({ message: "Không tìm thấy danh mục chương trình hoặc đã bị vô hiệu hóa" });
       return;
     }
 
-    console.log("Program category updated successfully");
+    console.log("Đã cập nhật danh mục chương trình thành công");
 
-    // Fetch the updated category details
+    // Lấy chi tiết danh mục đã cập nhật
     const updatedCategoryResult = await pool.request()
       .input('id', id)
       .query(`
@@ -556,30 +543,30 @@ export const updateProgramCategory = async (req: Request, res: Response): Promis
 
     res.status(200).json(updatedCategoryResult.recordset[0]);
   } catch (error) {
-    console.error("Error updating program category:", error);
-    res.status(500).json({ message: "Error occurred when updating program category" });
+    console.error("Lỗi khi cập nhật danh mục chương trình:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi cập nhật danh mục chương trình" });
   }
 }
 
 /**
- * Deletes a specific program category by its ID
- * Marks the category as disabled instead of deleting it
+ * Xóa (vô hiệu hóa) một danh mục chương trình theo ID
+ * Đánh dấu danh mục là đã vô hiệu hóa thay vì xóa khỏi cơ sở dữ liệu
  * 
  * @route DELETE /api/program-categories/:id
- * @access Admin
- * @param {Request} req - Express request object with category ID in params
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with success message
- * @throws {404} If category is not found
- * @throws {500} If server error occurs
+ * @access Quản trị viên
+ * @param {Request} req - Đối tượng request của Express, chứa ID danh mục trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với thông báo thành công
+ * @throws {404} Nếu không tìm thấy danh mục
+ * @throws {500} Nếu xảy ra lỗi máy chủ
  */
 export const deleteProgramCategory = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    console.log(`Deleting program category with ID: ${id}...`);
+    console.log(`Đang xóa danh mục chương trình với ID: ${id}...`);
 
     const pool = await poolPromise;
-    // Update category to mark as disabled
+    // Cập nhật trạng thái danh mục thành đã vô hiệu hóa
     const result = await pool.request()
       .input('id', id)
       .query(`
@@ -588,37 +575,39 @@ export const deleteProgramCategory = async (req: Request, res: Response): Promis
                 WHERE CategoryID = @id AND IsDisabled = 0;
             `);
 
-    // Check if any rows were affected
+    // Kiểm tra có dòng nào bị ảnh hưởng không
     if (result.rowsAffected[0] === 0) {
-      res.status(404).json({ message: "Program category not found or already disabled" });
+      res.status(404).json({ message: "Không tìm thấy danh mục chương trình hoặc đã bị vô hiệu hóa" });
       return;
     }
 
-    console.log("Program category deleted successfully");
-    res.status(200).json({ message: "Program category deleted successfully" });
+    console.log("Đã xóa danh mục chương trình thành công");
+    res.status(200).json({ message: "Đã xóa danh mục chương trình thành công" });
   } catch (error) {
-    console.error("Error deleting program category:", error);
-    res.status(500).json({ message: "Error occurred when deleting program category" });
+    console.error("Lỗi khi xóa danh mục chương trình:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi xóa danh mục chương trình" });
   }
 }
 
+
 /**
- * Retrieves all programs for a specific category ID
+ * Lấy tất cả chương trình thuộc một danh mục cụ thể theo ID danh mục
  * 
  * @route GET /api/programs/category/:categoryId
  * @access Public
- * @param {Request} req - Express request object with category ID in params
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with array of programs for the category
- * @throws {500} If database error occurs
+ * @param {Request} req - Đối tượng request của Express, chứa ID danh mục trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON chứa mảng chương trình thuộc danh mục
+ * @throws {500} Nếu xảy ra lỗi cơ sở dữ liệu
  */
+
 export const getProgramsByCategory = async (req: Request, res: Response): Promise<void> => {
   try {
     const { categoryId } = req.params;
-    console.log(`Fetching programs for category ID: ${categoryId}...`);
+    console.log(`Đang lấy chương trình cho danh mục ID: ${categoryId}...`);
 
     const pool = await poolPromise;
-    // Query programs for specific category
+    // Truy vấn chương trình theo danh mục cụ thể
     const result = await pool.request()
       .input('categoryId', categoryId)
       .query(`
@@ -637,11 +626,95 @@ export const getProgramsByCategory = async (req: Request, res: Response): Promis
                 AND IsDisabled = 0
                 ORDER BY Date DESC
             `);
-    console.log("Programs for category fetched:", result.recordset);
+    console.log("Đã lấy chương trình theo danh mục:", result.recordset);
     res.status(200).json(result.recordset);
   } catch (error) {
-    console.error("Error fetching programs by category:", error);
-    res.status(500).json({ message: "Error occurred when fetching programs by category" });
+    console.error("Lỗi khi lấy chương trình theo danh mục:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi lấy chương trình theo danh mục" });
+  }
+}
+
+
+/**
+ * Vô hiệu hóa một chương trình cộng đồng theo ID
+ * Đánh dấu chương trình là đã vô hiệu hóa thay vì xóa khỏi cơ sở dữ liệu
+ * 
+ * @route PATCH /api/programs/:id/deactivate
+ * @access Quản trị viên
+ * @param {Request} req - Đối tượng request của Express, chứa ID chương trình trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với thông báo thành công
+ * @throws {404} Nếu không tìm thấy chương trình
+ * @throws {500} Nếu xảy ra lỗi máy chủ
+ */
+export const deactivateProgram = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    console.log(`Đang vô hiệu hóa chương trình với ID: ${id}...`);
+
+    const pool = await poolPromise;
+    // Cập nhật trạng thái chương trình thành đã vô hiệu hóa
+    const result = await pool.request()
+      .input('id', id)
+      .query(`
+                UPDATE CommunityProgram
+                SET IsDisabled = 1
+                WHERE ProgramID = @id AND IsDisabled = 0;
+            `);
+
+    // Kiểm tra có dòng nào bị ảnh hưởng không
+    if (result.rowsAffected[0] === 0) {
+      res.status(404).json({ message: "Không tìm thấy chương trình hoặc đã bị vô hiệu hóa" });
+      return;
+    }
+
+    console.log("Đã vô hiệu hóa chương trình thành công");
+    res.status(200).json({ message: "Đã vô hiệu hóa chương trình thành công" });
+  } catch (error) {
+    console.error("Lỗi khi vô hiệu hóa chương trình:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi vô hiệu hóa chương trình" });
+  }
+}
+
+//activate program
+/**
+ * Kích hoạt lại một chương trình cộng đồng theo ID
+ * Đánh dấu chương trình là đã kích hoạt lại thay vì xóa khỏi cơ sở dữ liệu
+ * 
+ * @route PATCH /api/programs/:id/activate
+ * @access Quản trị viên
+ * @param {Request} req - Đối tượng request của Express, chứa ID chương trình trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với thông báo thành công
+ * @throws {404} Nếu không tìm thấy chương trình
+ * @throws {500} Nếu xảy ra lỗi máy chủ
+ */
+export const activateProgram = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    console.log(`Đang kích hoạt lại chương trình với ID: ${id}...`);
+
+    const pool = await poolPromise;
+    // Cập nhật trạng thái chương trình thành đã kích hoạt lại
+    const result = await pool.request()
+      .input('id', id)
+      .query(`
+                UPDATE CommunityProgram
+                SET IsDisabled = 0
+                WHERE ProgramID = @id AND IsDisabled = 1;
+            `);
+
+    // Kiểm tra có dòng nào bị ảnh hưởng không
+    if (result.rowsAffected[0] === 0) {
+      res.status(404).json({ message: "Không tìm thấy chương trình hoặc đã được kích hoạt" });
+      return;
+    }
+
+    console.log("Đã kích hoạt lại chương trình thành công");
+    res.status(200).json({ message: "Đã kích hoạt lại chương trình thành công" });
+  } catch (error) {
+    console.error("Lỗi khi kích hoạt lại chương trình:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi kích hoạt lại chương trình" });
   }
 }
 

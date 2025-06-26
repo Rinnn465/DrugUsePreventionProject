@@ -1,37 +1,29 @@
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
-
+import { MailOptions } from "../types/type"; // Import MailOptions type for email structure
 dotenv.config();
 
-/**
- * Interface for email configuration options
- */
-interface MailOptions {
-    from: string;     // Sender email address
-    to: string;       // Recipient email address
-    subject: string;  // Email subject line
-    html: string;     // HTML content of the email
-}
+
 
 /**
- * Sends an email using Gmail SMTP
+ * Gửi email sử dụng Gmail SMTP
  * 
- * @route Utility function - not an endpoint
- * @param {string} to - Recipient's email address
- * @param {string} subject - Email subject line
- * @param {string} html - HTML content of the email
- * @returns {Promise<any>} Nodemailer info object containing send status
- * @throws {Error} If email sending fails
+ * @route Hàm tiện ích - không phải endpoint
+ * @param {string} to - Địa chỉ email người nhận
+ * @param {string} subject - Tiêu đề email
+ * @param {string} html - Nội dung email dạng HTML
+ * @returns {Promise<any>} Đối tượng info của Nodemailer chứa trạng thái gửi
+ * @throws {Error} Nếu gửi email thất bại
  * 
  * @example
  * try {
  *   await sendEmail(
  *     'user@example.com',
- *     'Welcome!',
- *     '<h1>Welcome to our platform</h1>'
+ *     'Chào mừng!',
+ *     '<h1>Chào mừng bạn đến với nền tảng của chúng tôi</h1>'
  *   );
  * } catch (error) {
- *   console.error('Failed to send email:', error);
+ *   console.error('Gửi email thất bại:', error);
  * }
  */
 export const sendEmail = async (to: string, subject: string, html: string) => {

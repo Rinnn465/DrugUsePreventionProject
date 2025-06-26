@@ -148,3 +148,10 @@ export type CommunityProgramSurveyDTO = {
   Description: string;
   surveys: Survey[];
 };
+
+export type MailOptions = {
+  from: string;     // Sender email address
+  to: string;       // Recipient email address
+  subject: string;  // Email subject line
+  html: string;     // HTML content of the email
+}

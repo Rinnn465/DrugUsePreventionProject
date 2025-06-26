@@ -213,40 +213,46 @@ export async function updateSchedule(
 }
 
 /**
- * Deletes a consultant schedule by ScheduleID.
+ * Xóa một lịch trình chuyên viên theo ScheduleID.
  *
  * @route DELETE /api/consultant-schedules/:id
- * @access Public
- * @param {Request} req - Express request object with schedule ID in params
- * @param {Response} res - Express response object
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<void>} JSON response confirming deletion
- * @throws {404} If schedule is not found
- * @throws {500} If server error occurs
+ * @access Công khai
+ * @param {Request} req - Đối tượng request của Express, chứa ScheduleID trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @param {NextFunction} next - Hàm middleware tiếp theo của Express
+ * @returns {Promise<void>} Phản hồi JSON xác nhận xóa
+ * @throws {404} Nếu không tìm thấy lịch trình
+ * @throws {500} Nếu có lỗi server
  */
 export async function deleteSchedule(
     req: Request,
     res: Response,
     next: NextFunction
 ): Promise<void> {
-    const scheduleId = parseInt(req.params.id, 10); // Extract ScheduleID from URL
+    // Lấy ScheduleID từ URL
+    const scheduleId = parseInt(req.params.id, 10);
     try {
-        const pool = await poolPromise; // Get database connection
+        // Kết nối tới database
+        const pool = await poolPromise;
+        // Thực hiện truy vấn xóa lịch trình theo ScheduleID
         const deleteResult = await pool.request()
             .input("ScheduleID", sql.Int, scheduleId)
             .query(`
                 DELETE FROM ConsultantSchedule
                 WHERE ScheduleID = @ScheduleID;
-            `); // Delete schedule by ScheduleID
+            `);
 
+        // Kiểm tra nếu không có lịch trình nào bị xóa (không tìm thấy)
         if (deleteResult.rowsAffected[0] === 0) {
-            res.status(404).json({ message: "Lịch trình không tìm thấy" }); // Not found
+            res.status(404).json({ message: "Lịch trình không tìm thấy" });
             return;
         }
 
-        res.status(200).json({ message: "Lịch trình chuyên viên đã được xóa thành công" }); // Send success response
+        // Trả về phản hồi thành công nếu xóa thành công
+        res.status(200).json({ message: "Lịch trình chuyên viên đã được xóa thành công" });
     } catch (err: any) {
-        console.error(err); // Log error
-        res.status(500).json({ message: "Server error", error: err.message }); // Send error response
+        // Ghi log lỗi và trả về lỗi server
+        console.error(err);
+        res.status(500).json({ message: "Lỗi server", error: err.message });
     }
 }

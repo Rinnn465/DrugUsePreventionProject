@@ -2,14 +2,14 @@ import { Request, Response } from 'express';
 import { sql, poolPromise } from '../config/database';
 
 /**
- * Retrieves all program attendees with joined program and account details.
+ * Lấy tất cả người tham gia chương trình, kèm thông tin chương trình và tài khoản liên quan.
  *
  * @route GET /api/program-attendees
- * @access Admin (or as configured)
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON array of attendees with program and user info
- * @throws {500} If database error occurs
+ * @access Quản trị viên (hoặc cấu hình tùy ý)
+ * @param {Request} req - Đối tượng request của Express
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Mảng JSON các người tham gia kèm thông tin chương trình và người dùng
+ * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
  */
 export async function getAllProgramAttendees(req: Request, res: Response): Promise<void> {
     try {
@@ -33,14 +33,14 @@ export async function getAllProgramAttendees(req: Request, res: Response): Promi
 }
 
 /**
- * Retrieves the total number of attendees for a given program.
+ * Lấy tổng số người tham gia của một chương trình cụ thể.
  *
  * @route GET /api/program-attendees/total/:programId
- * @access Public/Admin (as configured)
- * @param {Request} req - Express request object with programId param
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON object with total count
- * @throws {500} If database error occurs
+ * @access Công khai/Quản trị viên (tùy cấu hình)
+ * @param {Request} req - Đối tượng request của Express, chứa programId trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Đối tượng JSON với tổng số lượng
+ * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
  */
 export async function getTotalAttendeesByProgramId(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
@@ -61,16 +61,16 @@ export async function getTotalAttendeesByProgramId(req: Request, res: Response):
 }
 
 /**
- * Retrieves a specific attendee by ProgramID and AccountID.
- * Can also be used to check enrollment status for a user in a program.
+ * Lấy thông tin một người tham gia cụ thể theo ProgramID và AccountID.
+ * Có thể dùng để kiểm tra trạng thái đăng ký của người dùng với chương trình.
  *
  * @route GET /api/program-attendees/:programId/:accountId
- * @access Public/Admin (as configured)
- * @param {Request} req - Express request object with programId and accountId params
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON object with attendee details
- * @throws {404} If attendee not found
- * @throws {500} If database error occurs
+ * @access Công khai/Quản trị viên (tùy cấu hình)
+ * @param {Request} req - Đối tượng request của Express, chứa programId và accountId trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Đối tượng JSON với thông tin người tham gia
+ * @throws {404} Nếu không tìm thấy người tham gia
+ * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
  */
 export async function getAttendeeById(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
@@ -104,15 +104,15 @@ export async function getAttendeeById(req: Request, res: Response): Promise<void
 }
 
 /**
- * Checks if the current authenticated user is enrolled in a specific program.
+ * Kiểm tra người dùng hiện tại đã đăng ký chương trình hay chưa.
  *
  * @route GET /api/program-attendees/enrollment-status/:programId
- * @access Authenticated users
- * @param {Request} req - Express request object with user and programId param
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON object with enrollment status and registration date
- * @throws {401} If user is not authenticated
- * @throws {500} If database error occurs
+ * @access Người dùng đã xác thực
+ * @param {Request} req - Đối tượng request của Express, chứa user và programId trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Đối tượng JSON với trạng thái đăng ký và ngày đăng ký
+ * @throws {401} Nếu chưa xác thực
+ * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
  */
 export async function checkEnrollmentStatus(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
@@ -158,17 +158,17 @@ export async function checkEnrollmentStatus(req: Request, res: Response): Promis
 }
 
 /**
- * Enrolls the current authenticated user into a community program.
+ * Đăng ký chương trình cho người dùng hiện tại.
  *
  * @route POST /api/program-attendees/enroll/:programId
- * @access Authenticated users
- * @param {Request} req - Express request object with user and programId param
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON object with enrollment confirmation
- * @throws {401} If user is not authenticated
- * @throws {404} If program not found or disabled
- * @throws {400} If already enrolled
- * @throws {500} If database error occurs
+ * @access Người dùng đã xác thực
+ * @param {Request} req - Đối tượng request của Express, chứa user và programId trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Đối tượng JSON xác nhận đăng ký
+ * @throws {401} Nếu chưa xác thực
+ * @throws {404} Nếu không tìm thấy chương trình hoặc chương trình đã bị vô hiệu hóa
+ * @throws {400} Nếu đã đăng ký rồi
+ * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
  */
 export async function enrollInProgram(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
@@ -238,16 +238,16 @@ export async function enrollInProgram(req: Request, res: Response): Promise<void
 }
 
 /**
- * Unenrolls the current authenticated user from a community program.
+ * Hủy đăng ký chương trình cho người dùng hiện tại.
  *
  * @route DELETE /api/program-attendees/unenroll/:programId
- * @access Authenticated users
- * @param {Request} req - Express request object with user and programId param
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON object with unenrollment confirmation
- * @throws {401} If user is not authenticated
- * @throws {404} If enrollment not found
- * @throws {500} If database error occurs
+ * @access Người dùng đã xác thực
+ * @param {Request} req - Đối tượng request của Express, chứa user và programId trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Đối tượng JSON xác nhận hủy đăng ký
+ * @throws {401} Nếu chưa xác thực
+ * @throws {404} Nếu không tìm thấy đăng ký
+ * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
  */
 export async function unenrollFromProgram(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
@@ -287,15 +287,15 @@ export async function unenrollFromProgram(req: Request, res: Response): Promise<
 }
 
 /**
- * Retrieves all programs that the current authenticated user is enrolled in.
+ * Lấy tất cả chương trình mà người dùng hiện tại đã đăng ký.
  *
  * @route GET /api/program-attendees/my-programs
- * @access Authenticated users
- * @param {Request} req - Express request object with user info
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON array of enrolled programs and total count
- * @throws {401} If user is not authenticated
- * @throws {500} If database error occurs
+ * @access Người dùng đã xác thực
+ * @param {Request} req - Đối tượng request của Express, chứa thông tin user
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Mảng JSON các chương trình đã đăng ký và tổng số lượng
+ * @throws {401} Nếu chưa xác thực
+ * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
  */
 export async function getMyEnrolledPrograms(req: Request, res: Response): Promise<void> {
     const accountId = (req as any).user?.user?.AccountID;

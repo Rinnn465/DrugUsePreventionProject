@@ -10,6 +10,7 @@ import consultantRoutes from "./routes/consultantRoutes";
 import appointmentRoutes from "./routes/appointmentRoutes";
 import authorizeRoles from "./middleware/authenMiddleware";
 import apiProgramAttendeeRoutes from "./routes/programAttendeeRoutes";
+import lessonRoutes from "./routes/lessonRoutes";
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
@@ -49,7 +50,7 @@ app.use(
 
 // Program routes (viewable by all roles, enrollment restricted in controller)
 app.use(
-  "/api/program",
+  "/api/programs",
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   apiProgramRoutes
 );
@@ -94,6 +95,7 @@ app.use("/api/survey/admin", authorizeRoles(["Admin"]), apiSurveyRoutes);
 app.use("/api/program/admin", authorizeRoles(["Admin"]), apiProgramRoutes);
 app.use("/api/article/admin", authorizeRoles(["Admin"]), apiArticleRoutes);
 app.use("/api/course/admin", authorizeRoles(["Admin"]), courseRoutes);
+app.use("/api/lesson/admin", authorizeRoles(["Admin"]), lessonRoutes);
 app.use("/api/consultant/admin", authorizeRoles(["Admin"]), consultantRoutes);
 app.use("/api/appointment/admin", authorizeRoles(["Admin"]), appointmentRoutes);
 

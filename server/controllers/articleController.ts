@@ -2,75 +2,83 @@ import { Request, Response } from 'express';
 import { poolPromise } from '../config/database';
 
 /**
- * Interface representing an Article in the database
- * Maps to the Article table structure
+ * Interface đại diện cho một Bài viết trong cơ sở dữ liệu
+ * Ánh xạ với cấu trúc bảng Article
  */
 interface Article {
-    BlogID: number;      // Unique identifier for the article
-    AccountID: number;   // ID of the account that created the article
-    ArticleTitle: string; // Title of the article
-    PublishedDate: Date; // Date when the article was published
-    ImageUrl: string | null; // Optional URL for article's featured image
-    Author: string;      // Name of the article's author
-    Status: string;      // Publication status (e.g., draft, published)
-    Content: string;     // Main content of the article
-    IsDisabled: boolean; // Flag to soft-delete/disable articles
+    BlogID: number;      // Mã định danh duy nhất cho bài viết
+    AccountID: number;   // ID tài khoản tạo bài viết
+    ArticleTitle: string; // Tiêu đề bài viết
+    PublishedDate: Date; // Ngày xuất bản bài viết
+    ImageUrl: string | null; // Đường dẫn ảnh đại diện (có thể không bắt buộc)
+    Author: string;      // Tên tác giả bài viết
+    Status: string;      // Trạng thái xuất bản (ví dụ: nháp, đã xuất bản)
+    Content: string;     // Nội dung chính của bài viết
+    IsDisabled: boolean; // Cờ để xóa mềm/vô hiệu hóa bài viết
 }
 
 /**
- * Retrieves all active articles from the database
- * Returns only articles that aren't disabled, ordered by publish date
- * 
+ * Lấy tất cả bài viết đang hoạt động từ cơ sở dữ liệu
+ * Chỉ trả về các bài viết chưa bị vô hiệu hóa, sắp xếp theo ngày xuất bản
+ *
  * @route GET /api/articles
- * @access Public
- * @returns {Promise<void>} JSON response with array of articles
+ * @access Công khai
+ * @returns {Promise<void>} Phản hồi JSON với mảng bài viết
+ * @throws {500} Nếu có lỗi khi truy vấn cơ sở dữ liệu
  */
 export const getArticles = async (req: Request, res: Response): Promise<void> => {
     try {
-        console.log("Fetching articles from database..."); // Log start of fetch
+        // Bắt đầu log quá trình lấy bài viết
+        console.log("Đang lấy danh sách bài viết từ cơ sở dữ liệu...");
+        // Lấy kết nối tới pool cơ sở dữ liệu
         const pool = await poolPromise; // Get database connection
-        // Query to get all active articles, sorted by newest first
+        // Truy vấn lấy tất cả bài viết đang hoạt động, mới nhất lên đầu
         const result = await pool.request().query(`
             SELECT BlogID, AccountID, ArticleTitle, PublishedDate, ImageUrl, Author, Status, Content, IsDisabled
             FROM Article
             WHERE IsDisabled = 0
             ORDER BY PublishedDate DESC
         `);
-        console.log("Articles fetched:", result.recordset); // Log fetched articles
-        res.status(200).json(result.recordset); // Send articles as response
+        // Log kết quả truy vấn
+        console.log("Đã lấy bài viết:", result.recordset);
+        // Trả về danh sách bài viết
+        res.status(200).json(result.recordset);
     } catch (error: unknown) {
+        // Xử lý lỗi truy vấn
         const message = error instanceof Error ? error.message : String(error);
-        console.error("Error fetching articles:", message); // Log error
-        res.status(500).json({ message: "Error occurred when fetching articles" }); // Send error response
+        console.error("Lỗi khi lấy bài viết:", message);
+        res.status(500).json({ message: "Có lỗi khi lấy bài viết" });
     }
 
 }
 
 /**
- * Retrieves a specific article by its ID
- * Only returns the article if it's not disabled
- * 
+ * Lấy chi tiết một bài viết theo ID
+ * Chỉ trả về bài viết nếu chưa bị vô hiệu hóa
+ *
  * @route GET /api/articles/:id
- * @param id The article's BlogID
- * @access Public
- * @returns {Promise<void>} JSON response with article details
- * @throws {400} If article ID is invalid
- * @throws {404} If article is not found or is disabled
+ * @param id Mã BlogID của bài viết
+ * @access Công khai
+ * @returns {Promise<void>} Phản hồi JSON với chi tiết bài viết
+ * @throws {400} Nếu ID bài viết không hợp lệ
+ * @throws {404} Nếu không tìm thấy bài viết hoặc đã bị vô hiệu hóa
  */
 export const getArticleById = async (req: Request, res: Response): Promise<void> => {
     const articleId = parseInt(req.params.id);
-    console.log(req.params); // Log request parameters
+    // Log tham số request
+    console.log(req.params);
 
-    // Validate article ID
+    // Kiểm tra ID hợp lệ
     if (isNaN(articleId)) {
-        res.status(400).json({ message: "Invalid article ID" });
+        res.status(400).json({ message: "ID bài viết không hợp lệ" });
         return;
     }
-
     try {
-        console.log(`Fetching article with ID: ${articleId}`); // Log fetch attempt
+        // Log quá trình lấy bài viết theo ID
+        console.log(`Đang lấy bài viết với ID: ${articleId}`);
+        // Lấy kết nối tới pool cơ sở dữ liệu
         const pool = await poolPromise;
-        // Query single article with parameterized query for security
+        // Truy vấn một bài viết với tham số hóa để đảm bảo an toàn
         const result = await pool.request()
             .input('BlogID', articleId)
             .query(`
@@ -79,43 +87,46 @@ export const getArticleById = async (req: Request, res: Response): Promise<void>
                 WHERE BlogID = @BlogID AND IsDisabled = 0
             `);
 
-        // Check if article exists and is active
+        // Kiểm tra bài viết tồn tại và đang hoạt động
         if (result.recordset.length === 0) {
-            res.status(404).json({ message: "Article not found" });
+            res.status(404).json({ message: "Không tìm thấy bài viết" });
             return;
         }
 
-        console.log("Article fetched:", result.recordset[0]); // Log fetched article
-        res.status(200).json(result.recordset[0]); // Send article as response
+        // Log bài viết lấy được
+        console.log("Đã lấy bài viết:", result.recordset[0]);
+        // Trả về chi tiết bài viết
+        res.status(200).json(result.recordset[0]);
     } catch (error: unknown) {
+        // Xử lý lỗi truy vấn
         const message = error instanceof Error ? error.message : String(error);
-        console.error("Error fetching article:", message); // Log error
-        res.status(500).json({ message: "Error occurred when fetching article" });
+        console.error("Lỗi khi lấy bài viết:", message);
+        res.status(500).json({ message: "Có lỗi khi lấy bài viết" });
     }
 }
 
 /**
- * Creates a new article in the database
- * 
+ * Tạo mới một bài viết trong cơ sở dữ liệu
+ *
  * @route POST /api/articles
- * @access Protected (assuming authentication required)
- * @returns {Promise<void>} JSON response with created article details
- * @throws {400} If required fields are missing or invalid
- * @throws {500} If database operation fails
+ * @access Bảo vệ (yêu cầu xác thực)
+ * @returns {Promise<void>} Phản hồi JSON với chi tiết bài viết vừa tạo
+ * @throws {400} Nếu thiếu trường bắt buộc hoặc dữ liệu không hợp lệ
+ * @throws {500} Nếu thao tác cơ sở dữ liệu thất bại
  */
 export const createArticle = async (req: Request, res: Response): Promise<void> => {
     const { AccountID, ArticleTitle, PublishedDate, ImageUrl, Author, Status, Content } = req.body;
-    
-    // Validate required fields
+    // Kiểm tra trường bắt buộc
     if (!AccountID || !ArticleTitle || !PublishedDate || !Author || !Status || !Content) {
-        res.status(400).json({ message: "Missing required fields" });
+        res.status(400).json({ message: "Thiếu trường bắt buộc" });
         return;
     }
-
     try {
-        console.log("Creating new article:", { ArticleTitle, Author }); // Log creation attempt
+        // Log quá trình tạo bài viết mới
+        console.log("Tạo bài viết mới:", { ArticleTitle, Author });
+        // Lấy kết nối tới pool cơ sở dữ liệu
         const pool = await poolPromise;
-        // Insert new article with parameterized query
+        // Thêm bài viết mới với truy vấn tham số hóa
         const result = await pool.request()
             .input('AccountID', AccountID)
             .input('ArticleTitle', ArticleTitle)
@@ -130,40 +141,43 @@ export const createArticle = async (req: Request, res: Response): Promise<void> 
                 OUTPUT INSERTED.*
                 VALUES (@AccountID, @ArticleTitle, @PublishedDate, @ImageUrl, @Author, @Status, @Content, @IsDisabled)
             `);
-        res.status(201).json(result.recordset[0]); // Send created article as response
+        // Trả về bài viết vừa tạo
+        res.status(201).json(result.recordset[0]);
     } catch (error: unknown) {
+        // Xử lý lỗi truy vấn
         const message = error instanceof Error ? error.message : String(error);
-        console.error("Error creating article:", message); // Log error
-        res.status(500).json({ message: "Error occurred when creating article" });
+        console.error("Lỗi khi tạo bài viết:", message);
+        res.status(500).json({ message: "Có lỗi khi tạo bài viết" });
     }
 }
 
 /**
- * Updates an existing article by its ID
- * Only updates provided fields and maintains existing values for omitted fields
- * 
+ * Cập nhật một bài viết theo ID
+ * Chỉ cập nhật các trường được cung cấp, giữ nguyên giá trị cũ nếu không truyền lên
+ *
  * @route PUT /api/articles/:id
- * @param id The article's BlogID
- * @access Protected (assuming authentication required)
- * @returns {Promise<void>} JSON response with updated article details
- * @throws {400} If article ID is invalid
- * @throws {404} If article is not found or is disabled
- * @throws {500} If database operation fails
+ * @param id Mã BlogID của bài viết
+ * @access Bảo vệ (yêu cầu xác thực)
+ * @returns {Promise<void>} Phản hồi JSON với chi tiết bài viết đã cập nhật
+ * @throws {400} Nếu ID bài viết không hợp lệ
+ * @throws {404} Nếu không tìm thấy bài viết hoặc đã bị vô hiệu hóa
+ * @throws {500} Nếu thao tác cơ sở dữ liệu thất bại
  */
 export const updateArticle = async (req: Request, res: Response): Promise<void> => {
     const articleId = parseInt(req.params.id);
     const { ArticleTitle, PublishedDate, ImageUrl, Author, Status, Content } = req.body;
 
-    // Validate article ID
+    // Kiểm tra ID hợp lệ
     if (isNaN(articleId)) {
-        res.status(400).json({ message: "Invalid article ID" });
+        res.status(400).json({ message: "ID bài viết không hợp lệ" });
         return;
     }
     try {
-        console.log(`Updating article with ID: ${articleId}`); // Log update attempt
+        // Log quá trình cập nhật bài viết
+        console.log(`Cập nhật bài viết với ID: ${articleId}`); // Log update attempt
         const pool = await poolPromise;
 
-        // First, check if article exists and is not disabled
+        // Kiểm tra bài viết tồn tại và chưa bị vô hiệu hóa
         const checkResult = await pool.request()
             .input('BlogID', articleId)
             .query(`
@@ -173,11 +187,11 @@ export const updateArticle = async (req: Request, res: Response): Promise<void> 
             `);
 
         if (checkResult.recordset.length === 0) {
-            res.status(404).json({ message: "Article not found" });
+            res.status(404).json({ message: "Không tìm thấy bài viết" });
             return;
         }
 
-        // Build dynamic update query based on provided fields
+        // Xây dựng truy vấn cập nhật động dựa trên các trường được cung cấp
         const updates: string[] = [];
         const inputs: { name: string, value: any }[] = [];
 
@@ -207,11 +221,11 @@ export const updateArticle = async (req: Request, res: Response): Promise<void> 
         }
 
         if (updates.length === 0) {
-            res.status(400).json({ message: "No fields provided for update" });
+            res.status(400).json({ message: "Không có trường nào để cập nhật" });
             return;
         }
 
-        // Construct the dynamic SQL update query
+        // Tạo truy vấn SQL cập nhật động
         const updateQuery = `
             UPDATE Article
             SET ${updates.join(', ')}
@@ -219,43 +233,46 @@ export const updateArticle = async (req: Request, res: Response): Promise<void> 
             WHERE BlogID = @BlogID AND IsDisabled = 0
         `;
 
-        // Add all dynamic inputs to the request
+        // Thêm tất cả input động vào request
         const request = pool.request().input('BlogID', articleId);
         inputs.forEach(input => request.input(input.name, input.value));
 
-        const result = await request.query(updateQuery); // Execute update
-        res.status(200).json(result.recordset[0]); // Send updated article as response
+        // Thực thi truy vấn cập nhật
+        const result = await request.query(updateQuery);
+        // Trả về bài viết đã cập nhật
+        res.status(200).json(result.recordset[0]);
     } catch (error: unknown) {
+        // Xử lý lỗi truy vấn
         const message = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ message: "Error occurred when updating article" });
+        res.status(500).json({ message: "Có lỗi khi cập nhật bài viết" });
     }
 }
 
 /**
- * Soft-deletes an article by its ID by setting IsDisabled to true
- * 
+ * Xóa mềm một bài viết theo ID bằng cách đặt IsDisabled = true
+ *
  * @route DELETE /api/articles/:id
- * @param id The article's BlogID
- * @access Protected (assuming authentication required)
- * @returns {Promise<void>} JSON response confirming deletion
- * @throws {400} If article ID is invalid
- * @throws {404} If article is not found or already disabled
- * @throws {500} If database operation fails
+ * @param id Mã BlogID của bài viết
+ * @access Bảo vệ (yêu cầu xác thực)
+ * @returns {Promise<void>} Phản hồi JSON xác nhận xóa
+ * @throws {400} Nếu ID bài viết không hợp lệ
+ * @throws {404} Nếu không tìm thấy bài viết hoặc đã bị vô hiệu hóa
+ * @throws {500} Nếu thao tác cơ sở dữ liệu thất bại
  */
 export const deleteArticle = async (req: Request, res: Response): Promise<void> => {
     const articleId = parseInt(req.params.id);
 
-    // Validate article ID
+    // Kiểm tra ID hợp lệ
     if (isNaN(articleId)) {
-        res.status(400).json({ message: "Invalid article ID" });
+        res.status(400).json({ message: "ID bài viết không hợp lệ" });
         return;
     }
-
     try {
-        console.log(`Deleting article with ID: ${articleId}`); // Log delete attempt
+        // Log quá trình xóa bài viết
+        console.log(`Xóa bài viết với ID: ${articleId}`); // Log delete attempt
         const pool = await poolPromise;
 
-        // Check if article exists and is not already disabled
+        // Kiểm tra bài viết tồn tại và chưa bị vô hiệu hóa
         const checkResult = await pool.request()
             .input('BlogID', articleId)
             .query(`
@@ -265,11 +282,11 @@ export const deleteArticle = async (req: Request, res: Response): Promise<void> 
             `);
 
         if (checkResult.recordset.length === 0) {
-            res.status(404).json({ message: "Article not found" });
+            res.status(404).json({ message: "Không tìm thấy bài viết" });
             return;
         }
 
-        // Soft-delete by setting IsDisabled to true
+        // Xóa mềm bằng cách đặt IsDisabled = true
         await pool.request()
             .input('BlogID', articleId)
             .query(`
@@ -277,10 +294,12 @@ export const deleteArticle = async (req: Request, res: Response): Promise<void> 
                 SET IsDisabled = 1
                 WHERE BlogID = @BlogID
             `);
-        res.status(200).json({ message: "Article deleted successfully" }); // Send confirmation
+        // Trả về xác nhận xóa thành công
+        res.status(200).json({ message: "Xóa bài viết thành công" });
     } catch (error: unknown) {
+        // Xử lý lỗi truy vấn
         const message = error instanceof Error ? error.message : String(error);
-        console.error("Error deleting article:", message); // Log error
-        res.status(500).json({ message: "Error occurred when deleting article" });
+        console.error("Lỗi khi xóa bài viết:", message); // Log error
+        res.status(500).json({ message: "Có lỗi khi xóa bài viết" });
     }
 }

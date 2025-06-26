@@ -2,14 +2,14 @@ import { Request, Response } from 'express';
 import { sql, poolPromise } from   '../config/database';
 
 /**
- * Retrieves all surveys for programs, including category names.
+ * Lấy tất cả khảo sát của các chương trình, bao gồm tên danh mục.
  *
  * @route GET /api/program-surveys
- * @access Public
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with all program surveys
- * @throws {500} If server error occurs
+ * @access Công khai
+ * @param {Request} req - Đối tượng request của Express
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với tất cả khảo sát chương trình
+ * @throws {500} Nếu có lỗi máy chủ
  */
 export async function getAllProgramSurveys(req: Request, res: Response): Promise<void> {
     try {
@@ -26,15 +26,15 @@ export async function getAllProgramSurveys(req: Request, res: Response): Promise
 }
 
 /**
- * Retrieves a specific program survey by its ID, including category name.
+ * Lấy khảo sát chương trình theo ID, bao gồm tên danh mục.
  *
  * @route GET /api/program-surveys/:id
- * @access Public
- * @param {Request} req - Express request object with survey ID in params
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with program survey details
- * @throws {404} If survey is not found
- * @throws {500} If server error occurs
+ * @access Công khai
+ * @param {Request} req - Đối tượng request của Express, chứa ID khảo sát trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với chi tiết khảo sát chương trình
+ * @throws {404} Nếu không tìm thấy khảo sát
+ * @throws {500} Nếu có lỗi máy chủ
  */
 export async function getProgramSurveyById(req: Request, res: Response): Promise<void> {
     const id = Number(req.params.id); // Extract survey ID from URL
@@ -60,15 +60,15 @@ export async function getProgramSurveyById(req: Request, res: Response): Promise
 }
 
 /**
- * Creates a new survey for a program.
+ * Tạo mới khảo sát cho chương trình.
  *
  * @route POST /api/program-surveys
- * @access Public
- * @param {Request} req - Express request object with survey details in body
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with created program survey
- * @throws {400} If required fields are missing or invalid
- * @throws {500} If server error occurs
+ * @access Công khai
+ * @param {Request} req - Đối tượng request của Express, chứa thông tin khảo sát trong body
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với khảo sát chương trình vừa tạo
+ * @throws {400} Nếu thiếu hoặc sai trường bắt buộc
+ * @throws {500} Nếu có lỗi máy chủ
  */
 export async function createProgramSurvey(req: Request, res: Response): Promise<void> {
     const { Description, Type, SurveyCategoryID } = req.body; // Extract survey details from request body
@@ -99,15 +99,15 @@ export async function createProgramSurvey(req: Request, res: Response): Promise<
 }
 
 /**
- * Updates a program survey by its ID.
+ * Cập nhật khảo sát chương trình theo ID.
  *
  * @route PUT /api/program-surveys/:id
- * @access Public
- * @param {Request} req - Express request object with survey ID in params and update data in body
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with updated program survey
- * @throws {404} If survey is not found
- * @throws {500} If server error occurs
+ * @access Công khai
+ * @param {Request} req - Đối tượng request của Express, chứa ID khảo sát trong params và dữ liệu cập nhật trong body
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với khảo sát chương trình đã cập nhật
+ * @throws {404} Nếu không tìm thấy khảo sát
+ * @throws {500} Nếu có lỗi máy chủ
  */
 export async function updateProgramSurvey(req: Request, res: Response): Promise<void> {
     const id = Number(req.params.id); // Extract survey ID from URL
@@ -143,15 +143,15 @@ export async function updateProgramSurvey(req: Request, res: Response): Promise<
 }
 
 /**
- * Deletes a program survey by its ID.
+ * Xóa khảo sát chương trình theo ID.
  *
  * @route DELETE /api/program-surveys/:id
- * @access Public
- * @param {Request} req - Express request object with survey ID in params
- * @param {Response} res - Express response object
- * @returns {Promise<void>} 204 No Content on success
- * @throws {404} If survey is not found
- * @throws {500} If server error occurs
+ * @access Công khai
+ * @param {Request} req - Đối tượng request của Express, chứa ID khảo sát trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} 204 No Content nếu thành công
+ * @throws {404} Nếu không tìm thấy khảo sát
+ * @throws {500} Nếu có lỗi máy chủ
  */
 export async function deleteProgramSurvey(req: Request, res: Response): Promise<void> {
     const id = Number(req.params.id); // Extract survey ID from URL
@@ -171,14 +171,14 @@ export async function deleteProgramSurvey(req: Request, res: Response): Promise<
 }
 
 /**
- * Retrieves all program surveys for a specific category ID, including category name.
+ * Lấy tất cả khảo sát chương trình theo ID danh mục, bao gồm tên danh mục.
  *
  * @route GET /api/program-surveys/category/:categoryId
- * @access Public
- * @param {Request} req - Express request object with category ID in params
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with program surveys for the category
- * @throws {500} If server error occurs
+ * @access Công khai
+ * @param {Request} req - Đối tượng request của Express, chứa ID danh mục trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với các khảo sát chương trình thuộc danh mục
+ * @throws {500} Nếu có lỗi máy chủ
  */
 export async function getProgramSurveyByCategoryId(req: Request, res: Response): Promise<void> {
      const categoryId = Number(req.params.categoryId); // Extract category ID from URL

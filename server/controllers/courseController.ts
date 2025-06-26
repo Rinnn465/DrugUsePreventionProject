@@ -11,32 +11,34 @@ interface Course {
 }
 
 dotenv.config();
+
+
 /**
- * Retrieves all active courses from the database
+ * Lấy tất cả các khóa học đang hoạt động từ cơ sở dữ liệu
  * 
  * @route GET /api/courses
- * @access Public
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with array of courses
- * @throws {500} If database error occurs
+ * @access Công khai
+ * @param {Request} req - Đối tượng request của Express
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON chứa mảng các khóa học
+ * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
  */
 export async function getCourses(req: Request, res: Response): Promise<void> {
     try {
-        // Get database connection
+        // Kết nối tới database
         const pool = await poolPromise;
-        // Query all courses
+        // Truy vấn tất cả các khóa học
         const result = await pool.request().query('SELECT * FROM Course');
         res.status(200).json({
-            message: 'Courses fetched successfully',
+            message: 'Lấy danh sách khóa học thành công',
             data: result.recordset
         });
         return;
     } catch (err: any) {
-        // Log error and send error response
-        console.error('Error in getCourses:', err);
+        // Ghi log lỗi và trả về lỗi
+        console.error('Lỗi trong getCourses:', err);
         res.status(500).json({
-            message: 'Error fetching courses',
+            message: 'Lỗi khi lấy danh sách khóa học',
             error: err.message
         });
         return;
@@ -44,44 +46,44 @@ export async function getCourses(req: Request, res: Response): Promise<void> {
 }
 
 /**
- * Retrieves a specific course by its ID
+ * Lấy thông tin chi tiết của một khóa học theo ID
  * 
  * @route GET /api/courses/:id
- * @access Public
- * @param {Request} req - Express request object with course ID in params
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with course details
- * @throws {404} If course is not found
- * @throws {500} If server error occurs
+ * @access Công khai
+ * @param {Request} req - Đối tượng request của Express, chứa ID khóa học trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với thông tin khóa học
+ * @throws {404} Nếu không tìm thấy khóa học
+ * @throws {500} Nếu có lỗi server
  */
 export async function getCourseById(req: Request, res: Response): Promise<void> {
     const courseId = req.params.id;
 
     try {
-        // Get database connection
+        // Kết nối tới database
         const pool = await poolPromise;
-        // Query specific course with parameterized query for security
+        // Truy vấn khóa học cụ thể với truy vấn tham số hóa để đảm bảo an toàn
         const result = await pool.request()
             .input('courseId', sql.Int, courseId)
             .query('SELECT * FROM Course WHERE CourseID = @courseId');
 
-        // Check if course exists
+        // Kiểm tra nếu không tìm thấy khóa học
         if (result.recordset.length === 0) {
-            res.status(404).json({ message: 'Course not found' });
+            res.status(404).json({ message: 'Không tìm thấy khóa học' });
             return;
         }
 
-        // Return course data
+        // Trả về dữ liệu khóa học
         res.status(200).json({
-            message: 'Course fetched successfully',
+            message: 'Lấy thông tin khóa học thành công',
             data: result.recordset[0]
         });
         return;
     } catch (err: any) {
-        // Log error and send error response
-        console.error('Error in getCourseById:', err);
+        // Ghi log lỗi và trả về lỗi
+        console.error('Lỗi khi lấy thông tin khóa học:', err);
         res.status(500).json({
-            message: 'Error fetching course',
+            message: 'Lỗi khi lấy thông tin khóa học',
             error: err.message
         });
         return;
@@ -89,28 +91,28 @@ export async function getCourseById(req: Request, res: Response): Promise<void> 
 }
 
 /** 
- * Creates a new course in the database
+ * Tạo mới một khóa học trong cơ sở dữ liệu
  * @route POST /api/courses
- * @access Admin
- * @param {Request} req - Express request object with course data in body
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with created course details
- * @throws {400} If course data is invalid
- * @throws {500} If server error occurs
+ * @access Quản trị viên
+ * @param {Request} req - Đối tượng request của Express, chứa dữ liệu khóa học trong body
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với thông tin khóa học vừa tạo
+ * @throws {400} Nếu dữ liệu khóa học không hợp lệ
+ * @throws {500} Nếu có lỗi server
  * */
 export async function createCourse(req: Request, res: Response): Promise<void> {
     const { CourseName, Description, ImageUrl, IsDisabled } = req.body;
 
-    // Validate required fields
+    // Kiểm tra các trường bắt buộc
     if (!CourseName || !Description) {
-        res.status(400).json({ message: 'Course name and description are required' });
+        res.status(400).json({ message: 'Tên và mô tả khóa học là bắt buộc' });
         return;
     }
 
     try {
-        // Get database connection
+        // Kết nối tới database
         const pool = await poolPromise;
-        // Insert new course into database
+        // Thêm mới khóa học vào database
         const result = await pool.request()
             .input('CourseName', sql.NVarChar, CourseName)
             .input('Description', sql.NVarChar, Description)
@@ -122,47 +124,47 @@ export async function createCourse(req: Request, res: Response): Promise<void> {
                 SELECT SCOPE_IDENTITY() AS CourseID;
             `);
 
-        // Return created course ID
+        // Trả về ID khóa học vừa tạo
         res.status(201).json({
-            message: 'Course created successfully',
+            message: 'Tạo khóa học thành công',
             data: { CourseID: result.recordset[0].CourseID }
         });
     } catch (err: any) {
-        // Log error and send error response
-        console.error('Error in createCourse:', err);
+        // Ghi log lỗi và trả về lỗi
+        console.error('Lỗi khi tạo khóa học:', err);
         res.status(500).json({
-            message: 'Error creating course',
+            message: 'Lỗi khi tạo khóa học',
             error: err.message
         });
     }
 }
 
 /**
- * Updates an existing course by its ID
+ * Cập nhật một khóa học theo ID
  * 
  * @route PUT /api/courses/:id
- * @access Admin
- * @param {Request} req - Express request object with course ID in params and updated data in body
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with updated course details
- * @throws {400} If course data is invalid
- * @throws {404} If course is not found
- * @throws {500} If server error occurs
+ * @access Quản trị viên
+ * @param {Request} req - Đối tượng request của Express, chứa ID khóa học trong params và dữ liệu cập nhật trong body
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với thông tin khóa học đã cập nhật
+ * @throws {400} Nếu dữ liệu khóa học không hợp lệ
+ * @throws {404} Nếu không tìm thấy khóa học
+ * @throws {500} Nếu có lỗi server
  */
 export async function updateCourse(req: Request, res: Response): Promise<void> {
     const courseId = req.params.id;
     const { CourseName, Description, ImageUrl, IsDisabled } = req.body;
 
-    // Validate required fields
+    // Kiểm tra các trường bắt buộc
     if (!CourseName || !Description) {
-        res.status(400).json({ message: 'Course name and description are required' });
+        res.status(400).json({ message: 'Tên và mô tả khóa học là bắt buộc' });
         return;
     }
 
     try {
-        // Get database connection
+        // Kết nối tới database
         const pool = await poolPromise;
-        // Update course in database
+        // Cập nhật thông tin khóa học trong database
         const result = await pool.request()
             .input('CourseID', sql.Int, courseId)
             .input('CourseName', sql.NVarChar, CourseName)
@@ -179,62 +181,62 @@ export async function updateCourse(req: Request, res: Response): Promise<void> {
                 SELECT * FROM Course WHERE CourseID = @CourseID;
             `);
 
-        // Check if course was updated
+        // Kiểm tra nếu không có khóa học nào được cập nhật
         if (result.recordset.length === 0) {
-            res.status(404).json({ message: 'Course not found' });
+            res.status(404).json({ message: 'Không tìm thấy khóa học' });
             return;
         }
 
-        // Return updated course data
+        // Trả về dữ liệu khóa học đã cập nhật
         res.status(200).json({
-            message: 'Course updated successfully',
+            message: 'Cập nhật khóa học thành công',
             data: result.recordset[0]
         });
     } catch (err: any) {
-        // Log error and send error response
-        console.error('Error in updateCourse:', err);
+        // Ghi log lỗi và trả về lỗi
+        console.error('Lỗi khi cập nhật khóa học:', err);
         res.status(500).json({
-            message: 'Error updating course',
+            message: 'Lỗi khi cập nhật khóa học',
             error: err.message
         });
     }
 }
 
 /**
- * Deletes a course by its ID
+ * Xóa một khóa học theo ID
  * 
  * @route DELETE /api/courses/:id
- * @access Admin
- * @param {Request} req - Express request object with course ID in params
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response confirming deletion
- * @throws {404} If course is not found
- * @throws {500} If server error occurs
+ * @access Quản trị viên
+ * @param {Request} req - Đối tượng request của Express, chứa ID khóa học trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON xác nhận xóa
+ * @throws {404} Nếu không tìm thấy khóa học
+ * @throws {500} Nếu có lỗi server
  */
 export async function deleteCourse(req: Request, res: Response): Promise<void> {
     const courseId = req.params.id;
 
     try {
-        // Get database connection
+        // Kết nối tới database
         const pool = await poolPromise;
-        // Delete course from database
+        // Xóa khóa học khỏi database
         const result = await pool.request()
             .input('CourseID', sql.Int, courseId)
             .query('DELETE FROM Course WHERE CourseID = @CourseID');
 
-        // Check if course was deleted
+        // Kiểm tra nếu không có khóa học nào bị xóa
         if (result.rowsAffected[0] === 0) {
-            res.status(404).json({ message: 'Course not found' });
+            res.status(404).json({ message: 'Không tìm thấy khóa học' });
             return;
         }
 
-        // Return success message
-        res.status(200).json({ message: 'Course deleted successfully' });
+        // Trả về thông báo thành công
+        res.status(200).json({ message: 'Xóa khóa học thành công' });
     } catch (err: any) {
-        // Log error and send error response
-        console.error('Error in deleteCourse:', err);
+        // Ghi log lỗi và trả về lỗi
+        console.error('Lỗi khi xóa khóa học:', err);
         res.status(500).json({
-            message: 'Error deleting course',
+            message: 'Lỗi khi xóa khóa học',
             error: err.message
         });
     }

@@ -1,28 +1,23 @@
 import { Request, Response } from 'express';
 import { poolPromise } from '../config/database';
 
-/**
- * Interface representing a Survey in the database
- * Combines data from Survey, SurveyBeforeProgram, and SurveyAfterProgram tables
- */
-interface Survey {
-    SurveyID: number;          // Unique identifier for the survey
-    Type: string;              // Type of survey (before/after program)
-    IsDisabled: boolean;       // Survey visibility/availability status
-    Expected: string | null;   // Expected outcomes (from before-program survey)
-    Improvement: string | null; // Suggested improvements (from after-program survey)
-}
+
 
 /**
- * Retrieves all active surveys with their associated before/after program data
- * Uses LEFT JOINs to combine data from multiple survey-related tables
+ * Interface đại diện cho một khảo sát trong cơ sở dữ liệu
+ * Kết hợp dữ liệu từ các bảng Survey, SurveyBeforeProgram và SurveyAfterProgram
+ */
+
+/**
+ * Lấy tất cả khảo sát đang hoạt động cùng dữ liệu khảo sát trước/sau chương trình
+ * Sử dụng LEFT JOIN để kết hợp dữ liệu từ nhiều bảng liên quan khảo sát
  * 
  * @route GET /api/surveys
- * @access Public
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with array of surveys and user data
- * @throws {500} If database error occurs
+ * @access Công khai
+ * @param {Request} req - Đối tượng request của Express
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với mảng khảo sát và thông tin người dùng
+ * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
  */
 export const getAllSurveys = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -59,15 +54,15 @@ export const getAllSurveys = async (req: Request, res: Response): Promise<void> 
 };
 
 /**
- * Retrieves a specific survey by its ID with associated before/after program data
+ * Lấy khảo sát cụ thể theo ID, kèm dữ liệu khảo sát trước/sau chương trình
  * 
  * @route GET /api/surveys/:id
- * @access Public
- * @param {Request} req - Express request object with survey ID in params
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with survey details and user data
- * @throws {404} If survey is not found
- * @throws {500} If server error occurs
+ * @access Công khai
+ * @param {Request} req - Đối tượng request của Express, chứa ID khảo sát trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với chi tiết khảo sát và thông tin người dùng
+ * @throws {404} Nếu không tìm thấy khảo sát
+ * @throws {500} Nếu có lỗi máy chủ
  */
 export const getSurveyById = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -112,14 +107,14 @@ export const getSurveyById = async (req: Request, res: Response): Promise<void> 
 };
 
 /**
- * Retrieves all surveys for a specific program, including category names
+ * Lấy tất cả khảo sát của một chương trình cụ thể, bao gồm tên danh mục
  * 
  * @route GET /api/program-surveys/:programId
- * @access Public
- * @param {Request} req - Express request object with program ID in params
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with program surveys and user data
- * @throws {500} If server error occurs
+ * @access Công khai
+ * @param {Request} req - Đối tượng request của Express, chứa ID chương trình trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với khảo sát chương trình và thông tin người dùng
+ * @throws {500} Nếu có lỗi máy chủ
  */
 export const getProgramSurveys = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -219,15 +214,15 @@ export const createSurvey = async (req: Request, res: Response): Promise<void> =
 }
 
 /**
- * Updates an existing survey by its ID
+ * Cập nhật khảo sát theo ID
  * 
  * @route PUT /api/surveys/:id
- * @access Public
- * @param {Request} req - Express request object with survey ID in params and updated data in body
- * @param {Response} res - Express response object
+ * @access Công khai
+ * @param {Request} req - Đối tượng request của Express, chứa ID khảo sát trong params và dữ liệu cập nhật trong body
+ * @param {Response} res - Đối tượng response của Express
  * @returns {Promise<void>} JSON response with updated survey details and user data
- * @throws {404} If survey is not found
- * @throws {500} If server error occurs
+ * @throws {404} Nếu không tìm thấy khảo sát
+ * @throws {500} Nếu có lỗi máy chủ
  */
 export const updateSurvey = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -294,15 +289,15 @@ export const updateSurvey = async (req: Request, res: Response): Promise<void> =
     }
 }
 /**
- * Deletes a survey by its ID
+ * Xóa khảo sát theo ID
  * 
  * @route DELETE /api/surveys/:id
- * @access Public
- * @param {Request} req - Express request object with survey ID in params
- * @param {Response} res - Express response object
+ * @access Công khai
+ * @param {Request} req - Đối tượng request của Express, chứa ID khảo sát trong params
+ * @param {Response} res - Đối tượng response của Express
  * @returns {Promise<void>} JSON response with success message and user data
- * @throws {404} If survey is not found
- * @throws {500} If server error occurs
+ * @throws {404} Nếu không tìm thấy khảo sát
+ * @throws {500} Nếu có lỗi máy chủ
  */
 export const deleteSurvey = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -335,13 +330,13 @@ export const deleteSurvey = async (req: Request, res: Response): Promise<void> =
 
 //get surveys by category ID
 /**
- * Retrieves all surveys for a specific category by its ID
+ * Lấy tất cả khảo sát theo ID danh mục
  * @route GET /api/surveys/category/:categoryId
- * @access Public
- * @param {Request} req - Express request object with category ID in params
- * @param {Response} res - Express response object
- * @returns {Promise<void>} JSON response with surveys for the category and user data
- * @throws {500} If server error occurs
+ * @access Công khai
+ * @param {Request} req - Đối tượng request của Express, chứa ID danh mục trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với khảo sát thuộc danh mục và thông tin người dùng
+ * @throws {500} Nếu có lỗi máy chủ
  * */
 export const getSurveyByCategoryId = async (req: Request, res: Response): Promise<void> => {
     try {
