@@ -125,16 +125,6 @@ const ArticleDetailsPage = () => {
                 )}
 
                 <article className="prose prose-lg max-w-none text-gray-700 leading-relaxed space-y-6">
-                    {/* Article Description (Short overview) */}
-                    {article?.Description && (
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-3">Tóm tắt bài viết</h3>
-                            <p className="text-gray-700 text-base leading-relaxed">
-                                {article.Description}
-                            </p>
-                        </div>
-                    )}
-                    
                     {/* Article Content (Detailed information) */}
                     {article?.Content && (
                         <div>
