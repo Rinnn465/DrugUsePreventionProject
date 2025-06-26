@@ -659,7 +659,6 @@ const DashBoardPage: React.FC = () => {
                       className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm text-gray-500 cursor-not-allowed"
                       title="Email không thể thay đổi vì nó là duy nhất trong hệ thống"
                     />
-                    <p className="mt-1 text-xs text-gray-500">Email không thể thay đổi</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Họ và tên</label>
@@ -717,7 +716,6 @@ const DashBoardPage: React.FC = () => {
                     <div className="flex-1">
                       <p className="text-sm text-gray-600">Email</p>
                       <p className="font-medium text-gray-800">{user?.Email}</p>
-                      <p className="text-xs text-gray-500 mt-1">Không thể thay đổi</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
