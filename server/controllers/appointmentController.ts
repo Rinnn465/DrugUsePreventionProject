@@ -50,7 +50,7 @@ export async function bookAppointment(req: Request, res: Response, next: NextFun
             .input("description", sql.NVarChar, description)
             .input("duration", sql.Int, duration)
             .query(`
-                INSERT INTO Appointment (ConsultantID, AccountID, Time, Date, MeetingUrl, Status, Description, Duration)
+                INSERT INTO Appointment (ConsultantID, AccountID, Time, Date, MeetingURL, Status, Description, Duration)
                 VALUES (@consultantId, @accountId, CAST(@time as Time), @date, @meetingUrl, @status, @description, @duration);
             `);
 

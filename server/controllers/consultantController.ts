@@ -162,15 +162,22 @@ export async function getConsultantById(
     }
 
     try {
-
         // Query consultant with parameterized query for security
         const pool = await poolPromise;
         const result = await pool
             .request()
             .input("consultantId", sql.Int, consultantId)
-            .query(`SELECT * 
-            FROM Consultant c JOIN ConsultantSchedule cs ON c.AccountID = cs.ConsultantID 
-            WHERE cs.ConsultantId = @consultantId`);
+            .query(`
+                SELECT 
+                    c.AccountID,
+                    c.Name,
+                    c.Bio,
+                    c.Title,
+                    c.ImageUrl,
+                    c.IsDisabled
+                FROM Consultant c 
+                WHERE c.AccountID = @consultantId AND (c.IsDisabled = 0 OR c.IsDisabled IS NULL)
+            `);
 
         // Check if consultant exists
         if (result.recordset.length === 0) {

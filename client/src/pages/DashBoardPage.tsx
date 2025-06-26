@@ -7,6 +7,7 @@ import { User, BookOpen, Calendar, Clock, Users, Mail, Edit, Plus, CheckCircle, 
 import { Appointment } from "../types/Appointment";
 import AppointmentDetailModal from "../components/modal/AppointmentDetailModal";
 import { toast } from 'react-toastify';
+import apiUtils from "@/utils/apiUtils";
 
 interface ProfileFormData {
   username: string;
@@ -43,6 +44,38 @@ interface PendingAppointment {
   CustomerEmail?: string;
 }
 
+interface EnrolledCourse {
+  EnrollmentID: number;
+  CourseID: number;
+  AccountID: number;
+  CompletedDate: string | null;
+  Status: string;
+  CourseName: string;
+  Description: string;
+  ImageUrl: string;
+  IsDisabled: boolean;
+}
+
+interface EnrolledEvent {
+  ProgramID: number;
+  ProgramName: string;
+  Type: string;
+  Date: string;
+  Description: string;
+  Organizer: string;
+  Url: string;
+  ImageUrl: string;
+  RegistrationDate: string;
+  Status: string;
+  SurveyBeforeCompleted: boolean;
+  SurveyAfterCompleted: boolean;
+}
+
+interface EnrolledEventsResponse {
+  data: EnrolledEvent[];
+  total: number;
+}
+
 const DashBoardPage: React.FC = () => {
   const { userId } = useParams();
   const { user, setUser } = useUser();
@@ -53,6 +86,11 @@ const DashBoardPage: React.FC = () => {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(false);
+  const [enrolledEvents, setEnrolledEvents] = useState<EnrolledEvent[]>([]);
+  const [isLoadingEvents, setIsLoadingEvents] = useState(false);
+
 
   // Modal state
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
@@ -118,6 +156,11 @@ const DashBoardPage: React.FC = () => {
   }, [message]);
 
   useEffect(() => {
+
+  }, [userId]);
+
+
+  useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
       setMessage({ type: "error", text: "Vui lòng đăng nhập để xem lịch hẹn" });
@@ -136,6 +179,56 @@ const DashBoardPage: React.FC = () => {
       });
   }, [userId]);
 
+  useEffect(() => {
+    const fetchEnrolledCourses = async () => {
+      if (!user?.AccountID) return;
+
+      setIsLoadingCourses(true);
+      try {
+        console.log('Fetching enrolled courses for user:', user.AccountID);
+        const response = await apiUtils.courses.getEnrolledByUser(user.AccountID);
+        console.log('Enrolled courses response:', response);
+
+        // Handle the response structure - backend returns { message: string, data: array }
+        const coursesData = response || [];
+        setEnrolledCourses(coursesData);
+      } catch (error) {
+        console.error('Error fetching enrolled courses:', error);
+        toast.error('Không thể tải danh sách khóa học đã đăng ký');
+        setEnrolledCourses([]);
+      } finally {
+        setIsLoadingCourses(false);
+      }
+    };
+
+    fetchEnrolledCourses();
+  }, [user?.AccountID]);
+
+  useEffect(() => {
+    const fetchEnrolledEvents = async () => {
+      if (!user?.AccountID) return;
+
+      setIsLoadingEvents(true);
+      try {
+        console.log('Fetching enrolled events for user:', user.AccountID);
+        const response = await apiUtils.programs.getMyEnrollments();
+        console.log('Enrolled events response:', response);
+
+        // Handle the response structure - backend returns { data: array, total: number }
+        const responseData = response as unknown as EnrolledEventsResponse;
+        const eventsData = responseData?.data || response || [];
+        setEnrolledEvents(eventsData);
+      } catch (error) {
+        console.error('Error fetching enrolled events:', error);
+        toast.error('Không thể tải danh sách sự kiện đã đăng ký');
+        setEnrolledEvents([]);
+      } finally {
+        setIsLoadingEvents(false);
+      }
+    };
+
+    fetchEnrolledEvents();
+  }, [user?.AccountID]);
 
   const fetchSchedules = useCallback(async () => {
     if (!user?.AccountID) return;
@@ -473,23 +566,38 @@ const DashBoardPage: React.FC = () => {
     setSelectedAppointment(appointment);
     setIsModalOpen(true);
 
+    // Reset consultant details to show loading state
+    setConsultantDetails({
+      name: '',
+      title: '',
+      imageUrl: '',
+      specialties: []
+    });
+
     // Fetch consultant details
     try {
+      console.log('Fetching consultant details for ConsultantID:', appointment.ConsultantID);
       const response = await fetch(`http://localhost:5000/api/consultant/${appointment.ConsultantID}`);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Consultant data received:', data);
+        
         setConsultantDetails({
           name: data.data?.Name || 'Chuyên gia tư vấn',
           title: data.data?.Title || '',
           imageUrl: data.data?.ImageUrl || '',
           specialties: data.data?.Specialties?.map((s: { Name: string }) => s.Name) || []
         });
+      } else {
+        console.error('Failed to fetch consultant details:', response.status, response.statusText);
+        throw new Error(`HTTP ${response.status}`);
       }
     } catch (error) {
       console.error('Error fetching consultant details:', error);
       setConsultantDetails({
         name: 'Chuyên gia tư vấn',
-        title: '',
+        title: 'Không thể tải thông tin',
         imageUrl: '',
         specialties: []
       });
@@ -502,9 +610,6 @@ const DashBoardPage: React.FC = () => {
     setConsultantDetails(null);
   };
 
-  // ... existing code for other functions ...
-
-  // Main Dashboard Page (modified to include consultant sections)
   if (!isCoursesPage && !isEventsPage && !isAppointmentsPage && !isSecurityPage) {
     return (
       <div className="flex min-h-screen bg-gray-50">
@@ -640,7 +745,7 @@ const DashBoardPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Khóa học tham gia</p>
-                  <p className="text-2xl font-bold text-gray-800 mt-1">0</p>
+                  <p className="text-2xl font-bold text-gray-800 mt-1">{enrolledCourses.length}</p>
                 </div>
                 <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
                   <BookOpen className="h-6 w-6 text-blue-600" />
@@ -651,7 +756,7 @@ const DashBoardPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Sự kiện tham gia</p>
-                  <p className="text-2xl font-bold text-gray-800 mt-1">0</p>
+                  <p className="text-2xl font-bold text-gray-800 mt-1">{enrolledEvents.length}</p>
                 </div>
                 <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
                   <Users className="h-6 w-6 text-green-600" />
@@ -948,18 +1053,87 @@ const DashBoardPage: React.FC = () => {
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h1 className="text-2xl font-bold text-gray-800 mb-6">Khóa Học Của Tôi</h1>
 
-            <div className="text-center py-12">
-              <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Chưa có khóa học nào</h3>
-              <p className="text-gray-600 mb-6">Bạn chưa đăng ký khóa học nào.</p>
-              <Link
-                to="/courses"
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
-              >
-                <BookOpen className="h-4 w-4 mr-2" />
-                Khám phá khóa học
-              </Link>
-            </div>
+            {isLoadingCourses ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="text-gray-600 mt-4">Đang tải khóa học...</p>
+              </div>
+            ) : enrolledCourses.length > 0 ? (
+              <div className="space-y-4">
+                {enrolledCourses.map((course) => (
+                  <div key={course.EnrollmentID} className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex">
+                      {/* Course Image */}
+                      <div className="flex-shrink-0 flex items-center">
+                        {course.ImageUrl ? (
+                          <img
+                            src={course.ImageUrl}
+                            alt={course.CourseName}
+                            className="w-48 h-32 object-cover rounded-l-lg"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-48 h-32 bg-gray-200 rounded-l-lg flex items-center justify-center">
+                            <BookOpen className="h-8 w-8 text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+                      {/* Course Content */}
+                      <div className="flex-1 p-6">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-1">{course.CourseName}</h3>
+                            <p className="text-sm text-gray-600 mb-2">Khóa học trực tuyến</p>
+                          </div>
+                          <Link
+                            to={`/courses/${course.CourseID}`}
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                          >
+                            {course.Status.toLowerCase() === 'completed' ? 'Xem lại' : 'Tiếp tục học'}
+                          </Link>
+                        </div>
+
+                        {/* Status and Date */}
+                        <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                          {course.Status.toLowerCase() === 'completed' ? (
+                            <div className="flex items-center">
+                              <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
+                              <span className="text-green-600 font-medium">
+                                Hoàn thành vào {course.CompletedDate ? formatDate(course.CompletedDate) : 'Không rõ'}
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center">
+                              <Clock className="h-4 w-4 text-blue-600 mr-1" />
+                              <span className="text-blue-600 font-medium">Đang học</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Course Description */}
+                        <p className="text-gray-700 text-sm line-clamp-2 mb-3">{course.Description}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">Chưa có khóa học nào</h3>
+                <p className="text-gray-600 mb-6">Bạn chưa đăng ký khóa học nào.</p>
+                <Link
+                  to="/courses"
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                >
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Khám phá khóa học
+                </Link>
+              </div>
+            )}
           </div>
         </main>
       </div>
@@ -975,18 +1149,106 @@ const DashBoardPage: React.FC = () => {
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h1 className="text-2xl font-bold text-gray-800 mb-6">Sự Kiện Của Tôi</h1>
 
-            <div className="text-center py-12">
-              <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Chưa có sự kiện nào</h3>
-              <p className="text-gray-600 mb-6">Bạn chưa đăng ký sự kiện nào.</p>
-              <Link
-                to="/community-programs"
-                className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors duration-200"
-              >
-                <Users className="h-4 w-4 mr-2" />
-                Tham gia sự kiện
-              </Link>
-            </div>
+            {isLoadingEvents ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+                <p className="text-gray-600 mt-4">Đang tải sự kiện...</p>
+              </div>
+            ) : enrolledEvents.length > 0 ? (
+              <div className="space-y-4">
+                {enrolledEvents.map((event) => (
+                  <div key={event.ProgramID} className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex">
+                      {/* Event Image */}
+                      <div className="flex-shrink-0 flex items-center">
+                        {event.ImageUrl ? (
+                          <img
+                            src={event.ImageUrl}
+                            alt={event.ProgramName}
+                            className="w-48 h-32 object-cover rounded-l-lg"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-48 h-32 bg-gray-200 rounded-l-lg flex items-center justify-center">
+                            <Users className="h-8 w-8 text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+                      {/* Event Content */}
+                      <div className="flex-1 p-6">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-1">{event.ProgramName}</h3>
+                            <p className="text-sm text-gray-600 mb-2">{event.Type} • {event.Organizer}</p>
+                          </div>
+                          <Link
+                            to={`/community-programs/${event.ProgramID}`}
+                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                          >
+                            Xem chi tiết
+                          </Link>
+                        </div>
+
+                        {/* Status and Date */}
+                        <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                          <div className="flex items-center">
+                            <Calendar className="h-4 w-4 text-green-600 mr-1" />
+                            <span className="text-green-600 font-medium">
+                              {formatDate(event.Date)}
+                            </span>
+                          </div>
+                          <div className="flex items-center">
+                            <CheckCircle className="h-4 w-4 text-blue-600 mr-1" />
+                            <span className="text-blue-600 font-medium">
+                              Đã đăng ký vào {formatDate(event.RegistrationDate)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Event Description */}
+                        <p className="text-gray-700 text-sm line-clamp-2 mb-3">{event.Description}</p>
+
+                        {/* Survey Status */}
+                        <div className="flex items-center space-x-4 text-xs">
+                          <div className={`flex items-center px-2 py-1 rounded-full ${event.SurveyBeforeCompleted ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                            {event.SurveyBeforeCompleted ? (
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                            ) : (
+                              <XCircle className="h-3 w-3 mr-1" />
+                            )}
+                            <span>Khảo sát trước</span>
+                          </div>
+                          <div className={`flex items-center px-2 py-1 rounded-full ${event.SurveyAfterCompleted ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                            {event.SurveyAfterCompleted ? (
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                            ) : (
+                              <XCircle className="h-3 w-3 mr-1" />
+                            )}
+                            <span>Khảo sát sau</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">Chưa có sự kiện nào</h3>
+                <p className="text-gray-600 mb-6">Bạn chưa đăng ký sự kiện nào.</p>
+                <Link
+                  to="/community-programs"
+                  className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors duration-200"
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  Tham gia sự kiện
+                </Link>
+              </div>
+            )}
           </div>
         </main>
       </div>

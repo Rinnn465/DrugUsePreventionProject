@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { sqlLesson, sqlLessonAnswer, sqlLessonQuestion } from "../../types/Lesson";
 import { toast } from "react-toastify";
 import { useUser } from "@/context/UserContext";
+import { parseSqlDate } from "@/utils/parseSqlDateUtils";
 
 const LessonDetailsPage: React.FC = () => {
     const { id } = useParams();
@@ -119,6 +120,7 @@ const LessonDetailsPage: React.FC = () => {
                 body: JSON.stringify({
                     courseId: id,
                     accountId: user?.AccountID,
+                    completedDate: parseSqlDate(new Date().toISOString()),
                 }),
             });
             return true;
