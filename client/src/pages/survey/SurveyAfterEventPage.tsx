@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { useUser } from '../../context/UserContext';
 
 const SurveyAfterEventPage: React.FC = () => {
     const { programId } = useParams();
+    const { user } = useUser();
     const [programData, setProgramData] = useState<any>(null);
     const [formData, setFormData] = useState({
         overallSatisfaction: '',

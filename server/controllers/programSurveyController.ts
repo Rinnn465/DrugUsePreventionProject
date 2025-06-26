@@ -52,13 +52,14 @@ export async function getSurveysByProgramId(req: Request, res: Response): Promis
                 SELECT 
                     s.SurveyID, 
                     s.Description, 
+                    s.Type as SurveyCategory,
                     s.SurveyCategoryID,
                     sc.SurveyCategoryName,
-                    cps.Type
+                    cps.SurveyType as Type
                 FROM Survey s
                 INNER JOIN CommunityProgramSurvey cps ON s.SurveyID = cps.SurveyID
                 LEFT JOIN SurveyCategory sc ON s.SurveyCategoryID = sc.SurveyCategoryID
-                WHERE cps.ProgramID =1
+                WHERE cps.ProgramID = @ProgramID
             `);
 
         console.log('Program surveys result:', result.recordset);
