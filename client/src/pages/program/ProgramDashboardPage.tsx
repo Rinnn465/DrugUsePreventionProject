@@ -152,37 +152,6 @@ const ProgramDashboardPage: React.FC = () => {
                         );
                     })}
                 </div>
-
-                {/* Recent Programs */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-                    <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-gray-900">Chương trình gần đây</h3>
-                        <Link
-                            to={`/roles/${userId}/program-manage`}
-                            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-                        >
-                            Xem tất cả →
-                        </Link>
-                    </div>
-                    <div className="p-6">
-                        <div className="text-center py-8">
-                            <Calendar className="mx-auto h-12 w-12 text-gray-400" />
-                            <h3 className="mt-2 text-sm font-medium text-gray-900">Chưa có chương trình nào</h3>
-                            <p className="mt-1 text-sm text-gray-500">
-                                Bắt đầu bằng cách tạo chương trình đầu tiên.
-                            </p>
-                            <div className="mt-6">
-                                <Link
-                                    to={`/roles/${userId}/program-manage`}
-                                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Tạo chương trình mới
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     );
