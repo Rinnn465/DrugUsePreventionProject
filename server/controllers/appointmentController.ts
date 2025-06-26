@@ -97,18 +97,26 @@ export async function approveAppointment(req: Request, res: Response, next: Next
  */
 export async function rejectAppointment(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { appointmentId } = req.params;
+    const { rejectionReason } = req.body;
+
+
+    if (!rejectionReason || rejectionReason.trim().length === 0) {
+        res.status(400).json({ message: 'Lý do từ chối là bắt buộc' });
+        return;
+    }
 
     try {
         const pool = await poolPromise;
         const result = await pool.request()
             .input('AppointmentID', sql.Int, appointmentId)
+            .input('RejectionReason', sql.NVarChar, rejectionReason.trim())
             .query(`
                 UPDATE Appointment 
-                SET Status = 'rejected'
+                SET Status = 'rejected', RejectedReason = @RejectionReason
                 WHERE AppointmentID = @AppointmentID
             `);
 
-        res.status(200).json({ message: 'Từ chối cuộc hẹn thành công' });
+        res.status(200).json({ message: 'Từ chối cuộc hẹn thành công', stats: '', reject: rejectionReason });
     } catch (error) {
         console.error('Error rejecting appointment:', error);
         res.status(500).json({ message: 'Lỗi server khi từ chối cuộc hẹn' });

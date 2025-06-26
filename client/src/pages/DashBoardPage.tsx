@@ -102,6 +102,11 @@ const DashBoardPage: React.FC = () => {
     specialties: string[];
   } | null>(null);
 
+  // Rejection modal state
+  const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [appointmentToReject, setAppointmentToReject] = useState<number | null>(null);
+
   // Consultant-specific states
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [pendingAppointments, setPendingAppointments] = useState<PendingAppointment[]>([]);
@@ -161,22 +166,7 @@ const DashBoardPage: React.FC = () => {
 
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setMessage({ type: "error", text: "Vui lòng đăng nhập để xem lịch hẹn" });
-      return;
-    }
-    fetch(`http://localhost:5000/api/appointment`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(res => res.json())
-      .then(data => setAppointments(data.data || []))
-      .catch(err => {
-        console.error("Error fetching appointments:", err);
-        setMessage({ type: "error", text: "Không thể tải danh sách lịch hẹn" });
-      });
+    fetchAllAppointments();
   }, [userId]);
 
   useEffect(() => {
@@ -362,21 +352,12 @@ const DashBoardPage: React.FC = () => {
 
   const handleApproveAppointment = async (appointmentId: number) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/appointment/${appointmentId}/approve`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      await apiUtils.appointments.approve(appointmentId);
+      toast.success('Đã phê duyệt cuộc hẉn!');
 
-      if (response.ok) {
-        toast.success('Đã phê duyệt cuộc hẹn!');
-        fetchPendingAppointments();
-      } else {
-        throw new Error('Không thể phê duyệt cuộc hẹn');
-      }
+      // Refresh both pending appointments and main appointments list
+      fetchPendingAppointments();
+      fetchAllAppointments();
     } catch (error) {
       console.error('Error approving appointment:', error);
       toast.error('Có lỗi xảy ra khi phê duyệt cuộc hẹn');
@@ -384,26 +365,58 @@ const DashBoardPage: React.FC = () => {
   };
 
   const handleRejectAppointment = async (appointmentId: number) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/appointment/${appointmentId}/reject`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
+    setAppointmentToReject(appointmentId);
+    setIsRejectionModalOpen(true);
+  };
 
-      if (response.ok) {
-        toast.success('Đã từ chối cuộc hẹn!');
-        fetchPendingAppointments();
-      } else {
-        throw new Error('Không thể từ chối cuộc hẹn');
-      }
+  const fetchAllAppointments = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setMessage({ type: "error", text: "Vui lòng đăng nhập để xem lịch hẹn" });
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/appointment`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      setAppointments(data.data || []);
+    } catch (err) {
+      console.error("Error fetching appointments:", err);
+      setMessage({ type: "error", text: "Không thể tải danh sách lịch hẹn" });
+    }
+  };
+
+  const confirmRejectAppointment = async () => {
+    if (!appointmentToReject || !rejectionReason.trim()) {
+      toast.error('Vui lòng nhập lý do từ chối');
+      return;
+    }
+
+    try {
+      await apiUtils.appointments.reject(appointmentToReject, rejectionReason.trim());
+      toast.success('Đã từ chối cuộc hẹn!');
+
+      // Refresh both pending appointments and main appointments list
+      fetchPendingAppointments();
+      fetchAllAppointments();
+
+      setIsRejectionModalOpen(false);
+      setRejectionReason('');
+      setAppointmentToReject(null);
     } catch (error) {
       console.error('Error rejecting appointment:', error);
       toast.error('Có lỗi xảy ra khi từ chối cuộc hẹn');
     }
+  };
+
+  const cancelRejection = () => {
+    setIsRejectionModalOpen(false);
+    setRejectionReason('');
+    setAppointmentToReject(null);
   };
 
   const formatDate = (dateString: string) => {
@@ -553,7 +566,7 @@ const DashBoardPage: React.FC = () => {
   // Handle appointment detail modal
   const handleAppointmentDetail = async (appointment: Appointment) => {
     setSelectedAppointment(appointment);
-    
+
     // Set loading state for consultant details
     setConsultantDetails({
       name: 'Đang tải thông tin...',
@@ -561,7 +574,7 @@ const DashBoardPage: React.FC = () => {
       imageUrl: '',
       specialties: []
     });
-    
+
     setIsModalOpen(true);
 
     // Reset consultant details to show loading state
@@ -1038,6 +1051,44 @@ const DashBoardPage: React.FC = () => {
           consultantImageUrl={consultantDetails?.imageUrl}
           consultantSpecialties={consultantDetails?.specialties}
         />
+
+        {/* Rejection Reason Modal */}
+        {isRejectionModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">Từ chối cuộc hẹn</h2>
+              <p className="text-gray-600 mb-4">Vui lòng cho biết lý do từ chối cuộc hẹn này:</p>
+
+              <textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Nhập lý do từ chối..."
+                className="w-full p-3 border border-gray-300 rounded-lg resize-none h-24 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                maxLength={500}
+              />
+
+              <div className="text-sm text-gray-500 mb-4">
+                {rejectionReason.length}/500 ký tự
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={cancelRejection}
+                  className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={confirmRejectAppointment}
+                  disabled={!rejectionReason.trim()}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                >
+                  Xác nhận từ chối
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -1345,6 +1396,44 @@ const DashBoardPage: React.FC = () => {
           consultantImageUrl={consultantDetails?.imageUrl}
           consultantSpecialties={consultantDetails?.specialties}
         />
+
+        {/* Rejection Reason Modal */}
+        {isRejectionModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">Từ chối cuộc hẹn</h2>
+              <p className="text-gray-600 mb-4">Vui lòng cho biết lý do từ chối cuộc hẹn này:</p>
+
+              <textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Nhập lý do từ chối..."
+                className="w-full p-3 border border-gray-300 rounded-lg resize-none h-24 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                maxLength={500}
+              />
+
+              <div className="text-sm text-gray-500 mb-4">
+                {rejectionReason.length}/500 ký tự
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={cancelRejection}
+                  className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={confirmRejectAppointment}
+                  disabled={!rejectionReason.trim()}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                >
+                  Xác nhận từ chối
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -1410,31 +1499,6 @@ const DashBoardPage: React.FC = () => {
                 </button>
               </div>
             </form>
-
-            <div className="mt-8 pt-8 border-t border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Bảo mật tài khoản</h2>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <h3 className="font-medium text-gray-800">Xác thực hai yếu tố</h3>
-                    <p className="text-sm text-gray-600">Tăng cường bảo mật tài khoản với xác thực hai yếu tố</p>
-                  </div>
-                  <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
-                    Kích hoạt
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <h3 className="font-medium text-gray-800">Phiên đăng nhập</h3>
-                    <p className="text-sm text-gray-600">Quản lý các thiết bị đã đăng nhập</p>
-                  </div>
-                  <button className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
-                    Xem chi tiết
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         </main>
       </div>

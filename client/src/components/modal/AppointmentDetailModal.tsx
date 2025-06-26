@@ -242,6 +242,17 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
             </div>
           )}
 
+          {/* Rejection Reason */}
+          {appointment.Status === 'rejected' && appointment.RejectedReason && (
+            <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+              <div className="flex items-center mb-2">
+                <AlertCircle className="h-5 w-5 text-red-600 mr-2" />
+                <h5 className="font-medium text-red-800">Lý do từ chối</h5>
+              </div>
+              <p className="text-red-700">{appointment.RejectedReason}</p>
+            </div>
+          )}
+
           {/* Contact Info */}
           <div className="bg-blue-50 rounded-lg p-4">
             <div className="flex items-center mb-2">

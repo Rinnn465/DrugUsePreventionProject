@@ -8,4 +8,5 @@ export interface Appointment {
     Status: string;
     Description?: string;
     Duration: number; // in minutes
+    RejectedReason?: string; // Reason for rejection when status is 'rejected'
 }

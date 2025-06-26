@@ -489,7 +489,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
       )}
       {bookingStep === 'booking' && selectedDate && selectedTime && (
         <div className="flex flex-col items-center gap-4 p-6 border border-gray-300 rounded-lg bg-gray-50 max-w-md mx-auto">
-          <h2 className="text-xl font-semibold text-gray-800">Bạn có điều gì muốn nói với chuyên viên không?</h2>
+          <h2 className="text-xl font-semibold text-gray-800">Bạn có điều gì cần các chuyên viên lưu ý không?</h2>
           <textarea
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="Nhập nội dung tư vấn của bạn..."

@@ -198,6 +198,11 @@ const appointments = {
         return get<any[]>(`/appointment/filter?${queryParams.toString()}`);
     },
 
+    approve: (appointmentId: number) => put<{ message: string; meetingUrl: string }>(`/appointment/${appointmentId}/approve`),
+
+    reject: (appointmentId: number, rejectionReason: string) =>
+        put<{ message: string }>(`/appointment/${appointmentId}/reject`, { rejectionReason }),
+
     cancel: (appointmentId: number) => deleteRequest<{ message: string }>(`/appointment/${appointmentId}`),
 };
 

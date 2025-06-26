@@ -5,13 +5,11 @@ import { parseDate } from "../../utils/parseDateUtils";
 import { User } from "../../types/User";
 import { toast } from 'react-toastify';
 import { Survey } from "../../types/Survey";
-import { 
-  Calendar, 
-  Clock, 
-  Users, 
-  MapPin, 
-  ExternalLink, 
-  FileText, 
+import {
+  Calendar,
+  Users,
+  ExternalLink,
+  FileText,
   User as UserIcon,
   Star,
   CheckCircle,
@@ -365,7 +363,7 @@ const CommunityProgramDetails: React.FC = () => {
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
         <div className="container mx-auto px-6 py-12">
           <div className="flex items-center justify-between mb-6">
-            <Link 
+            <Link
               to="/community-programs"
               className="inline-flex items-center px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors font-medium"
             >
@@ -377,11 +375,11 @@ const CommunityProgramDetails: React.FC = () => {
               {statusConfig.text}
             </div>
           </div>
-          
+
           <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
             {programData.ProgramName}
           </h1>
-          
+
           <div className="flex flex-wrap items-center gap-6 text-blue-100">
             <div className="flex items-center">
               <Calendar className="h-5 w-5 mr-2" />
@@ -407,7 +405,7 @@ const CommunityProgramDetails: React.FC = () => {
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900">Thông tin chi tiết</h2>
               </div>
-              
+
               <div className="prose max-w-none space-y-6">
                 {/* Program Description (Short overview) */}
                 {programData.Description && (
@@ -418,7 +416,7 @@ const CommunityProgramDetails: React.FC = () => {
                     </p>
                   </div>
                 )}
-                
+
                 {/* Program Content (Detailed information) */}
                 {programData.Content && (
                   <div>
@@ -428,7 +426,7 @@ const CommunityProgramDetails: React.FC = () => {
                     </div>
                   </div>
                 )}
-                
+
                 {/* Fallback if neither Description nor Content is available */}
                 {!programData.Description && !programData.Content && (
                   <p className="text-gray-500 text-base italic">
@@ -454,14 +452,14 @@ const CommunityProgramDetails: React.FC = () => {
                     className="w-full h-80 object-cover rounded-xl shadow-lg"
                   />
                 </div>
-              )}
-              
-              <div className="prose max-w-none">
-                <p className="text-gray-700 text-lg leading-relaxed">
-                  {programData.Description}
-                </p>
+
+                <div className="prose max-w-none">
+                  <p className="text-gray-700 text-lg leading-relaxed">
+                    {programData.Description}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Survey Section */}
             {handleRenderSurveyForm() && (
@@ -482,7 +480,7 @@ const CommunityProgramDetails: React.FC = () => {
             {/* Quick Info Card */}
             <div className="bg-white rounded-2xl shadow-xl p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-6">Thông tin nhanh</h3>
-              
+
               <div className="space-y-4">
                 <div className="flex items-start">
                   <div className="bg-blue-100 rounded-full p-2 mr-3 mt-1">
@@ -511,10 +509,10 @@ const CommunityProgramDetails: React.FC = () => {
                     </div>
                     <div className="flex-1">
                       <p className="font-medium text-gray-900">Liên kết tham gia</p>
-                      <a 
-                        href={programData.Url} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
+                      <a
+                        href={programData.Url}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="text-blue-600 hover:text-blue-800 underline break-all"
                       >
                         Tham gia ngay
@@ -529,7 +527,7 @@ const CommunityProgramDetails: React.FC = () => {
             {user && (
               <div className="bg-white rounded-2xl shadow-xl p-6">
                 <h3 className="text-xl font-bold text-gray-900 mb-6">Hành động</h3>
-                
+
                 <div className="space-y-4">
                   {programData.Status === 'completed' ? (
                     <div className="text-center p-6 bg-gray-50 rounded-xl">

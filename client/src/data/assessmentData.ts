@@ -89,7 +89,7 @@ export const assessmentData: Assessment[] = [
   },
   {
     id: 2,
-    title: "Công cụ Sàng lọc CRAFFT",
+    title: "Bài trắc nghiệm CRAFFT",
     description: "Một công cụ sàng lọc ngắn dành cho thanh thiếu niên để đánh giá mức độ rủi ro liên quan đến rượu và các chất gây nghiện khác.",
     questionCount: 6,
     timeToComplete: 3,
