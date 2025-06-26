@@ -202,7 +202,6 @@ export const getPastPrograms = async (req: Request, res: Response): Promise<void
   }
 }
 
-//delete
 /** 
  * Deletes a specific community program by its ID
  * Marks the program as disabled instead of deleting it 
