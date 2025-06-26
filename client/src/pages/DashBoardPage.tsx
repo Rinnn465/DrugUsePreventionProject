@@ -10,7 +10,7 @@ import { toast } from 'react-toastify';
 
 interface ProfileFormData {
   username: string;
-  email: string;
+  email: string; // readonly - cannot be updated
   fullName: string;
   dateOfBirth: string;
 }
@@ -374,12 +374,7 @@ const DashBoardPage: React.FC = () => {
   const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
     setPasswordForm({ ...passwordForm, [e.target.name]: e.target.value });
   };
-
-  // Simple email validation
-  const isValidEmail = (email: string): boolean => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
-
+  
   // Username validation (letters and numbers only)
   const isValidUsername = (username: string): boolean => {
     return /^[a-zA-Z0-9]+$/.test(username);
@@ -406,10 +401,9 @@ const DashBoardPage: React.FC = () => {
       return;
     }
 
-    // Determine changed fields
+    // Determine changed fields (excluding email as it's readonly)
     const changedFields: Partial<ProfileFormData> = {};
     if (profileForm.username !== user?.Username) changedFields.username = profileForm.username;
-    if (profileForm.email !== user?.Email) changedFields.email = profileForm.email;
     if (profileForm.fullName !== user?.FullName) changedFields.fullName = profileForm.fullName;
     if (profileForm.dateOfBirth !== (user?.DateOfBirth ? new Date(user.DateOfBirth).toISOString().split('T')[0] : "")) {
       changedFields.dateOfBirth = profileForm.dateOfBirth;
@@ -423,11 +417,6 @@ const DashBoardPage: React.FC = () => {
     }
     if (changedFields.username && (!changedFields.username || changedFields.username.length < 3 || changedFields.username.length > 50 || !isValidUsername(changedFields.username))) {
       setMessage({ type: "error", text: "Tên người dùng phải từ 3 đến 50 ký tự và chỉ chứa chữ cái và số" });
-      setIsLoading(false);
-      return;
-    }
-    if (changedFields.email && (!changedFields.email || !isValidEmail(changedFields.email))) {
-      setMessage({ type: "error", text: "Email không hợp lệ" });
       setIsLoading(false);
       return;
     }
@@ -502,7 +491,6 @@ const DashBoardPage: React.FC = () => {
     setConsultantDetails(null);
   };
 
-  // ... existing code for other functions ...
 
   // Main Dashboard Page (modified to include consultant sections)
   if (!isCoursesPage && !isEventsPage && !isAppointmentsPage && !isSecurityPage) {
@@ -553,9 +541,11 @@ const DashBoardPage: React.FC = () => {
                       type="email"
                       name="email"
                       value={profileForm.email}
-                      onChange={handleProfileChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      readOnly
+                      className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm text-gray-500 cursor-not-allowed"
+                      title="Email không thể thay đổi vì nó là duy nhất trong hệ thống"
                     />
+                    <p className="mt-1 text-xs text-gray-500">Email không thể thay đổi</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Họ và tên</label>
@@ -610,9 +600,10 @@ const DashBoardPage: React.FC = () => {
                   </div>
                   <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
                     <Mail className="h-5 w-5 text-gray-400" />
-                    <div>
+                    <div className="flex-1">
                       <p className="text-sm text-gray-600">Email</p>
                       <p className="font-medium text-gray-800">{user?.Email}</p>
+                      <p className="text-xs text-gray-500 mt-1">Không thể thay đổi</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">

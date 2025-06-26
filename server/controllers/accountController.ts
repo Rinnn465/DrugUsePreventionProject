@@ -183,12 +183,8 @@ export const updateAccountProfile = async (
       updates.push("Username = @Username");
     }
     if (email !== undefined) {
-      if (!email || !isValidEmail(email)) {
-        res.status(400).json({ message: "Email không hợp lệ" });
-        return;
-      }
-      request.input("Email", sql.NVarChar, email);
-      updates.push("Email = @Email");
+      res.status(400).json({ message: "Email không thể được thay đổi vì nó là duy nhất trong hệ thống" });
+      return;
     }
     if (fullName !== undefined) {
       if (!fullName || fullName.length < 2 || fullName.length > 100) {
