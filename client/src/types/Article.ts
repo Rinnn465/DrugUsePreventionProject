@@ -6,6 +6,7 @@ export interface Article {
     ImageUrl?: string | undefined;
     Author: string;
     Status: string;
+    Description?: string | null;
     Content: string;
     IsDisabled: boolean;
 }

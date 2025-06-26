@@ -14,13 +14,11 @@ function formatDate(dateString: string) {
 
 const BlogPostCard: React.FC<Article> = ({
   BlogID,
-  AccountID,
   ArticleTitle,
   PublishedDate,
   ImageUrl,
   Content,
-  Status,
-  IsDisabled,
+  Description,
   Author,
 }) => {
   return (
@@ -50,7 +48,7 @@ const BlogPostCard: React.FC<Article> = ({
         </h3>
         
         <p className="text-gray-600 mb-6 line-clamp-3 flex-grow leading-relaxed">
-          {Content}
+          {Description || Content}
         </p>
 
         {/* Author Info */}

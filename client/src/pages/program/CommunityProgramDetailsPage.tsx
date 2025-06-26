@@ -408,10 +408,33 @@ const CommunityProgramDetails: React.FC = () => {
                 <h2 className="text-2xl font-bold text-gray-900">Thông tin chi tiết</h2>
               </div>
               
-              <div className="prose max-w-none">
-                <p className="text-gray-700 text-lg leading-relaxed">
-                  {programData.Description}
-                </p>
+              <div className="prose max-w-none space-y-6">
+                {/* Program Description (Short overview) */}
+                {programData.Description && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Mô tả chương trình</h3>
+                    <p className="text-gray-700 text-base leading-relaxed">
+                      {programData.Description}
+                    </p>
+                  </div>
+                )}
+                
+                {/* Program Content (Detailed information) */}
+                {programData.Content && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Giới thiệu chi tiết</h3>
+                    <div className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
+                      {programData.Content}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Fallback if neither Description nor Content is available */}
+                {!programData.Description && !programData.Content && (
+                  <p className="text-gray-500 text-base italic">
+                    Thông tin chi tiết chưa được cập nhật.
+                  </p>
+                )}
               </div>
             </div>
 

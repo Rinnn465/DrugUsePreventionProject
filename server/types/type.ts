@@ -101,6 +101,7 @@ export type Article = {
   ImageUrl?: string | null;
   Author: string;
   Status: string;
+  Description?: string | null;
   Content: string;
   IsDisabled: boolean;
 };
@@ -110,6 +111,7 @@ export interface CommunityProgram {
     Type?: string; // 'online'
     Date: string; // ISO date string
     Description?: string | null;
+    Content ?: string | null;
     Organizer?: string | null;
     Url: string;
     ImageUrl?: string | null;
@@ -126,7 +128,7 @@ export type SurveyCategory = {
   SurveyCategoryID: number;
   SurveyCategoryName?: string | null;
 };
-interface Survey{
+export interface Survey{
   SurveyID: number;
   Description: string;
   Type: boolean;

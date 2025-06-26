@@ -15,6 +15,7 @@ export const getAllPrograms = async (
                 Type,
                 Date,
                 Description,
+                Content,
                 Organizer,
                 Url,
                 ImageUrl,
@@ -45,7 +46,7 @@ export const getProgramById = async (
 
     const pool = await poolPromise;
     const result = await pool.request().input("id", id).query(`
-                SELECT ProgramID, ProgramName, Type, Date, Description, Organizer, Url, ImageUrl, IsDisabled, Status
+                SELECT ProgramID, ProgramName, Type, Date, Description, Content, Organizer, Url, ImageUrl, IsDisabled, Status
                 FROM CommunityProgram
                 WHERE ProgramID = @id AND IsDisabled = 0
             `);
@@ -67,7 +68,7 @@ export const getProgramById = async (
 };
 
 export async function createProgram(req: Request, res: Response): Promise<void> {
-    const { ProgramName, Type, date, Description, Organizer, Url, ImageUrl, IsDisabled } = req.body;
+    const { ProgramName, Type, date, Description, Content, Organizer, Url, ImageUrl, IsDisabled } = req.body;
     try {
         const pool = await poolPromise;
         const insertResult = await pool.request()
@@ -75,15 +76,16 @@ export async function createProgram(req: Request, res: Response): Promise<void> 
             .input('Type', sql.NVarChar, Type || 'online')
             .input('Date', sql.DateTime, date)
             .input('Description', sql.NVarChar, Description || null)
+            .input('Content', sql.NVarChar, Content || null)
             .input('Organizer', sql.NVarChar, Organizer || null)
             .input('Url', sql.NVarChar, Url)
             .input('ImageUrl', sql.NVarChar, ImageUrl || null)
             .input('IsDisabled', sql.Bit, IsDisabled)
             .query(`
                 INSERT INTO CommunityProgram 
-                (ProgramName, Type, Date, Description, Organizer, Url, ImageUrl, IsDisabled)
+                (ProgramName, Type, Date, Description, Content, Organizer, Url, ImageUrl, IsDisabled)
                 OUTPUT INSERTED.ProgramID
-                VALUES (@ProgramName, @Type, @date, @Description, @Organizer, @Url, @ImageUrl, @IsDisabled)
+                VALUES (@ProgramName, @Type, @date, @Description, @Content, @Organizer, @Url, @ImageUrl, @IsDisabled)
             `);
         const newProgramId = insertResult.recordset[0].ProgramID;
         const result = await pool.request()
@@ -97,7 +99,7 @@ export async function createProgram(req: Request, res: Response): Promise<void> 
 
 export async function updateProgram(req: Request, res: Response): Promise<void> {
     const { id } = req.params; Number(id);
-    const { ProgramName, Type, date, Description, Organizer, Url, ImageUrl, IsDisabled } = req.body;
+    const { ProgramName, Type, date, Description, Content, Organizer, Url, ImageUrl, IsDisabled } = req.body;
     try {
         const pool = await poolPromise;
         const updateResult = await pool.request()
@@ -106,6 +108,7 @@ export async function updateProgram(req: Request, res: Response): Promise<void> 
             .input('Type', sql.NVarChar, Type || 'online')
             .input('Date', sql.DateTime, date)
             .input('Description', sql.NVarChar, Description || null)
+            .input('Content', sql.NVarChar, Content || null)
             .input('Organizer', sql.NVarChar, Organizer || null)
             .input('Url', sql.NVarChar, Url)
             .input('ImageUrl', sql.NVarChar, ImageUrl || null)
@@ -116,6 +119,7 @@ export async function updateProgram(req: Request, res: Response): Promise<void> 
                     Type = @Type,
                     Date = @date,
                     Description = @Description,
+                    Content = @Content,
                     Organizer = @Organizer,
                     Url = @Url,
                     ImageUrl = @ImageUrl,

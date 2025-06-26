@@ -124,8 +124,33 @@ const ArticleDetailsPage = () => {
                     </figure>
                 )}
 
-                <article className="prose prose-lg max-w-none text-gray-700 leading-relaxed">
-                    <div dangerouslySetInnerHTML={{ __html: article?.Content || '' }} />
+                <article className="prose prose-lg max-w-none text-gray-700 leading-relaxed space-y-6">
+                    {/* Article Description (Short overview) */}
+                    {article?.Description && (
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-3">Tóm tắt bài viết</h3>
+                            <p className="text-gray-700 text-base leading-relaxed">
+                                {article.Description}
+                            </p>
+                        </div>
+                    )}
+                    
+                    {/* Article Content (Detailed information) */}
+                    {article?.Content && (
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-3">Nội dung chi tiết</h3>
+                            <div className="text-gray-700 text-base leading-relaxed">
+                                <div dangerouslySetInnerHTML={{ __html: article.Content }} />
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Fallback if neither Description nor Content is available */}
+                    {!article?.Description && !article?.Content && (
+                        <p className="text-gray-500 text-base italic">
+                            Nội dung bài viết chưa được cập nhật.
+                        </p>
+                    )}
                 </article>
             </div>
 
