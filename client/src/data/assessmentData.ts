@@ -12,92 +12,76 @@ export const assessmentData: Assessment[] = [
     questions: [
       {
         id: 1,
-        text: "Trong cuộc sống của bạn, bạn đã từng sử dụng những chất nào sau đây? (Chỉ tính việc sử dụng không vì mục đích y tế)",
+        text: "Bạn đã từng sử dụng chất kích thích trong đời chưa",
         type: "checkbox",
         options: [
-          { id: "a", text: "Các sản phẩm thuốc lá", value: 1 },
-          { id: "b", text: "Đồ uống có cồn", value: 2 },
-          { id: "c", text: "Cần sa", value: 3 },
-          { id: "d", text: "Cocain", value: 4 },
-          { id: "e", text: "Chất kích thích loại amphetamine", value: 5 },
-          { id: "f", text: "Chất hít", value: 6 },
-          { id: "g", text: "Thuốc an thần hoặc thuốc ngủ", value: 7 },
-          { id: "h", text: "Chất gây ảo giác", value: 8 },
-          { id: "i", text: "Thuốc phiện (opioid)", value: 9 },
-          { id: "j", text: "Không có", value: 0 }
+          { id: "a", text: "Có", value: 1 },
+          { id: "b", text: "Không", value: 2 },
         ]
       },
       {
         id: 2,
-        text: "Trong ba tháng qua, bạn đã sử dụng các chất gây nghiện đã nêu ở mức độ nào?",
+        text: "Trong 3 tháng qua, bạn có từng nghĩ đến việc sử dụng chất kích thích không?",
         options: [
-          { id: "aa", text: "Chưa bao giờ", value: 0 },
-          { id: "bb", text: "Một hoặc hai lần", value: 2 },
-          { id: "cc", text: "Hàng tháng", value: 3 },
-          { id: "dd", text: "Hàng tuần", value: 4 },
-          { id: "ee", text: "Hàng ngày hoặc gần như hàng ngày", value: 6 }
+          { id: "a", text: "Chưa bao giờ", value: 0 },
+          { id: "b", text: "Một hoặc hai lần", value: 2 },
+          { id: "c", text: "Hàng tháng", value: 3 },
+          { id: "d", text: "Hàng tuần", value: 4 },
+          { id: "e", text: "Hàng ngày hoặc gần như hàng ngày", value: 6 }
         ]
       },
       {
         id: 3,
-        text: "Bạn có cảm thấy ham muốn mạnh mẽ hoặc thôi thúc phải sử dụng các chất gây nghiện đó không?",
+        text: "Bạn có biết tác hại của chất ma túy đối với sức khỏe và cuộc sống không?",
         options: [
-          { id: "aa", text: "Không bao giờ", value: 0 },
-          { id: "bb", text: "Hiếm khi", value: 2 },
-          { id: "cc", text: "Thỉnh thoảng", value: 3 },
-          { id: "dd", text: "Thường xuyên", value: 4 },
-          { id: "ee", text: "Hầu như luôn luôn", value: 6 }
+          { id: "a", text: "Có", value: 0 },
+          { id: "b", text: "Không", value: 2 }
         ]
       },
       {
         id: 4,
-        text: "Trong ba tháng qua, việc sử dụng các chất gây nghiện có gây ra hậu quả nào cho bạn không (như sức khỏe, tâm lý, gia đình, học tập hoặc công việc)?",
+        text: "Bạn có từng bị người thân, bạn bè hoặc người khác khuyên không nên sử dụng chất ma túy không?",
         options: [
-          { id: "aa", text: "Không bao giờ", value: 0 },
-          { id: "bb", text: "Hiếm khi", value: 2 },
-          { id: "cc", text: "Thỉnh thoảng", value: 4 },
-          { id: "dd", text: "Thường xuyên", value: 6 },
-          { id: "ee", text: "Hầu như luôn luôn", value: 8 }
+          { id: "aa", text: "Có", value: 0 },
+          { id: "b", text: "Không", value: 2 },
         ]
       },
       {
         id: 5,
-        text: "Người thân, bạn bè hoặc người khác có lo lắng về việc bạn sử dụng các chất gây nghiện không?",
+        text: "Bạn có cảm thấy áp lực từ bạn bè hoặc môi trường xung quanh để thử hoặc sử dụng chất ma túy không",
         options: [
-          { id: "aa", text: "Không bao giờ", value: 0 },
-          { id: "bb", text: "Có, nhưng chỉ trong năm trước", value: 3 },
-          { id: "cc", text: "Có, trong ba tháng qua", value: 6 }
+          { id: "a", text: "Không bao giờ", value: 0 },
+          { id: "b", text: "Thỉnh Thoảng ", value: 1 },
+          { id: "c", text: "Thường xuyên", value: 2 }
         ]
       },
       {
         id: 6,
-        text: "Bạn đã từng cố gắng nhưng không thể kiểm soát hoặc giảm bớt việc sử dụng các chất gây nghiện đó chưa?",
+        text: "Bạn có quan tâm hoặc muốn tìm hiểu thêm về cách phòng tránh hoặc từ chối sử dụng chất ma túy không",
         options: [
-          { id: "aa", text: "Không bao giờ", value: 0 },
-          { id: "bb", text: "Hiếm khi", value: 2 },
-          { id: "cc", text: "Thỉnh thoảng", value: 4 },
-          { id: "dd", text: "Thường xuyên", value: 6 },
-          { id: "ee", text: "Hầu như luôn luôn", value: 8 }
+          { id: "a", text: "Không bao giờ", value: 0 },
+          { id: "b", text: "Hiếm khi", value: 1 },
+          { id: "c", text: "Thỉnh thoảng", value: 2 },
+          { id: "d", text: "Thường xuyên", value: 3 },
+          { id: "e", text: "Hầu như luôn luôn", value: 4 }
         ]
       },
       {
         id: 7,
-        text: "Bạn đã từng sử dụng các chất gây nghiện đó trong tình huống có thể gây nguy hiểm không (ví dụ: lái xe, vận hành máy móc)?",
+        text: "Bạn có từng cảm thấy lo lắng hoặc bối rối khi nghĩ về việc sử dụng chất ma túy không",
         options: [
-          { id: "aa", text: "Không bao giờ", value: 0 },
-          { id: "bb", text: "Hiếm khi", value: 2 },
-          { id: "cc", text: "Thỉnh thoảng", value: 4 },
-          { id: "dd", text: "Thường xuyên", value: 6 },
-          { id: "ee", text: "Hầu như luôn luôn", value: 8 }
+          { id: "a", text: "Không bao giờ", value: 0 },
+          { id: "b", text: "Thỉnh thoảng", value: 1 },
+          { id: "c", text: "Thường xuyên", value: 2 },
         ]
       },
       {
         id: 8,
-        text: "Bạn có gặp phải bất kỳ vấn đề pháp lý nào liên quan đến việc sử dụng các chất gây nghiện đó không?",
+        text: "Bạn có tìm hiểu vấn đề pháp lý nào liên quan đến việc sử dụng các chất gây nghiện đó không?",
         options: [
-          { id: "aa", text: "Không bao giờ", value: 0 },
-          { id: "bb", text: "Có, nhưng chỉ trong năm trước", value: 4 },
-          { id: "cc", text: "Có, trong ba tháng qua", value: 8 }
+          { id: "a", text: "Không bao giờ", value: 0 },
+          { id: "b", text: "Thỉnh thoảng", value: 1 },
+          { id: "c", text: "Thường xuyên", value: 2 }
         ]
       }
     ]
@@ -114,15 +98,15 @@ export const assessmentData: Assessment[] = [
     questions: [
       {
         id: 1,
-        text: "Bạn đã từng ngồi trên xe do ai đó (bao gồm cả bạn) lái khi người đó đang 'phê' hoặc đã sử dụng rượu hay ma túy chưa?",
+        text: "Bạn có từng bị bạn bè mời hay ép sử dung ma túy không",
         options: [
-          { id: "a", text: "Chưa", value: 0 },
-          { id: "b", text: "Rồi", value: 1 }
+          { id: "a", text: "Không", value: 0 },
+          { id: "b", text: "Có", value: 1 }
         ]
       },
       {
         id: 2,
-        text: "Bạn có bao giờ sử dụng rượu hoặc ma túy để thư giãn, cảm thấy tốt hơn về bản thân, hoặc để hoà nhập với mọi người không?",
+        text: "Bạn có thường xuyên cảm thấy buồn chán hoặc cô đơn kéo dài mà không tìm được ai chia sẻ không?",
         options: [
           { id: "a", text: "Không", value: 0 },
           { id: "b", text: "Có", value: 1 }
@@ -130,7 +114,7 @@ export const assessmentData: Assessment[] = [
       },
       {
         id: 3,
-        text: "Bạn có bao giờ sử dụng rượu hoặc ma túy khi đang ở một mình không?",
+        text: "Bạn có gặp khó khăn khi nói 'không' khi bạn bè mời sử dụng ma túy không?",
         options: [
           { id: "a", text: "Không", value: 0 },
           { id: "b", text: "Có", value: 1 }
@@ -138,7 +122,7 @@ export const assessmentData: Assessment[] = [
       },
       {
         id: 4,
-        text: "Bạn có bao giờ quên những việc đã làm khi đang sử dụng rượu hoặc ma túy không?",
+        text: "Trong gia đình bạn có ai từng sử dụng ma túy không không?",
         options: [
           { id: "a", text: "Không", value: 0 },
           { id: "b", text: "Có", value: 1 }
@@ -146,7 +130,7 @@ export const assessmentData: Assessment[] = [
       },
       {
         id: 5,
-        text: "Bạn có bao giờ bị người thân hoặc bạn bè khuyên nên giảm sử dụng rượu hoặc ma túy không?",
+        text: "Bạn có thường xuyên cảm thấy lo âu, căng thẳng hoặc có triệu chầm cảm nhẹ không?",
         options: [
           { id: "a", text: "Không", value: 0 },
           { id: "b", text: "Có", value: 1 }
@@ -154,7 +138,7 @@ export const assessmentData: Assessment[] = [
       },
       {
         id: 6,
-        text: "Bạn có bao giờ gặp rắc rối khi sử dụng rượu hoặc ma túy không?",
+        text: "bạn có cho rằng việc mua hay tiếp cận ma túy trong khu vực mình sống rất dễ danngf không?",
         options: [
           { id: "a", text: "Không", value: 0 },
           { id: "b", text: "Có", value: 1 }
@@ -166,24 +150,23 @@ export const assessmentData: Assessment[] = [
     id: 3,
     title: "Đánh giá nguy cơ dành cho phụ huynh",
     description: "Giúp phụ huynh đánh giá các yếu tố nguy cơ tiềm ẩn trong môi trường gia đình và cách nuôi dạy con.",
-    questionCount: 7,
+    questionCount: 8,
     timeToComplete: 5,
     audiences: ["Phụ huynh", "Giáo viên"],
     color: "primary",
     questions: [
       {
         id: 1,
-        text: "Bạn đánh giá mức độ giao tiếp của gia đình về rủi ro của việc sử dụng các chất gây nghiện như thế nào?",
+        text: "Bạn có biết ma túy là gì và tác hại của nó đối với sức khỏe, tâm lý và tương lai của con trẻ?",
         options: [
-          { id: "a", text: "Chúng tôi thảo luận chủ đề này một cách cởi mở và thường xuyên", value: 0 },
-          { id: "b", text: "Chúng tôi thỉnh thoảng nói về chủ đề này", value: 1 },
-          { id: "c", text: "Chúng tôi hiếm khi đề cập đến chủ đề này", value: 2 },
-          { id: "d", text: "Chúng tôi không bao giờ nói về chủ đề này", value: 3 }
+          { id: "a", text: "Rất rõ, tôi thường tìm hiểu và cập nhật thông tin", value: 0 },
+          { id: "b", text: "Biết sơ qua nhưng chưa hiểu sâu", value: 1 },
+          { id: "c", text: "Không rõ hoặc chưa quan tâm", value: 2 },
         ]
       },
       {
         id: 2,
-        text: "Bạn có đặt ra các giới hạn rõ ràng và nhất quán cho hành vi của con không?",
+        text: "Bạn có thường xuyên trao đổi, nói chuyện với con về các vấn đề liên quan đến ma túy, tệ nạn xã hội không?",
         options: [
           { id: "a", text: "Luôn luôn", value: 0 },
           { id: "b", text: "Thường xuyên", value: 1 },
@@ -193,52 +176,56 @@ export const assessmentData: Assessment[] = [
       },
       {
         id: 3,
-        text: "Bạn có theo dõi các hoạt động của con khi ở ngoài nhà không?",
+        text: "Khi phát hiện con có dấu hiệu thay đổi về hành vi, bạn sẽ:",
         options: [
-          { id: "a", text: "Biết rõ con ở đâu, với ai và làm gì", value: 0 },
-          { id: "b", text: "Có theo dõi nhưng không thường xuyên", value: 1 },
-          { id: "c", text: "Ít khi biết con làm gì hoặc ở đâu", value: 2 },
-          { id: "d", text: "Không biết gì về hoạt động ngoài nhà của con", value: 3 }
+          { id: "a", text: "Lắng nghe, hỏi han và tìm hiểu nguyên nhân", value: 0 },
+          { id: "b", text: "Phân tích, nhắc nhở nhưng chưa tìm hiểu kỹ", value: 1 },
+          { id: "c", text: "Phớt lờ hoặc trách mắng ngay lập tức", value: 2 },
         ]
       },
       {
         id: 4,
-        text: "Bạn có cảm thấy mối quan hệ giữa bạn và con là tích cực và gắn bó không?",
+        text: "Bạn có biết cách nhận biết các dấu hiệu nghi ngờ con sử dụng ma túy hoặc các chất gây nghiện không?",
         options: [
-          { id: "a", text: "Rất gắn bó", value: 0 },
-          { id: "b", text: "Khá gắn bó", value: 1 },
-          { id: "c", text: "Thỉnh thoảng có khoảng cách", value: 2 },
-          { id: "d", text: "Thường xuyên căng thẳng hoặc xa cách", value: 3 }
+          { id: "a", text: "Rất rõ, có thể nhận biết sớm", value: 0 },
+          { id: "b", text: "Biết một số dấu hiệu cơ bản", value: 1 },
+          { id: "c", text: "Không biết dấu hiệu nào", value: 2 },
         ]
       },
       {
         id: 5,
-        text: "Bạn có biết nhóm bạn bè của con là ai và ảnh hưởng của họ như thế nào không?",
+        text: "Bạn có quản lý, giám sát việc bạn bè, hoạt động vui chơi, học tập của con không",
         options: [
-          { id: "a", text: "Rất rõ, và bạn tin tưởng nhóm bạn đó", value: 0 },
-          { id: "b", text: "Biết một số người, nhưng không rõ mối quan hệ", value: 1 },
-          { id: "c", text: "Không biết rõ hoặc không tin tưởng nhóm bạn của con", value: 2 },
-          { id: "d", text: "Hoàn toàn không biết con chơi với ai", value: 3 }
+          { id: "a", text: "Quản lý chặt chẽ, biết rõ bạn bè và hoạt động của con", value: 0 },
+          { id: "b", text: "Quản lý nhưng chưa chặt chẽ, còn nhiều điều chưa rõ", value: 1 },
+          { id: "c", text: "Không quản lý hoặc ít quan tâm", value: 2 },
         ]
       },
       {
         id: 6,
-        text: "Bạn có làm gương tốt về việc sử dụng các chất có thể gây nghiện (rượu, thuốc lá, thuốc kê đơn, v.v.) không?",
+        text: "Bạn có biết những nơi, tổ chức hoặc cơ quan nào có thể giúp đỡ nếu con bạn gặp vấn đề về ma túy?",
         options: [
-          { id: "a", text: "Tôi không sử dụng hoặc sử dụng rất có trách nhiệm", value: 0 },
-          { id: "b", text: "Thỉnh thoảng sử dụng nhưng có kiểm soát", value: 1 },
-          { id: "c", text: "Sử dụng thường xuyên và không luôn làm gương tốt", value: 2 },
-          { id: "d", text: "Sử dụng nhiều và thiếu kiểm soát", value: 3 }
+          { id: "a", text: "Biết rõ và sẵn sàng liên hệ khi cần", value: 0 },
+          { id: "b", text: "Biết sơ qua nhưng chưa từng liên hệ", value: 1 },
+          { id: "c", text: "Không biết nơi nào để giúp", value: 2 },
         ]
       },
       {
         id: 7,
-        text: "Trong gia đình, có thành viên nào hiện đang sử dụng các chất gây nghiện hoặc có tiền sử nghiện không?",
+        text: "Bạn có sẵn sàng phối hợp với nhà trường, cộng đồng và các cơ quan chức năng trong việc phòng chống ma túy cho con không?",
         options: [
-          { id: "a", text: "Không", value: 0 },
-          { id: "b", text: "Có, nhưng đã cai nghiện thành công", value: 1 },
-          { id: "c", text: "Có, đang trong quá trình cai", value: 2 },
-          { id: "d", text: "Có, vẫn đang sử dụng", value: 3 }
+          { id: "a", text: "Rất sẵn sàng và đã tham gia các hoạt động", value: 0 },
+          { id: "b", text: "Có ý định nhưng chưa tham gia nhiều", value: 1 },
+          { id: "c", text: "Không quan tâm hoặc không muốn tham gia", value: 2 },
+        ]
+      },
+      {
+        id: 8,
+        text: "Bạn có tạo môi trường gia đình lành mạnh, gần gũi, để con cảm thấy an toàn chia sẻ mọi điều không?",
+        options: [
+          { id: "a", text: "Luôn cố gắng xây dựng môi trường như vậy", value: 0 },
+          { id: "b", text: "Đôi khi làm được, đôi khi chưa", value: 1 },
+          { id: "c", text: "Ít quan tâm hoặc không biết cách tạo môi trường như vậy", value: 2 },
         ]
       },
     ]
@@ -254,82 +241,75 @@ export const assessmentData: Assessment[] = [
     questions: [
       {
         id: 1,
-        text: "Trường của bạn có chương trình phòng ngừa sử dụng các chất gây nghiện đầy đủ không?",
+        text: "Bạn có biết trường học hiện đang triển khai những hoạt động nào nhằm nâng cao nhận thức về phòng chống ma túy cho học sinh??",
         options: [
-          { id: "a", text: "Có, được triển khai tốt", value: 0 },
-          { id: "b", text: "Có, nhưng triển khai còn hạn chế", value: 1 },
-          { id: "c", text: "Chỉ có chương trình tối thiểu hoặc lỗi thời", value: 2 },
-          { id: "d", text: "Không có chương trình phòng ngừa", value: 3 }
+          { id: "a", text: "Tổ chức các buổi tuyên truyền, nói chuyện chuyên đề", value: 0 },
+          { id: "b", text: "Lồng ghép giáo dục phòng chống ma túy trong các môn học", value: 1 },
+          { id: "c", text: "Tổ chức các hoạt động ngoại khóa, hội thi, sân khấu hóa", value: 2 },
+          { id: "d", text: "Chưa biết hoặc không có hoạt động nào", value: 3 }
         ]
       },
       {
         id: 2,
-        text: "Giáo viên có được đào tạo về cách nhận diện và xử lý sớm các hành vi nguy cơ liên quan đến các chất gây nghiện không?",
+        text: "Theo bạn, việc giáo dục phòng chống ma túy trong nhà trường có quan trọng không?",
         options: [
-          { id: "a", text: "Được đào tạo bài bản và cập nhật thường xuyên", value: 0 },
-          { id: "b", text: "Được đào tạo nhưng không thường xuyên", value: 1 },
-          { id: "c", text: "Được đào tạo sơ sài hoặc không đầy đủ", value: 2 },
-          { id: "d", text: "Không được đào tạo", value: 3 }
+          { id: "a", text: "Rất quan trọng, là nhiệm vụ cấp thiết để bảo vệ học sinh", value: 0 },
+          { id: "b", text: "Quan trọng nhưng chưa phải ưu tiên hàng đầu", value: 1 },
+          { id: "c", text: "Không quan trọng hoặc không cần thiết", value: 2 },
         ]
       },
       {
         id: 3,
-        text: "Trường có chính sách rõ ràng và thực thi nghiêm túc về phòng chống sử dụng các chất gây nghiện không?",
+        text: "Bạn đánh giá thế nào về vai trò của giáo viên và cán bộ quản lý trong công tác phòng chống ma túy tại trường?",
         options: [
-          { id: "a", text: "Có chính sách rõ ràng và áp dụng hiệu quả", value: 0 },
-          { id: "b", text: "Có chính sách nhưng thực thi chưa nghiêm", value: 1 },
-          { id: "c", text: "Chính sách chưa rõ ràng", value: 2 },
-          { id: "d", text: "Không có chính sách", value: 3 }
+          { id: "a", text: "Rất tích cực, chủ động phối hợp với các lực lượng chức năn", value: 0 },
+          { id: "b", text: "Có vai trò nhưng còn hạn chế, chưa đồng bộ", value: 1 },
+          { id: "c", text: "Ít quan tâm hoặc chưa tham gia nhiều", value: 2 },
         ]
       },
       {
         id: 4,
-        text: "Học sinh có được giáo dục định kỳ về kỹ năng sống và phòng ngừa nguy cơ không?",
+        text: "Nhà trường có tổ chức các chương trình đào tạo, tập huấn kỹ năng phòng chống ma túy cho học sinh không??",
         options: [
-          { id: "a", text: "Có, nằm trong chương trình chính khóa", value: 0 },
-          { id: "b", text: "Có, nhưng chỉ là hoạt động ngoại khóa", value: 1 },
-          { id: "c", text: "Chỉ tổ chức một vài lần trong năm", value: 2 },
-          { id: "d", text: "Không có hoạt động giáo dục này", value: 3 }
+          { id: "a", text: "Có, thường xuyên và bài bản", value: 0 },
+          { id: "b", text: "Có nhưng chưa thường xuyên, chưa đầy đủ", value: 1 },
+          { id: "c", text: "Không hoặc rất ít", value: 2 },
         ]
       },
       {
         id: 5,
-        text: "Trường có phối hợp với phụ huynh trong các hoạt động giáo dục phòng ngừa không?",
+        text: "Bạn có biết trường học phối hợp với các cơ quan chức năng (công an, y tế, đoàn thể) trong phòng chống ma túy không?",
         options: [
-          { id: "a", text: "Có sự phối hợp chặt chẽ và thường xuyên", value: 0 },
-          { id: "b", text: "Có nhưng chưa thường xuyên", value: 1 },
-          { id: "c", text: "Chỉ thông tin một chiều", value: 2 },
-          { id: "d", text: "Không có sự phối hợp", value: 3 }
+          { id: "a", text: "Có, phối hợp chặt chẽ và hiệu quả", value: 0 },
+          { id: "b", text: "Có nhưng chưa thường xuyên, chưa hiệu quả", value: 1 },
+          { id: "c", text: "Không biết hoặc không có phối hợp", value: 2 },
         ]
       },
       {
         id: 6,
-        text: "Học sinh có thể tiếp cận dịch vụ tư vấn học đường khi gặp khó khăn về tâm lý hoặc hành vi không?",
+        text: "Bạn đánh giá thế nào về hiệu quả của các chương trình phòng chống ma túy trong trường học hiện nay?",
         options: [
-          { id: "a", text: "Có đầy đủ và dễ tiếp cận", value: 0 },
-          { id: "b", text: "Có nhưng chưa phổ biến với học sinh", value: 1 },
-          { id: "c", text: "Có nhưng thiếu nhân lực hoặc chuyên môn", value: 2 },
-          { id: "d", text: "Không có dịch vụ tư vấn", value: 3 }
+          { id: "a", text: "Rất hiệu quả, giúp học sinh nâng cao nhận thức và kỹ năng", value: 0 },
+          { id: "b", text: "Có hiệu quả nhưng chưa bền vững, cần cải thiện", value: 1 },
+          { id: "c", text: "Ít hiệu quả hoặc chưa thấy tác động rõ rệt", value: 2 },
         ]
       },
       {
         id: 7,
-        text: "Nhà trường có theo dõi và đánh giá định kỳ các yếu tố rủi ro trong môi trường học đường không?",
+        text: "Theo bạn, học sinh có được trang bị đầy đủ kỹ năng để nhận biết và từ chối ma túy trong môi trường học đường không?",
         options: [
-          { id: "a", text: "Có hệ thống theo dõi chặt chẽ và đánh giá thường xuyên", value: 0 },
-          { id: "b", text: "Có nhưng đánh giá chưa định kỳ", value: 1 },
-          { id: "c", text: "Theo dõi không có hệ thống rõ ràng", value: 2 },
-          { id: "d", text: "Không có hoạt động theo dõi đánh giá", value: 3 }
+          { id: "a", text: "Có, qua các bài học kỹ năng sống và hoạt động ngoại khóa", value: 0 },
+          { id: "b", text: "Chưa đầy đủ, cần tăng cường thêm", value: 1 },
+          { id: "c", text: "Không hoặc rất ít được trang bị", value: 2 },
         ]
       },
       {
         id: 8,
-        text: "Trường có tạo môi trường tích cực, hỗ trợ phát triển toàn diện cho học sinh không?",
+        text: "Bạn có đồng ý rằng việc xây dựng môi trường học đường lành mạnh, không ma túy là trách nhiệm của toàn bộ cán bộ, giáo viên và học sinh?",
         options: [
-          { id: "a", text: "Môi trường tích cực và hỗ trợ toàn diện", value: 0 },
-          { id: "b", text: "Có nỗ lực nhưng còn thiếu nhất quán", value: 1 },
-          { id: "c", text: "Môi trường học chưa khuyến khích sự phát triển", value: 2 },
-          { id: "d", text: "Môi trường không tích cực, thiếu hỗ trợ", value: 3 }
+          { id: "a", text: "Đồng ý hoàn toàn", value: 0 },
+          { id: "b", text: "Đồng ý một phần", value: 1 },
+          { id: "c", text: "Không đồng ý hoặc không rõ", value: 2 },
         ]
       }
     ]
