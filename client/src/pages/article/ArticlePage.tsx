@@ -1,12 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { Search, Newspaper, TrendingUp, Users, BookOpen, Filter } from 'lucide-react';
+import React, { useEffect, useState, useMemo } from 'react';
+import { Newspaper, TrendingUp, Users, BookOpen, Filter, X } from 'lucide-react';
 import BlogPostCard from '../../components/blog/BlogPostCard';
 import { Article } from '../../types/Article';
 
 const ArticlePage: React.FC = () => {
   const [blogPosts, setBlogPosts] = useState<Article[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  
+  // Filter states
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedDateRange, setSelectedDateRange] = useState<string>('all');
+
   useEffect(() => {
     fetch('http://localhost:5000/api/article')
       .then(response => response.json())
@@ -21,10 +25,49 @@ const ArticlePage: React.FC = () => {
       });
   }, []);
 
-  const filteredPosts = blogPosts?.filter(post => 
-    post.ArticleTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    post.Content.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+    // Get unique authors from blog posts (since there's no category)
+  const authors = useMemo(() => {
+    const allAuthors = blogPosts.map(post => post.Author).filter(Boolean);
+    return [...new Set(allAuthors)];
+  }, [blogPosts]);
+
+  // Filter logic
+  const filteredPosts = useMemo(() => {
+    return blogPosts?.filter(post => {
+      // Filter by author (replacing category)
+      if (selectedCategory !== 'all' && post.Author !== selectedCategory) {
+        return false;
+      }
+
+      // Filter by date range
+      if (selectedDateRange !== 'all') {
+        const postDate = new Date(post.PublishedDate);
+        const now = new Date();
+        const daysDiff = Math.floor((now.getTime() - postDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        switch (selectedDateRange) {
+          case 'week':
+            if (daysDiff > 7) return false;
+            break;
+          case 'month':
+            if (daysDiff > 30) return false;
+            break;
+          case 'quarter':
+            if (daysDiff > 90) return false;
+            break;
+        }
+      }
+
+       return true;
+     }) || [];
+    }, [blogPosts, selectedCategory, selectedDateRange]);
+
+  const clearFilters = () => {
+    setSelectedCategory('all');
+    setSelectedDateRange('all');
+  };
+
+  const hasActiveFilters = selectedCategory !== 'all' || selectedDateRange !== 'all';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-primary-50">
@@ -53,23 +96,64 @@ const ArticlePage: React.FC = () => {
       </div>
 
       <div className="container mx-auto px-4 py-16">
-        {/* Search Section */}
-        <div className="max-w-2xl mx-auto mb-16">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-            <div className="flex items-center mb-6">
-              <Filter className="h-5 w-5 text-primary-600 mr-2" />
-              <h2 className="text-lg font-semibold text-gray-900">Tìm kiếm bài viết</h2>
+        {/* Filter Section */}
+        <div className="mb-12">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <Filter className="h-5 w-5 text-blue-600" />
+              <h2 className="text-xl font-bold text-gray-800">Lọc bài viết</h2>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="ml-auto flex items-center gap-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                  Xóa bộ lọc
+                </button>
+              )}
             </div>
             
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                type="text"
-                placeholder="Tìm kiếm theo tiêu đề hoặc nội dung..."
-                className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors text-gray-700"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Author Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Tác giả
+                </label>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                >
+                  <option value="all">Tất cả tác giả</option>
+                  {authors.map((author) => (
+                    <option key={author} value={author}>
+                      {author}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Date Range Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Thời gian đăng
+                </label>
+                <select
+                  value={selectedDateRange}
+                  onChange={(e) => setSelectedDateRange(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                >
+                  <option value="all">Tất cả thời gian</option>
+                  <option value="week">Tuần này</option>
+                  <option value="month">Tháng này</option>
+                  <option value="quarter">3 tháng qua</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Results Count */}
+            <div className="mt-4 text-sm text-gray-600">
+              Hiển thị <span className="font-semibold text-blue-600">{filteredPosts.length}</span> / {blogPosts.length} bài viết
             </div>
           </div>
         </div>
@@ -79,16 +163,13 @@ const ArticlePage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                {searchTerm ? 'Kết quả tìm kiếm' : 'Bài viết mới nhất'}
+                Bài viết mới nhất
                 {filteredPosts.length > 0 && (
                   <span className="text-primary-600"> ({filteredPosts.length} bài viết)</span>
                 )}
               </h2>
               <p className="text-gray-600">
-                {searchTerm 
-                  ? `Tìm thấy ${filteredPosts.length} bài viết cho "${searchTerm}"` 
-                  : 'Khám phá những bài viết hữu ích và cập nhật nhất'
-                }
+                Khám phá những bài viết hữu ích và cập nhật nhất
               </p>
             </div>
           </div>
@@ -120,25 +201,33 @@ const ArticlePage: React.FC = () => {
                     <Newspaper className="h-12 w-12 text-gray-400" />
                   </div>
                   <h3 className="text-2xl font-semibold mb-4 text-gray-900">
-                    {searchTerm ? 'Không tìm thấy bài viết' : 'Chưa có bài viết'}
+                    Không tìm thấy bài viết phù hợp
                   </h3>
                   <p className="text-gray-600 mb-6">
-                    {searchTerm 
-                      ? 'Hãy thử từ khóa khác hoặc xóa bộ lọc' 
-                      : 'Hãy quay lại sau để xem những bài viết mới nhất'
-                    }
+                    Hãy thử điều chỉnh bộ lọc để tìm thấy bài viết phù hợp với bạn
                   </p>
-                  {searchTerm && (
-                    <button 
-                      onClick={() => setSearchTerm('')}
-                      className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors font-medium"
-                    >
-                      Xóa bộ lọc
-                    </button>
-                  )}
+                  <button 
+                    onClick={clearFilters}
+                    className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors font-medium"
+                  >
+                    Xóa bộ lọc
+                  </button>
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* No posts at all */}
+        {blogPosts.length === 0 && !loading && (
+          <div className="text-center py-20">
+            <div className="max-w-md mx-auto">
+              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Newspaper className="h-12 w-12 text-gray-400" />
+              </div>
+              <h3 className="text-2xl font-semibold mb-4 text-gray-900">Chưa có bài viết</h3>
+              <p className="text-gray-600">Hãy quay lại sau để xem những bài viết mới nhất</p>
+            </div>
           </div>
         )}
       </div>

@@ -132,7 +132,7 @@ const CommunityProgramPage: React.FC = () => {
         }
       } catch (error) {
         console.error('Error fetching events:', error);
-        setError('Không thể tải danh sách sự kiện. Vui lòng thử lại sau.');
+        setError('Không thể tải danh sách chương trình. Vui lòng thử lại sau.');
         setEvents([]);
       } finally {
         setLoading(false);
@@ -334,7 +334,7 @@ const CommunityProgramPage: React.FC = () => {
 
         {isProgramCompleted ? (
           <div className="text-center text-gray-600 font-medium text-sm bg-gray-100 py-3 rounded-lg">
-            Chương trình đã hoàn thành
+            Chương trình đã kết thúc
           </div>
         ) : isAuthenticated ? (
           enrollmentStatus?.isEnrolled ? (
@@ -376,7 +376,7 @@ const CommunityProgramPage: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Đang tải danh sách sự kiện...</p>
+          <p className="mt-4 text-gray-600">Đang tải danh sách chương trình...</p>
         </div>
       </div>
     );
@@ -417,10 +417,10 @@ const CommunityProgramPage: React.FC = () => {
               <div className="p-2 bg-white/20 rounded-full backdrop-blur-sm">
                 <Users className="h-6 w-6" />
               </div>
-              Tin Tức Sự Kiện
+              Chương Trình Cộng Đồng
             </h1>
             <p className="text-lg md:text-xl mb-6 text-blue-100 leading-relaxed">
-              Khám phá các sự kiện phòng chống ma túy trực tuyến sắp diễn ra
+              Khám phá các chương trình phòng chống ma túy trực tuyến sắp diễn ra
             </p>
           </div>
         </div>
@@ -428,11 +428,11 @@ const CommunityProgramPage: React.FC = () => {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Filter Section */}
-        <div className="max-w-6xl mx-auto mb-12">
+        <div className="mb-12">
           <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
             <div className="flex items-center gap-3 mb-6">
               <Filter className="h-5 w-5 text-blue-600" />
-              <h2 className="text-xl font-bold text-gray-800">Lọc sự kiện</h2>
+              <h2 className="text-xl font-bold text-gray-800">Lọc chương trình</h2>
               {hasActiveFilters && (
                 <button
                   onClick={clearFilters}
@@ -448,7 +448,7 @@ const CommunityProgramPage: React.FC = () => {
               {/* Status Filter */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Trạng thái sự kiện
+                  Trạng thái chương trình
                 </label>
                 <select
                   value={selectedStatus}
@@ -458,7 +458,7 @@ const CommunityProgramPage: React.FC = () => {
                   <option value="all">Tất cả trạng thái</option>
                   <option value="upcoming">Sắp diễn ra</option>
                   <option value="ongoing">Đang diễn ra</option>
-                  <option value="completed">Đã hoàn thành</option>
+                  <option value="completed">Đã kết thúc</option>
                 </select>
               </div>
 
@@ -502,7 +502,7 @@ const CommunityProgramPage: React.FC = () => {
 
             {/* Results Count */}
             <div className="mt-4 text-sm text-gray-600">
-              Hiển thị <span className="font-semibold text-blue-600">{filteredEvents.length}</span> / {events.length} sự kiện
+              Hiển thị <span className="font-semibold text-blue-600">{filteredEvents.length}</span> / {events.length} chương trình
             </div>
           </div>
         </div>
@@ -526,7 +526,7 @@ const CommunityProgramPage: React.FC = () => {
                   {/* Badge trạng thái chương trình */}
                   <div className="absolute top-4 left-4">
                     <span className={`px-2 py-1 text-xs rounded-full text-white ${event.Status === 'upcoming' ? 'bg-blue-500' : event.Status === 'ongoing' ? 'bg-yellow-500' : 'bg-green-500'}`}>
-                      {event.Status === 'upcoming' ? 'Sắp diễn ra' : event.Status === 'ongoing' ? 'Đang diễn ra' : 'Đã hoàn thành'}
+                      {event.Status === 'upcoming' ? 'Sắp diễn ra' : event.Status === 'ongoing' ? 'Đang diễn ra' : 'Đã kết thúc'}
                     </span>
                   </div>
                   {/* Badge trạng thái đăng ký */}
@@ -575,10 +575,10 @@ const CommunityProgramPage: React.FC = () => {
             <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
               <Filter className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                Không tìm thấy sự kiện phù hợp
+                Không tìm thấy chương trình phù hợp
               </h3>
               <p className="text-gray-500 mb-4">
-                Hãy thử điều chỉnh bộ lọc để tìm thấy sự kiện phù hợp với bạn.
+                Hãy thử điều chỉnh bộ lọc để tìm thấy chương trình phù hợp với bạn.
               </p>
               <button
                 onClick={clearFilters}
@@ -596,9 +596,9 @@ const CommunityProgramPage: React.FC = () => {
             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">Không có sự kiện nào</h3>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">Không có chương trình nào</h3>
             <p className="mt-1 text-sm text-gray-500">
-              Hiện tại chưa có sự kiện nào được tổ chức.
+              Hiện tại chưa có chương trình nào được tổ chức.
             </p>
           </div>
         )}

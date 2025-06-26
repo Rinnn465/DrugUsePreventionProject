@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, BookOpen, Filter } from 'lucide-react';
+import { BookOpen, Filter, X } from 'lucide-react';
 import CourseCard from '../../components/courses/CourseCard';
 import { Category, SqlCourse } from '@/types/Course';
 
 // Define SqlCourse interface to ensure Category is an array
 const CoursesPage: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
   const [categoryData, setCategoryData] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
   const [courses, setCourses] = useState<SqlCourse[]>([]);
   const [error, setError] = useState<string | null>(null);
+  
+  // Filter states
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedRisk, setSelectedRisk] = useState<string>('all');
 
   // Transform API data to match SqlCourse type
   const transformCourseData = (apiData: any[]): SqlCourse[] => {
@@ -21,7 +23,7 @@ const CoursesPage: React.FC = () => {
       ImageUrl: course.ImageUrl,
       EnrollCount: course.EnrollCount,
       Duration: null,
-      Stauts: course.Status || 'Available',
+      Status: course.Status || 'Available',
       IsDisabled: course.IsDisabled || false,
       Category: [{ CategoryID: course.CategoryID, CategoryName: course.CategoryName }],
     }));
@@ -48,16 +50,33 @@ const CoursesPage: React.FC = () => {
 
   }, []);
 
+  // Get unique risk levels
+  const riskLevels = useMemo(() => {
+    const allRisks = courses.map(course => course.Risk).filter(Boolean);
+    return [...new Set(allRisks)];
+  }, [courses]);
+
   // Filter courses with memoization
   const filteredCourses = useMemo(() => {
     return courses.filter(course => {
-      const matchesSearch = course.CourseName.toLowerCase().includes(searchTerm.toLowerCase());
+      // Filter by category
       const matchesCategory =
         selectedCategory === '' ||
         course.Category.some(cat => cat.CategoryName === selectedCategory);
-      return matchesSearch && matchesCategory;
+      
+      // Filter by risk level
+      const matchesRisk = selectedRisk === 'all' || course.Risk === selectedRisk;
+      
+      return matchesCategory && matchesRisk;
     });
-  }, [courses, searchTerm, selectedCategory]);
+  }, [courses, selectedCategory, selectedRisk]);
+
+  const clearFilters = () => {
+    setSelectedCategory('');
+    setSelectedRisk('all');
+  };
+
+  const hasActiveFilters = selectedCategory !== '' || selectedRisk !== 'all';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
@@ -91,30 +110,33 @@ const CoursesPage: React.FC = () => {
           <div className="text-red-600 text-center mb-4">{error}</div>
         )}
 
-        {/* Search and Filter Section */}
-        <div className="max-w-4xl mx-auto mb-16">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-            <div className="flex items-center mb-6">
-              <Filter className="h-5 w-5 text-primary-600 mr-2" />
-              <h2 className="text-lg font-semibold text-gray-900">Tìm kiếm và lọc khóa học</h2>
+        {/* Filter Section */}
+        <div className="mb-12">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <Filter className="h-5 w-5 text-blue-600" />
+              <h2 className="text-xl font-bold text-gray-800">Lọc khóa học</h2>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="ml-auto flex items-center gap-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                  Xóa bộ lọc
+                </button>
+              )}
             </div>
-
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm khóa học..."
-                  className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors text-gray-700"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div className="flex gap-4">
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Category Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Đối tượng
+                </label>
                 <select
-                  className="pl-4 pr-10 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-gray-50 hover:bg-white transition-colors text-gray-700 font-medium min-w-[140px]"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                 >
                   <option value="">Tất cả đối tượng</option>
                   {categoryData.map((category) => (
@@ -124,6 +146,30 @@ const CoursesPage: React.FC = () => {
                   ))}
                 </select>
               </div>
+
+              {/* Risk Level Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Mức độ rủi ro
+                </label>
+                <select
+                  value={selectedRisk}
+                  onChange={(e) => setSelectedRisk(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                >
+                  <option value="all">Tất cả mức độ</option>
+                  {riskLevels.map((risk) => (
+                    <option key={risk} value={risk}>
+                      {risk}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Results Count */}
+            <div className="mt-4 text-sm text-gray-600">
+              Hiển thị <span className="font-semibold text-blue-600">{filteredCourses.length}</span> / {courses.length} khóa học
             </div>
           </div>
         </div>
@@ -134,8 +180,8 @@ const CoursesPage: React.FC = () => {
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 Danh sách khóa học
-                {courses.length > 0 && (
-                  <span className="text-primary-600"> ({courses.length} khóa học)</span>
+                {filteredCourses.length > 0 && (
+                  <span className="text-primary-600"> ({filteredCourses.length} khóa học)</span>
                 )}
               </h2>
               <p className="text-gray-600">Chọn khóa học phù hợp với nhu cầu của bạn</p>
@@ -155,13 +201,10 @@ const CoursesPage: React.FC = () => {
                 <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <BookOpen className="h-12 w-12 text-gray-400" />
                 </div>
-                <h3 className="text-2xl font-semibold mb-4 text-gray-900">Không tìm thấy khóa học</h3>
-                <p className="text-gray-600 mb-6">Hãy thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm</p>
+                <h3 className="text-2xl font-semibold mb-4 text-gray-900">Không tìm thấy khóa học phù hợp</h3>
+                <p className="text-gray-600 mb-6">Hãy thử điều chỉnh bộ lọc để tìm thấy khóa học phù hợp với bạn</p>
                 <button
-                  onClick={() => {
-                    setSearchTerm('');
-                    setSelectedCategory('');
-                  }}
+                  onClick={clearFilters}
                   className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors font-medium"
                 >
                   Xóa bộ lọc
@@ -170,6 +213,19 @@ const CoursesPage: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* No courses at all */}
+        {courses.length === 0 && (
+          <div className="text-center py-20">
+            <div className="max-w-md mx-auto">
+              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <BookOpen className="h-12 w-12 text-gray-400" />
+              </div>
+              <h3 className="text-2xl font-semibold mb-4 text-gray-900">Chưa có khóa học</h3>
+              <p className="text-gray-600">Hãy quay lại sau để xem những khóa học mới nhất</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -408,31 +408,23 @@ const CommunityProgramDetails: React.FC = () => {
                 <h2 className="text-2xl font-bold text-gray-900">Thông tin chi tiết</h2>
               </div>
               
-              <div className="prose max-w-none">
-                <p className="text-gray-700 text-lg leading-relaxed">
-                  {programData.Description}
-                </p>
-              </div>
-            </div>
-
-            {/* Program Image */}
-            {programData.ImageUrl && (
-              <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-                <div className="flex items-center p-6 border-b border-gray-100">
-                  <div className="bg-blue-100 rounded-full p-3 mr-4">
-                    <ImageIcon className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-900">Hình ảnh sự kiện</h2>
-                </div>
-                <div className="p-6">
+              {/* Program Image */}
+              {programData.ImageUrl && (
+                <div className="mb-6">
                   <img
                     src={programData.ImageUrl}
                     alt={programData.ProgramName}
                     className="w-full h-80 object-cover rounded-xl shadow-lg"
                   />
                 </div>
+              )}
+              
+              <div className="prose max-w-none">
+                <p className="text-gray-700 text-lg leading-relaxed">
+                  {programData.Description}
+                </p>
               </div>
-            )}
+            </div>
 
             {/* Survey Section */}
             {handleRenderSurveyForm() && (
