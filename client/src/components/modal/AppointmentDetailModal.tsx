@@ -17,7 +17,7 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
   appointment,
   isOpen,
   onClose,
-  consultantName = 'Đang tải...',
+  consultantName = 'Chuyên gia tư vấn',
   consultantTitle = '',
   consultantImageUrl = '',
   consultantSpecialties = []

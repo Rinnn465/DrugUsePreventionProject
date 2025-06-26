@@ -5,7 +5,23 @@ import { parseDate } from "../../utils/parseDateUtils";
 import { User } from "../../types/User";
 import { toast } from 'react-toastify';
 import { Survey } from "../../types/Survey";
-
+import { 
+  Calendar, 
+  Clock, 
+  Users, 
+  MapPin, 
+  ExternalLink, 
+  FileText, 
+  User as UserIcon,
+  Star,
+  CheckCircle,
+  XCircle,
+  ArrowLeft,
+  Image as ImageIcon,
+  ChevronRight,
+  AlertCircle,
+  Clock4
+} from 'lucide-react';
 
 const CommunityProgramDetails: React.FC = () => {
   const { programId } = useParams();
@@ -247,24 +263,22 @@ const CommunityProgramDetails: React.FC = () => {
     if (programData.Status === 'upcoming' && beforeSurvey && !isBeforeCompleted) {
       console.log('✅ Rendering before survey button with URL:', beforeSurveyUrl);
       return (
-        <div className="mt-6">
-          <Link to={beforeSurveyUrl}>
-            <button className="self-start px-6 py-3 text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-md font-semibold transition duration-200">
-              Khảo sát trước sự kiện
-            </button>
-          </Link>
-        </div>
+        <Link to={beforeSurveyUrl}>
+          <button className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+            <Star className="h-5 w-5 mr-2" />
+            Khảo sát trước sự kiện
+          </button>
+        </Link>
       );
     } else if ((programData.Status === 'completed' || programData.Status === 'ongoing') && afterSurvey && !isAfterCompleted) {
       console.log('✅ Rendering after survey button with URL:', afterSurveyUrl);
       return (
-        <div className="mt-6">
-          <Link to={afterSurveyUrl}>
-            <button className="self-start px-6 py-3 text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-md font-semibold transition duration-200">
-              Khảo sát sau sự kiện
-            </button>
-          </Link>
-        </div>
+        <Link to={afterSurveyUrl}>
+          <button className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+            <Star className="h-5 w-5 mr-2" />
+            Khảo sát sau sự kiện
+          </button>
+        </Link>
       );
     }
 
@@ -274,10 +288,14 @@ const CommunityProgramDetails: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Đang tải dữ liệu...</p>
+          <div className="relative">
+            <div className="animate-spin rounded-full h-20 w-20 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 opacity-20 animate-pulse"></div>
+          </div>
+          <p className="mt-6 text-lg font-medium text-blue-800">Đang tải thông tin sự kiện...</p>
+          <p className="text-sm text-blue-600 mt-2">Vui lòng chờ trong giây lát</p>
         </div>
       </div>
     );
@@ -285,12 +303,16 @@ const CommunityProgramDetails: React.FC = () => {
 
   if (!programData) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Không tìm thấy chương trình</h2>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center bg-white rounded-2xl shadow-xl p-12 max-w-md mx-4">
+          <div className="bg-red-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="h-10 w-10 text-red-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Không tìm thấy chương trình</h2>
+          <p className="text-gray-600 mb-6">Chương trình bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
           <Link to="/community-programs">
-            <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <button className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+              <ArrowLeft className="h-5 w-5 mr-2" />
               Quay lại danh sách
             </button>
           </Link>
@@ -301,83 +323,238 @@ const CommunityProgramDetails: React.FC = () => {
 
   console.log(programData);
 
+  const getStatusConfig = (status: string) => {
+    switch (status) {
+      case 'upcoming':
+        return {
+          text: 'Sắp diễn ra',
+          bgColor: 'bg-blue-100',
+          textColor: 'text-blue-800',
+          icon: Clock4
+        };
+      case 'ongoing':
+        return {
+          text: 'Đang diễn ra',
+          bgColor: 'bg-green-100',
+          textColor: 'text-green-800',
+          icon: CheckCircle
+        };
+      case 'completed':
+        return {
+          text: 'Đã hoàn thành',
+          bgColor: 'bg-gray-100',
+          textColor: 'text-gray-800',
+          icon: CheckCircle
+        };
+      default:
+        return {
+          text: status,
+          bgColor: 'bg-gray-100',
+          textColor: 'text-gray-800',
+          icon: AlertCircle
+        };
+    }
+  };
+
+  const statusConfig = getStatusConfig(programData.Status);
+  const StatusIcon = statusConfig.icon;
 
   return (
-    <div className="min-h-screen bg-gray-100 py-10">
-      <div className="container mx-auto px-6 md:px-16 space-y-12">
-        <div className="bg-white rounded-xl shadow-md p-8 space-y-6">
-          <h1 className="text-3xl font-bold text-gray-800">{programData.ProgramName}</h1>
-
-          <div className="grid gap-4 text-gray-700">
-            <div className="text-lg">
-              <strong className="block font-semibold">🗓 Thời gian:</strong>
-              {parseDate(programData.Date)}
-            </div>
-            <div className="text-lg">
-              <strong className="block font-semibold">📡 Liên kết:</strong>
-              <a href={programData.Url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                {programData.Url}
-              </a>
-            </div>
-            <div className="text-base">
-              <strong className="block font-semibold">📄 Mô tả:</strong>
-              {programData.Description}
-            </div>
-            <div className="text-base">
-              <strong className="block font-semibold">👥 Đơn vị tổ chức:</strong>
-              {programData.Organizer}
-            </div>
-            <div className="text-base">
-              <strong className="block font-semibold">🔄 Trạng thái:</strong>
-              {programData.Status === 'upcoming' ? 'Sắp diễn ra' : programData.Status === 'ongoing' ? 'Đang diễn ra' : 'Đã hoàn thành'}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+        <div className="container mx-auto px-6 py-12">
+          <div className="flex items-center justify-between mb-6">
+            <Link 
+              to="/community-programs"
+              className="inline-flex items-center px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors font-medium"
+            >
+              <ArrowLeft className="h-5 w-5 mr-2" />
+              Quay lại
+            </Link>
+            <div className={`inline-flex items-center px-4 py-2 rounded-full ${statusConfig.bgColor} ${statusConfig.textColor} font-medium`}>
+              <StatusIcon className="h-5 w-5 mr-2" />
+              {statusConfig.text}
             </div>
           </div>
-
-          {handleRenderSurveyForm()}
-
-          {programData.ImageUrl && (
-            <figure className="mt-10">
-              <img
-                src={programData.ImageUrl}
-                alt={programData.ProgramName}
-                className="w-full h-auto rounded-lg object-cover shadow-sm"
-              />
-              <figcaption className="text-center text-sm text-gray-500 mt-2">
-                Hình ảnh minh họa cho sự kiện
-              </figcaption>
-            </figure>
-          )}
-
-          {user && (
-            <div className="mt-6 space-y-2">
-              {programData.Status === 'completed' ? (
-                <div className="text-center text-gray-600 font-medium text-sm bg-gray-100 py-3 rounded-lg">
-                  Chương trình đã hoàn thành
-                </div>
-              ) : !enrollmentStatus?.isEnrolled ? (
-                <button
-                  onClick={handleEnroll}
-                  className="w-full md:w-auto px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Tham gia
-                </button>
-              ) : (
-                <button
-                  onClick={handleUnenroll}
-                  className="w-full md:w-auto px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Hủy tham gia
-                </button>
-              )}
+          
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
+            {programData.ProgramName}
+          </h1>
+          
+          <div className="flex flex-wrap items-center gap-6 text-blue-100">
+            <div className="flex items-center">
+              <Calendar className="h-5 w-5 mr-2" />
+              <span className="font-medium">{parseDate(programData.Date)}</span>
             </div>
-          )}
+            <div className="flex items-center">
+              <UserIcon className="h-5 w-5 mr-2" />
+              <span className="font-medium">{programData.Organizer}</span>
+            </div>
+          </div>
         </div>
+      </div>
 
-        <Link to="/community-programs">
-          <button className="mt-6 inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition">
-            Quay lại danh sách sự kiện
-          </button>
-        </Link>
+      <div className="container mx-auto px-6 py-12">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Program Details Card */}
+            <div className="bg-white rounded-2xl shadow-xl p-8">
+              <div className="flex items-center mb-6">
+                <div className="bg-blue-100 rounded-full p-3 mr-4">
+                  <FileText className="h-6 w-6 text-blue-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">Thông tin chi tiết</h2>
+              </div>
+              
+              <div className="prose max-w-none">
+                <p className="text-gray-700 text-lg leading-relaxed">
+                  {programData.Description}
+                </p>
+              </div>
+            </div>
+
+            {/* Program Image */}
+            {programData.ImageUrl && (
+              <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div className="flex items-center p-6 border-b border-gray-100">
+                  <div className="bg-blue-100 rounded-full p-3 mr-4">
+                    <ImageIcon className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">Hình ảnh sự kiện</h2>
+                </div>
+                <div className="p-6">
+                  <img
+                    src={programData.ImageUrl}
+                    alt={programData.ProgramName}
+                    className="w-full h-80 object-cover rounded-xl shadow-lg"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Survey Section */}
+            {handleRenderSurveyForm() && (
+              <div className="bg-white rounded-2xl shadow-xl p-8">
+                <div className="flex items-center mb-6">
+                  <div className="bg-blue-100 rounded-full p-3 mr-4">
+                    <Star className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">Khảo sát</h2>
+                </div>
+                {handleRenderSurveyForm()}
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-8">
+            {/* Quick Info Card */}
+            <div className="bg-white rounded-2xl shadow-xl p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-6">Thông tin nhanh</h3>
+              
+              <div className="space-y-4">
+                <div className="flex items-start">
+                  <div className="bg-blue-100 rounded-full p-2 mr-3 mt-1">
+                    <Calendar className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Ngày diễn ra</p>
+                    <p className="text-gray-600">{parseDate(programData.Date)}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start">
+                  <div className="bg-blue-100 rounded-full p-2 mr-3 mt-1">
+                    <UserIcon className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Đơn vị tổ chức</p>
+                    <p className="text-gray-600">{programData.Organizer}</p>
+                  </div>
+                </div>
+
+                {programData.Url && (
+                  <div className="flex items-start">
+                    <div className="bg-blue-100 rounded-full p-2 mr-3 mt-1">
+                      <ExternalLink className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">Liên kết tham gia</p>
+                      <a 
+                        href={programData.Url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-blue-600 hover:text-blue-800 underline break-all"
+                      >
+                        Tham gia ngay
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Action Card */}
+            {user && (
+              <div className="bg-white rounded-2xl shadow-xl p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-6">Hành động</h3>
+                
+                <div className="space-y-4">
+                  {programData.Status === 'completed' ? (
+                    <div className="text-center p-6 bg-gray-50 rounded-xl">
+                      <CheckCircle className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-600 font-medium">Chương trình đã hoàn thành</p>
+                    </div>
+                  ) : !enrollmentStatus?.isEnrolled ? (
+                    <button
+                      onClick={handleEnroll}
+                      className="w-full inline-flex items-center justify-center px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                    >
+                      <Users className="h-5 w-5 mr-2" />
+                      Tham gia sự kiện
+                    </button>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-center p-4 bg-green-50 rounded-xl">
+                        <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+                        <span className="text-green-800 font-medium">Đã đăng ký tham gia</span>
+                      </div>
+                      <button
+                        onClick={handleUnenroll}
+                        className="w-full inline-flex items-center justify-center px-6 py-3 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 transition-colors duration-200"
+                      >
+                        <XCircle className="h-5 w-5 mr-2" />
+                        Hủy tham gia
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Need Login Card */}
+            {!user && (
+              <div className="bg-white rounded-2xl shadow-xl p-6">
+                <div className="text-center">
+                  <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <UserIcon className="h-8 w-8 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">Đăng nhập để tham gia</h3>
+                  <p className="text-gray-600 mb-4">Bạn cần đăng nhập để có thể đăng ký tham gia sự kiện này.</p>
+                  <Link
+                    to="/login"
+                    className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Đăng nhập ngay
+                    <ChevronRight className="h-4 w-4 ml-2" />
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -460,6 +460,15 @@ const DashBoardPage: React.FC = () => {
   // Handle appointment detail modal
   const handleAppointmentDetail = async (appointment: Appointment) => {
     setSelectedAppointment(appointment);
+    
+    // Set loading state for consultant details
+    setConsultantDetails({
+      name: 'Đang tải thông tin...',
+      title: '',
+      imageUrl: '',
+      specialties: []
+    });
+    
     setIsModalOpen(true);
 
     // Fetch consultant details
@@ -473,11 +482,18 @@ const DashBoardPage: React.FC = () => {
           imageUrl: data.data?.ImageUrl || '',
           specialties: data.data?.Specialties?.map((s: { Name: string }) => s.Name) || []
         });
+      } else {
+        setConsultantDetails({
+          name: 'Không thể tải thông tin',
+          title: '',
+          imageUrl: '',
+          specialties: []
+        });
       }
     } catch (error) {
       console.error('Error fetching consultant details:', error);
       setConsultantDetails({
-        name: 'Chuyên gia tư vấn',
+        name: 'Lỗi khi tải thông tin',
         title: '',
         imageUrl: '',
         specialties: []

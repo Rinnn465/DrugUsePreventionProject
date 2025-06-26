@@ -265,9 +265,7 @@ const CourseEnrollPage: React.FC = () => {
         {/* Enrollment CTA */}
         <div className="max-w-4xl mx-auto bg-primary-50 rounded-lg shadow-md p-8 text-center">
           <h2 className="text-2xl font-bold text-primary-900 mb-4">Tham gia khóa học</h2>
-          <p className="text-primary-700 mb-6">
-            Tham gia cùng {course.EnrollCount} người khác
-          </p>
+
           <button
             onClick={handleEnroll}
             disabled={isLoading || isEnrolling}
