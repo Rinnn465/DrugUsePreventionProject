@@ -234,7 +234,9 @@ const programs = {
 
     getEnrolled: () => get<any[]>('/program/enrolled'),
 
-    checkEnrollment: (programId: number) => get<{ isEnrolled: boolean }>(`/program/${programId}/enrollment-status`),
+    getMyEnrollments: () => get<any[]>('/program-attendee/my-enrollments'),
+
+    checkEnrollment: (programId: number) => get<{ isEnrolled: boolean }>(`/program-attendee/${programId}/enrollment-status`),
 };
 
 // Survey APIs

@@ -17,12 +17,14 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
   appointment,
   isOpen,
   onClose,
-  consultantName = 'Chuyên gia tư vấn',
+  consultantName,
   consultantTitle = '',
   consultantImageUrl = '',
   consultantSpecialties = []
 }) => {
   if (!isOpen || !appointment) return null;
+
+  const isLoadingConsultant = !consultantName || consultantName === 'Đang tải...';
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -101,11 +103,20 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
                 </div>
               )}
               <div>
-                <p className="font-medium text-gray-800">{consultantName}</p>
-                {consultantTitle && (
+                <p className="font-medium text-gray-800">
+                  {isLoadingConsultant ? (
+                    <span className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                      Đang tải thông tin...
+                    </span>
+                  ) : (
+                    consultantName || 'Chuyên gia tư vấn'
+                  )}
+                </p>
+                {consultantTitle && !isLoadingConsultant && (
                   <p className="text-sm text-gray-600">{consultantTitle}</p>
                 )}
-                {consultantSpecialties.length > 0 && (
+                {consultantSpecialties.length > 0 && !isLoadingConsultant && (
                   <div className="flex flex-wrap gap-1 mt-2">
                     {consultantSpecialties.map((specialty, index) => (
                       <span
@@ -131,6 +142,18 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
               <p className="text-gray-700">{parseDate(appointment.Date)}</p>
             </div>
 
+            <div className="bg-blue-50 rounded-lg p-4">
+              <div className="flex items-center mb-2">
+                <AlertCircle className="h-5 w-5 text-blue-600 mr-2" />
+                <h5 className="font-medium text-gray-800">Trạng thái</h5>
+              </div>
+              <span className={`inline-flex px-2 py-1 text-sm font-medium rounded-full ${getStatusColor(appointment.Status)}`}>
+                {getStatusText(appointment.Status)}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
             <div className="bg-blue-50 rounded-lg p-4">
               <div className="flex items-center mb-2">
                 <Clock className="h-5 w-5 text-blue-600 mr-2" />
@@ -181,7 +204,7 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
                       const endTime = new Date();
                       endTime.setHours(hours, minutes + appointment.Duration);
                       return endTime.toTimeString().substr(0, 5);
-                    } catch (error) {
+                    } catch {
                       return 'Không xác định';
                     }
                   })()}

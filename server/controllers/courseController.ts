@@ -206,7 +206,12 @@ export async function getEnrolledCourses(req: Request, res: Response): Promise<v
         const pool = await poolPromise;
         const result = await pool.request()
             .input('AccountId', sql.Int, accountId)
-            .query('SELECT * FROM Enrollment WHERE AccountID = @AccountId');
+            .query(
+                `SELECT e.EnrollmentID, e.CourseID, e.AccountID, e.CompletedDate, e.Status, c.CourseName, c.Description, c.ImageUrl, c.IsDisabled 
+                FROM Enrollment e JOIN Course c ON e.CourseID = c.CourseID
+                WHERE AccountID = @AccountID AND c.IsDisabled = 0
+                `
+            );
 
         res.status(200).json({
             message: 'Enrolled courses fetched successfully',
@@ -224,14 +229,17 @@ export async function getEnrolledCourses(req: Request, res: Response): Promise<v
 }
 
 export async function completeCourse(req: Request, res: Response): Promise<void> {
-    const { courseId, accountId } = req.body;
+    const { courseId, accountId, completedDate } = req.body;
 
     try {
         const pool = await poolPromise;
         await pool.request()
             .input('CourseId', sql.Int, courseId)
             .input('AccountId', sql.Int, accountId)
-            .query('UPDATE Enrollment SET Status = \'Completed\' WHERE CourseID = @CourseId AND AccountID = @AccountId');
+            .input('CompletedDate', sql.DateTime, completedDate)
+            .query(`UPDATE Enrollment SET Status = \'Completed\',
+                    SET CompletedDate = @CompletedDate
+                  WHERE CourseID = @CourseId AND AccountID = @AccountId`);
         res.status(200).json({ message: 'Hoàn thành khóa học' });
         return;
     } catch (err: any) {
