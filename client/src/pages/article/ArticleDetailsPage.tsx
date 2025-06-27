@@ -129,8 +129,25 @@ const ArticleDetailsPage = () => {
                     {article?.Content && (
                         <div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-3">Nội dung chi tiết</h3>
-                            <div className="text-gray-700 text-base leading-relaxed">
-                                <div dangerouslySetInnerHTML={{ __html: article.Content }} />
+                            <div className="text-gray-700 text-base leading-relaxed whitespace-pre-wrap">
+                                {/* Kiểm tra xem Content có phải HTML hay không */}
+                                {article.Content.includes('<') && article.Content.includes('>') ? (
+                                    <div dangerouslySetInnerHTML={{ __html: article.Content }} />
+                                ) : (
+                                    <div style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
+                                        {article.Content}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Hiển thị Description nếu không có Content hoặc Content quá ngắn */}
+                    {article?.Description && (!article?.Content || article.Content.length < 100) && (
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-3">Mô tả</h3>
+                            <div className="text-gray-700 text-base leading-relaxed whitespace-pre-wrap">
+                                {article.Description}
                             </div>
                         </div>
                     )}

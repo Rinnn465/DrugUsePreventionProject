@@ -17,19 +17,39 @@ export const getArticles = async (req: Request, res: Response): Promise<void> =>
         console.log("Fetching articles from database..."); // Debug log
         const pool = await poolPromise;
         // Query to get all active articles, sorted by newest first
+        // Sử dụng CAST để đảm bảo lấy đầy đủ nội dung từ các trường text/ntext
         const result = await pool.request().query(`
-            SELECT BlogID, AccountID, ArticleTitle, PublishedDate, ImageUrl, Author, Status, Description, Content, IsDisabled
+            SELECT 
+                BlogID, 
+                AccountID, 
+                ArticleTitle, 
+                PublishedDate, 
+                ImageUrl, 
+                Author, 
+                Status, 
+                CAST(Description AS NVARCHAR(MAX)) as Description,
+                CAST(Content AS NVARCHAR(MAX)) as Content,
+                IsDisabled
             FROM Article
             WHERE IsDisabled = 0
             ORDER BY PublishedDate DESC
         `);
-        console.log("Articles fetched:", result.recordset); // Debug log
+        
+        // Log để kiểm tra độ dài nội dung
+        result.recordset.forEach((article, index) => {
+            console.log(`Article ${index + 1} - ID: ${article.BlogID}`);
+            console.log(`Content length: ${article.Content ? article.Content.length : 0}`);
+            console.log(`Description length: ${article.Description ? article.Description.length : 0}`);
+            if (article.Content && article.Content.length > 100) {
+                console.log(`Content preview: ${article.Content.substring(0, 100)}...`);
+            }
+        });
+        
         res.status(200).json(result.recordset);
     } catch (error) {
         console.error("Error fetching articles:", error); // Error log
         res.status(500).json({ message: "Error occurred when fetching articles" });
     }
-
 }
 
 /**
@@ -57,10 +77,21 @@ export const getArticleById = async (req: Request, res: Response): Promise<void>
         console.log(`Fetching article with ID: ${articleId}`); // Debug log
         const pool = await poolPromise;
         // Query single article with parameterized query for security
+        // Sử dụng CAST để đảm bảo lấy đầy đủ nội dung từ các trường text/ntext
         const result = await pool.request()
             .input('BlogID', articleId)
             .query(`
-                SELECT BlogID, AccountID, ArticleTitle, PublishedDate, ImageUrl, Author, Status, Description, Content, IsDisabled
+                SELECT 
+                    BlogID, 
+                    AccountID, 
+                    ArticleTitle, 
+                    PublishedDate, 
+                    ImageUrl, 
+                    Author, 
+                    Status, 
+                    CAST(Description AS NVARCHAR(MAX)) as Description,
+                    CAST(Content AS NVARCHAR(MAX)) as Content,
+                    IsDisabled
                 FROM Article
                 WHERE BlogID = @BlogID AND IsDisabled = 0
             `);
@@ -71,8 +102,19 @@ export const getArticleById = async (req: Request, res: Response): Promise<void>
             return;
         }
 
-        console.log("Article fetched:", result.recordset[0]); // Debug log
-        res.status(200).json(result.recordset[0]);
+        const article = result.recordset[0];
+        
+        // Log để kiểm tra độ dài nội dung
+        console.log(`Article ID: ${article.BlogID}`);
+        console.log(`Content length: ${article.Content ? article.Content.length : 0}`);
+        console.log(`Description length: ${article.Description ? article.Description.length : 0}`);
+        if (article.Content && article.Content.length > 200) {
+            console.log(`Content preview: ${article.Content.substring(0, 200)}...`);
+        } else {
+            console.log(`Full content: ${article.Content}`);
+        }
+
+        res.status(200).json(article);
     } catch (error) {
         console.error("Error fetching article:", error); // Error log
         res.status(500).json({ message: "Error occurred when fetching article" });
