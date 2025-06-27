@@ -13,7 +13,6 @@ export const assessmentData: Assessment[] = [
       {
         id: 1,
         text: "Bạn đã từng sử dụng chất kích thích trong đời chưa",
-        type: "checkbox",
         options: [
           { id: "a", text: "Có", value: 1 },
           { id: "b", text: "Không", value: 2 },

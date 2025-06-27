@@ -461,54 +461,65 @@ const CommunityProgramPage: React.FC = () => {
         </div>
 
         {/* Events Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
           {Array.isArray(filteredEvents) && filteredEvents.map((event, index) => (
-            <div key={event.ProgramID || index} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
-              <div className="p-6 flex flex-col flex-grow">
-                {/* Header with image and info combined */}
-                <div className="flex gap-4 mb-4">
-                  {event.ImageUrl && (
-                    <div className="relative w-24 h-24 flex-shrink-0">
-                      <img
-                        src={event.ImageUrl}
-                        alt={event.ProgramName}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                      <div className="absolute -top-2 -right-2">
-                        <span className="px-2 py-1 text-xs rounded-full text-white bg-blue-500">
-                          Online
-                        </span>
-                      </div>
+            <div key={event.ProgramID || index} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
+              {/* Full Width Image Header */}
+              <div className="relative h-64 overflow-hidden">
+                {event.ImageUrl ? (
+                  <img
+                    src={event.ImageUrl}
+                    alt={event.ProgramName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center">
+                    <div className="text-white text-6xl font-bold opacity-50">
+                      📅
                     </div>
-                  )}
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">{event.ProgramName}</h3>
-                    <span className={`inline-block px-2 py-1 text-xs rounded-full text-white ${event.Status === 'upcoming' ? 'bg-blue-500' : event.Status === 'ongoing' ? 'bg-yellow-500' : 'bg-green-500'}`}>
-                      {event.Status === 'upcoming' ? 'Sắp diễn ra' : event.Status === 'ongoing' ? 'Đang diễn ra' : 'Đã kết thúc'}
-                    </span>
                   </div>
+                )}
+                <div className="absolute top-4 right-4">
+                  <span className="px-3 py-1 text-sm rounded-full text-white bg-blue-500 shadow-lg">
+                    Online
+                  </span>
+                </div>
+              </div>
+
+              {/* Content Section */}
+              <div className="p-6 flex flex-col flex-grow">
+                {/* Event Title and Status */}
+                <div className="mb-4">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3 line-clamp-2">{event.ProgramName}</h3>
+                  <span className={`inline-block px-3 py-1 text-sm rounded-full text-white font-medium ${event.Status === 'upcoming' ? 'bg-blue-500' : event.Status === 'ongoing' ? 'bg-yellow-500' : 'bg-green-500'}`}>
+                    {event.Status === 'upcoming' ? 'Sắp diễn ra' : event.Status === 'ongoing' ? 'Đang diễn ra' : 'Đã kết thúc'}
+                  </span>
                 </div>
 
+                {/* Event Details */}
                 <div className="space-y-3 mb-4">
                   <div className="flex items-center text-gray-600">
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span>{parseDate(event.Date)}</span>
+                    <span className="font-medium">{parseDate(event.Date)}</span>
                   </div>
                   <div className="flex items-center text-gray-600">
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.102 1.101" />
                     </svg>
-                    <a href={event.Url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
-                      {event.Url}
+                    <a href={event.Url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate font-medium">
+                      Tham gia sự kiện
                     </a>
                   </div>
                 </div>
-                <p className="text-gray-600 mb-4 line-clamp-2 flex-grow">
+
+                {/* Event Description */}
+                <p className="text-gray-600 mb-6 line-clamp-3 flex-grow text-base leading-relaxed">
                   {event.Description}
                 </p>
 
+                {/* Action Buttons */}
                 <div className="mt-auto">
                   {renderActionButton(event)}
                 </div>

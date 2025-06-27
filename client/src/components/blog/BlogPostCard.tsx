@@ -47,8 +47,8 @@ const BlogPostCard: React.FC<Article> = ({
           {ArticleTitle}
         </h3>
         
-        <p className="text-gray-600 mb-6 line-clamp-3 flex-grow leading-relaxed">
-          {Description || Content}
+        <p className="text-gray-600 mb-6 line-clamp-4 flex-grow leading-relaxed">
+          {Description || (Content && Content.replace(/<[^>]*>/g, '').substring(0, 200) + '...')}
         </p>
 
         {/* Author Info */}

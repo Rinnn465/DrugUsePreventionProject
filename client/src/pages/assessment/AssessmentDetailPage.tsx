@@ -417,86 +417,159 @@ const AssessmentDetailPage: React.FC = () => {
                     }}
                 >
                     {(formikProps: FormikProps<{ [key: string]: string | string[] }>) => (
-                        <Form className='max-w-2xl mx-auto py-8 px-6 bg-gradient-to-br from-white via-primary-50 to-accent-50 rounded-2xl shadow-2xl border-2 border-accent-100'>
-                            <div className='text-center mb-8'>
-                                <h1 className='text-3xl font-extrabold text-primary-700 mb-2'>
-                                    {assessment.title}
-                                </h1>
-                                <p className='text-gray-600 text-lg'>
-                                    {assessment.description}
-                                </p>
-                                <div className='mt-4 flex justify-center items-center gap-4 text-sm text-gray-500'>
-                                    <span>{assessment.questionCount} câu hỏi</span>
-                                    <span>•</span>
-                                    <span>~{assessment.timeToComplete} phút</span>
-                                </div>
-                                <div className="mt-4 bg-gray-200 rounded-full h-2 overflow-hidden">
-                                    <div
-                                        className="bg-blue-600 h-full transition-all duration-300"
-                                        style={{ width: `${((currentQuestionIndex + 1) / assessment.questions.length) * 100}%` }}
-                                    ></div>
-                                </div>
-                                <div className="text-center mt-2 text-sm text-gray-600">
-                                    Câu {currentQuestionIndex + 1} / {assessment.questions.length}
-                                </div>
-                            </div>
-                            {(() => {
-                                const question = assessment.questions[currentQuestionIndex];
-                                return (
-                                    <div
-                                        aria-labelledby="checkbox-group"
-                                        key={`${question.id}-${currentQuestionIndex}`}
-                                        className='mb-8 p-6 bg-white rounded-xl shadow-lg border border-accent-100'
-                                        style={{ minHeight: '300px' }}
-                                    >
-                                        <p className='text-lg font-bold mb-6 text-blue-500'>
-                                            <span className="inline-block bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-sm font-bold mr-3">
-                                                Câu {currentQuestionIndex + 1}
-                                            </span>
-                                            {question.text}
-                                        </p>
-                                        <div className="space-y-3">
-                                            {question.options.map((option) => {
-                                                return (
-                                                    <label key={option.id} className='flex items-center cursor-pointer hover:bg-accent-50 rounded-lg px-4 py-3 transition-all border border-transparent hover:border-accent-200'>
-                                                        {question.type === 'checkbox' ? (
-                                                            <Field
-                                                                type='checkbox'
-                                                                name={question.id}
-                                                                value={String(option.value)}
-                                                                className='mr-4 accent-accent-500 w-5 h-5'
-                                                            />
-                                                        ) : (
-                                                            <Field
-                                                                type='radio'
-                                                                name={question.id}
-                                                                value={String(option.value)}
-                                                                className='mr-4 accent-accent-500 w-5 h-5'
-                                                            />
-                                                        )}
-                                                        <span className='font-medium text-blue-500 text-base'>{option.text}</span>
-                                                    </label>
-                                                )
-                                            })}
-                                        </div>
-                                        {formikProps.errors[question.id] && formikProps.touched[question.id] && (
-                                            <div className='text-red-500 text-sm mt-4 p-2 bg-red-50 rounded border border-red-200'>
-                                                {formikProps.errors[question.id]}
-                                            </div>
-                                        )}
+                        <>
+                            <Form className='max-w-2xl mx-auto py-8 px-6 bg-gradient-to-br from-white via-primary-50 to-accent-50 rounded-2xl shadow-2xl border-2 border-accent-100'>
+                                <div className='text-center mb-8'>
+                                    <h1 className='text-3xl font-extrabold text-primary-700 mb-2'>
+                                        {assessment.title}
+                                    </h1>
+                                    <p className='text-gray-600 text-lg'>
+                                        {assessment.description}
+                                    </p>
+                                    <div className='mt-4 flex justify-center items-center gap-4 text-sm text-gray-500'>
+                                        <span>{assessment.questionCount} câu hỏi</span>
+                                        <span>•</span>
+                                        <span>~{assessment.timeToComplete} phút</span>
                                     </div>
-                                );
-                            })()}
+                                    <div className="mt-4 bg-gray-200 rounded-full h-2 overflow-hidden">
+                                        <div
+                                            className="bg-blue-600 h-full transition-all duration-300"
+                                            style={{ width: `${((currentQuestionIndex + 1) / assessment.questions.length) * 100}%` }}
+                                        ></div>
+                                    </div>
+                                    <div className="text-center mt-2 text-sm text-gray-600">
+                                        Câu {currentQuestionIndex + 1} / {assessment.questions.length}
+                                    </div>
+                                </div>
+                                {(() => {
+                                    const question = assessment.questions[currentQuestionIndex];
+                                    return (
+                                        <div className="relative mb-8">
+                                            {/* Navigation Buttons - Positioned on sides of question card */}
+                                            <div className="flex items-center justify-center gap-4 mb-6">
+                                                {/* Left Button - Quay lại */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleQuestionChange(Math.max(0, currentQuestionIndex - 1))}
+                                                    disabled={currentQuestionIndex === 0}
+                                                    className={`flex items-center justify-center w-12 h-12 rounded-full transition-all shadow-lg ${
+                                                        currentQuestionIndex === 0
+                                                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                                            : 'bg-gradient-to-r from-gray-500 to-gray-400 text-white hover:from-gray-600 hover:to-gray-500 hover:scale-110'
+                                                    }`}
+                                                    title="Quay lại"
+                                                >
+                                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                                    </svg>
+                                                </button>
 
-                            <NavigationButtons
-                                currentIndex={currentQuestionIndex}
-                                totalQuestions={assessment.questions.length}
-                                onNext={() => handleQuestionChange(Math.min(assessment.questions.length - 1, currentQuestionIndex + 1))}
-                                onPrev={() => handleQuestionChange(Math.max(0, currentQuestionIndex - 1))}
-                                assessment={assessment}
-                                formikProps={formikProps}
-                            />
-                        </Form>
+                                                {/* Question Card */}
+                                                <div
+                                                    aria-labelledby="checkbox-group"
+                                                    key={`${question.id}-${currentQuestionIndex}`}
+                                                    className='flex-1 p-6 bg-white rounded-xl shadow-lg border border-accent-100'
+                                                    style={{ minHeight: '300px' }}
+                                                >
+                                                    <p className='text-lg font-bold mb-6 text-blue-500'>
+                                                        <span className="inline-block bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-sm font-bold mr-3">
+                                                            Câu {currentQuestionIndex + 1}
+                                                        </span>
+                                                        {question.text}
+                                                    </p>
+                                                    <div className="space-y-3">
+                                                        {question.options.map((option) => {
+                                                            return (
+                                                                <label key={option.id} className='flex items-center cursor-pointer hover:bg-accent-50 rounded-lg px-4 py-3 transition-all border border-transparent hover:border-accent-200'>
+                                                                    {question.type === 'checkbox' ? (
+                                                                        <Field
+                                                                            type='checkbox'
+                                                                            name={question.id}
+                                                                            value={String(option.value)}
+                                                                            className='mr-4 accent-accent-500 w-5 h-5'
+                                                                        />
+                                                                    ) : (
+                                                                        <Field
+                                                                            type='radio'
+                                                                            name={question.id}
+                                                                            value={String(option.value)}
+                                                                            className='mr-4 accent-accent-500 w-5 h-5'
+                                                                        />
+                                                                    )}
+                                                                    <span className='font-medium text-blue-500 text-base'>{option.text}</span>
+                                                                </label>
+                                                            )
+                                                        })}
+                                                    </div>
+                                                    {formikProps.errors[question.id] && formikProps.touched[question.id] && (
+                                                        <div className='text-red-500 text-sm mt-4 p-2 bg-red-50 rounded border border-red-200'>
+                                                            {formikProps.errors[question.id]}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Right Button - Tiếp theo hoặc Hoàn thành */}
+                                                {currentQuestionIndex < assessment.questions.length - 1 ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const validationError = (() => {
+                                                                const answer = formikProps.values[question.id];
+                                                                if (question.type === 'checkbox') {
+                                                                    return Array.isArray(answer) && answer.length > 0 ? null : 'Chọn ít nhất một lựa chọn';
+                                                                }
+                                                                return answer && answer !== '' ? null : 'Không được để trống';
+                                                            })();
+                                                            
+                                                            if (validationError) {
+                                                                formikProps.setFieldError(question.id, validationError);
+                                                                formikProps.setFieldTouched(question.id, true);
+                                                            } else {
+                                                                formikProps.setFieldError(question.id, undefined);
+                                                                handleQuestionChange(Math.min(assessment.questions.length - 1, currentQuestionIndex + 1));
+                                                            }
+                                                        }}
+                                                        className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg hover:scale-110"
+                                                        title="Tiếp theo"
+                                                    >
+                                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                        </svg>
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const validationError = (() => {
+                                                                const answer = formikProps.values[question.id];
+                                                                if (question.type === 'checkbox') {
+                                                                    return Array.isArray(answer) && answer.length > 0 ? null : 'Chọn ít nhất một lựa chọn';
+                                                                }
+                                                                return answer && answer !== '' ? null : 'Không được để trống';
+                                                            })();
+                                                            
+                                                            if (validationError) {
+                                                                formikProps.setFieldError(question.id, validationError);
+                                                                formikProps.setFieldTouched(question.id, true);
+                                                            } else {
+                                                                formikProps.setFieldError(question.id, undefined);
+                                                                formikProps.submitForm();
+                                                            }
+                                                        }}
+                                                        className="flex items-center justify-center w-12 h-12 rounded-full bg-green-600 text-white hover:bg-green-700 transition-all shadow-lg hover:scale-110"
+                                                        title="Hoàn thành đánh giá"
+                                                    >
+                                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+                            </Form>
+                        </>
                     )}
                 </Formik>
             )}
@@ -507,15 +580,35 @@ const AssessmentDetailPage: React.FC = () => {
                         <h2 className="text-3xl font-extrabold text-accent-700 flex items-center gap-3">
                             Kết quả đánh giá
                         </h2>
-                        <button
-                            onClick={handleRedoAssessment}
-                            className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-800 rounded-lg border border-gray-300 transition-all duration-200 flex items-center gap-2 font-medium shadow-sm hover:shadow-md"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            Làm lại đánh giá
-                        </button>
+                        <div className="flex flex-wrap gap-3">
+                            <Link
+                                to="/assessments"
+                                className="px-4 py-2 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 hover:text-blue-800 rounded-lg border border-blue-300 transition-all duration-200 flex items-center gap-2 font-medium shadow-sm hover:shadow-md"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                </svg>
+                                Về trang đánh giá
+                            </Link>
+                            <Link
+                                to="/"
+                                className="px-4 py-2 text-sm bg-green-100 hover:bg-green-200 text-green-700 hover:text-green-800 rounded-lg border border-green-300 transition-all duration-200 flex items-center gap-2 font-medium shadow-sm hover:shadow-md"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                </svg>
+                                Về trang chủ
+                            </Link>
+                            <button
+                                onClick={handleRedoAssessment}
+                                className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-800 rounded-lg border border-gray-300 transition-all duration-200 flex items-center gap-2 font-medium shadow-sm hover:shadow-md"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Làm lại đánh giá
+                            </button>
+                        </div>
                     </div>
 
                     <div className="mb-8 flex items-center gap-4">
