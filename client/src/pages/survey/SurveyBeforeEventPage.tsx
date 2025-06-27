@@ -44,6 +44,16 @@ const SurveyBeforeEventPage = () => {
         }
     }, [programId]);
 
+    // Set fullName from user context when user is available
+    useEffect(() => {
+        if (user && user.FullName) {
+            setFormData(prev => ({
+                ...prev,
+                fullName: user.FullName
+            }));
+        }
+    }, [user]);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
@@ -102,7 +112,8 @@ const SurveyBeforeEventPage = () => {
                         value={formData.fullName}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        readOnly
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed focus:outline-none"
                     />
                 </div>
 

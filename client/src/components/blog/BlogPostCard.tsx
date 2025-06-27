@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, User, ArrowRight } from 'lucide-react';
+import { Calendar, ArrowRight } from 'lucide-react';
 import { Article } from '../../types/Article';
 
 function formatDate(dateString: string) {
@@ -19,7 +19,6 @@ const BlogPostCard: React.FC<Article> = ({
   ImageUrl,
   Content,
   Description,
-  Author,
 }) => {
   return (
     <article className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl overflow-hidden transform transition-all duration-300 hover:-translate-y-2 flex flex-col h-full border border-gray-100 hover:border-primary-200">
