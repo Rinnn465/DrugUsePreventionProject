@@ -45,8 +45,6 @@ const colorMap: Record<AssessmentColor, { gradient: string; text: string; badge:
 
 const AssessmentsPage: React.FC = () => {
   const [selectedAudience, setSelectedAudience] = useState<string>('all');
-  const [selectedTimeRange, setSelectedTimeRange] = useState<string>('all');
-  const [selectedQuestionRange, setSelectedQuestionRange] = useState<string>('all');
 
   // Get unique audiences from assessment data
   const audiences = useMemo(() => {
@@ -62,49 +60,15 @@ const AssessmentsPage: React.FC = () => {
         return false;
       }
 
-      // Filter by time range
-      if (selectedTimeRange !== 'all') {
-        const time = assessment.timeToComplete;
-        switch (selectedTimeRange) {
-          case 'short':
-            if (time > 5) return false;
-            break;
-          case 'medium':
-            if (time <= 5 || time > 10) return false;
-            break;
-          case 'long':
-            if (time <= 10) return false;
-            break;
-        }
-      }
-
-      // Filter by question count
-      if (selectedQuestionRange !== 'all') {
-        const questions = assessment.questionCount;
-        switch (selectedQuestionRange) {
-          case 'few':
-            if (questions > 5) return false;
-            break;
-          case 'medium':
-            if (questions <= 5 || questions > 10) return false;
-            break;
-          case 'many':
-            if (questions <= 10) return false;
-            break;
-        }
-      }
-
       return true;
     });
-  }, [selectedAudience, selectedTimeRange, selectedQuestionRange]);
+  }, [selectedAudience]);
 
   const clearFilters = () => {
     setSelectedAudience('all');
-    setSelectedTimeRange('all');
-    setSelectedQuestionRange('all');
   };
 
-  const hasActiveFilters = selectedAudience !== 'all' || selectedTimeRange !== 'all' || selectedQuestionRange !== 'all';
+  const hasActiveFilters = selectedAudience !== 'all';
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -150,7 +114,7 @@ const AssessmentsPage: React.FC = () => {
               )}
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               {/* Audience Filter */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -164,43 +128,9 @@ const AssessmentsPage: React.FC = () => {
                   <option value="all">Tất cả đối tượng</option>
                   {audiences.map((audience) => (
                     <option key={audience} value={audience}>
-                      {audience}
+                      mọi người
                     </option>
                   ))}
-                </select>
-              </div>
-
-              {/* Time Range Filter */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Thời gian hoàn thành
-                </label>
-                <select
-                  value={selectedTimeRange}
-                  onChange={(e) => setSelectedTimeRange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                >
-                  <option value="all">Tất cả thời gian</option>
-                  <option value="short">Ngắn (≤ 5 phút)</option>
-                  <option value="medium">Trung bình (6-10 phút)</option>
-                  <option value="long">Dài (&gt; 10 phút)</option>
-                </select>
-              </div>
-
-              {/* Question Count Filter */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Số câu hỏi
-                </label>
-                <select
-                  value={selectedQuestionRange}
-                  onChange={(e) => setSelectedQuestionRange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                >
-                  <option value="all">Tất cả</option>
-                  <option value="few">Ít (≤ 5 câu)</option>
-                  <option value="medium">Trung bình (6-10 câu)</option>
-                  <option value="many">Nhiều (&gt; 10 câu)</option>
                 </select>
               </div>
             </div>
@@ -268,20 +198,12 @@ const AssessmentsPage: React.FC = () => {
                           <div className="flex flex-wrap items-center gap-4 mb-4">
                             <div className="flex flex-wrap gap-2">
                               <span className="text-sm font-semibold text-gray-700">Đề xuất cho:</span>
-                              {assessment.audiences.map((audience, index) => (
-                                <span
-                                  key={index}
-                                  className={`text-sm px-3 py-1 rounded-full font-bold shadow ${colorMap[colorKey].badge}`}
-                                >
-                                  {audience}
-                                </span>
-                              ))}
+                              <span
+                                className={`text-sm px-3 py-1 rounded-full font-bold shadow ${colorMap[colorKey].badge}`}
+                              >
+                                mọi người
+                              </span>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-4 text-sm text-gray-600 font-semibold">
-                            <span>{assessment.questionCount} câu hỏi</span>
-                            <span>•</span>
-                            <span>~{assessment.timeToComplete} phút</span>
                           </div>
                         </div>
                         <div className="flex-shrink-0">

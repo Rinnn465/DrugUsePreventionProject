@@ -11,7 +11,6 @@ const CoursesPage: React.FC = () => {
   
   // Filter states
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedRisk, setSelectedRisk] = useState<string>('all');
 
   // Transform API data to match SqlCourse type
   const transformCourseData = (apiData: any[]): SqlCourse[] => {
@@ -50,12 +49,6 @@ const CoursesPage: React.FC = () => {
 
   }, []);
 
-  // Get unique risk levels
-  const riskLevels = useMemo(() => {
-    const allRisks = courses.map(course => course.Risk).filter(Boolean);
-    return [...new Set(allRisks)];
-  }, [courses]);
-
   // Filter courses with memoization
   const filteredCourses = useMemo(() => {
     return courses.filter(course => {
@@ -64,19 +57,15 @@ const CoursesPage: React.FC = () => {
         selectedCategory === '' ||
         course.Category.some(cat => cat.CategoryName === selectedCategory);
       
-      // Filter by risk level
-      const matchesRisk = selectedRisk === 'all' || course.Risk === selectedRisk;
-      
-      return matchesCategory && matchesRisk;
+      return matchesCategory;
     });
-  }, [courses, selectedCategory, selectedRisk]);
+  }, [courses, selectedCategory]);
 
   const clearFilters = () => {
     setSelectedCategory('');
-    setSelectedRisk('all');
   };
 
-  const hasActiveFilters = selectedCategory !== '' || selectedRisk !== 'all';
+  const hasActiveFilters = selectedCategory !== '';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
@@ -127,7 +116,7 @@ const CoursesPage: React.FC = () => {
               )}
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               {/* Category Filter */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -142,25 +131,6 @@ const CoursesPage: React.FC = () => {
                   {categoryData.map((category) => (
                     <option key={category.CategoryID} value={category.CategoryName}>
                       {category.CategoryName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Risk Level Filter */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Mức độ rủi ro
-                </label>
-                <select
-                  value={selectedRisk}
-                  onChange={(e) => setSelectedRisk(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                >
-                  <option value="all">Tất cả mức độ</option>
-                  {riskLevels.map((risk) => (
-                    <option key={risk} value={risk}>
-                      {risk}
                     </option>
                   ))}
                 </select>

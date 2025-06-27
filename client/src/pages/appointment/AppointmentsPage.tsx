@@ -19,7 +19,7 @@ const AppointmentsPage: React.FC = () => {
   const [qualificationData, setQualificationData] = useState<Qualification[]>([]);
 
   // Handling filter data
-  const [selectedSpecialty, setSelectedSpecialty] = useState<string>('');
+  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
 
   useEffect(() => {
     if (state?.counselorId) {
@@ -144,7 +144,8 @@ const AppointmentsPage: React.FC = () => {
 
   const filteredConsunltants = mergedConsultants.filter(consultant => {
     const matchesSearch = consultant.Name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSpecialty = selectedSpecialty ? consultant.Specialties.some(s => s.Name === selectedSpecialty) : true;
+    const matchesSpecialty = selectedSpecialties.length === 0 || 
+      selectedSpecialties.some(specialty => consultant.Specialties.some(s => s.Name === specialty));
     return matchesSearch && matchesSpecialty;
   });
 
@@ -196,16 +197,28 @@ const AppointmentsPage: React.FC = () => {
                 />
               </div>
               <div>
-                <select
-                  className="w-full pl-4 pr-8 py-2 border-2 border-primary-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-300 bg-primary-50 text-primary-900 shadow-md"
-                  value={selectedSpecialty}
-                  onChange={(e) => setSelectedSpecialty(e.target.value)}
-                >
-                  <option value="">Tất Cả Chuyên Môn</option>
-                  {specialtyOptions.map((specialty, index) => (
-                    <option key={index} value={specialty}>{specialty}</option>
-                  ))}
-                </select>
+                <div className="bg-primary-50 border-2 border-primary-100 rounded-xl p-3 shadow-md">
+                  <h3 className="text-sm font-medium text-primary-700 mb-2">Chuyên môn</h3>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {specialtyOptions.map((specialty, index) => (
+                      <label key={index} className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-primary-300 rounded"
+                          checked={selectedSpecialties.includes(specialty)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedSpecialties([...selectedSpecialties, specialty]);
+                            } else {
+                              setSelectedSpecialties(selectedSpecialties.filter(s => s !== specialty));
+                            }
+                          }}
+                        />
+                        <span className="text-sm text-primary-900">{specialty}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

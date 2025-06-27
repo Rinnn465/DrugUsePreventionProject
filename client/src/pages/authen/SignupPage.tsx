@@ -62,7 +62,7 @@ const SignUpPage: React.FC = () => {
                 const data = await response.json();
 
                 if (response.ok) {
-                    toast.success(data.message);
+                    toast.success('Đăng ký thành công! Bạn sẽ được chuyển đến trang đăng nhập.');
                     setTimeout(() => {
                         navigate('/login');
                     }, 2000);

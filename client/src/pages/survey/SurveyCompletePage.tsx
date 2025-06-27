@@ -24,16 +24,8 @@ const SurveyCompletePage: React.FC = () => {
                         to={'/community-programs'}
                         className="px-4 py-2 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 transition"
                     >
-                        Quay về trang sự kiện
+                        Quay về page cộng đồng
                     </Link>
-                    {programId && (
-                        <Link
-                            to={`/community-programs/${programId}`}
-                            className="px-4 py-2 bg-purple-500 text-white rounded-lg shadow hover:bg-purple-600 transition"
-                        >
-                            Quay về sự kiện
-                        </Link>
-                    )}
                 </div>
             </div>
         </div>

@@ -87,7 +87,7 @@ const Header: React.FC<HeaderProps> = () => {
           <span className="inline-block h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
             <Heart className="h-5 w-5 text-primary-600" />
           </span>
-          <span className="font-bold text-xl text-primary-700 tracking-wide">DrugPrevention</span>
+          <span className="font-bold text-2xl text-primary-700 tracking-wide">DrugPrevention</span>
         </Link>
 
         {/* Menu điều hướng - Giữa */}
@@ -103,7 +103,7 @@ const Header: React.FC<HeaderProps> = () => {
                   }
                   style={{ minHeight: 45 }}
                 >
-                  <span className="text-xs font-medium">{item.label}</span>
+                  <span className="text-sm font-medium">{item.label}</span>
                 </NavLink>
               );
             })}
@@ -158,20 +158,20 @@ const Header: React.FC<HeaderProps> = () => {
             >
               <div className='flex gap-2 items-center cursor-pointer'>
                 <User className="h-8 w-8 text-primary-600" />
-                <span className='select-none text-gray-700 font-semibold'>{user.Username}</span>
+                <span className='select-none text-gray-700 font-semibold text-base'>{user.Username}</span>
               </div>
             </Tippy>
           ) : (
             <div className="flex items-center gap-3">
               <Link
                 to="/login"
-                className="inline-flex items-center justify-center bg-white text-primary-600 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50 hover:shadow-md transition-all duration-300 font-semibold border border-primary-200 text-sm whitespace-nowrap"
+                className="inline-flex items-center justify-center bg-white text-primary-600 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50 hover:shadow-md transition-all duration-300 font-semibold border border-primary-200 text-base whitespace-nowrap"
               >
                 Đăng nhập
               </Link>
               <Link
                 to="/signup"
-                className="inline-flex items-center justify-center bg-primary-600 text-white px-4 py-2 rounded-lg shadow-sm hover:bg-primary-700 hover:shadow-md transition-all duration-300 font-semibold text-sm whitespace-nowrap"
+                className="inline-flex items-center justify-center bg-primary-600 text-white px-4 py-2 rounded-lg shadow-sm hover:bg-primary-700 hover:shadow-md transition-all duration-300 font-semibold text-base whitespace-nowrap"
               >
                 Đăng ký
               </Link>

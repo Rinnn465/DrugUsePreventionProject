@@ -143,6 +143,10 @@ const DashBoardPage: React.FC = () => {
     confirmPassword: "",
   });
 
+  // Security states for profile editing
+  const [showProfileEditModal, setShowProfileEditModal] = useState(false);
+  const [profilePassword, setProfilePassword] = useState("");
+
   // Check current page type
   const isCoursesPage = location.pathname.includes('/courses');
   const isEventsPage = location.pathname.includes('/events');
@@ -555,6 +559,8 @@ const DashBoardPage: React.FC = () => {
 
       setUser(result.user); // Update user context
       setIsEditingProfile(false);
+      setShowProfileEditModal(false);
+      setProfilePassword("");
       setMessage({ type: "success", text: "Hồ sơ đã được cập nhật!" });
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Đã xảy ra lỗi khi cập nhật hồ sơ";
@@ -628,18 +634,13 @@ const DashBoardPage: React.FC = () => {
         <main className="flex-grow p-6 lg:p-8">
           <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
             <div className="flex items-center justify-between mb-6">
-              <h1 className="text-2xl font-bold text-gray-800">
-                Dashboard {isConsultant && <span className="text-blue-600">- Chuyên Gia Tư Vấn</span>}
+              <h1 className="text-3xl font-bold text-gray-900">
+                Dashboard {isConsultant && <span className="text-indigo-600">- Chuyên Gia Tư Vấn</span>}
               </h1>
-              {!isEditingProfile && (
-                <button
-                  onClick={() => setIsEditingProfile(true)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-                >
-                  <Edit className="h-4 w-4" />
-                  <span>Chỉnh sửa thông tin</span>
-                </button>
-              )}
+              <div className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl border border-indigo-100">
+                <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-gray-700">Hoạt động</span>
+              </div>
             </div>
 
             {message && (
@@ -650,140 +651,107 @@ const DashBoardPage: React.FC = () => {
             )}
 
             {/* Profile Information Section */}
-            {isEditingProfile ? (
-              <form onSubmit={handleProfileSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Tên người dùng</label>
-                    <input
-                      type="text"
-                      name="username"
-                      value={profileForm.username}
-                      onChange={handleProfileChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Email</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={profileForm.email}
-                      readOnly
-                      className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm text-gray-500 cursor-not-allowed"
-                      title="Email không thể thay đổi vì nó là duy nhất trong hệ thống"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Họ và tên</label>
-                    <input
-                      type="text"
-                      name="fullName"
-                      value={profileForm.fullName}
-                      onChange={handleProfileChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Ngày sinh</label>
-                    <input
-                      type="date"
-                      name="dateOfBirth"
-                      value={profileForm.dateOfBirth}
-                      onChange={handleProfileChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    />
-                  </div>
+            <div className="bg-gradient-to-br from-slate-50 to-white rounded-2xl p-8 border border-slate-200">
+              <div className="flex items-center mb-6">
+                <div className="h-16 w-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mr-4">
+                  <User className="h-8 w-8 text-white" />
                 </div>
-                <div className="flex space-x-4">
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:bg-blue-400"
-                  >
-                    {isLoading ? "Đang lưu..." : "Lưu thay đổi"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsEditingProfile(false);
-                      setMessage(null);
-                    }}
-                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-colors duration-200"
-                  >
-                    Hủy
-                  </button>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Thông tin cá nhân</h2>
+                  <p className="text-gray-600">Xem thông tin tài khoản của bạn</p>
                 </div>
-              </form>
-            ) : (
-              <div className="bg-gray-50 rounded-lg p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
-                    <User className="h-5 w-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm text-gray-600">Tên người dùng</p>
-                      <p className="font-medium text-gray-800">{user?.Username}</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                  <div className="flex items-center space-x-3">
+                    <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <User className="h-5 w-5 text-blue-600" />
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
-                    <Mail className="h-5 w-5 text-gray-400" />
                     <div className="flex-1">
-                      <p className="text-sm text-gray-600">Email</p>
-                      <p className="font-medium text-gray-800">{user?.Email}</p>
+                      <p className="text-sm font-medium text-gray-500">Tên người dùng</p>
+                      <p className="text-lg font-semibold text-gray-900">{user?.Username}</p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
-                    <User className="h-5 w-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm text-gray-600">Họ và tên</p>
-                      <p className="font-medium text-gray-800">{user?.FullName || "Chưa cập nhật"}</p>
+                </div>
+
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                  <div className="flex items-center space-x-3">
+                    <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <Mail className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-500">Email</p>
+                      <p className="text-lg font-semibold text-gray-900">{user?.Email}</p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg md:col-span-2">
-                    <Calendar className="h-5 w-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm text-gray-600">Ngày sinh</p>
-                      <p className="font-medium text-gray-800">{user?.DateOfBirth ? parseDate(user.DateOfBirth.toString()) : "Chưa cập nhật"}</p>
+                </div>
+
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                  <div className="flex items-center space-x-3">
+                    <div className="h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <User className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-500">Họ và tên</p>
+                      <p className="text-lg font-semibold text-gray-900">{user?.FullName || "Chưa cập nhật"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                  <div className="flex items-center space-x-3">
+                    <div className="h-10 w-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                      <Calendar className="h-5 w-5 text-orange-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-500">Ngày sinh</p>
+                      <p className="text-lg font-semibold text-gray-900">{user?.DateOfBirth ? parseDate(user.DateOfBirth.toString()) : "Chưa cập nhật"}</p>
                     </div>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
           </div>
 
-          {/* Regular Dashboard Stats */}
+          {/* Enhanced Dashboard Stats */}
           <div className={`grid grid-cols-1 ${isConsultant ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-6 mb-8`}>
-            <Link to={`/dashboard/${userId}/courses`} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow duration-200 block">
+            <Link to={`/dashboard/${userId}/courses`} className="group bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-sm p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 block border border-blue-100">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm font-medium">Khóa học tham gia</p>
-                  <p className="text-2xl font-bold text-gray-800 mt-1">{enrolledCourses.length}</p>
+                  <p className="text-blue-700 text-sm font-semibold">Khóa học tham gia</p>
+                  <p className="text-3xl font-bold text-blue-900 mt-2">{enrolledCourses.length}</p>
+                  <p className="text-blue-600 text-xs mt-1">Khóa học đã đăng ký</p>
                 </div>
-                <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <BookOpen className="h-6 w-6 text-blue-600" />
+                <div className="h-14 w-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <BookOpen className="h-7 w-7 text-white" />
                 </div>
               </div>
             </Link>
-            <Link to={`/dashboard/${userId}/events`} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow duration-200 block">
+            
+            <Link to={`/dashboard/${userId}/events`} className="group bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl shadow-sm p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 block border border-green-100">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm font-medium">Sự kiện tham gia</p>
-                  <p className="text-2xl font-bold text-gray-800 mt-1">{enrolledEvents.length}</p>
+                  <p className="text-green-700 text-sm font-semibold">Sự kiện tham gia</p>
+                  <p className="text-3xl font-bold text-green-900 mt-2">{enrolledEvents.length}</p>
+                  <p className="text-green-600 text-xs mt-1">Sự kiện đã đăng ký</p>
                 </div>
-                <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <Users className="h-6 w-6 text-green-600" />
+                <div className="h-14 w-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Users className="h-7 w-7 text-white" />
                 </div>
               </div>
             </Link>
+            
             {!isConsultant && (
-              <Link to={`/dashboard/${userId}/appointments`} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow duration-200 block">
+              <Link to={`/dashboard/${userId}/appointments`} className="group bg-gradient-to-br from-purple-50 to-violet-50 rounded-2xl shadow-sm p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 block border border-purple-100">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-600 text-sm font-medium">Lịch hẹn</p>
-                    <p className="text-2xl font-bold text-gray-800 mt-1">{appointments.length}</p>
+                    <p className="text-purple-700 text-sm font-semibold">Lịch hẹn</p>
+                    <p className="text-3xl font-bold text-purple-900 mt-2">{appointments.length}</p>
+                    <p className="text-purple-600 text-xs mt-1">Cuộc hẹn đã đặt</p>
                   </div>
-                  <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Calendar className="h-6 w-6 text-purple-600" />
+                  <div className="h-14 w-14 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Calendar className="h-7 w-7 text-white" />
                   </div>
                 </div>
               </Link>
@@ -1100,90 +1068,113 @@ const DashBoardPage: React.FC = () => {
       <div className="flex min-h-screen bg-gray-50">
         <Sidebar />
         <main className="flex-grow p-6 lg:p-8">
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">Khóa Học Của Tôi</h1>
-
-            {isLoadingCourses ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="text-gray-600 mt-4">Đang tải khóa học...</p>
+          <div className="max-w-6xl mx-auto space-y-6">
+            {/* Header */}
+            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+              <div className="flex items-center mb-4">
+                <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mr-4">
+                  <BookOpen className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">Khóa học của tôi</h1>
+                  <p className="text-gray-600">Quản lý và theo dõi tiến độ học tập</p>
+                </div>
               </div>
-            ) : enrolledCourses.length > 0 ? (
-              <div className="space-y-4">
-                {enrolledCourses.map((course) => (
-                  <div key={course.EnrollmentID} className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex">
-                      {/* Course Image */}
-                      <div className="flex-shrink-0 flex items-center">
-                        {course.ImageUrl ? (
-                          <img
-                            src={course.ImageUrl}
-                            alt={course.CourseName}
-                            className="w-48 h-32 object-cover rounded-l-lg"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <div className="w-48 h-32 bg-gray-200 rounded-l-lg flex items-center justify-center">
-                            <BookOpen className="h-8 w-8 text-gray-400" />
-                          </div>
-                        )}
-                      </div>
-                      {/* Course Content */}
-                      <div className="flex-1 p-6">
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-1">{course.CourseName}</h3>
-                            <p className="text-sm text-gray-600 mb-2">Khóa học trực tuyến</p>
-                          </div>
-                          <Link
-                            to={`/courses/${course.CourseID}`}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                          >
-                            {course.Status.toLowerCase() === 'completed' ? 'Xem lại' : 'Tiếp tục học'}
-                          </Link>
-                        </div>
+            </div>
 
-                        {/* Status and Date */}
-                        <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                          {course.Status.toLowerCase() === 'completed' ? (
-                            <div className="flex items-center">
-                              <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
-                              <span className="text-green-600 font-medium">
-                                Hoàn thành vào {course.CompletedDate ? formatDate(course.CompletedDate) : 'Không rõ'}
-                              </span>
-                            </div>
+            {/* Course Content */}
+            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+              {isLoadingCourses ? (
+                <div className="text-center py-16">
+                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
+                  <p className="text-gray-600 mt-6 text-lg">Đang tải khóa học...</p>
+                </div>
+              ) : enrolledCourses.length > 0 ? (
+                <div className="space-y-6">
+                  {enrolledCourses.map((course) => (
+                    <div key={course.EnrollmentID} className="group bg-gradient-to-r from-white to-blue-50 border border-blue-100 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02] overflow-hidden">
+                      <div className="flex">
+                        {/* Course Image */}
+                        <div className="flex-shrink-0">
+                          {course.ImageUrl ? (
+                            <img
+                              src={course.ImageUrl}
+                              alt={course.CourseName}
+                              className="w-56 h-40 object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                              }}
+                            />
                           ) : (
-                            <div className="flex items-center">
-                              <Clock className="h-4 w-4 text-blue-600 mr-1" />
-                              <span className="text-blue-600 font-medium">Đang học</span>
+                            <div className="w-56 h-40 bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+                              <BookOpen className="h-12 w-12 text-blue-500" />
                             </div>
                           )}
                         </div>
+                        
+                        {/* Course Content */}
+                        <div className="flex-1 p-8">
+                          <div className="flex justify-between items-start mb-4">
+                            <div className="flex-1">
+                              <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-blue-700 transition-colors">{course.CourseName}</h3>
+                              <div className="flex items-center space-x-2 mb-3">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                  <BookOpen className="h-3 w-3 mr-1" />
+                                  Khóa học trực tuyến
+                                </span>
+                              </div>
+                            </div>
+                            <Link
+                              to={`/courses/${course.CourseID}`}
+                              className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+                            >
+                              <BookOpen className="h-4 w-4" />
+                              <span>{course.Status.toLowerCase() === 'completed' ? 'Xem lại' : 'Tiếp tục học'}</span>
+                            </Link>
+                          </div>
 
-                        {/* Course Description */}
-                        <p className="text-gray-700 text-sm line-clamp-2 mb-3">{course.Description}</p>
+                          {/* Status and Date */}
+                          <div className="flex items-center space-x-6 mb-4">
+                            {course.Status.toLowerCase() === 'completed' ? (
+                              <div className="flex items-center px-4 py-2 bg-green-50 rounded-xl border border-green-200">
+                                <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+                                <span className="text-green-700 font-semibold text-sm">
+                                  Hoàn thành vào {course.CompletedDate ? formatDate(course.CompletedDate) : 'Không rõ'}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center px-4 py-2 bg-blue-50 rounded-xl border border-blue-200">
+                                <Clock className="h-5 w-5 text-blue-600 mr-2" />
+                                <span className="text-blue-700 font-semibold text-sm">Đang học</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Course Description */}
+                          <p className="text-gray-700 leading-relaxed line-clamp-3">{course.Description}</p>
+                        </div>
                       </div>
                     </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20">
+                  <div className="h-24 w-24 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <BookOpen className="h-12 w-12 text-blue-500" />
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Chưa có khóa học nào</h3>
-                <p className="text-gray-600 mb-6">Bạn chưa đăng ký khóa học nào.</p>
-                <Link
-                  to="/courses"
-                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
-                >
-                  <BookOpen className="h-4 w-4 mr-2" />
-                  Khám phá khóa học
-                </Link>
-              </div>
-            )}
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Chưa có khóa học nào</h3>
+                  <p className="text-gray-600 mb-8 text-lg">Bạn chưa đăng ký khóa học nào. Hãy khám phá các khóa học thú vị!</p>
+                  <Link
+                    to="/courses"
+                    className="inline-flex items-center space-x-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-lg font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    <BookOpen className="h-5 w-5" />
+                    <span>Khám phá khóa học</span>
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         </main>
       </div>
@@ -1196,109 +1187,135 @@ const DashBoardPage: React.FC = () => {
       <div className="flex min-h-screen bg-gray-50">
         <Sidebar />
         <main className="flex-grow p-6 lg:p-8">
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">Sự Kiện Của Tôi</h1>
-
-            {isLoadingEvents ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-                <p className="text-gray-600 mt-4">Đang tải sự kiện...</p>
+          <div className="max-w-6xl mx-auto space-y-6">
+            {/* Header */}
+            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+              <div className="flex items-center mb-4">
+                <div className="h-12 w-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mr-4">
+                  <Users className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">Sự kiện của tôi</h1>
+                  <p className="text-gray-600">Theo dõi các sự kiện đã tham gia và sắp tới</p>
+                </div>
               </div>
-            ) : enrolledEvents.length > 0 ? (
-              <div className="space-y-4">
-                {enrolledEvents.map((event) => (
-                  <div key={event.ProgramID} className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex">
-                      {/* Event Image */}
-                      <div className="flex-shrink-0 flex items-center">
-                        {event.ImageUrl ? (
-                          <img
-                            src={event.ImageUrl}
-                            alt={event.ProgramName}
-                            className="w-48 h-32 object-cover rounded-l-lg"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <div className="w-48 h-32 bg-gray-200 rounded-l-lg flex items-center justify-center">
-                            <Users className="h-8 w-8 text-gray-400" />
-                          </div>
-                        )}
-                      </div>
-                      {/* Event Content */}
-                      <div className="flex-1 p-6">
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-1">{event.ProgramName}</h3>
-                            <p className="text-sm text-gray-600 mb-2">{event.Type} • {event.Organizer}</p>
-                          </div>
-                          <Link
-                            to={`/community-programs/${event.ProgramID}`}
-                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
-                          >
-                            Xem chi tiết
-                          </Link>
+            </div>
+
+            {/* Events Content */}
+            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+              {isLoadingEvents ? (
+                <div className="text-center py-16">
+                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-200 border-t-green-600 mx-auto"></div>
+                  <p className="text-gray-600 mt-6 text-lg">Đang tải sự kiện...</p>
+                </div>
+              ) : enrolledEvents.length > 0 ? (
+                <div className="space-y-6">
+                  {enrolledEvents.map((event) => (
+                    <div key={event.ProgramID} className="group bg-gradient-to-r from-white to-green-50 border border-green-100 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02] overflow-hidden">
+                      <div className="flex">
+                        {/* Event Image */}
+                        <div className="flex-shrink-0">
+                          {event.ImageUrl ? (
+                            <img
+                              src={event.ImageUrl}
+                              alt={event.ProgramName}
+                              className="w-56 h-40 object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-56 h-40 bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center">
+                              <Users className="h-12 w-12 text-green-500" />
+                            </div>
+                          )}
                         </div>
-
-                        {/* Status and Date */}
-                        <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                          <div className="flex items-center">
-                            <Calendar className="h-4 w-4 text-green-600 mr-1" />
-                            <span className="text-green-600 font-medium">
-                              {formatDate(event.Date)}
-                            </span>
+                        
+                        {/* Event Content */}
+                        <div className="flex-1 p-8">
+                          <div className="flex justify-between items-start mb-4">
+                            <div className="flex-1">
+                              <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-green-700 transition-colors">{event.ProgramName}</h3>
+                              <div className="flex items-center space-x-3 mb-3">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  <Users className="h-3 w-3 mr-1" />
+                                  {event.Type}
+                                </span>
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                  {event.Organizer}
+                                </span>
+                              </div>
+                            </div>
+                            <Link
+                              to={`/community-programs/${event.ProgramID}`}
+                              className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+                            >
+                              <Users className="h-4 w-4" />
+                              <span>Xem chi tiết</span>
+                            </Link>
                           </div>
-                          <div className="flex items-center">
-                            <CheckCircle className="h-4 w-4 text-blue-600 mr-1" />
-                            <span className="text-blue-600 font-medium">
-                              Đã đăng ký vào {formatDate(event.RegistrationDate)}
-                            </span>
-                          </div>
-                        </div>
 
-                        {/* Event Description */}
-                        <p className="text-gray-700 text-sm line-clamp-2 mb-3">{event.Description}</p>
-
-                        {/* Survey Status */}
-                        <div className="flex items-center space-x-4 text-xs">
-                          <div className={`flex items-center px-2 py-1 rounded-full ${event.SurveyBeforeCompleted ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
-                            {event.SurveyBeforeCompleted ? (
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                            ) : (
-                              <XCircle className="h-3 w-3 mr-1" />
-                            )}
-                            <span>Khảo sát trước</span>
+                          {/* Status and Date */}
+                          <div className="flex items-center space-x-6 mb-4">
+                            <div className="flex items-center px-4 py-2 bg-green-50 rounded-xl border border-green-200">
+                              <Calendar className="h-5 w-5 text-green-600 mr-2" />
+                              <span className="text-green-700 font-semibold text-sm">
+                                {formatDate(event.Date)}
+                              </span>
+                            </div>
+                            <div className="flex items-center px-4 py-2 bg-blue-50 rounded-xl border border-blue-200">
+                              <CheckCircle className="h-5 w-5 text-blue-600 mr-2" />
+                              <span className="text-blue-700 font-semibold text-sm">
+                                Đã đăng ký vào {formatDate(event.RegistrationDate)}
+                              </span>
+                            </div>
                           </div>
-                          <div className={`flex items-center px-2 py-1 rounded-full ${event.SurveyAfterCompleted ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
-                            {event.SurveyAfterCompleted ? (
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                            ) : (
-                              <XCircle className="h-3 w-3 mr-1" />
-                            )}
-                            <span>Khảo sát sau</span>
+
+                          {/* Event Description */}
+                          <p className="text-gray-700 leading-relaxed line-clamp-3 mb-4">{event.Description}</p>
+
+                          {/* Survey Status */}
+                          <div className="flex items-center space-x-4">
+                            <div className={`flex items-center px-3 py-2 rounded-xl text-sm font-medium ${event.SurveyBeforeCompleted ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-gray-100 text-gray-600 border border-gray-200'}`}>
+                              {event.SurveyBeforeCompleted ? (
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                              ) : (
+                                <XCircle className="h-4 w-4 mr-2" />
+                              )}
+                              <span>Khảo sát trước</span>
+                            </div>
+                            <div className={`flex items-center px-3 py-2 rounded-xl text-sm font-medium ${event.SurveyAfterCompleted ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-gray-100 text-gray-600 border border-gray-200'}`}>
+                              {event.SurveyAfterCompleted ? (
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                              ) : (
+                                <XCircle className="h-4 w-4 mr-2" />
+                              )}
+                              <span>Khảo sát sau</span>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20">
+                  <div className="h-24 w-24 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <Users className="h-12 w-12 text-green-500" />
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Chưa có sự kiện nào</h3>
-                <p className="text-gray-600 mb-6">Bạn chưa đăng ký sự kiện nào.</p>
-                <Link
-                  to="/community-programs"
-                  className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors duration-200"
-                >
-                  <Users className="h-4 w-4 mr-2" />
-                  Tham gia sự kiện
-                </Link>
-              </div>
-            )}
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Chưa có sự kiện nào</h3>
+                  <p className="text-gray-600 mb-8 text-lg">Bạn chưa tham gia sự kiện nào. Hãy khám phá các sự kiện thú vị!</p>
+                  <Link
+                    to="/community-programs"
+                    className="inline-flex items-center space-x-3 px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-lg font-semibold rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    <Users className="h-5 w-5" />
+                    <span>Tham gia sự kiện</span>
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         </main>
       </div>
@@ -1311,79 +1328,115 @@ const DashBoardPage: React.FC = () => {
       <div className="flex min-h-screen bg-gray-50">
         <Sidebar />
         <main className="flex-grow p-6 lg:p-8">
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">
-              {isConsultant ? 'Quản Lý Lịch Hẹn - Chuyên Gia Tư Vấn' : 'Lịch Hẹn Của Tôi'}
-            </h1>
+          <div className="max-w-6xl mx-auto space-y-6">
+            {/* Header */}
+            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+              <div className="flex items-center mb-4">
+                <div className="h-12 w-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center mr-4">
+                  <Calendar className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">
+                    {isConsultant ? 'Quản lý lịch hẹn' : 'Lịch hẹn của tôi'}
+                  </h1>
+                  <p className="text-gray-600">
+                    {isConsultant ? 'Quản lý và theo dõi lịch hẹn từ khách hàng' : 'Theo dõi các cuộc hẹn tư vấn của bạn'}
+                  </p>
+                </div>
+              </div>
+            </div>
 
-            {appointments.length > 0 ? (
-              <div className="space-y-4">
-                {appointments.map((appointment) => (
-                  <div key={appointment.AppointmentID} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-semibold text-gray-800">
-                          {isConsultant ? `Cuộc hẹn với khách hàng` : `Cuộc hẹn với chuyên viên`}
-                        </h3>
-                        <p className="text-gray-600 text-sm">
-                          {formatDate(appointment.Date)}
-                        </p>
-                        <p className="text-gray-600 text-sm">
-                          Trạng thái: <span className={`
-                            ${appointment.Status === 'confirmed' ? 'text-green-600' :
-                              appointment.Status === 'pending' ? 'text-orange-600' : 'text-red-600'}
-                          `}>
-                            {appointment.Status === 'confirmed' ? 'Đã xác nhận' :
-                              appointment.Status === 'pending' ? 'Chờ duyệt' : 'Đã hủy'}
-                          </span>
-                        </p>
-                      </div>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleAppointmentDetail(appointment)}
-                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                        >
-                          Chi tiết
-                        </button>
-                        {appointment.Status === 'confirmed' && appointment.MeetingURL && (
-                          <a
-                            href={appointment.MeetingURL}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
+            {/* Appointments Content */}
+            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+              {appointments.length > 0 ? (
+                <div className="space-y-6">
+                  {appointments.map((appointment) => (
+                    <div key={appointment.AppointmentID} className="group bg-gradient-to-r from-white to-purple-50 border border-purple-100 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02] p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-3">
+                            <div className="h-10 w-10 bg-gradient-to-br from-purple-100 to-violet-100 rounded-lg flex items-center justify-center">
+                              <Calendar className="h-5 w-5 text-purple-600" />
+                            </div>
+                            <div>
+                              <h3 className="text-xl font-bold text-gray-900 group-hover:text-purple-700 transition-colors">
+                                {isConsultant ? `Cuộc hẹn với khách hàng` : `Cuộc hẹn với chuyên viên`}
+                              </h3>
+                              <p className="text-gray-600 text-sm">
+                                {formatDate(appointment.Date)}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center space-x-4 mb-3">
+                            <span className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold border ${
+                              appointment.Status === 'confirmed' 
+                                ? 'bg-green-50 text-green-700 border-green-200' 
+                                : appointment.Status === 'pending' 
+                                ? 'bg-yellow-50 text-yellow-700 border-yellow-200' 
+                                : 'bg-red-50 text-red-700 border-red-200'
+                            }`}>
+                              {appointment.Status === 'confirmed' && <CheckCircle className="h-4 w-4 mr-2" />}
+                              {appointment.Status === 'pending' && <Clock className="h-4 w-4 mr-2" />}
+                              {appointment.Status === 'cancelled' && <XCircle className="h-4 w-4 mr-2" />}
+                              {appointment.Status === 'confirmed' ? 'Đã xác nhận' :
+                                appointment.Status === 'pending' ? 'Chờ duyệt' : 'Đã hủy'}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex space-x-3">
+                          <button
+                            onClick={() => handleAppointmentDetail(appointment)}
+                            className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
                           >
-                            Tham gia
-                          </a>
-                        )}
+                            <Calendar className="h-4 w-4" />
+                            <span>Chi tiết</span>
+                          </button>
+                          {appointment.Status === 'confirmed' && appointment.MeetingURL && (
+                            <a
+                              href={appointment.MeetingURL}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+                            >
+                              <Users className="h-4 w-4" />
+                              <span>Tham gia</span>
+                            </a>
+                          )}
+                        </div>
                       </div>
+                      
+                      {appointment.Description && (
+                        <div className="bg-white rounded-xl p-4 border border-gray-100">
+                          <p className="text-sm font-medium text-gray-600 mb-2">Mô tả:</p>
+                          <p className="text-gray-800 leading-relaxed">{appointment.Description}</p>
+                        </div>
+                      )}
                     </div>
-                    {appointment.Description && (
-                      <div className="mt-3">
-                        <p className="text-sm text-gray-600">Mô tả:</p>
-                        <p className="text-gray-800">{appointment.Description}</p>
-                      </div>
-                    )}
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20">
+                  <div className="h-24 w-24 bg-gradient-to-br from-purple-100 to-violet-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <Calendar className="h-12 w-12 text-purple-500" />
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Chưa có lịch hẹn nào</h3>
-                <p className="text-gray-600 mb-6">
-                  {isConsultant ? 'Chưa có bệnh nhân nào đặt lịch hẹn với bạn.' : 'Bạn chưa đặt lịch hẹn nào.'}
-                </p>
-                {!isConsultant && (
-                  <Link
-                    to="/appointments"
-                    className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors duration-200"
-                  >
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Lịch hẹn
-                  </Link>
-                )}
-              </div>
-            )}
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Chưa có lịch hẹn nào</h3>
+                  <p className="text-gray-600 mb-8 text-lg">
+                    {isConsultant ? 'Chưa có bệnh nhân nào đặt lịch hẹn với bạn.' : 'Bạn chưa đặt lịch hẹn nào. Hãy đặt lịch tư vấn ngay!'}
+                  </p>
+                  {!isConsultant && (
+                    <Link
+                      to="/appointments"
+                      className="inline-flex items-center space-x-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-violet-600 text-white text-lg font-semibold rounded-xl hover:from-purple-700 hover:to-violet-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                    >
+                      <Calendar className="h-5 w-5" />
+                      <span>Đặt lịch hẹn</span>
+                    </Link>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </main>
 
@@ -1445,56 +1498,248 @@ const DashBoardPage: React.FC = () => {
       <div className="flex min-h-screen bg-gray-50">
         <Sidebar />
         <main className="flex-grow p-6 lg:p-8">
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">Bảo Mật</h1>
-
-            <form className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Mật khẩu hiện tại</label>
-                <input
-                  type="password"
-                  name="currentPassword"
-                  value={passwordForm.currentPassword}
-                  onChange={handlePasswordChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Nhập mật khẩu hiện tại"
-                />
+          <div className="max-w-4xl mx-auto space-y-6">
+            {/* Header */}
+            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+              <div className="flex items-center mb-4">
+                <div className="h-12 w-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center mr-4">
+                  <Edit className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">Bảo mật & Cài đặt</h1>
+                  <p className="text-gray-600">Quản lý thông tin cá nhân và bảo mật tài khoản</p>
+                </div>
               </div>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Mật khẩu mới</label>
-                <input
-                  type="password"
-                  name="newPassword"
-                  value={passwordForm.newPassword}
-                  onChange={handlePasswordChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Nhập mật khẩu mới"
-                />
+            {message && (
+              <div className={`p-4 rounded-xl flex justify-between items-center ${message.type === "success" ? "bg-green-50 text-green-800 border border-green-200" : "bg-red-50 text-red-800 border border-red-200"}`}>
+                {message.text}
+                <button onClick={() => setMessage(null)} className="text-sm font-medium hover:underline">Đóng</button>
               </div>
+            )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Xác nhận mật khẩu mới</label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={passwordForm.confirmPassword}
-                  onChange={handlePasswordChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Xác nhận mật khẩu mới"
-                />
-              </div>
-
-              <div className="flex space-x-4">
+            {/* Profile Edit Section */}
+            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center">
+                  <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                    <User className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">Chỉnh sửa thông tin cá nhân</h2>
+                    <p className="text-gray-600 text-sm">Cập nhật thông tin tài khoản của bạn</p>
+                  </div>
+                </div>
                 <button
-                  type="submit"
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  onClick={() => setShowProfileEditModal(true)}
+                  className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg"
                 >
-                  Cập nhật mật khẩu
+                  <Edit2 className="h-4 w-4" />
+                  <span>Chỉnh sửa thông tin</span>
                 </button>
               </div>
-            </form>
+            </div>
+
+            {/* Change Password Section */}
+            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+              <div className="flex items-center mb-6">
+                <div className="h-10 w-10 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+                  <Edit className="h-5 w-5 text-red-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Đổi mật khẩu</h2>
+                  <p className="text-gray-600 text-sm">Cập nhật mật khẩu để bảo vệ tài khoản</p>
+                </div>
+              </div>
+
+              <form className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Mật khẩu hiện tại</label>
+                    <input
+                      type="password"
+                      name="currentPassword"
+                      value={passwordForm.currentPassword}
+                      onChange={handlePasswordChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="Nhập mật khẩu hiện tại"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Mật khẩu mới</label>
+                    <input
+                      type="password"
+                      name="newPassword"
+                      value={passwordForm.newPassword}
+                      onChange={handlePasswordChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="Nhập mật khẩu mới"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Xác nhận mật khẩu mới</label>
+                    <input
+                      type="password"
+                      name="confirmPassword"
+                      value={passwordForm.confirmPassword}
+                      onChange={handlePasswordChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="Xác nhận mật khẩu mới"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl hover:from-red-700 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                  >
+                    <Edit className="h-4 w-4" />
+                    <span>Cập nhật mật khẩu</span>
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
+
+          {/* Profile Edit Modal with Password Verification */}
+          {showProfileEditModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">Xác thực để chỉnh sửa thông tin</h2>
+                  <button
+                    onClick={() => {
+                      setShowProfileEditModal(false);
+                      setProfilePassword("");
+                      setIsEditingProfile(false);
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <XCircle className="h-6 w-6" />
+                  </button>
+                </div>
+
+                {!isEditingProfile ? (
+                  <div className="space-y-6">
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                      <p className="text-yellow-800 text-sm flex items-center">
+                        <Edit className="h-4 w-4 mr-2" />
+                        Để bảo mật, vui lòng nhập mật khẩu của bạn để xác thực trước khi chỉnh sửa thông tin.
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">Mật khẩu tài khoản</label>
+                      <input
+                        type="password"
+                        value={profilePassword}
+                        onChange={(e) => setProfilePassword(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Nhập mật khẩu của bạn"
+                      />
+                    </div>
+
+                    <div className="flex space-x-4">
+                      <button
+                        onClick={() => {
+                          setShowProfileEditModal(false);
+                          setProfilePassword("");
+                        }}
+                        className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors"
+                      >
+                        Hủy
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (profilePassword.trim()) {
+                            setIsEditingProfile(true);
+                          } else {
+                            setMessage({ type: "error", text: "Vui lòng nhập mật khẩu để xác thực" });
+                          }
+                        }}
+                        disabled={!profilePassword.trim()}
+                        className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all"
+                      >
+                        Xác thực
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleProfileSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-3">Tên người dùng</label>
+                        <input
+                          type="text"
+                          name="username"
+                          value={profileForm.username}
+                          onChange={handleProfileChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-3">Email</label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={profileForm.email}
+                          readOnly
+                          className="w-full px-4 py-3 border border-gray-300 bg-gray-50 rounded-xl text-gray-500 cursor-not-allowed"
+                          title="Email không thể thay đổi vì nó là duy nhất trong hệ thống"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-3">Họ và tên</label>
+                        <input
+                          type="text"
+                          name="fullName"
+                          value={profileForm.fullName}
+                          onChange={handleProfileChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-3">Ngày sinh</label>
+                        <input
+                          type="date"
+                          name="dateOfBirth"
+                          value={profileForm.dateOfBirth}
+                          onChange={handleProfileChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="flex space-x-4">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsEditingProfile(false);
+                          setShowProfileEditModal(false);
+                          setProfilePassword("");
+                          setMessage(null);
+                        }}
+                        className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors"
+                      >
+                        Hủy
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 disabled:bg-gray-300 transition-all"
+                      >
+                        {isLoading ? "Đang lưu..." : "Lưu thay đổi"}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            </div>
+          )}
         </main>
       </div>
     );

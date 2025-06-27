@@ -16,7 +16,6 @@ const CommunityProgramPage: React.FC = () => {
   
   // Filter states
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [selectedMonth, setSelectedMonth] = useState<string>('all');
   const [selectedRegistrationStatus, setSelectedRegistrationStatus] = useState<string>('all');
 
   const getAuthToken = () => localStorage.getItem('token');
@@ -37,16 +36,6 @@ const CommunityProgramPage: React.FC = () => {
         return false;
       }
 
-      // Filter by month
-      if (selectedMonth !== 'all') {
-        const eventDate = new Date(event.Date);
-        const eventMonth = eventDate.getMonth();
-        const selectedMonthNum = parseInt(selectedMonth);
-        if (eventMonth !== selectedMonthNum) {
-          return false;
-        }
-      }
-
       // Filter by registration status
       if (selectedRegistrationStatus !== 'all') {
         const enrollmentStatus = enrollmentStatuses[event.ProgramID];
@@ -60,33 +49,16 @@ const CommunityProgramPage: React.FC = () => {
 
       return true;
     });
-  }, [events, selectedStatus, selectedMonth, selectedRegistrationStatus, enrollmentStatuses]);
+  }, [events, selectedStatus, selectedRegistrationStatus, enrollmentStatuses]);
 
   const clearFilters = () => {
     setSelectedStatus('all');
-    setSelectedMonth('all');
     setSelectedRegistrationStatus('all');
   };
 
-  const hasActiveFilters = selectedStatus !== 'all' || selectedMonth !== 'all' || selectedRegistrationStatus !== 'all';
+  const hasActiveFilters = selectedStatus !== 'all' || selectedRegistrationStatus !== 'all';
 
-  // Get unique months from events
-  const availableMonths = useMemo(() => {
-    const months = events.map(event => {
-      const date = new Date(event.Date);
-      return {
-        value: date.getMonth(),
-        label: date.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })
-      };
-    });
-    
-    // Remove duplicates
-    const uniqueMonths = months.filter((month, index, self) => 
-      index === self.findIndex(m => m.value === month.value)
-    );
-    
-    return uniqueMonths.sort((a, b) => a.value - b.value);
-  }, [events]);
+
 
   useEffect(() => {
     const fetchPrograms = async () => {
@@ -329,7 +301,7 @@ const CommunityProgramPage: React.FC = () => {
           to={`${event.ProgramID}`}
           className="inline-block w-full text-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
         >
-          Xem chi tiết
+          Thông tin chương trình
         </Link>
 
         {isProgramCompleted ? (
@@ -444,11 +416,11 @@ const CommunityProgramPage: React.FC = () => {
               )}
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Status Filter */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Trạng thái chương trình
+                  Trạng thái
                 </label>
                 <select
                   value={selectedStatus}
@@ -459,25 +431,6 @@ const CommunityProgramPage: React.FC = () => {
                   <option value="upcoming">Sắp diễn ra</option>
                   <option value="ongoing">Đang diễn ra</option>
                   <option value="completed">Đã kết thúc</option>
-                </select>
-              </div>
-
-              {/* Month Filter */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Tháng
-                </label>
-                <select
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                >
-                  <option value="all">Tất cả tháng</option>
-                  {availableMonths.map((month) => (
-                    <option key={month.value} value={month.value}>
-                      {month.label}
-                    </option>
-                  ))}
                 </select>
               </div>
 
@@ -511,28 +464,31 @@ const CommunityProgramPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {Array.isArray(filteredEvents) && filteredEvents.map((event, index) => (
             <div key={event.ProgramID || index} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
-              {event.ImageUrl && (
-                <div className="relative h-48">
-                  <img
-                    src={event.ImageUrl}
-                    alt={event.ProgramName}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-4 right-4">
-                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                      Online
-                    </span>
-                  </div>
-                  {/* Badge trạng thái chương trình */}
-                  <div className="absolute top-4 left-4">
-                    <span className={`px-2 py-1 text-xs rounded-full text-white ${event.Status === 'upcoming' ? 'bg-blue-500' : event.Status === 'ongoing' ? 'bg-yellow-500' : 'bg-green-500'}`}>
+              <div className="p-6 flex flex-col flex-grow">
+                {/* Header with image and info combined */}
+                <div className="flex gap-4 mb-4">
+                  {event.ImageUrl && (
+                    <div className="relative w-24 h-24 flex-shrink-0">
+                      <img
+                        src={event.ImageUrl}
+                        alt={event.ProgramName}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                      <div className="absolute -top-2 -right-2">
+                        <span className="px-2 py-1 text-xs rounded-full text-white bg-blue-500">
+                          Online
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">{event.ProgramName}</h3>
+                    <span className={`inline-block px-2 py-1 text-xs rounded-full text-white ${event.Status === 'upcoming' ? 'bg-blue-500' : event.Status === 'ongoing' ? 'bg-yellow-500' : 'bg-green-500'}`}>
                       {event.Status === 'upcoming' ? 'Sắp diễn ra' : event.Status === 'ongoing' ? 'Đang diễn ra' : 'Đã kết thúc'}
                     </span>
                   </div>
                 </div>
-              )}
-              <div className="p-6 flex flex-col flex-grow">
-                <h3 className="text-xl font-bold min-h-[56px] text-gray-900 mb-2 line-clamp-2">{event.ProgramName}</h3>
+
                 <div className="space-y-3 mb-4">
                   <div className="flex items-center text-gray-600">
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

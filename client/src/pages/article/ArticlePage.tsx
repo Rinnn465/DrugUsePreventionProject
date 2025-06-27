@@ -8,7 +8,6 @@ const ArticlePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   
   // Filter states
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedDateRange, setSelectedDateRange] = useState<string>('all');
 
   useEffect(() => {
@@ -25,20 +24,9 @@ const ArticlePage: React.FC = () => {
       });
   }, []);
 
-    // Get unique authors from blog posts (since there's no category)
-  const authors = useMemo(() => {
-    const allAuthors = blogPosts.map(post => post.Author).filter(Boolean);
-    return [...new Set(allAuthors)];
-  }, [blogPosts]);
-
   // Filter logic
   const filteredPosts = useMemo(() => {
     return blogPosts?.filter(post => {
-      // Filter by author (replacing category)
-      if (selectedCategory !== 'all' && post.Author !== selectedCategory) {
-        return false;
-      }
-
       // Filter by date range
       if (selectedDateRange !== 'all') {
         const postDate = new Date(post.PublishedDate);
@@ -60,14 +48,13 @@ const ArticlePage: React.FC = () => {
 
        return true;
      }) || [];
-    }, [blogPosts, selectedCategory, selectedDateRange]);
+    }, [blogPosts, selectedDateRange]);
 
   const clearFilters = () => {
-    setSelectedCategory('all');
     setSelectedDateRange('all');
   };
 
-  const hasActiveFilters = selectedCategory !== 'all' || selectedDateRange !== 'all';
+  const hasActiveFilters = selectedDateRange !== 'all';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-primary-50">
@@ -113,26 +100,7 @@ const ArticlePage: React.FC = () => {
               )}
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Author Filter */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Tác giả
-                </label>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                >
-                  <option value="all">Tất cả tác giả</option>
-                  {authors.map((author) => (
-                    <option key={author} value={author}>
-                      {author}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
+            <div className="grid grid-cols-1 gap-6">
               {/* Date Range Filter */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
