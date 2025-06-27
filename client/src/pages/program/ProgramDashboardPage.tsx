@@ -14,12 +14,11 @@ const ProgramDashboardPage: React.FC = () => {
     // Chỉ giữ lại thẻ "Quản lý chương trình"
     const managementOption = {
         title: "Quản lý chương trình",
-        description: "Tạo, chỉnh sửa và xóa các chương trình cộng đồng. Quản lý toàn bộ vòng đời của chương trình từ lúc tạo đến khi kết thúc, bao gồm việc theo dõi tiến độ, quản lý người tham gia, và đánh giá hiệu quả.",
         icon: Calendar,
         color: "bg-blue-500",
         link: `/roles/${userId}/program-manage`,
         action: "Quản lý toàn bộ"
-    };
+    };  
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -130,27 +129,6 @@ const ProgramDashboardPage: React.FC = () => {
                                     <div className="text-center">
                                         <div className="text-2xl font-bold text-purple-600">1,234</div>
                                         <div className="text-sm">Người tham gia</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className="bg-gray-50 rounded-xl p-6 group-hover:bg-blue-50 transition-colors">
-                                <p className="text-gray-700 text-lg leading-relaxed group-hover:text-gray-800">
-                                    {managementOption.description}
-                                </p>
-                                
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                                    <div className="flex items-center space-x-3">
-                                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                        <span className="text-gray-600">Tạo & chỉnh sửa chương trình</span>
-                                    </div>
-                                    <div className="flex items-center space-x-3">
-                                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                        <span className="text-gray-600">Theo dõi tiến độ thực hiện</span>
-                                    </div>
-                                    <div className="flex items-center space-x-3">
-                                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                        <span className="text-gray-600">Đánh giá hiệu quả chương trình</span>
                                     </div>
                                 </div>
                             </div>
