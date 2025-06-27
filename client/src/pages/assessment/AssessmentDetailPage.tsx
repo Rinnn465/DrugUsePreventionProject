@@ -354,24 +354,72 @@ const AssessmentDetailPage: React.FC = () => {
 
     const calculateScore = (formValues: { [key: string]: string | string[] }) => {
         let total = 0;
+        console.log('=== CALCULATING SCORE ===');
+        console.log('Form values:', formValues);
 
         for (const question of assessment.questions) {
             const answer = formValues[question.id];
+            console.log(`Question ${question.id}:`, answer);
 
             if (question.type === 'checkbox' && Array.isArray(answer)) {
-                total += answer.reduce((sum, val) => sum + Number(val), 0);
+                const score = answer.reduce((sum, val) => sum + Number(val), 0);
+                console.log(`Checkbox score for Q${question.id}:`, score);
+                total += score;
             }
 
             if (question.type !== 'checkbox' && typeof answer === 'string') {
-                total += Number(answer);
+                const score = Number(answer);
+                console.log(`Radio score for Q${question.id}:`, score);
+                total += score;
             }
         }
 
+        console.log('Total score:', total);
         return total;
     };
 
     const handleSubmit = (values: typeof initialValues) => {
+        console.log('=== FORM SUBMISSION ===');
         console.log('Form values:', values);
+        
+        // Validate all questions before submitting
+        let hasErrors = false;
+        const errors: { [key: string]: string } = {};
+        
+        assessment.questions.forEach(question => {
+            const answer = values[question.id];
+            let isAnswered = false;
+            
+            console.log(`Validating Q${question.id}:`, answer);
+            
+            if (question.type === 'checkbox') {
+                isAnswered = Array.isArray(answer) && answer.length > 0;
+                if (!isAnswered) {
+                    errors[question.id] = 'Chọn ít nhất một lựa chọn';
+                    hasErrors = true;
+                }
+            } else {
+                // Fixed: Check for both string and number values, including 0
+                isAnswered = answer !== undefined && answer !== null && answer !== '';
+                if (!isAnswered) {
+                    errors[question.id] = 'Không được để trống';
+                    hasErrors = true;
+                }
+            }
+            console.log(`Q${question.id} answered:`, isAnswered);
+        });
+        
+        if (hasErrors) {
+            console.log('Validation errors found:', errors);
+            // Find first unanswered question and navigate to it
+            const firstErrorQuestion = assessment.questions.findIndex(q => errors[q.id]);
+            if (firstErrorQuestion !== -1) {
+                setCurrentQuestionIndex(firstErrorQuestion);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            return;
+        }
+        
         const total = calculateScore(values);
 
         // Store result in localStorage
@@ -386,6 +434,25 @@ const AssessmentDetailPage: React.FC = () => {
         setResult(total);
         setRisk(resultData.risk);
         setHasViewedResult(true);
+    };
+
+    // Function to validate all questions and check if assessment is complete
+    const isAssessmentComplete = (values: { [key: string]: string | string[] }) => {
+        console.log('=== CHECKING COMPLETION ===');
+        return assessment.questions.every(question => {
+            const answer = values[question.id];
+            let isComplete = false;
+            
+            if (question.type === 'checkbox') {
+                isComplete = Array.isArray(answer) && answer.length > 0;
+            } else {
+                // Fixed: Check for both string and number values, including 0
+                isComplete = answer !== undefined && answer !== null && answer !== '';
+            }
+            
+            console.log(`Q${question.id} complete:`, isComplete, 'Value:', answer);
+            return isComplete;
+        });
     };
 
     // Function to reset the assessment
@@ -446,11 +513,6 @@ const AssessmentDetailPage: React.FC = () => {
                                     <p className='text-gray-600 text-lg'>
                                         {assessment.description}
                                     </p>
-                                    <div className='mt-4 flex justify-center items-center gap-4 text-sm text-gray-500'>
-                                        <span>{assessment.questionCount} câu hỏi</span>
-                                        <span>•</span>
-                                        <span>~{assessment.timeToComplete} phút</span>
-                                    </div>
                                     <div className="mt-4 bg-gray-200 rounded-full h-2 overflow-hidden">
                                         <div
                                             className="bg-blue-600 h-full transition-all duration-300"
@@ -533,7 +595,8 @@ const AssessmentDetailPage: React.FC = () => {
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            const validationError = (() => {
+                                                            // First validate current question
+                                                            const currentValidationError = (() => {
                                                                 const answer = formikProps.values[question.id];
                                                                 if (question.type === 'checkbox') {
                                                                     return Array.isArray(answer) && answer.length > 0 ? null : 'Chọn ít nhất một lựa chọn';
@@ -541,13 +604,17 @@ const AssessmentDetailPage: React.FC = () => {
                                                                 return answer && answer !== '' ? null : 'Không được để trống';
                                                             })();
                                                             
-                                                            if (validationError) {
-                                                                formikProps.setFieldError(question.id, validationError);
+                                                            if (currentValidationError) {
+                                                                formikProps.setFieldError(question.id, currentValidationError);
                                                                 formikProps.setFieldTouched(question.id, true);
-                                                            } else {
-                                                                formikProps.setFieldError(question.id, undefined);
-                                                                handleQuestionChange(Math.min(assessment.questions.length - 1, currentQuestionIndex + 1));
+                                                                return;
                                                             }
+                                                            
+                                                            // Clear current question error
+                                                            formikProps.setFieldError(question.id, undefined);
+                                                            
+                                                            // Move to next question
+                                                            handleQuestionChange(Math.min(assessment.questions.length - 1, currentQuestionIndex + 1));
                                                         }}
                                                         className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg hover:scale-110"
                                                         title="Tiếp theo"
@@ -560,7 +627,8 @@ const AssessmentDetailPage: React.FC = () => {
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            const validationError = (() => {
+                                                            // First validate current question
+                                                            const currentValidationError = (() => {
                                                                 const answer = formikProps.values[question.id];
                                                                 if (question.type === 'checkbox') {
                                                                     return Array.isArray(answer) && answer.length > 0 ? null : 'Chọn ít nhất một lựa chọn';
@@ -568,13 +636,23 @@ const AssessmentDetailPage: React.FC = () => {
                                                                 return answer && answer !== '' ? null : 'Không được để trống';
                                                             })();
                                                             
-                                                            if (validationError) {
-                                                                formikProps.setFieldError(question.id, validationError);
+                                                            if (currentValidationError) {
+                                                                formikProps.setFieldError(question.id, currentValidationError);
                                                                 formikProps.setFieldTouched(question.id, true);
-                                                            } else {
-                                                                formikProps.setFieldError(question.id, undefined);
-                                                                formikProps.submitForm();
+                                                                return;
                                                             }
+                                                            
+                                                            // Clear current question error
+                                                            formikProps.setFieldError(question.id, undefined);
+                                                            
+                                                            // Check if all questions are answered
+                                                            if (!isAssessmentComplete(formikProps.values)) {
+                                                                alert('Vui lòng trả lời tất cả câu hỏi trước khi hoàn thành đánh giá.');
+                                                                return;
+                                                            }
+                                                            
+                                                            // Submit the form
+                                                            formikProps.submitForm();
                                                         }}
                                                         className="flex items-center justify-center w-12 h-12 rounded-full bg-green-600 text-white hover:bg-green-700 transition-all shadow-lg hover:scale-110"
                                                         title="Hoàn thành đánh giá"
