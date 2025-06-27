@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
 import { sql, poolPromise } from "../config/database";
 import { Request, Response } from 'express';
+import { sendEmail } from './mailController';
+import { courseCompletionTemplate } from '../templates/courseCompletion';
 
 dotenv.config();
 /**
@@ -228,22 +230,119 @@ export async function getEnrolledCourses(req: Request, res: Response): Promise<v
     }
 }
 
+/**
+ * Completes a course for a user and sends a congratulations email
+ * 
+ * @route PATCH /api/course/:id/complete
+ * @access Public (with auth middleware)
+ * @param {Request} req - Express request object with course ID in params and account ID in body
+ * @param {Response} res - Express response object
+ * @returns {Promise<void>} JSON response with completion status
+ * @throws {404} If enrollment not found
+ * @throws {500} If database error occurs
+ * 
+ * Features:
+ * - Updates enrollment status to 'Completed'
+ * - Sets completion date automatically
+ * - Sends congratulations email using courseCompletionTemplate
+ * - Handles duplicate completions gracefully
+ * - Continues even if email sending fails
+ */
 export async function completeCourse(req: Request, res: Response): Promise<void> {
-    const { courseId, accountId, completedDate } = req.body;
+    const courseId = req.params.id;
+    const { accountId } = req.body;
+    const completedDate = new Date().toISOString();
 
     try {
         const pool = await poolPromise;
+
+        // First check if the enrollment exists and get user + course details
+        const checkResult = await pool.request()
+            .input('CourseId', sql.Int, courseId)
+            .input('AccountId', sql.Int, accountId)
+            .query(`
+                SELECT e.*, c.CourseName, a.FullName, a.Email 
+                FROM Enrollment e 
+                JOIN Course c ON e.CourseID = c.CourseID 
+                JOIN Account a ON e.AccountID = a.AccountID
+                WHERE e.CourseID = @CourseId AND e.AccountID = @AccountId
+            `);
+
+        if (checkResult.recordset.length === 0) {
+            res.status(404).json({ message: 'Enrollment not found' });
+            return;
+        }
+
+        const enrollment = checkResult.recordset[0];
+
+        // Check if already completed
+        if (enrollment.Status === 'Completed') {
+            res.status(200).json({
+                message: 'Khóa học đã được hoàn thành trước đó',
+                data: {
+                    courseId,
+                    accountId,
+                    completedDate: enrollment.CompletedDate,
+                    status: 'Completed'
+                }
+            });
+            return;
+        }
+
+        // Update the enrollment status
         await pool.request()
             .input('CourseId', sql.Int, courseId)
             .input('AccountId', sql.Int, accountId)
             .input('CompletedDate', sql.DateTime, completedDate)
-            .query(`UPDATE Enrollment SET Status = \'Completed\',
-                    SET CompletedDate = @CompletedDate
-                  WHERE CourseID = @CourseId AND AccountID = @AccountId`);
-        res.status(200).json({ message: 'Hoàn thành khóa học' });
+            .query(`
+                UPDATE Enrollment 
+                SET Status = 'Completed', CompletedDate = @CompletedDate
+                WHERE CourseID = @CourseId AND AccountID = @AccountId
+            `);
+
+        // Send congratulations email
+        try {
+            const formattedDate = new Date(completedDate).toLocaleDateString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+
+            const emailHtml = courseCompletionTemplate(
+                enrollment.FullName || 'Học viên',
+                enrollment.CourseName,
+                formattedDate
+            );
+
+            await sendEmail(
+                enrollment.Email,
+                `🎉 Chúc mừng bạn đã hoàn thành khóa học "${enrollment.CourseName}"!`,
+                emailHtml
+            );
+
+            console.log(`Course completion email sent to ${enrollment.Email} for course ${enrollment.CourseName}`);
+        } catch (emailError) {
+            console.error('Failed to send course completion email:', emailError);
+            // Continue with the response even if email fails
+        }
+
+        res.status(200).json({
+            message: 'Hoàn thành khóa học thành công',
+            data: {
+                courseId,
+                accountId,
+                completedDate,
+                status: 'Completed',
+                courseName: enrollment.CourseName
+            }
+        });
         return;
     } catch (err: any) {
-        res.status(500).json({ message: 'Cõ lối trong quá trình xử lý', error: err.message });
+        console.error('Error in completeCourse:', err);
+        res.status(500).json({
+            message: 'Có lỗi trong quá trình xử lý',
+            error: err.message
+        });
         return;
     }
 }

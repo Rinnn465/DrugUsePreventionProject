@@ -3,7 +3,6 @@ import { useEffect, useState, useRef } from "react";
 import { sqlLesson, sqlLessonAnswer, sqlLessonQuestion } from "../../types/Lesson";
 import { toast } from "react-toastify";
 import { useUser } from "@/context/UserContext";
-import { parseSqlDate } from "@/utils/parseSqlDateUtils";
 
 const LessonDetailsPage: React.FC = () => {
     const { id } = useParams();
@@ -118,11 +117,20 @@ const LessonDetailsPage: React.FC = () => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    courseId: id,
                     accountId: user?.AccountID,
-                    completedDate: parseSqlDate(new Date().toISOString()),
                 }),
-            });
+            })
+                .then((response) => {
+                    if (response.ok) {
+                        console.log("Course completed successfully, email sent");
+                        // You could add navigation to a completion page here if needed
+                    } else {
+                        console.error("Failed to complete course");
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error completing course:", error);
+                });
             return true;
         }
         return false;

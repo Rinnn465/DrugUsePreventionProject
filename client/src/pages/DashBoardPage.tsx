@@ -939,10 +939,10 @@ const DashBoardPage: React.FC = () => {
                         const daySchedules = groupedSchedules[dateKey];
                         const date = new Date(dateKey);
                         const dayName = date.toLocaleDateString('vi-VN', { weekday: 'long' });
-                        const dateString = date.toLocaleDateString('vi-VN', { 
-                          day: '2-digit', 
-                          month: '2-digit', 
-                          year: 'numeric' 
+                        const dateString = date.toLocaleDateString('vi-VN', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
                         });
 
                         // Group by time periods
