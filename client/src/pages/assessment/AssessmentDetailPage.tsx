@@ -121,7 +121,7 @@ const AssessmentDetailPage: React.FC = () => {
     const { assessmentId } = useParams<{ assessmentId: string }>();
 
     const assessment = assessmentData[Number(assessmentId) - 1];
-    const [result, setResult] = useState<number | null>(0);
+    const [result, setResult] = useState<number | null>(-1);
     const [risk, setRisk] = useState<string>('thấp');
     const [courses, setCourses] = useState<SqlCourse[]>([]);
     const [consultants, setConsultants] = useState<GroupedConsultant[]>([]);
@@ -146,35 +146,7 @@ const AssessmentDetailPage: React.FC = () => {
         }
     }, [risk, result, assessmentId]);
 
-    // Clear localStorage when user navigates away or closes the page
-    useEffect(() => {
-        const handleBeforeUnload = () => {
-            if (hasViewedResult) {
-                localStorage.removeItem(`assessmentResult_${assessmentId}`);
-            }
-        };
 
-        const handlePopState = () => {
-            if (hasViewedResult) {
-                localStorage.removeItem(`assessmentResult_${assessmentId}`);
-            }
-        };
-
-        // Add event listeners
-        window.addEventListener('beforeunload', handleBeforeUnload);
-        window.addEventListener('popstate', handlePopState);
-
-        // Cleanup function - will run when component unmounts
-        return () => {
-            window.removeEventListener('beforeunload', handleBeforeUnload);
-            window.removeEventListener('popstate', handlePopState);
-            
-            // Clear localStorage when component unmounts (user navigates away)
-            if (hasViewedResult) {
-                localStorage.removeItem(`assessmentResult_${assessmentId}`);
-            }
-        };
-    }, [assessmentId, hasViewedResult]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -375,7 +347,7 @@ const AssessmentDetailPage: React.FC = () => {
         }
 
         console.log('Total score:', total);
-        return total;
+        return total += 1 ;
     };
 
     const handleSubmit = (values: typeof initialValues) => {
@@ -461,7 +433,7 @@ const AssessmentDetailPage: React.FC = () => {
         localStorage.removeItem(`assessmentResult_${assessmentId}`);
 
         // Reset state
-        setResult(0);
+        setResult(-1);
         setRisk('thấp');
         setCurrentQuestionIndex(0);
         setHasViewedResult(false);
@@ -472,8 +444,6 @@ const AssessmentDetailPage: React.FC = () => {
 
     // Function to clear data and navigate to assessments page
     const handleBackToAssessments = () => {
-        // Clear the stored result for this specific assessment
-        localStorage.removeItem(`assessmentResult_${assessmentId}`);
         
         // Reset hasViewedResult to prevent cleanup from firing
         setHasViewedResult(false);
@@ -483,14 +453,14 @@ const AssessmentDetailPage: React.FC = () => {
     };
 
     // Get filtered results only when result is submitted
-    const filteredCourses = result !== null && result > 0 ? getFilteredCourses() : [];
-    const filteredConsultants = result !== null && result > 0 ? getFilteredConsultants() : [];
+    const filteredCourses = result !== null && result > -1 ? getFilteredCourses() : [];
+    const filteredConsultants = result !== null && result > -1 ? getFilteredConsultants() : [];
 
     console.log(filteredConsultants);
 
     return (
         <div className='container mx-auto px-4 py-8'>
-            {result === 0 && (
+            {result === -1 && (
                 <Formik
                     initialValues={initialValues}
                     validationSchema={validationSchema}
@@ -672,7 +642,7 @@ const AssessmentDetailPage: React.FC = () => {
                 </Formik>
             )}
 
-            {result !== null && result > 0 && (
+            {result !== null && result >= 0 && (
                 <div className="my-10 max-w-3xl mx-auto bg-gradient-to-br from-white via-primary-50 to-accent-50 rounded-2xl shadow-2xl border-2 border-accent-100 p-8">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-3xl font-extrabold text-accent-700 whitespace-nowrap">
