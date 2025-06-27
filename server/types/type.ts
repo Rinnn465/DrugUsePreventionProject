@@ -106,17 +106,17 @@ export type Article = {
   IsDisabled: boolean;
 };
 export interface CommunityProgram {
-    ProgramID: number;
-    ProgramName: string;
-    Type?: string; // 'online'
-    Date: string; // ISO date string
-    Description?: string | null;
-    Content ?: string | null;
-    Organizer?: string | null;
-    Url: string;
-    ImageUrl?: string | null;
-    IsDisabled: boolean;
-    Status: string; // 'upcoming' | 'ongoing' | 'completed'
+  ProgramID: number;
+  ProgramName: string;
+  Type?: string; // 'online'
+  Date: string; // ISO date string
+  Description?: string | null;
+  Content?: string | null;
+  Organizer?: string | null;
+  Url: string;
+  ImageUrl?: string | null;
+  IsDisabled: boolean;
+  Status: string; // 'upcoming' | 'ongoing' | 'completed'
 };
 export type CommunityProgramAttendee = {
   ProgramID: number;
@@ -128,7 +128,7 @@ export type SurveyCategory = {
   SurveyCategoryID: number;
   SurveyCategoryName?: string | null;
 };
-export interface Survey{
+export interface Survey {
   SurveyID: number;
   Description: string;
   Type: boolean;
@@ -150,4 +150,11 @@ export type CommunityProgramSurveyDTO = {
   Name: string;
   Description: string;
   surveys: Survey[];
+};
+
+export type MailOptions = {
+  from: string;     // Sender email address
+  to: string;       // Recipient email address
+  subject: string;  // Email subject line
+  html: string;     // HTML content of the email
 };
