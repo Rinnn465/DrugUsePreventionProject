@@ -379,27 +379,24 @@ export async function deleteConsultantSchedule(req: Request, res: Response, next
 
 export async function addConsultantSchedule(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { consultantId, date, startTime, endTime } = req.body;
+    console.log('addConsultantSchedule called with:', {
+        consultantId,
+        date,
+        startTime,
+        endTime
+    });
 
     try {
         const pool = await poolPromise;
-
+        const formattedStartTime = startTime.endsWith(':00') ? startTime : `${startTime}:00`;
+        const formattedEndTime = endTime.endsWith(':00') ? endTime : `${endTime}:00`;
         // First, check if consultantId is actually an AccountID and get the ConsultantID
-        let actualConsultantId = consultantId;
-
-        // Try to find consultant by AccountID first
-        const consultantCheck = await pool.request()
-            .input('AccountID', sql.Int, consultantId)
-            .query('SELECT AccountID FROM Consultant WHERE AccountID = @AccountID');
-
-        if (consultantCheck.recordset.length > 0) {
-            actualConsultantId = consultantCheck.recordset[0].AccountID;
-        }
 
         const result = await pool.request()
-            .input('ConsultantID', sql.Int, actualConsultantId)
+            .input('ConsultantID', sql.Int, consultantId)
             .input('Date', sql.Date, date)
-            .input('StartTime', sql.Time, startTime)
-            .input('EndTime', sql.Time, endTime)
+            .input('StartTime', sql.NVarChar, formattedStartTime)
+            .input('EndTime', sql.NVarChar, formattedEndTime)
             .query(`
                 INSERT INTO ConsultantSchedule (AccountID, Date, StartTime, EndTime)
                 VALUES (@ConsultantID, @Date, @StartTime, @EndTime)

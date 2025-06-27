@@ -19,7 +19,7 @@ router.get('/specialties', getSpecialties);
 router.get('/category', getConsultantWithCategory);
 
 // Schedule management routes - must be before /:id route
-router.post('/schedules', addConsultantSchedule);
+router.post('/schedule', addConsultantSchedule);
 router.get('/schedules/:consultantId', getConsultantSchedule);
 router.put('/schedules/:scheduleId', updateConsultantSchedule);
 router.delete('/schedules/:scheduleId', deleteConsultantSchedule);

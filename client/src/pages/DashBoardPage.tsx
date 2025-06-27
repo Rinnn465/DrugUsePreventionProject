@@ -156,6 +156,29 @@ const DashBoardPage: React.FC = () => {
   // Check if user is a consultant
   const isConsultant = user?.RoleName === 'consultant' || user?.RoleName === 'Consultant';
 
+  // Fetch all appointments function
+  const fetchAllAppointments = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setMessage({ type: "error", text: "Vui lòng đăng nhập để xem lịch hẹn" });
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/appointment/user/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+
+      setAppointments(data.data || []);
+    } catch (err) {
+      console.error("Error fetching appointments:", err);
+      setMessage({ type: "error", text: "Không thể tải danh sách lịch hẹn" });
+    }
+  }, [userId, setMessage]);
+
   // Auto-hide message after 5 seconds
   useEffect(() => {
     if (message) {
@@ -171,7 +194,7 @@ const DashBoardPage: React.FC = () => {
 
   useEffect(() => {
     fetchAllAppointments();
-  }, [userId]);
+  }, [fetchAllAppointments]);
 
   useEffect(() => {
     const fetchEnrolledCourses = async () => {
@@ -328,11 +351,12 @@ const DashBoardPage: React.FC = () => {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
+
           body: JSON.stringify({
             consultantId: user?.AccountID,
             date: newSchedule.date,
-            startTime: selectedSlot.startTime,
-            endTime: selectedSlot.endTime
+            startTime: selectedSlot.startTime + ':00', // Ensure time is in HH:mm:ss format
+            endTime: selectedSlot.endTime + ':00' // Ensure time is in HH:mm:ss format
           })
         });
       }).filter(promise => promise !== null);
@@ -371,28 +395,6 @@ const DashBoardPage: React.FC = () => {
   const handleRejectAppointment = async (appointmentId: number) => {
     setAppointmentToReject(appointmentId);
     setIsRejectionModalOpen(true);
-  };
-
-  const fetchAllAppointments = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setMessage({ type: "error", text: "Vui lòng đăng nhập để xem lịch hẹn" });
-      return;
-    }
-
-    try {
-      const response = await fetch(`http://localhost:5000/api/appointment/user/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-
-      setAppointments(data.data || []);
-    } catch (err) {
-      console.error("Error fetching appointments:", err);
-      setMessage({ type: "error", text: "Không thể tải danh sách lịch hẹn" });
-    }
   };
 
   const confirmRejectAppointment = async () => {
@@ -458,13 +460,6 @@ const DashBoardPage: React.FC = () => {
 
     // If it's already just a time string like "08:00:00"
     return timeString.substring(0, 5);
-  };
-
-  const getTimeSlotLabel = (startTime: string, endTime: string) => {
-    const slot = timeSlots.find(slot =>
-      slot.startTime === startTime && slot.endTime === endTime
-    );
-    return slot ? slot.label : `${formatTime(startTime)} - ${formatTime(endTime)}`;
   };
 
   const handleSlotToggle = (slotId: string) => {
@@ -661,7 +656,7 @@ const DashBoardPage: React.FC = () => {
                   <p className="text-gray-600">Xem thông tin tài khoản của bạn</p>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                   <div className="flex items-center space-x-3">
@@ -728,7 +723,7 @@ const DashBoardPage: React.FC = () => {
                 </div>
               </div>
             </Link>
-            
+
             <Link to={`/dashboard/${userId}/events`} className="group bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl shadow-sm p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 block border border-green-100">
               <div className="flex items-center justify-between">
                 <div>
@@ -741,7 +736,7 @@ const DashBoardPage: React.FC = () => {
                 </div>
               </div>
             </Link>
-            
+
             {!isConsultant && (
               <Link to={`/dashboard/${userId}/appointments`} className="group bg-gradient-to-br from-purple-50 to-violet-50 rounded-2xl shadow-sm p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 block border border-purple-100">
                 <div className="flex items-center justify-between">
@@ -923,27 +918,136 @@ const DashBoardPage: React.FC = () => {
                   </div>
                 )}
 
-                {/* Schedule List */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {schedules.length > 0 ? (
-                    schedules.map((schedule) => (
-                      <div key={schedule.ScheduleID} className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-semibold text-gray-800">{formatDate(schedule.Date)}</h3>
-                          <Edit2 className="h-4 w-4 text-gray-500 cursor-pointer hover:text-gray-700" />
-                        </div>
-                        <div className="flex items-center text-gray-600">
-                          <Clock className="h-4 w-4 mr-2" />
-                          <span className="text-sm">{getTimeSlotLabel(schedule.StartTime, schedule.EndTime)}</span>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-full text-center py-8 text-gray-500">
-                      Chưa có lịch làm việc nào được thiết lập
-                    </div>
-                  )}
-                </div>
+                {/* Schedule List - Enhanced Weekly View */}
+                {schedules.length > 0 ? (
+                  <div className="space-y-6">
+                    {(() => {
+                      // Group schedules by date
+                      const groupedSchedules = schedules.reduce((acc, schedule) => {
+                        const dateKey = new Date(schedule.Date).toISOString().split('T')[0];
+                        if (!acc[dateKey]) {
+                          acc[dateKey] = [];
+                        }
+                        acc[dateKey].push(schedule);
+                        return acc;
+                      }, {} as Record<string, typeof schedules>);
+
+                      // Sort dates
+                      const sortedDates = Object.keys(groupedSchedules).sort();
+
+                      return sortedDates.map((dateKey) => {
+                        const daySchedules = groupedSchedules[dateKey];
+                        const date = new Date(dateKey);
+                        const dayName = date.toLocaleDateString('vi-VN', { weekday: 'long' });
+                        const dateString = date.toLocaleDateString('vi-VN', { 
+                          day: '2-digit', 
+                          month: '2-digit', 
+                          year: 'numeric' 
+                        });
+
+                        // Group by time periods
+                        const morningSlots = daySchedules.filter(s => {
+                          const hour = parseInt(s.StartTime.split(':')[0]);
+                          return hour >= 6 && hour < 12;
+                        });
+                        const afternoonSlots = daySchedules.filter(s => {
+                          const hour = parseInt(s.StartTime.split(':')[0]);
+                          return hour >= 12 && hour < 18;
+                        });
+                        const eveningSlots = daySchedules.filter(s => {
+                          const hour = parseInt(s.StartTime.split(':')[0]);
+                          return hour >= 18;
+                        });
+
+                        return (
+                          <div key={dateKey} className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                            {/* Date Header */}
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center space-x-3">
+                                <div className="h-10 w-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                                  <Calendar className="h-5 w-5 text-white" />
+                                </div>
+                                <div>
+                                  <h3 className="font-bold text-gray-800 capitalize">{dayName}</h3>
+                                  <p className="text-sm text-gray-600">{dateString}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-sm font-medium text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
+                                  {daySchedules.length} khung giờ
+                                </span>
+                                <Edit2 className="h-4 w-4 text-gray-500 cursor-pointer hover:text-gray-700" />
+                              </div>
+                            </div>
+
+                            {/* Time Slots Display */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              {/* Morning */}
+                              {morningSlots.length > 0 && (
+                                <div className="bg-white rounded-lg p-4 border">
+                                  <div className="flex items-center mb-3">
+                                    <div className="h-2 w-2 bg-yellow-400 rounded-full mr-2"></div>
+                                    <h4 className="font-semibold text-gray-700">Sáng</h4>
+                                  </div>
+                                  <div className="space-y-2">
+                                    {morningSlots.map((schedule) => (
+                                      <div key={schedule.ScheduleID} className="flex items-center text-sm text-gray-600">
+                                        <Clock className="h-3 w-3 mr-2" />
+                                        <span>{formatTime(schedule.StartTime)} - {formatTime(schedule.EndTime)}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Afternoon */}
+                              {afternoonSlots.length > 0 && (
+                                <div className="bg-white rounded-lg p-4 border">
+                                  <div className="flex items-center mb-3">
+                                    <div className="h-2 w-2 bg-orange-400 rounded-full mr-2"></div>
+                                    <h4 className="font-semibold text-gray-700">Chiều</h4>
+                                  </div>
+                                  <div className="space-y-2">
+                                    {afternoonSlots.map((schedule) => (
+                                      <div key={schedule.ScheduleID} className="flex items-center text-sm text-gray-600">
+                                        <Clock className="h-3 w-3 mr-2" />
+                                        <span>{formatTime(schedule.StartTime)} - {formatTime(schedule.EndTime)}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Evening */}
+                              {eveningSlots.length > 0 && (
+                                <div className="bg-white rounded-lg p-4 border">
+                                  <div className="flex items-center mb-3">
+                                    <div className="h-2 w-2 bg-purple-400 rounded-full mr-2"></div>
+                                    <h4 className="font-semibold text-gray-700">Tối</h4>
+                                  </div>
+                                  <div className="space-y-2">
+                                    {eveningSlots.map((schedule) => (
+                                      <div key={schedule.ScheduleID} className="flex items-center text-sm text-gray-600">
+                                        <Clock className="h-3 w-3 mr-2" />
+                                        <span>{formatTime(schedule.StartTime)} - {formatTime(schedule.EndTime)}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 bg-gray-50 rounded-xl">
+                    <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Chưa có lịch làm việc</h3>
+                    <p className="text-gray-600">Bấm "Thêm Lịch" để thiết lập lịch làm việc của bạn</p>
+                  </div>
+                )}
               </div>
 
               {/* Pending Appointments Section */}
@@ -1112,7 +1216,7 @@ const DashBoardPage: React.FC = () => {
                             </div>
                           )}
                         </div>
-                        
+
                         {/* Course Content */}
                         <div className="flex-1 p-8">
                           <div className="flex justify-between items-start mb-4">
@@ -1231,7 +1335,7 @@ const DashBoardPage: React.FC = () => {
                             </div>
                           )}
                         </div>
-                        
+
                         {/* Event Content */}
                         <div className="flex-1 p-8">
                           <div className="flex justify-between items-start mb-4">
@@ -1367,15 +1471,14 @@ const DashBoardPage: React.FC = () => {
                               </p>
                             </div>
                           </div>
-                          
+
                           <div className="flex items-center space-x-4 mb-3">
-                            <span className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold border ${
-                              appointment.Status === 'confirmed' 
-                                ? 'bg-green-50 text-green-700 border-green-200' 
-                                : appointment.Status === 'pending' 
-                                ? 'bg-yellow-50 text-yellow-700 border-yellow-200' 
+                            <span className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold border ${appointment.Status === 'confirmed'
+                              ? 'bg-green-50 text-green-700 border-green-200'
+                              : appointment.Status === 'pending'
+                                ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
                                 : 'bg-red-50 text-red-700 border-red-200'
-                            }`}>
+                              }`}>
                               {appointment.Status === 'confirmed' && <CheckCircle className="h-4 w-4 mr-2" />}
                               {appointment.Status === 'pending' && <Clock className="h-4 w-4 mr-2" />}
                               {appointment.Status === 'cancelled' && <XCircle className="h-4 w-4 mr-2" />}
@@ -1384,7 +1487,7 @@ const DashBoardPage: React.FC = () => {
                             </span>
                           </div>
                         </div>
-                        
+
                         <div className="flex space-x-3">
                           <button
                             onClick={() => handleAppointmentDetail(appointment)}
@@ -1406,7 +1509,7 @@ const DashBoardPage: React.FC = () => {
                           )}
                         </div>
                       </div>
-                      
+
                       {appointment.Description && (
                         <div className="bg-white rounded-xl p-4 border border-gray-100">
                           <p className="text-sm font-medium text-gray-600 mb-2">Mô tả:</p>
@@ -1631,7 +1734,7 @@ const DashBoardPage: React.FC = () => {
                         Để bảo mật, vui lòng nhập mật khẩu của bạn để xác thực trước khi chỉnh sửa thông tin.
                       </p>
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-3">Mật khẩu tài khoản</label>
                       <input
@@ -1713,7 +1816,7 @@ const DashBoardPage: React.FC = () => {
                         />
                       </div>
                     </div>
-                    
+
                     <div className="flex space-x-4">
                       <button
                         type="button"

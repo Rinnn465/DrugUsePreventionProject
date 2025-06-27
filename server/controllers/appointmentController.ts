@@ -57,8 +57,6 @@ export async function getAppointmentByUserId(req: Request, res: Response, next: 
 export async function bookAppointment(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { consultantId, accountId, time, date, meetingUrl, status, description, duration } = req.body;
     try {
-        const [hours, minutes, seconds] = time.split(':').map(Number);
-        const timeDate = new Date(1970, 0, 1, hours, minutes, seconds);
         const formattedTime = time.endsWith(':00') ? time : `${time}:00`; // Ensure time is in HH:MM:SS format
 
         const pool = await poolPromise;
