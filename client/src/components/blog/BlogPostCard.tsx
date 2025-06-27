@@ -50,20 +50,6 @@ const BlogPostCard: React.FC<Article> = ({
         <p className="text-gray-600 mb-6 line-clamp-4 flex-grow leading-relaxed">
           {Description || (Content && Content.replace(/<[^>]*>/g, '').substring(0, 200) + '...')}
         </p>
-
-        {/* Author Info */}
-        <div className="flex items-center justify-between mb-6 pt-4 border-t border-gray-100">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-blue-500 rounded-full flex items-center justify-center">
-              <User className="h-4 w-4 text-white" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-gray-700">{Author}</p>
-              <p className="text-xs text-gray-500">Tác giả</p>
-            </div>
-          </div>
-        </div>
-
         {/* CTA Button */}
         <div className="mt-auto">
           <Link

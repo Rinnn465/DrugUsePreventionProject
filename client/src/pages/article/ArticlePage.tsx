@@ -3,6 +3,15 @@ import { Newspaper, TrendingUp, Users, BookOpen, Filter, X } from 'lucide-react'
 import BlogPostCard from '../../components/blog/BlogPostCard';
 import { Article } from '../../types/Article';
 
+// Thêm hàm gọi API chuẩn RESTful
+const API_URL = 'http://localhost:5000/api/articles';
+
+const fetchArticles = async (): Promise<Article[]> => {
+  const res = await fetch(API_URL);
+  if (!res.ok) throw new Error('Lỗi khi lấy danh sách bài viết');
+  return res.json();
+};
+
 const ArticlePage: React.FC = () => {
   const [blogPosts, setBlogPosts] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
@@ -11,10 +20,8 @@ const ArticlePage: React.FC = () => {
   const [selectedDateRange, setSelectedDateRange] = useState<string>('all');
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/article')
-      .then(response => response.json())
+    fetchArticles()
       .then(data => {
-        console.log(data);
         setBlogPosts(data);
         setLoading(false);
       })
