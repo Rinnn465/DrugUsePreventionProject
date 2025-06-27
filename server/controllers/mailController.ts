@@ -1,17 +1,9 @@
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
+import { MailOptions } from "../types/type"; // Adjust path as necessary
 
 dotenv.config();
 
-/**
- * Interface for email configuration options
- */
-interface MailOptions {
-    from: string;     // Sender email address
-    to: string;       // Recipient email address
-    subject: string;  // Email subject line
-    html: string;     // HTML content of the email
-}
 
 /**
  * Sends an email using Gmail SMTP with SSL certificate error handling

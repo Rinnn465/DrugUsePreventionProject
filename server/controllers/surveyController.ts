@@ -15,7 +15,7 @@ export async function getAllSurveys(
         `);
     res.json(result.recordset);
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi Server" });
   }
 }
 
@@ -35,12 +35,12 @@ export async function getSurveyById(
             `);
     const survey = result.recordset[0];
     if (!survey) {
-      res.status(404).json({ message: "Survey not found" });
+      res.status(404).json({ message: "Không tìm thấy bài khảo sát" });
       return;
     }
     res.json(survey);
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi Server" });
   }
 }
 
@@ -169,7 +169,7 @@ export async function createSurvey(req: Request, res: Response): Promise<void> {
             `);
     res.status(201).json(result.recordset[0]);
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi Server" });
   }
 }
 
@@ -194,7 +194,7 @@ export async function updateSurvey(req: Request, res: Response): Promise<void> {
                 WHERE SurveyID = @id
             `);
     if (updateResult.rowsAffected[0] === 0) {
-      res.status(404).json({ message: "Survey not found" });
+      res.status(404).json({ message: "Không tìm thấy bài khảo sát" });
       return;
     }
     // Return the updated survey with category name
@@ -206,7 +206,7 @@ export async function updateSurvey(req: Request, res: Response): Promise<void> {
             `);
     res.json(result.recordset[0]);
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi Server" });
   }
 }
 
@@ -220,12 +220,12 @@ export async function deleteSurvey(req: Request, res: Response): Promise<void> {
       .input("id", sql.Int, id)
       .query("DELETE FROM Survey WHERE SurveyID = @id");
     if (deleteResult.rowsAffected[0] === 0) {
-      res.status(404).json({ message: "Survey not found" });
+      res.status(404).json({ message: "Không tìm thấy bài khảo sát" });
       return;
     }
     res.status(204).send();
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi Server" });
   }
 }
 
@@ -246,6 +246,6 @@ export async function getSurveyByCategoryId(
             `);
     res.json(result.recordset);
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi Server" });
   }
 }

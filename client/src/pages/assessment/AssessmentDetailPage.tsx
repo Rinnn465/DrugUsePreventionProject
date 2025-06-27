@@ -121,12 +121,13 @@ const AssessmentDetailPage: React.FC = () => {
     const { assessmentId } = useParams<{ assessmentId: string }>();
 
     const assessment = assessmentData[Number(assessmentId) - 1];
-    const [result, setResult] = useState<number | null>(0);
+    const [result, setResult] = useState<number | null>(-1);
     const [risk, setRisk] = useState<string>('thấp');
     const [courses, setCourses] = useState<SqlCourse[]>([]);
     const [consultants, setConsultants] = useState<GroupedConsultant[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
+    const [hasViewedResult, setHasViewedResult] = useState<boolean>(false);
 
     // Smooth scroll to top when changing questions
     const handleQuestionChange = (newIndex: number) => {
@@ -141,8 +142,11 @@ const AssessmentDetailPage: React.FC = () => {
             const parsedResult = JSON.parse(storedResult);
             setResult(parsedResult.total);
             setRisk(parsedResult.risk);
+            setHasViewedResult(true);
         }
     }, [risk, result, assessmentId]);
+
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -322,63 +326,105 @@ const AssessmentDetailPage: React.FC = () => {
 
     const calculateScore = (formValues: { [key: string]: string | string[] }) => {
         let total = 0;
+        console.log('=== CALCULATING SCORE ===');
+        console.log('Form values:', formValues);
 
         for (const question of assessment.questions) {
             const answer = formValues[question.id];
+            console.log(`Question ${question.id}:`, answer);
 
             if (question.type === 'checkbox' && Array.isArray(answer)) {
-                total += answer.reduce((sum, val) => sum + Number(val), 0);
+                const score = answer.reduce((sum, val) => sum + Number(val), 0);
+                console.log(`Checkbox score for Q${question.id}:`, score);
+                total += score;
             }
 
             if (question.type !== 'checkbox' && typeof answer === 'string') {
-                total += Number(answer);
+                const score = Number(answer);
+                console.log(`Radio score for Q${question.id}:`, score);
+                total += score;
             }
         }
 
-        return total;
+        console.log('Total score:', total);
+        return total += 1 ;
     };
 
     const handleSubmit = (values: typeof initialValues) => {
+        console.log('=== FORM SUBMISSION ===');
+        console.log('Form values:', values);
+        
         // Validate all questions before submitting
         let hasErrors = false;
+        const errors: { [key: string]: string } = {};
+        
         assessment.questions.forEach(question => {
             const answer = values[question.id];
             let isAnswered = false;
-
+            
+            console.log(`Validating Q${question.id}:`, answer);
+            
             if (question.type === 'checkbox') {
                 isAnswered = Array.isArray(answer) && answer.length > 0;
+                if (!isAnswered) {
+                    errors[question.id] = 'Chọn ít nhất một lựa chọn';
+                    hasErrors = true;
+                }
             } else {
-                isAnswered = Boolean(answer && answer !== '');
+                // Fixed: Check for both string and number values, including 0
+                isAnswered = answer !== undefined && answer !== null && answer !== '';
+                if (!isAnswered) {
+                    errors[question.id] = 'Không được để trống';
+                    hasErrors = true;
+                }
             }
-
-            if (!isAnswered) {
-                hasErrors = true;
-            }
+            console.log(`Q${question.id} answered:`, isAnswered);
         });
-
+        
         if (hasErrors) {
-            // If there are validation errors, don't submit
+            console.log('Validation errors found:', errors);
+            // Find first unanswered question and navigate to it
+            const firstErrorQuestion = assessment.questions.findIndex(q => errors[q.id]);
+            if (firstErrorQuestion !== -1) {
+                setCurrentQuestionIndex(firstErrorQuestion);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
             return;
         }
-
+        
         const total = calculateScore(values);
-        let calculatedRisk = 'thấp';
 
-        if (total >= 8) {
-            calculatedRisk = 'cao';
-        } else if (total >= 4) {
-            calculatedRisk = 'trung bình';
-        }
-
-        // Store result with assessment ID to prevent conflicts
-        localStorage.setItem(`assessmentResult_${assessmentId}`, JSON.stringify({
+        // Store result in localStorage
+        const resultData = {
             total,
-            risk: calculatedRisk,
+            risk: total > 8 ? 'cao' : total > 4 ? 'trung bình' : 'thấp',
             timestamp: new Date().toISOString()
-        }));
+        };
+        localStorage.setItem(`assessmentResult_${assessmentId}`, JSON.stringify(resultData));
 
+        // Set state and mark as having viewed result
         setResult(total);
-        setRisk(calculatedRisk);
+        setRisk(resultData.risk);
+        setHasViewedResult(true);
+    };
+
+    // Function to validate all questions and check if assessment is complete
+    const isAssessmentComplete = (values: { [key: string]: string | string[] }) => {
+        console.log('=== CHECKING COMPLETION ===');
+        return assessment.questions.every(question => {
+            const answer = values[question.id];
+            let isComplete = false;
+            
+            if (question.type === 'checkbox') {
+                isComplete = Array.isArray(answer) && answer.length > 0;
+            } else {
+                // Fixed: Check for both string and number values, including 0
+                isComplete = answer !== undefined && answer !== null && answer !== '';
+            }
+            
+            console.log(`Q${question.id} complete:`, isComplete, 'Value:', answer);
+            return isComplete;
+        });
     };
 
     // Function to reset the assessment
@@ -387,23 +433,34 @@ const AssessmentDetailPage: React.FC = () => {
         localStorage.removeItem(`assessmentResult_${assessmentId}`);
 
         // Reset state
-        setResult(0);
+        setResult(-1);
         setRisk('thấp');
         setCurrentQuestionIndex(0);
+        setHasViewedResult(false);
 
         // Scroll to top for better UX
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    // Function to clear data and navigate to assessments page
+    const handleBackToAssessments = () => {
+        
+        // Reset hasViewedResult to prevent cleanup from firing
+        setHasViewedResult(false);
+        
+        // Navigate to assessments page
+        window.location.href = '/assessments';
+    };
+
     // Get filtered results only when result is submitted
-    const filteredCourses = result !== null && result > 0 ? getFilteredCourses() : [];
-    const filteredConsultants = result !== null && result > 0 ? getFilteredConsultants() : [];
+    const filteredCourses = result !== null && result > -1 ? getFilteredCourses() : [];
+    const filteredConsultants = result !== null && result > -1 ? getFilteredConsultants() : [];
 
     console.log(filteredConsultants);
 
     return (
         <div className='container mx-auto px-4 py-8'>
-            {result === 0 && (
+            {result === -1 && (
                 <Formik
                     initialValues={initialValues}
                     validationSchema={validationSchema}
@@ -426,11 +483,6 @@ const AssessmentDetailPage: React.FC = () => {
                                     <p className='text-gray-600 text-lg'>
                                         {assessment.description}
                                     </p>
-                                    <div className='mt-4 flex justify-center items-center gap-4 text-sm text-gray-500'>
-                                        <span>{assessment.questionCount} câu hỏi</span>
-                                        <span>•</span>
-                                        <span>~{assessment.timeToComplete} phút</span>
-                                    </div>
                                     <div className="mt-4 bg-gray-200 rounded-full h-2 overflow-hidden">
                                         <div
                                             className="bg-blue-600 h-full transition-all duration-300"
@@ -513,7 +565,8 @@ const AssessmentDetailPage: React.FC = () => {
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            const validationError = (() => {
+                                                            // First validate current question
+                                                            const currentValidationError = (() => {
                                                                 const answer = formikProps.values[question.id];
                                                                 if (question.type === 'checkbox') {
                                                                     return Array.isArray(answer) && answer.length > 0 ? null : 'Chọn ít nhất một lựa chọn';
@@ -521,13 +574,17 @@ const AssessmentDetailPage: React.FC = () => {
                                                                 return answer && answer !== '' ? null : 'Không được để trống';
                                                             })();
                                                             
-                                                            if (validationError) {
-                                                                formikProps.setFieldError(question.id, validationError);
+                                                            if (currentValidationError) {
+                                                                formikProps.setFieldError(question.id, currentValidationError);
                                                                 formikProps.setFieldTouched(question.id, true);
-                                                            } else {
-                                                                formikProps.setFieldError(question.id, undefined);
-                                                                handleQuestionChange(Math.min(assessment.questions.length - 1, currentQuestionIndex + 1));
+                                                                return;
                                                             }
+                                                            
+                                                            // Clear current question error
+                                                            formikProps.setFieldError(question.id, undefined);
+                                                            
+                                                            // Move to next question
+                                                            handleQuestionChange(Math.min(assessment.questions.length - 1, currentQuestionIndex + 1));
                                                         }}
                                                         className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg hover:scale-110"
                                                         title="Tiếp theo"
@@ -540,7 +597,8 @@ const AssessmentDetailPage: React.FC = () => {
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            const validationError = (() => {
+                                                            // First validate current question
+                                                            const currentValidationError = (() => {
                                                                 const answer = formikProps.values[question.id];
                                                                 if (question.type === 'checkbox') {
                                                                     return Array.isArray(answer) && answer.length > 0 ? null : 'Chọn ít nhất một lựa chọn';
@@ -548,13 +606,23 @@ const AssessmentDetailPage: React.FC = () => {
                                                                 return answer && answer !== '' ? null : 'Không được để trống';
                                                             })();
                                                             
-                                                            if (validationError) {
-                                                                formikProps.setFieldError(question.id, validationError);
+                                                            if (currentValidationError) {
+                                                                formikProps.setFieldError(question.id, currentValidationError);
                                                                 formikProps.setFieldTouched(question.id, true);
-                                                            } else {
-                                                                formikProps.setFieldError(question.id, undefined);
-                                                                formikProps.submitForm();
+                                                                return;
                                                             }
+                                                            
+                                                            // Clear current question error
+                                                            formikProps.setFieldError(question.id, undefined);
+                                                            
+                                                            // Check if all questions are answered
+                                                            if (!isAssessmentComplete(formikProps.values)) {
+                                                                alert('Vui lòng trả lời tất cả câu hỏi trước khi hoàn thành đánh giá.');
+                                                                return;
+                                                            }
+                                                            
+                                                            // Submit the form
+                                                            formikProps.submitForm();
                                                         }}
                                                         className="flex items-center justify-center w-12 h-12 rounded-full bg-green-600 text-white hover:bg-green-700 transition-all shadow-lg hover:scale-110"
                                                         title="Hoàn thành đánh giá"
@@ -574,31 +642,22 @@ const AssessmentDetailPage: React.FC = () => {
                 </Formik>
             )}
 
-            {result !== null && result > 0 && (
+            {result !== null && result >= 0 && (
                 <div className="my-10 max-w-3xl mx-auto bg-gradient-to-br from-white via-primary-50 to-accent-50 rounded-2xl shadow-2xl border-2 border-accent-100 p-8">
-                    <div className="flex justify-between items-start mb-4">
-                        <h2 className="text-3xl font-extrabold text-accent-700 flex items-center gap-3">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-3xl font-extrabold text-accent-700 whitespace-nowrap">
                             Kết quả đánh giá
                         </h2>
-                        <div className="flex flex-wrap gap-3">
-                            <Link
-                                to="/assessments"
+                        <div className="flex gap-3 ml-4">
+                            <button
+                                onClick={handleBackToAssessments}
                                 className="px-4 py-2 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 hover:text-blue-800 rounded-lg border border-blue-300 transition-all duration-200 flex items-center gap-2 font-medium shadow-sm hover:shadow-md"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                 </svg>
                                 Về trang đánh giá
-                            </Link>
-                            <Link
-                                to="/"
-                                className="px-4 py-2 text-sm bg-green-100 hover:bg-green-200 text-green-700 hover:text-green-800 rounded-lg border border-green-300 transition-all duration-200 flex items-center gap-2 font-medium shadow-sm hover:shadow-md"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                </svg>
-                                Về trang chủ
-                            </Link>
+                            </button>
                             <button
                                 onClick={handleRedoAssessment}
                                 className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-800 rounded-lg border border-gray-300 transition-all duration-200 flex items-center gap-2 font-medium shadow-sm hover:shadow-md"

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { 
-    Plus, 
     Calendar, 
     Settings,
     BarChart3,
@@ -12,40 +11,14 @@ import {
 const ProgramDashboardPage: React.FC = () => {
     const { userId } = useParams();
     
-    const managementOptions = [
-        {
-            title: "Quản lý chương trình",
-            description: "Tạo, chỉnh sửa và xóa các chương trình cộng đồng",
-            icon: Calendar,
-            color: "bg-blue-500",
-            link: `/roles/${userId}/program-manage`,
-            action: "Quản lý toàn bộ"
-        },
-        {
-            title: "Tạo chương trình mới",
-            description: "Thêm chương trình phòng chống tệ nạn xã hội",
-            icon: Plus,
-            color: "bg-green-500",
-            link: `/roles/${userId}/program-manage`,
-            action: "Tạo mới"
-        },
-        {
-            title: "Thống kê chương trình",
-            description: "Xem báo cáo và phân tích hiệu quả",
-            icon: BarChart3,
-            color: "bg-purple-500",
-            link: `/roles/${userId}/program-manage`,
-            action: "Xem thống kê"
-        },
-        {
-            title: "Quản lý người tham gia",
-            description: "Theo dõi và quản lý người đăng ký tham gia",
-            icon: Users,
-            color: "bg-orange-500",
-            link: `/roles/${userId}/program-manage`,
-            action: "Quản lý"
-        }
-    ];
+    // Chỉ giữ lại thẻ "Quản lý chương trình"
+    const managementOption = {
+        title: "Quản lý chương trình",
+        icon: Calendar,
+        color: "bg-blue-500",
+        link: `/roles/${userId}/program-manage`,
+        action: "Quản lý toàn bộ"
+    };  
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -125,32 +98,42 @@ const ProgramDashboardPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Management Options */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    {managementOptions.map((option) => {
-                        const IconComponent = option.icon;
-                        return (
-                            <Link key={option.title} to={option.link} className="group">
-                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-200 group-hover:border-blue-200 h-full">
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div className={`p-3 rounded-xl ${option.color} group-hover:scale-110 transition-transform`}>
-                                            <IconComponent className="h-6 w-6 text-white" />
+                {/* Single Management Option - Full Width */}
+                <div className="mb-8">
+                    <Link to={managementOption.link} className="group block">
+                        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 hover:shadow-xl transition-all duration-300 group-hover:border-blue-300 group-hover:bg-gradient-to-r group-hover:from-blue-50 group-hover:to-white">
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center space-x-4">
+                                    <div className={`p-4 rounded-2xl ${managementOption.color} group-hover:scale-110 transition-transform shadow-lg`}>
+                                        <Calendar className="h-8 w-8 text-white" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-3xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                                            {managementOption.title}
+                                        </h2>
+                                        <div className="flex items-center text-blue-600 font-semibold text-lg group-hover:text-blue-700">
+                                            <span>{managementOption.action}</span>
+                                            <Settings className="h-5 w-5 ml-3 group-hover:translate-x-2 transition-transform" />
                                         </div>
                                     </div>
-                                    <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                                        {option.title}
-                                    </h3>
-                                    <p className="text-gray-600 text-sm mb-4 leading-relaxed">
-                                        {option.description}
-                                    </p>
-                                    <div className="flex items-center text-blue-600 font-medium text-sm group-hover:text-blue-700">
-                                        <span>{option.action}</span>
-                                        <Settings className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                </div>
+                                <div className="hidden md:flex items-center space-x-8 text-gray-500">
+                                    <div className="text-center">
+                                        <div className="text-2xl font-bold text-blue-600">23</div>
+                                        <div className="text-sm">Chương trình</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-2xl font-bold text-green-600">8</div>
+                                        <div className="text-sm">Đang diễn ra</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-2xl font-bold text-purple-600">1,234</div>
+                                        <div className="text-sm">Người tham gia</div>
                                     </div>
                                 </div>
-                            </Link>
-                        );
-                    })}
+                            </div>
+                        </div>
+                    </Link>
                 </div>
             </div>
         </div>

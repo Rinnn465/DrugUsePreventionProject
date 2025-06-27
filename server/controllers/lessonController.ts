@@ -17,16 +17,6 @@ interface Lesson {
     IsActive: boolean;     // Lesson availability status
 }
 
-/**
- * Interface representing a Lesson Question
- */
-interface LessonQuestion {
-    QuestionID: number;    // Unique identifier for the question
-    LessonID: number;      // Reference to parent lesson
-    QuestionText: string;  // The actual question
-    QuestionType: string;  // Type of question (e.g., multiple choice, true/false)
-    Points: number;        // Points awarded for correct answer
-}
 
 /**
  * Retrieves all lessons for a specific course

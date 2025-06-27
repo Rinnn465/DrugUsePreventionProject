@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { BookOpen, Filter, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { BookOpen } from 'lucide-react';
 import CourseCard from '../../components/courses/CourseCard';
 import { Category, SqlCourse } from '@/types/Course';
 
@@ -8,9 +8,6 @@ const CoursesPage: React.FC = () => {
   const [categoryData, setCategoryData] = useState<Category[]>([]);
   const [courses, setCourses] = useState<SqlCourse[]>([]);
   const [error, setError] = useState<string | null>(null);
-  
-  // Filter states
-  const [selectedCategory, setSelectedCategory] = useState('');
 
   // Transform API data to match SqlCourse type
   const transformCourseData = (apiData: any[]): SqlCourse[] => {
@@ -49,24 +46,6 @@ const CoursesPage: React.FC = () => {
 
   }, []);
 
-  // Filter courses with memoization
-  const filteredCourses = useMemo(() => {
-    return courses.filter(course => {
-      // Filter by category
-      const matchesCategory =
-        selectedCategory === '' ||
-        course.Category.some(cat => cat.CategoryName === selectedCategory);
-      
-      return matchesCategory;
-    });
-  }, [courses, selectedCategory]);
-
-  const clearFilters = () => {
-    setSelectedCategory('');
-  };
-
-  const hasActiveFilters = selectedCategory !== '';
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
       {/* Hero Section */}
@@ -99,59 +78,14 @@ const CoursesPage: React.FC = () => {
           <div className="text-red-600 text-center mb-4">{error}</div>
         )}
 
-        {/* Filter Section */}
-        <div className="mb-12">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
-            <div className="flex items-center gap-3 mb-6">
-              <Filter className="h-5 w-5 text-blue-600" />
-              <h2 className="text-xl font-bold text-gray-800">Lọc khóa học</h2>
-              {hasActiveFilters && (
-                <button
-                  onClick={clearFilters}
-                  className="ml-auto flex items-center gap-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                  Xóa bộ lọc
-                </button>
-              )}
-            </div>
-            
-            <div className="grid grid-cols-1 gap-6">
-              {/* Category Filter */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Đối tượng
-                </label>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                >
-                  <option value="">Tất cả đối tượng</option>
-                  {categoryData.map((category) => (
-                    <option key={category.CategoryID} value={category.CategoryName}>
-                      {category.CategoryName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Results Count */}
-            <div className="mt-4 text-sm text-gray-600">
-              Hiển thị <span className="font-semibold text-blue-600">{filteredCourses.length}</span> / {courses.length} khóa học
-            </div>
-          </div>
-        </div>
-
         {/* Course Results Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 Danh sách khóa học
-                {filteredCourses.length > 0 && (
-                  <span className="text-primary-600"> ({filteredCourses.length} khóa học)</span>
+                {courses.length > 0 && (
+                  <span className="text-primary-600"> ({courses.length} khóa học)</span>
                 )}
               </h2>
               <p className="text-gray-600">Chọn khóa học phù hợp với nhu cầu của bạn</p>
@@ -161,8 +95,8 @@ const CoursesPage: React.FC = () => {
 
         {/* Courses Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredCourses.length > 0 ? (
-            filteredCourses.map((course) => (
+          {courses.length > 0 ? (
+            courses.map((course) => (
               <CourseCard key={course.CourseID} course={course} />
             ))
           ) : (
@@ -171,31 +105,12 @@ const CoursesPage: React.FC = () => {
                 <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <BookOpen className="h-12 w-12 text-gray-400" />
                 </div>
-                <h3 className="text-2xl font-semibold mb-4 text-gray-900">Không tìm thấy khóa học phù hợp</h3>
-                <p className="text-gray-600 mb-6">Hãy thử điều chỉnh bộ lọc để tìm thấy khóa học phù hợp với bạn</p>
-                <button
-                  onClick={clearFilters}
-                  className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors font-medium"
-                >
-                  Xóa bộ lọc
-                </button>
+                <h3 className="text-2xl font-semibold mb-4 text-gray-900">Chưa có khóa học</h3>
+                <p className="text-gray-600">Hãy quay lại sau để xem những khóa học mới nhất</p>
               </div>
             </div>
           )}
         </div>
-
-        {/* No courses at all */}
-        {courses.length === 0 && (
-          <div className="text-center py-20">
-            <div className="max-w-md mx-auto">
-              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <BookOpen className="h-12 w-12 text-gray-400" />
-              </div>
-              <h3 className="text-2xl font-semibold mb-4 text-gray-900">Chưa có khóa học</h3>
-              <p className="text-gray-600">Hãy quay lại sau để xem những khóa học mới nhất</p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
