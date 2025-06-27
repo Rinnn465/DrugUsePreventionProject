@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Users, Search, Calendar as CalendarIcon, User } from 'lucide-react';
+import { Users, Search, Calendar as CalendarIcon, User, Filter } from 'lucide-react';
 import CounselorCard from '../../components/counselors/CounselorCard';
 import AppointmentCalendar from '../../components/appointments/AppointmentCalendar';
 import { Link, useLocation } from 'react-router-dom';
@@ -179,79 +179,48 @@ const AppointmentsPage: React.FC = () => {
       </div>
 
       <div className="container mx-auto px-4 py-12">
-        {/* Search Section - Full Width */}
-        <div className="max-w-6xl mx-auto mb-8">
-          <div className="bg-gradient-to-br from-primary-50 via-white to-blue-50 rounded-2xl shadow-2xl p-6 border-2 border-primary-100 animate-fade-in">
-            <h2 className="text-xl font-bold mb-6 text-primary-700 flex items-center gap-2">
-              <Search className="h-6 w-6 text-primary-400" /> Tìm Chuyên Gia Tư Vấn
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 text-primary-300 h-5 w-5" />
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm chuyên gia tư vấn..."
-                  className="w-full pl-10 pr-4 py-2 border-2 border-primary-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-300 bg-primary-50 text-primary-900 placeholder:text-primary-300 shadow-md"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+        {/* 3 Column Layout */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 max-w-7xl mx-auto">
+          
+          {/* Left Column - Counselor List */}
+          <div className="xl:col-span-3 order-2 xl:order-1">
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border-2 border-primary-100 animate-fade-in">
+              <div className="p-4 bg-gradient-to-r from-primary-50 to-blue-50 border-b border-primary-100">
+                <h3 className="text-lg font-bold text-primary-700 flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Danh Sách Bác Sĩ
+                </h3>
               </div>
-              <div>
-                <div className="bg-primary-50 border-2 border-primary-100 rounded-xl p-3 shadow-md">
-                  <h3 className="text-sm font-medium text-primary-700 mb-2">Chuyên môn</h3>
-                  <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {specialtyOptions.map((specialty, index) => (
-                      <label key={index} className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-primary-300 rounded"
-                          checked={selectedSpecialties.includes(specialty)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedSpecialties([...selectedSpecialties, specialty]);
-                            } else {
-                              setSelectedSpecialties(selectedSpecialties.filter(s => s !== specialty));
-                            }
-                          }}
-                        />
-                        <span className="text-sm text-primary-900">{specialty}</span>
-                      </label>
-                    ))}
+              <div className="max-h-[600px] overflow-y-auto">
+                {filteredConsunltants.length > 0 ? (
+                  filteredConsunltants.map((consultant) => (
+                    <div
+                      key={consultant.ConsultantID}
+                      className={`border-b-2 border-primary-50 last:border-b-0 cursor-pointer transition-all duration-200 ${selectedCounselor === consultant.ConsultantID ? 'bg-primary-100 scale-[1.01] shadow-lg' : 'hover:bg-gradient-to-r hover:from-primary-50 hover:to-blue-100 hover:scale-[1.01]'} animate-fade-in`}
+                      onClick={() => setSelectedCounselor(consultant.ConsultantID)}
+                    >
+                      <CounselorCard consultant={consultant} compact={true} />
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-6 text-center">
+                    <Users className="h-10 w-10 text-primary-200 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2 text-primary-700">Không tìm thấy chuyên gia tư vấn</h3>
+                    <p className="text-primary-400">Vui lòng điều chỉnh tiêu chí tìm kiếm của bạn</p>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden max-h-[600px] overflow-y-auto border-2 border-primary-100 animate-fade-in">
-              {filteredConsunltants.length > 0 ? (
-                filteredConsunltants.map((consultant) => (
-                  <div
-                    key={consultant.ConsultantID}
-                    className={`border-b-2 border-primary-50 last:border-b-0 cursor-pointer transition-all duration-200 ${selectedCounselor === consultant.ConsultantID ? 'bg-primary-100 scale-[1.01] shadow-lg' : 'hover:bg-gradient-to-r hover:from-primary-50 hover:to-blue-100 hover:scale-[1.01]'} animate-fade-in`}
-                    onClick={() => setSelectedCounselor(consultant.ConsultantID)}
-                  >
-                    <CounselorCard consultant={consultant} compact={true} />
-                  </div>
-                ))
-              ) : (
-                <div className="p-6 text-center">
-                  <Users className="h-10 w-10 text-primary-200 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2 text-primary-700">Không tìm thấy chuyên gia tư vấn</h3>
-                  <p className="text-primary-400">Vui lòng điều chỉnh tiêu chí tìm kiếm của bạn</p>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="lg:col-span-2">
+          {/* Center Column - Calendar */}
+          <div className="xl:col-span-6 order-1 xl:order-2">
             {selectedCounselor && selectedConsultant ? (
-              <div className="bg-white rounded-2xl shadow-xl p-8 border-2 border-primary-100 animate-fade-in">
+              <div className="bg-white rounded-2xl shadow-xl p-6 border-2 border-primary-100 animate-fade-in">
                 <div className="mb-6">
                   <h2 className="text-xl font-bold mb-4 text-primary-700 flex items-center gap-2">
-                    <User className="h-6 w-6 text-primary-400" /> Đặt lịch với
+                    <CalendarIcon className="h-6 w-6 text-primary-400" /> 
+                    Đặt lịch với
                     <Link
                       className="text-primary-500 underline hover:text-primary-700 ml-2"
                       to={`/counselor/${selectedCounselor}`}
@@ -269,7 +238,7 @@ const AppointmentsPage: React.FC = () => {
                 />
               </div>
             ) : (
-              <div className="bg-white rounded-2xl shadow-xl p-8 flex flex-col items-center justify-center h-full border-2 border-primary-100 animate-fade-in">
+              <div className="bg-white rounded-2xl shadow-xl p-8 flex flex-col items-center justify-center h-full min-h-[400px] border-2 border-primary-100 animate-fade-in">
                 <CalendarIcon className="h-16 w-16 text-primary-100 mb-4" />
                 <h2 className="text-xl font-bold mb-2 text-primary-700">Chọn Chuyên Gia Tư Vấn</h2>
                 <p className="text-primary-400 text-center max-w-md">
@@ -277,6 +246,79 @@ const AppointmentsPage: React.FC = () => {
                 </p>
               </div>
             )}
+          </div>
+
+          {/* Right Column - Search & Filter */}
+          <div className="xl:col-span-3 order-3">
+            <div className="bg-gradient-to-br from-primary-50 via-white to-blue-50 rounded-2xl shadow-2xl p-6 border-2 border-primary-100 animate-fade-in">
+              <h2 className="text-xl font-bold mb-6 text-primary-700 flex items-center gap-2">
+                <Filter className="h-6 w-6 text-primary-400" /> 
+                Tìm Kiếm & Lọc
+              </h2>
+              
+              {/* Search Input */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-primary-700 mb-2">
+                  Tìm kiếm bác sĩ
+                </label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 text-primary-300 h-5 w-5" />
+                  <input
+                    type="text"
+                    placeholder="Tìm kiếm chuyên gia tư vấn..."
+                    className="w-full pl-10 pr-4 py-3 border-2 border-primary-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-300 bg-primary-50 text-primary-900 placeholder:text-primary-300 shadow-md"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Specialty Filter */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-primary-700 mb-2">
+                  Chuyên môn
+                </label>
+                <div className="bg-primary-50 border-2 border-primary-100 rounded-xl p-4 shadow-md">
+                  <div className="space-y-3 max-h-48 overflow-y-auto">
+                    {specialtyOptions.map((specialty, index) => (
+                      <label key={index} className="flex items-center space-x-3 cursor-pointer hover:bg-primary-100 p-2 rounded-lg transition-colors">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-primary-300 rounded"
+                          checked={selectedSpecialties.includes(specialty)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedSpecialties([...selectedSpecialties, specialty]);
+                            } else {
+                              setSelectedSpecialties(selectedSpecialties.filter(s => s !== specialty));
+                            }
+                          }}
+                        />
+                        <span className="text-sm text-primary-900 font-medium">{specialty}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Filter Summary */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="text-sm text-blue-700">
+                  <strong>Kết quả:</strong> {filteredConsunltants.length} / {mergedConsultants.length} bác sĩ
+                </div>
+                {(searchTerm || selectedSpecialties.length > 0) && (
+                  <button
+                    onClick={() => {
+                      setSearchTerm('');
+                      setSelectedSpecialties([]);
+                    }}
+                    className="mt-2 text-sm text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Xóa tất cả bộ lọc
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

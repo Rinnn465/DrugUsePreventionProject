@@ -127,6 +127,7 @@ const AssessmentDetailPage: React.FC = () => {
     const [consultants, setConsultants] = useState<GroupedConsultant[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
+    const [hasViewedResult, setHasViewedResult] = useState<boolean>(false);
 
     // Smooth scroll to top when changing questions
     const handleQuestionChange = (newIndex: number) => {
@@ -141,8 +142,39 @@ const AssessmentDetailPage: React.FC = () => {
             const parsedResult = JSON.parse(storedResult);
             setResult(parsedResult.total);
             setRisk(parsedResult.risk);
+            setHasViewedResult(true);
         }
     }, [risk, result, assessmentId]);
+
+    // Clear localStorage when user navigates away or closes the page
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            if (hasViewedResult) {
+                localStorage.removeItem(`assessmentResult_${assessmentId}`);
+            }
+        };
+
+        const handlePopState = () => {
+            if (hasViewedResult) {
+                localStorage.removeItem(`assessmentResult_${assessmentId}`);
+            }
+        };
+
+        // Add event listeners
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        window.addEventListener('popstate', handlePopState);
+
+        // Cleanup function - will run when component unmounts
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            window.removeEventListener('popstate', handlePopState);
+            
+            // Clear localStorage when component unmounts (user navigates away)
+            if (hasViewedResult) {
+                localStorage.removeItem(`assessmentResult_${assessmentId}`);
+            }
+        };
+    }, [assessmentId, hasViewedResult]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -339,46 +371,21 @@ const AssessmentDetailPage: React.FC = () => {
     };
 
     const handleSubmit = (values: typeof initialValues) => {
-        // Validate all questions before submitting
-        let hasErrors = false;
-        assessment.questions.forEach(question => {
-            const answer = values[question.id];
-            let isAnswered = false;
-
-            if (question.type === 'checkbox') {
-                isAnswered = Array.isArray(answer) && answer.length > 0;
-            } else {
-                isAnswered = Boolean(answer && answer !== '');
-            }
-
-            if (!isAnswered) {
-                hasErrors = true;
-            }
-        });
-
-        if (hasErrors) {
-            // If there are validation errors, don't submit
-            return;
-        }
-
+        console.log('Form values:', values);
         const total = calculateScore(values);
-        let calculatedRisk = 'thấp';
 
-        if (total >= 8) {
-            calculatedRisk = 'cao';
-        } else if (total >= 4) {
-            calculatedRisk = 'trung bình';
-        }
-
-        // Store result with assessment ID to prevent conflicts
-        localStorage.setItem(`assessmentResult_${assessmentId}`, JSON.stringify({
+        // Store result in localStorage
+        const resultData = {
             total,
-            risk: calculatedRisk,
+            risk: total > 8 ? 'cao' : total > 4 ? 'trung bình' : 'thấp',
             timestamp: new Date().toISOString()
-        }));
+        };
+        localStorage.setItem(`assessmentResult_${assessmentId}`, JSON.stringify(resultData));
 
+        // Set state and mark as having viewed result
         setResult(total);
-        setRisk(calculatedRisk);
+        setRisk(resultData.risk);
+        setHasViewedResult(true);
     };
 
     // Function to reset the assessment
@@ -390,9 +397,22 @@ const AssessmentDetailPage: React.FC = () => {
         setResult(0);
         setRisk('thấp');
         setCurrentQuestionIndex(0);
+        setHasViewedResult(false);
 
         // Scroll to top for better UX
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // Function to clear data and navigate to assessments page
+    const handleBackToAssessments = () => {
+        // Clear the stored result for this specific assessment
+        localStorage.removeItem(`assessmentResult_${assessmentId}`);
+        
+        // Reset hasViewedResult to prevent cleanup from firing
+        setHasViewedResult(false);
+        
+        // Navigate to assessments page
+        window.location.href = '/assessments';
     };
 
     // Get filtered results only when result is submitted
@@ -576,29 +596,20 @@ const AssessmentDetailPage: React.FC = () => {
 
             {result !== null && result > 0 && (
                 <div className="my-10 max-w-3xl mx-auto bg-gradient-to-br from-white via-primary-50 to-accent-50 rounded-2xl shadow-2xl border-2 border-accent-100 p-8">
-                    <div className="flex justify-between items-start mb-4">
-                        <h2 className="text-3xl font-extrabold text-accent-700 flex items-center gap-3">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-3xl font-extrabold text-accent-700 whitespace-nowrap">
                             Kết quả đánh giá
                         </h2>
-                        <div className="flex flex-wrap gap-3">
-                            <Link
-                                to="/assessments"
+                        <div className="flex gap-3 ml-4">
+                            <button
+                                onClick={handleBackToAssessments}
                                 className="px-4 py-2 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 hover:text-blue-800 rounded-lg border border-blue-300 transition-all duration-200 flex items-center gap-2 font-medium shadow-sm hover:shadow-md"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                 </svg>
                                 Về trang đánh giá
-                            </Link>
-                            <Link
-                                to="/"
-                                className="px-4 py-2 text-sm bg-green-100 hover:bg-green-200 text-green-700 hover:text-green-800 rounded-lg border border-green-300 transition-all duration-200 flex items-center gap-2 font-medium shadow-sm hover:shadow-md"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                </svg>
-                                Về trang chủ
-                            </Link>
+                            </button>
                             <button
                                 onClick={handleRedoAssessment}
                                 className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-800 rounded-lg border border-gray-300 transition-all duration-200 flex items-center gap-2 font-medium shadow-sm hover:shadow-md"
