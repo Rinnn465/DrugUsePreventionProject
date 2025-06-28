@@ -372,3 +372,83 @@ export async function getCompletedCourseById(req: Request, res: Response): Promi
         return;
     }
 }
+
+/**
+ * Unenrolls a user from a course
+ * 
+ * @route DELETE /api/courses/:id/unenroll
+ * @access Private
+ * @param {Request} req - Express request object with course ID in params and account ID in body
+ * @param {Response} res - Express response object
+ * @returns {Promise<void>} JSON response with unenrollment status
+ * @throws {404} If enrollment not found
+ * @throws {500} If database error occurs
+ */
+export async function unenrollCourse(req: Request, res: Response): Promise<void> {
+    const courseId = req.params.id;
+    const { accountId } = req.body;
+
+    try {
+        const pool = await poolPromise;
+
+        // Check if user is enrolled in the course
+        const checkEnrollment = await pool.request()
+            .input('CourseID', sql.Int, courseId)
+            .input('AccountID', sql.Int, accountId)
+            .query(`
+                SELECT EnrollmentID, Status 
+                FROM Enrollment 
+                WHERE CourseID = @CourseID AND AccountID = @AccountID
+            `);
+
+        if (checkEnrollment.recordset.length === 0) {
+            res.status(404).json({ 
+                success: false, 
+                message: 'Bạn chưa đăng ký khóa học này' 
+            });
+            return;
+        }
+
+        const enrollment = checkEnrollment.recordset[0];
+
+        // Check if course is already completed
+        if (enrollment.Status === 'Completed') {
+            res.status(400).json({ 
+                success: false, 
+                message: 'Không thể hủy đăng ký khóa học đã hoàn thành' 
+            });
+            return;
+        }
+
+        // Remove enrollment record
+        await pool.request()
+            .input('CourseID', sql.Int, courseId)
+            .input('AccountID', sql.Int, accountId)
+            .query(`
+                DELETE FROM Enrollment 
+                WHERE CourseID = @CourseID AND AccountID = @AccountID
+            `);
+
+        // Update course enrollment count
+        await pool.request()
+            .input('CourseID', sql.Int, courseId)
+            .query(`
+                UPDATE Course 
+                SET EnrollCount = EnrollCount - 1 
+                WHERE CourseID = @CourseID AND EnrollCount > 0
+            `);
+
+        res.status(200).json({ 
+            success: true, 
+            message: 'Hủy đăng ký khóa học thành công' 
+        });
+
+    } catch (err: any) {
+        console.error('Error in unenrollCourse:', err);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Đã xảy ra lỗi khi hủy đăng ký khóa học', 
+            error: err.message 
+        });
+    }
+}

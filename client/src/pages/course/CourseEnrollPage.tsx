@@ -19,13 +19,13 @@ const CourseEnrollPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCourseCompleted, setIsCourseCompleted] = useState(false);
 
   const { token } = useAuthToken();
   const { user } = useUser();
   const { isOpen, openModal, closeModal } = useModal();
-  let isCourseCompleted = false;
 
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 
   const fetchCourseData = async () => {
     try {
@@ -43,7 +43,7 @@ const CourseEnrollPage: React.FC = () => {
         throw new Error('Không thể tải bài học.');
       }
       const lessonData = await lessonResponse.json();
-      setSqlLessons(lessonData.data || []);
+      setSqlLessons(lessonData.data ?? []);
       console.log('Lessons:', lessonData.data);
     } catch (error) {
       console.error('Error fetching course or lessons:', error);
@@ -69,7 +69,7 @@ const CourseEnrollPage: React.FC = () => {
       }
       const data = await response.json();
       console.log(`Enrolled Courses Response for Course ${id}:`, data);
-      setEnrolledCourses(data.data || []);
+      setEnrolledCourses(data.data ?? []);
     } catch (error) {
       console.error('Error fetching enrolled courses:', error);
       setError('Đã xảy ra lỗi khi kiểm tra trạng thái đăng ký.');
@@ -77,18 +77,22 @@ const CourseEnrollPage: React.FC = () => {
   };
 
   const fetchCompleteCourseData = async () => {
-    if (token) {
-      const response = await fetch(`${API_URL}/api/course/${id}/completed/${user?.AccountID}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+    if (token && user?.AccountID) {
+      try {
+        const response = await fetch(`${API_URL}/api/course/${id}/completed/${user.AccountID}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        });
+        const data = await response.json();
+        if (data.data?.[0]?.Status === 'Completed') {
+          setIsCourseCompleted(true);
         }
-      });
-      const data = await response.json();
-      if (data.data[0].Status === 'Completed') {
-        isCourseCompleted = true;
+      } catch (error) {
+        console.error('Error fetching completion status:', error);
       }
     }
-  }
+  };
 
   useEffect(() => {
     fetchCourseData();
@@ -102,7 +106,7 @@ const CourseEnrollPage: React.FC = () => {
       return;
     }
 
-    if (!user || !user.AccountID) {
+    if (!user?.AccountID) {
       toast.error('Thông tin người dùng không hợp lệ.');
       return;
     }
@@ -138,7 +142,7 @@ const CourseEnrollPage: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Đăng ký khóa học không thành công.');
+        throw new Error(errorData.message ?? 'Đăng ký khóa học không thành công.');
       }
 
       // Update enrolledCourses locally
@@ -160,10 +164,76 @@ const CourseEnrollPage: React.FC = () => {
       }, 1500);
     } catch (error: any) {
       console.error('Error enrolling in course:', error);
-      toast.error(error.message || 'Đã xảy ra lỗi khi đăng ký khóa học.');
+      const errorMessage = error instanceof Error ? error.message : 'Đã xảy ra lỗi khi đăng ký khóa học.';
+      toast.error(errorMessage);
     } finally {
       setIsEnrolling(false);
     }
+  };
+
+  const handleUnenroll = async () => {
+    if (!token || !user?.AccountID) {
+      toast.error('Thông tin người dùng không hợp lệ.');
+      return;
+    }
+
+    // Confirm before unenrolling
+    const confirmUnenroll = window.confirm(
+      'Bạn có chắc chắn muốn hủy đăng ký khóa học này? Hành động này không thể hoàn tác.'
+    );
+
+    if (!confirmUnenroll) {
+      return;
+    }
+
+    try {
+      setIsEnrolling(true);
+      const response = await fetch(`${API_URL}/api/course/${id}/unenroll`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          accountId: user.AccountID,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message ?? 'Hủy đăng ký khóa học không thành công.');
+      }
+
+      // Update enrolledCourses locally by removing the unenrolled course
+      setEnrolledCourses((prev) => 
+        prev.filter(enrollment => 
+          !(enrollment.AccountID === user.AccountID && enrollment.CourseID === Number(id))
+        )
+      );
+
+      // Re-fetch enrolled courses to ensure consistency
+      await fetchEnrolledCourses();
+
+      toast.success('Hủy đăng ký khóa học thành công!');
+    } catch (error: unknown) {
+      console.error('Error unenrolling from course:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Đã xảy ra lỗi khi hủy đăng ký khóa học.';
+      toast.error(errorMessage);
+    } finally {
+      setIsEnrolling(false);
+    }
+  };
+
+  const isUserEnrolled = enrolledCourses.some(
+    (c) => c.AccountID === user?.AccountID && c.CourseID === Number(id)
+  );
+
+  const getButtonText = () => {
+    if (isEnrolling) {
+      return isUserEnrolled ? 'Đang xử lý...' : 'Đang đăng ký...';
+    }
+    return isUserEnrolled ? 'Tiếp tục học' : 'Tham gia khóa học';
   };
 
   if (isLoading) {
@@ -184,7 +254,7 @@ const CourseEnrollPage: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              {error || 'Không tìm thấy khóa học'}
+              {error ?? 'Không tìm thấy khóa học'}
             </h1>
             <p className="text-gray-600 mb-8">Khóa học không tồn tại hoặc có lỗi xảy ra.</p>
             <Link
@@ -230,7 +300,6 @@ const CourseEnrollPage: React.FC = () => {
           <div className="p-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">{course.CourseName}</h1>
             <p className="text-gray-600 text-lg mb-6">{course.Description}</p>
-
           </div>
         </div>
 
@@ -266,17 +335,26 @@ const CourseEnrollPage: React.FC = () => {
         <div className="max-w-4xl mx-auto bg-primary-50 rounded-lg shadow-md p-8 text-center">
           <h2 className="text-2xl font-bold text-primary-900 mb-4">Tham gia khóa học</h2>
 
-          <button
-            onClick={handleEnroll}
-            disabled={isLoading || isEnrolling}
-            className="bg-primary-600 text-white px-8 py-3 rounded-md shadow-md hover:bg-primary-700 transition-colors font-medium disabled:bg-gray-400"
-          >
-            {isEnrolling
-              ? 'Đang đăng ký...'
-              : enrolledCourses.some((c) => c.AccountID === user?.AccountID && c.CourseID === Number(id))
-                ? 'Tiếp tục học'
-                : 'Tham gia khóa học'}
-          </button>
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={handleEnroll}
+              disabled={isLoading || isEnrolling}
+              className="bg-primary-600 text-white px-8 py-3 rounded-md shadow-md hover:bg-primary-700 transition-colors font-medium disabled:bg-gray-400"
+            >
+              {getButtonText()}
+            </button>
+
+            {/* Show Unenroll button only if user is enrolled and course is not completed */}
+            {isUserEnrolled && !isCourseCompleted && (
+              <button
+                onClick={handleUnenroll}
+                disabled={isLoading || isEnrolling}
+                className="bg-red-600 text-white px-8 py-3 rounded-md shadow-md hover:bg-red-700 transition-colors font-medium disabled:bg-gray-400"
+              >
+                {isEnrolling && isUserEnrolled ? 'Đang hủy...' : 'Hủy đăng ký'}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

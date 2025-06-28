@@ -20,9 +20,8 @@ router.post("/:id/enroll", courseController.enrollCourse);
 //get all enrolled courses by user id
 router.get("/:id/enrolled/user", courseController.getEnrolledCourses);
 
-
 // unenroll from a course
-// router.post("/:id/unenroll", courseController.unenrollCourse);
+router.delete("/:id/unenroll", courseController.unenrollCourse);
 
 //complete course
 router.patch("/:id/complete", courseController.completeCourse);
