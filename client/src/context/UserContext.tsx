@@ -17,7 +17,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
-        console.log('UserContext loaded user from localStorage:', parsedUser);
         setUser(parsedUser);
       } catch (error) {
         console.error('Error parsing stored user:', error);

@@ -37,8 +37,6 @@ const LoginPage: React.FC = () => {
                 const data = await response.json();
 
                 if (response.ok) {
-                    console.log('Login successful:', data);
-
                     setUser(data.user);
                     localStorage.setItem('user', JSON.stringify(data.user));
                     localStorage.setItem('token', data.token);
@@ -153,8 +151,8 @@ const LoginPage: React.FC = () => {
                         id="email"
                         name="email"
                         className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${(formik.touched.email && formik.errors.email) || (serverError?.field === 'email')
-                                ? 'border-red-300 bg-red-50'
-                                : 'border-gray-300'
+                            ? 'border-red-300 bg-red-50'
+                            : 'border-gray-300'
                             }`}
                         placeholder="Nhập email của bạn"
                         onChange={(e) => {
@@ -179,8 +177,8 @@ const LoginPage: React.FC = () => {
                         name="password"
                         type="password"
                         className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${(formik.touched.password && formik.errors.password) || (serverError?.field === 'password')
-                                ? 'border-red-300 bg-red-50'
-                                : 'border-gray-300'
+                            ? 'border-red-300 bg-red-50'
+                            : 'border-gray-300'
                             }`}
                         placeholder="Nhập mật khẩu của bạn"
                         onChange={(e) => {
@@ -212,8 +210,8 @@ const LoginPage: React.FC = () => {
                     type="submit"
                     disabled={isLoading}
                     className={`w-full py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center ${isLoading
-                            ? 'bg-gray-400 cursor-not-allowed'
-                            : 'bg-blue-500 hover:bg-blue-600 text-white'
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-blue-500 hover:bg-blue-600 text-white'
                         }`}
                 >
                     {isLoading ? (

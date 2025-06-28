@@ -1067,7 +1067,7 @@ const DashBoardPage: React.FC = () => {
                           <div className="flex-1">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                               <div>
-                                <p className="text-sm text-gray-600">Bệnh nhân</p>
+                                <p className="text-sm text-gray-600">Tên: </p>
                                 <p className="font-semibold">{appointment.CustomerName || 'Không rõ'}</p>
                               </div>
                               <div>
@@ -1525,9 +1525,6 @@ const DashBoardPage: React.FC = () => {
                     <Calendar className="h-12 w-12 text-purple-500" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-3">Chưa có lịch hẹn nào</h3>
-                  <p className="text-gray-600 mb-8 text-lg">
-                    {isConsultant ? 'Chưa có bệnh nhân nào đặt lịch hẹn với bạn.' : 'Bạn chưa đặt lịch hẹn nào. Hãy đặt lịch tư vấn ngay!'}
-                  </p>
                   {!isConsultant && (
                     <Link
                       to="/appointments"

@@ -7,7 +7,6 @@ import {
     Calendar,
     MessageCircle,
     BarChart3,
-    Users,
     TrendingUp,
     Activity,
     Stethoscope,
@@ -41,9 +40,7 @@ const ConsultantPage: React.FC = () => {
     // State management for modals and popups
     const [showSuccessRateModal, setShowSuccessRateModal] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState<PendingAppointment | null>(null);
-    const [showQuickNote, setShowQuickNote] = useState(false);
     const [showSearchModal, setShowSearchModal] = useState(false);
-    const [quickNoteText, setQuickNoteText] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
 
     // Appointment management state
@@ -55,40 +52,21 @@ const ConsultantPage: React.FC = () => {
     const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
     const [rejectionReason, setRejectionReason] = useState('');
     const [appointmentToReject, setAppointmentToReject] = useState<number | null>(null);
+    const [compareMonthAppointments, setCompareMonthAppointments] = useState({
+        lastMonth: 0,
+        thisMonth: 0
+    });
+
 
     const statsCards = [
         {
             title: "Cuộc hẹn tháng này",
-            value: "32",
-            change: "+18%",
+            value: compareMonthAppointments.thisMonth,
+            change: (compareMonthAppointments.thisMonth / compareMonthAppointments.lastMonth) * 100 + "%",
             icon: Calendar,
             color: "bg-blue-500",
-            trend: "up"
+            trend: compareMonthAppointments.thisMonth > compareMonthAppointments.lastMonth ? "increase" : "decrease"
         },
-        {
-            title: "Khách hàng đang tư vấn",
-            value: "15",
-            change: "+12%",
-            icon: Users,
-            color: "bg-green-500",
-            trend: "up"
-        },
-        {
-            title: "Phiên tư vấn hoàn thành",
-            value: "128",
-            change: "+25%",
-            icon: MessageCircle,
-            color: "bg-purple-500",
-            trend: "up"
-        },
-        {
-            title: "Tỷ lệ thành công",
-            value: "94%",
-            change: "+5%",
-            icon: TrendingUp,
-            color: "bg-orange-500",
-            trend: "up"
-        }
     ];
 
     // Success rate data
@@ -110,8 +88,22 @@ const ConsultantPage: React.FC = () => {
     );
 
 
+    const fetchCompareMonthAppointments = useCallback(async () => {
+        try {
+            const response = await apiUtils.consultants.compareMonthAppointments(user?.AccountID || 0);
 
-    // Fetch pending appointments
+            setCompareMonthAppointments({
+                lastMonth: response.lastMonthAppointments,
+                thisMonth: response.thisMonthAppointments
+            });
+
+        } catch (error) {
+            console.error('Error fetching compare month appointments:', error);
+        }
+
+
+    }, [user?.AccountID]);
+
     const fetchPendingAppointments = useCallback(async () => {
         if (!user?.AccountID) return;
 
@@ -136,7 +128,7 @@ const ConsultantPage: React.FC = () => {
         }
     }, [user?.AccountID]);
 
-    // Fetch today's appointments
+
     const fetchTodayAppointments = useCallback(async () => {
         if (!user?.AccountID) return;
 
@@ -237,8 +229,9 @@ const ConsultantPage: React.FC = () => {
         if (user?.AccountID) {
             fetchPendingAppointments();
             fetchTodayAppointments();
+            fetchCompareMonthAppointments();
         }
-    }, [user?.AccountID, fetchPendingAppointments, fetchTodayAppointments]);
+    }, [user?.AccountID, fetchPendingAppointments, fetchTodayAppointments, fetchCompareMonthAppointments]);
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -713,59 +706,6 @@ const ConsultantPage: React.FC = () => {
                                     <p>Không tìm thấy khách hàng nào</p>
                                 </div>
                             )}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Quick Note Modal */}
-            {showQuickNote && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl p-6 max-w-md w-full">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-semibold text-gray-900">Ghi chú nhanh</h3>
-                            <button
-                                onClick={() => {
-                                    setShowQuickNote(false);
-                                    setQuickNoteText("");
-                                }}
-                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                            >
-                                <X className="h-5 w-5 text-gray-500" />
-                            </button>
-                        </div>
-                        <div className="mb-4">
-                            <textarea
-                                placeholder="Nhập ghi chú của bạn..."
-                                value={quickNoteText}
-                                onChange={(e) => setQuickNoteText(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
-                                rows={4}
-                                autoFocus
-                            />
-                        </div>
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => {
-                                    // Here you would save the note
-                                    console.log("Saving note:", quickNoteText);
-                                    setShowQuickNote(false);
-                                    setQuickNoteText("");
-                                }}
-                                className="flex-1 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
-                                disabled={!quickNoteText.trim()}
-                            >
-                                Lưu ghi chú
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setShowQuickNote(false);
-                                    setQuickNoteText("");
-                                }}
-                                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
-                            >
-                                Hủy
-                            </button>
                         </div>
                     </div>
                 </div>

@@ -132,8 +132,7 @@ export async function register(
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  const { username, password, email, fullName, dateOfBirth, roleName } = req.body;
-  console.log(req.body);
+  const { username, password, email, fullName, dateOfBirth } = req.body;
 
   try {
     const pool = await poolPromise;

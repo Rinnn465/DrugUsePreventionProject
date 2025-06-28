@@ -42,7 +42,6 @@ export async function getCourses(req: Request, res: Response): Promise<void> {
             WHERE c.IsDisabled = 0
         `);
 
-        console.log('Raw query result:', result.recordset); // Debug log
 
         // Parse the JSON categories properly
         const courses = result.recordset.map(course => {
@@ -53,7 +52,6 @@ export async function getCourses(req: Request, res: Response): Promise<void> {
                 try {
                     // Parse the JSON string
                     categories = JSON.parse(course.CategoryJSON);
-                    console.log('Parsed categories for course', course.CourseID, ':', categories);
                 } catch (parseError) {
                     console.error('Error parsing CategoryJSON for course', course.CourseID, ':', parseError);
                     categories = [];
@@ -75,7 +73,6 @@ export async function getCourses(req: Request, res: Response): Promise<void> {
             };
         });
 
-        console.log('Final processed courses:', JSON.stringify(courses, null, 2)); // Debug log
 
         res.status(200).json({
             message: 'Courses fetched successfully',
@@ -320,7 +317,6 @@ export async function completeCourse(req: Request, res: Response): Promise<void>
                 emailHtml
             );
 
-            console.log(`Course completion email sent to ${enrollment.Email} for course ${enrollment.CourseName}`);
         } catch (emailError) {
             console.error('Failed to send course completion email:', emailError);
             // Continue with the response even if email fails

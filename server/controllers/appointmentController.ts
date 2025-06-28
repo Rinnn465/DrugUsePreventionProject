@@ -34,7 +34,6 @@ export async function getAppointmentById(req: Request, res: Response, next: Next
 
 export async function getAppointmentByUserId(req: Request, res: Response, next: NextFunction): Promise<void> {
     const userId = req.params.id;
-    console.log('this is the user ID ' + userId);
 
     try {
         const pool = await poolPromise;
@@ -147,9 +146,6 @@ export async function rejectAppointment(req: Request, res: Response, next: NextF
 export async function getAppointmentsByFilter(req: Request, res: Response, next: NextFunction): Promise<void> {
     const consultantId = req.query.consultantId as string;
     const date = req.query.date as string;
-
-    console.log(`Fetching appointments for Consultant ID: ${consultantId} on Date: ${date}`);
-
     try {
         const pool = await poolPromise;
         const result = await pool.request()

@@ -118,7 +118,6 @@ export async function checkEnrollmentStatus(req: Request, res: Response): Promis
 export async function enrollInProgram(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
     const accountId = (req as any).user?.user?.AccountID;
-    console.log("Enrolling in program:", programId, "for account:", accountId);
 
     if (!accountId) {
         res.status(401).json({ message: "Authentication required" });
@@ -144,9 +143,9 @@ export async function enrollInProgram(req: Request, res: Response): Promise<void
         // Check if program status allows enrollment (only upcoming and ongoing programs)
         const program = programCheck.recordset[0];
         if (program.Status === 'completed') {
-            res.status(400).json({ 
+            res.status(400).json({
                 message: "Cannot enroll in a completed program",
-                programStatus: program.Status 
+                programStatus: program.Status
             });
             return;
         }
@@ -226,9 +225,9 @@ export async function unenrollFromProgram(req: Request, res: Response): Promise<
         // Check if program status allows unenrollment (only upcoming and ongoing programs)
         const program = programCheck.recordset[0];
         if (program.Status === 'completed') {
-            res.status(400).json({ 
+            res.status(400).json({
                 message: "Cannot unenroll from a completed program",
-                programStatus: program.Status 
+                programStatus: program.Status
             });
             return;
         }

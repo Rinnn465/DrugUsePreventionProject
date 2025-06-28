@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { poolPromise } from '../config/database';
-import { Article } from '../types/type'; 
+import { Article } from '../types/type';
 
 
 
@@ -14,7 +14,6 @@ import { Article } from '../types/type';
  */
 export const getArticles = async (req: Request, res: Response): Promise<void> => {
     try {
-        console.log("Fetching articles from database..."); // Debug log
         const pool = await poolPromise;
         // Query to get all active articles, sorted by newest first
         // Sử dụng CAST để đảm bảo lấy đầy đủ nội dung từ các trường text/ntext
@@ -34,17 +33,7 @@ export const getArticles = async (req: Request, res: Response): Promise<void> =>
             WHERE IsDisabled = 0
             ORDER BY PublishedDate DESC
         `);
-        
-        // Log để kiểm tra độ dài nội dung
-        result.recordset.forEach((article, index) => {
-            console.log(`Article ${index + 1} - ID: ${article.BlogID}`);
-            console.log(`Content length: ${article.Content ? article.Content.length : 0}`);
-            console.log(`Description length: ${article.Description ? article.Description.length : 0}`);
-            if (article.Content && article.Content.length > 100) {
-                console.log(`Content preview: ${article.Content.substring(0, 100)}...`);
-            }
-        });
-        
+
         res.status(200).json(result.recordset);
     } catch (error) {
         console.error("Error fetching articles:", error); // Error log
@@ -65,7 +54,6 @@ export const getArticles = async (req: Request, res: Response): Promise<void> =>
  */
 export const getArticleById = async (req: Request, res: Response): Promise<void> => {
     const articleId = parseInt(req.params.id);
-    console.log(req.params); // Debug log for request parameters
 
     // Validate article ID
     if (isNaN(articleId)) {
@@ -74,7 +62,6 @@ export const getArticleById = async (req: Request, res: Response): Promise<void>
     }
 
     try {
-        console.log(`Fetching article with ID: ${articleId}`); // Debug log
         const pool = await poolPromise;
         // Query single article with parameterized query for security
         // Sử dụng CAST để đảm bảo lấy đầy đủ nội dung từ các trường text/ntext
@@ -103,16 +90,6 @@ export const getArticleById = async (req: Request, res: Response): Promise<void>
         }
 
         const article = result.recordset[0];
-        
-        // Log để kiểm tra độ dài nội dung
-        console.log(`Article ID: ${article.BlogID}`);
-        console.log(`Content length: ${article.Content ? article.Content.length : 0}`);
-        console.log(`Description length: ${article.Description ? article.Description.length : 0}`);
-        if (article.Content && article.Content.length > 200) {
-            console.log(`Content preview: ${article.Content.substring(0, 200)}...`);
-        } else {
-            console.log(`Full content: ${article.Content}`);
-        }
 
         res.status(200).json(article);
     } catch (error) {

@@ -75,20 +75,12 @@ export async function getConsultantWithCategory(
             ORDER BY c.AccountID, cc.CategoryID
         `);
 
-        console.log('Raw query result:', result.recordset);
 
         // Group consultants by ID and collect their categories
         const consultantsMap = new Map();
 
         result.recordset.forEach(row => {
             const consultantId = row.AccountID;
-
-            console.log(`Processing row for consultant ${consultantId}:`, {
-                ConsultantID: row.ConsultantID,
-                Name: row.Name,
-                CategoryID: row.CategoryID,
-                CategoryName: row.CategoryName
-            });
 
             if (!consultantsMap.has(consultantId)) {
                 consultantsMap.set(consultantId, {
@@ -277,11 +269,7 @@ export async function getSchedule(req: Request, res: Response, next: NextFunctio
 
 export async function getConsultantSchedule(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { consultantId } = req.params;
-
-    console.log('getConsultantSchedule called with consultantId:', consultantId);
-
     if (!consultantId) {
-        console.log('No consultantId provided');
         res.status(400).json({ message: 'Consultant ID is required' });
         return
     }
@@ -289,35 +277,27 @@ export async function getConsultantSchedule(req: Request, res: Response, next: N
     try {
         const pool = await poolPromise;
 
-        console.log('Checking if consultantId is AccountID...');
-
-        // First, check if consultantId is actually an AccountID and get the ConsultantID
         let actualConsultantId = consultantId;
 
-        // Try to find consultant by AccountID first
         try {
             const consultantCheck = await pool.request()
                 .input('AccountID', sql.Int, consultantId)
                 .query('SELECT AccountID FROM Consultant WHERE AccountID = @AccountID');
 
-            console.log('Consultant check result:', consultantCheck.recordset);
 
             if (consultantCheck.recordset.length > 0) {
                 actualConsultantId = consultantCheck.recordset[0].AccountID;
-                console.log('Found ConsultantID from AccountID:', actualConsultantId);
             } else {
                 console.log('No consultant found with AccountID, using original ID as ConsultantID');
             }
         } catch (accountCheckError) {
             console.log('Error checking AccountID, might not have AccountID column:', accountCheckError);
-            // If AccountID column doesn't exist, just use the original ID
         }
 
         const result = await pool.request()
             .input('ConsultantID', sql.Int, actualConsultantId)
             .query('SELECT * FROM ConsultantSchedule WHERE AccountID = @ConsultantID');
 
-        console.log('Schedule query result:', result.recordset);
 
         res.status(200).json(result.recordset);
     } catch (error) {
@@ -377,12 +357,6 @@ export async function deleteConsultantSchedule(req: Request, res: Response, next
 
 export async function addConsultantSchedule(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { consultantId, date, startTime, endTime } = req.body;
-    console.log('addConsultantSchedule called with:', {
-        consultantId,
-        date,
-        startTime,
-        endTime
-    });
 
     try {
         const pool = await poolPromise;
@@ -410,12 +384,9 @@ export async function addConsultantSchedule(req: Request, res: Response, next: N
 export async function getPendingAppointments(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { consultantId } = req.params;
 
-    console.log('getPendingAppointments called with consultantId:', consultantId);
-
     try {
         const pool = await poolPromise;
 
-        console.log('Checking if consultantId is AccountID...');
 
         // First, check if consultantId is actually an AccountID and get the ConsultantID
         let actualConsultantId = consultantId;
@@ -425,11 +396,9 @@ export async function getPendingAppointments(req: Request, res: Response, next: 
             .input('AccountID', sql.Int, consultantId)
             .query('SELECT AccountID FROM Consultant WHERE AccountID = @AccountID');
 
-        console.log('Consultant check result for pending appointments:', consultantCheck.recordset);
 
         if (consultantCheck.recordset.length > 0) {
             actualConsultantId = consultantCheck.recordset[0].AccountID;
-            console.log('Found ConsultantID from AccountID:', actualConsultantId);
         } else {
             console.log('No consultant found with AccountID, using original ID as ConsultantID');
         }
@@ -448,7 +417,6 @@ export async function getPendingAppointments(req: Request, res: Response, next: 
                 ORDER BY a.Date ASC, a.Time ASC
             `);
 
-        console.log('Pending appointments query result:', result.recordset);
 
         res.status(200).json({
             message: 'Lấy danh sách cuộc hẹn chờ duyệt thành công',
@@ -497,7 +465,7 @@ export async function getTodayAppointments(req: Request, res: Response, next: Ne
 
     try {
         const pool = await poolPromise;
-        
+
         // Get today's date in YYYY-MM-DD format
         const today = new Date();
         const todayString = today.toISOString().split('T')[0];
@@ -525,7 +493,6 @@ export async function getTodayAppointments(req: Request, res: Response, next: Ne
                 ORDER BY a.Time ASC
             `);
 
-        console.log('Today appointments query result:', result.recordset);
 
         res.status(200).json({
             message: 'Lấy danh sách cuộc hẹn hôm nay thành công',
@@ -534,5 +501,44 @@ export async function getTodayAppointments(req: Request, res: Response, next: Ne
     } catch (error) {
         console.error('Error fetching today appointments:', error);
         res.status(500).json({ message: 'Lỗi server khi lấy danh sách cuộc hẹn hôm nay' });
+    }
+}
+
+export async function compareAppointments(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { consultantId } = req.params;
+
+    if (!consultantId) {
+        res.status(400).json({ message: 'Consultant ID is required' });
+        return;
+    }
+
+    try {
+        const pool = await poolPromise;
+
+        // Query for appointments in the last month
+        const lastMonthAppointments = await pool.request()
+            .query(`
+                SELECT 
+                    COUNT(*) AS appointment_count,
+                CASE 
+                    WHEN DATEADD(MONTH, DATEDIFF(MONTH, 0, Date), 0) = DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0) THEN 'This Month'
+                    WHEN DATEADD(MONTH, DATEDIFF(MONTH, 0, Date), 0) = DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()) - 1, 0) THEN 'Last Month'
+                END AS month_period
+                FROM Appointment
+                WHERE Date >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()) - 1, 0)
+                    AND Date < DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()) + 1, 0)
+                GROUP BY DATEADD(MONTH, DATEDIFF(MONTH, 0, Date), 0)
+                ORDER BY month_period DESC
+            `);
+        res.status(200).json({
+            message: 'So sánh cuộc hẹn thành công',
+            data: {
+                lastMonthAppointments: lastMonthAppointments.recordset.filter(row => row.month_period === 'Last Month')[0]?.appointment_count || 0,
+                thisMonthAppointments: lastMonthAppointments.recordset.filter(row => row.month_period === 'This Month')[0]?.appointment_count || 0
+            }
+        });
+    } catch (error) {
+        console.error('Error comparing appointments:', error);
+        res.status(500).json({ message: 'Lỗi server khi so sánh cuộc hẹn' });
     }
 }

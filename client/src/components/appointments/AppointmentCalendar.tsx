@@ -41,31 +41,16 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
             console.warn('Invalid schedule date:', sched.Date);
             return null;
           }
-          console.log('Parsed schedule date:', sched.Date, '->', date.toISOString());
           return date;
         })
         .filter((date): date is Date => date !== null);
       if (dates.length > 0) {
         const earliestDate = new Date(Math.min(...dates.map((date) => date.getTime())));
-        console.log('Earliest date:', earliestDate.toISOString());
         // Use UTC to avoid timezone shifts
         setCurrentDate(new Date(Date.UTC(earliestDate.getUTCFullYear(), earliestDate.getUTCMonth(), 1)));
       }
     }
   }, [schedule]);
-
-  // useEffect(() => {
-  //   if (selectedDate) {
-  //     const newCurrentDate = new Date(Date.UTC(selectedDate.getUTCFullYear(), selectedDate.getUTCMonth(), 1));
-  //     if (newCurrentDate.getTime() !== currentDate.getTime()) {
-  //       console.log('Updating currentDate:', newCurrentDate.toISOString());
-  //       setCurrentDate(newCurrentDate);
-  //     }
-  //   }
-  // }, [selectedDate, currentDate]);
-
-  // Fetch booked appointments for the consultant
-
 
   useEffect(() => {
     if (selectedDate) {
@@ -74,7 +59,6 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
       fetch(`http://localhost:5000/api/appointment/filter?consultantId=${consultantId}&date=${dateStr}`)
         .then(response => response.json())
         .then(data => {
-          console.log('Fetched booked appointments:', data);
           setBookedAppointments(data.data || []);
         })
         .catch(error => console.error('Error fetching appointments:', error));
@@ -123,14 +107,11 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
       return [];
     }
     const dateStr = selectedDate.toISOString().split('T')[0];
-    console.log('Getting slots for date:', dateStr);
-    console.log('Current booked appointments:', bookedAppointments);
 
     // Filter schedules for the selected date
     const relevantSchedules = schedule.Schedule.filter(
       (sched) => sched.Date.split('T')[0] === dateStr
     );
-    console.log('Relevant schedules:', relevantSchedules);
 
     const availableSlots = timeSlots.filter((slot) => {
       const [slotStartHour, slotStartMinute] = slot.start.split(':').map(Number);
@@ -172,13 +153,6 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
           const schedStartMinutes = schedStartHour * 60 + schedStartMinute;
           const schedEndMinutes = schedEndHour * 60 + schedEndMinute;
 
-          console.log('Comparing slot:', {
-            slot: `${slot.start}-${slot.end}`,
-            slotMinutes: `${slotStartMinutes}-${slotEndMinutes}`,
-            schedule: `${startTimeStr}-${endTimeStr}`,
-            scheduleMinutes: `${schedStartMinutes}-${schedEndMinutes}`,
-          });
-
           // Check if the slot is within the schedule
           return slotStartMinutes >= schedStartMinutes && slotEndMinutes <= schedEndMinutes;
         } catch (error) {
@@ -198,19 +172,9 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
         const appointmentTimeISO = new Date(appt.Time);
         const appointmentTime = `${appointmentTimeISO.getUTCHours().toString().padStart(2, '0')}:${appointmentTimeISO.getUTCMinutes().toString().padStart(2, '0')}`;
 
-        console.log('Checking booking status:', {
-          slotDate: dateStr,
-          slotTime: slot.start,
-          appointmentDate,
-          appointmentTimeRaw: appt.Time,
-          appointmentTimeParsed: appointmentTime,
-          isMatch: appointmentDate === dateStr && appointmentTime === slot.start
-        });
-
         return appointmentDate === dateStr && appointmentTime === slot.start;
       });
 
-      console.log(`Slot ${slot.start} is ${isBooked ? 'BOOKED' : 'AVAILABLE'}`);
 
       return {
         ...slot,
@@ -218,7 +182,6 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
       };
     });
 
-    console.log('Final slots with booking status:', slotsWithBookingStatus);
     return slotsWithBookingStatus;
   };
 
@@ -244,19 +207,16 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
 
   const handlePrevMonth = () => {
     const newCurrentDate = new Date(Date.UTC(year, month - 1, 1));
-    console.log('Navigating to previous month:', newCurrentDate.toISOString());
     setCurrentDate(newCurrentDate);
   };
 
   const handleNextMonth = () => {
     const newCurrentDate = new Date(Date.UTC(year, month + 1, 1));
-    console.log('Navigating to next month:', newCurrentDate.toISOString());
     setCurrentDate(newCurrentDate);
   };
 
   const handleDateClick = (day: number) => {
     const selectedDate = new Date(Date.UTC(year, month, day));
-    console.log('Date clicked:', selectedDate.toISOString());
     if (isDateAvailable(year, month, day)) {
       setSelectedDate(selectedDate);
       setBookingStep('time');
@@ -308,11 +268,6 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
       }),
     })
       .then(response => response.json())
-      .then(data => {
-        if (data.message) {
-          console.log('Server response:', data.message);
-        }
-      })
       .catch(error => {
         console.error('Error:', error);
         toast.error('❌ Có lỗi xảy ra khi đặt lịch!');
@@ -380,7 +335,6 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
     );
   }
   const availableTimeSlots = getAvailableTimeSlots(selectedDate || new Date());
-  console.log('Rendering calendar with currentDate:', currentDate.toISOString(), 'month:', monthNames[month], 'year:', year);
 
   return (
     <div className="bg-gradient-to-br from-sky-50 via-white to-blue-50 rounded-2xl p-6 border-2 border-sky-100 shadow-2xl animate-fade-in">

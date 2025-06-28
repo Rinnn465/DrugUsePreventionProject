@@ -14,7 +14,6 @@ export const updateProgramStatus = () => {
                 END
                 WHERE IsDisabled = 0
             `);
-            console.log('Program statuses updated');
         } catch (err) {
             console.error('Error updating program statuses:', err);
         }

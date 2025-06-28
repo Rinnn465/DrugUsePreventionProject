@@ -174,6 +174,9 @@ const consultants = {
     getSpecialties: () => get<any[]>('/consultant/specialties'),
 
     getSchedule: (consultantId: number) => get<any[]>(`/consultant/schedule/${consultantId}`),
+
+    compareMonthAppointments: (consultantId: number) => get<any>(`/consultant/compare-appointments/${consultantId}`),
+
 };
 
 // Appointment APIs
