@@ -613,6 +613,16 @@ const DashBoardPage: React.FC = () => {
       });
     }
   };
+  const handleCancelAppointment = async (appointmentId: number) => {
+    try {
+      await apiUtils.appointments.cancel(appointmentId);
+      fetchAllAppointments();
+      toast.success('Đã hủy cuộc hẹn thành công!');
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+      toast.error('Có lỗi xảy ra khi hủy cuộc hẹn');
+    }
+  }
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -630,7 +640,7 @@ const DashBoardPage: React.FC = () => {
           <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-3xl font-bold text-gray-900">
-                Dashboard {isConsultant && <span className="text-indigo-600">- Chuyên Gia Tư Vấn</span>}
+                Hồ sơ {isConsultant && <span className="text-indigo-600">- Chuyên Gia Tư Vấn</span>}
               </h1>
               <div className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl border border-indigo-100">
                 <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse"></div>
@@ -1483,12 +1493,23 @@ const DashBoardPage: React.FC = () => {
                               {appointment.Status === 'pending' && <Clock className="h-4 w-4 mr-2" />}
                               {appointment.Status === 'cancelled' && <XCircle className="h-4 w-4 mr-2" />}
                               {appointment.Status === 'confirmed' ? 'Đã xác nhận' :
-                                appointment.Status === 'pending' ? 'Chờ duyệt' : 'Đã hủy'}
+                                appointment.Status === 'pending' ? 'Chờ duyệt' : 'Đã bị hủy'}
                             </span>
                           </div>
                         </div>
 
                         <div className="flex space-x-3">
+                          {(appointment.Status === 'pending' ||
+                            appointment.Status === 'confirmed')
+                            && (
+                              <button
+                                onClick={() => handleCancelAppointment(appointment.AppointmentID)}
+                                className="flex items-center space-x-2 px-6 py-3 bg-red-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+                              >
+                                <Calendar className="h-4 w-4" />
+                                <span>Hủy hẹn</span>
+                              </button>
+                            )}
                           <button
                             onClick={() => handleAppointmentDetail(appointment)}
                             className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
@@ -1496,6 +1517,7 @@ const DashBoardPage: React.FC = () => {
                             <Calendar className="h-4 w-4" />
                             <span>Chi tiết</span>
                           </button>
+
                           {appointment.Status === 'confirmed' && appointment.MeetingURL && (
                             <a
                               href={appointment.MeetingURL}
@@ -1512,7 +1534,7 @@ const DashBoardPage: React.FC = () => {
 
                       {appointment.Description && (
                         <div className="bg-white rounded-xl p-4 border border-gray-100">
-                          <p className="text-sm font-medium text-gray-600 mb-2">Mô tả:</p>
+                          <p className="text-sm font-medium text-gray-600 mb-2">Lưu ý cho chuyên viên:</p>
                           <p className="text-gray-800 leading-relaxed">{appointment.Description}</p>
                         </div>
                       )}

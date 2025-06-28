@@ -206,7 +206,7 @@ const appointments = {
     reject: (appointmentId: number, rejectionReason: string) =>
         put<{ message: string }>(`/appointment/${appointmentId}/reject`, { rejectionReason }),
 
-    cancel: (appointmentId: number) => deleteRequest<{ message: string }>(`/appointment/${appointmentId}`),
+    cancel: (appointmentId: number) => deleteRequest<{ message: string }>(`/appointment/${appointmentId}/cancel`),
 };
 
 // Article APIs

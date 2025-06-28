@@ -14,7 +14,8 @@ import {
     Search,
     X,
     Eye,
-    User
+    User,
+    TrendingDown
 } from "lucide-react";
 
 // Interfaces for appointment management
@@ -280,9 +281,19 @@ const ConsultantPage: React.FC = () => {
                                         </p>
                                         <p className="text-2xl font-bold text-gray-900 mb-2">{card.value}</p>
                                         <div className="flex items-center">
-                                            <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                                            <span className="text-sm text-green-600 font-medium">{card.change}</span>
-                                            <span className="text-sm text-gray-500 ml-1">từ tháng trước</span>
+                                            {card.trend === "increase" ? (
+                                                <>
+                                                    <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                                                    <span className="text-sm text-green-600 font-medium">{card.change}</span>
+                                                    <span className="text-sm text-gray-500 ml-1">so với tháng trước</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
+                                                    <span className="text-sm text-red-600 font-medium">{card.change}</span>
+                                                    <span className="text-sm text-gray-500 ml-1">so với tháng trước</span>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                     <div className={`p-3 rounded-xl ${card.color}`}>

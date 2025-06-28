@@ -120,7 +120,7 @@ const Header: React.FC<HeaderProps> = () => {
                   <div className="flex flex-col gap-2">
                     <Link to={`/dashboard/${user?.AccountID}`} className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
                       <User className="h-5 w-5" />
-                      <span>Dashboard</span>
+                      <span>Hồ sơ</span>
                     </Link>
                     {user.RoleName === 'Admin' && (
                       <Link to="/admin" className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">

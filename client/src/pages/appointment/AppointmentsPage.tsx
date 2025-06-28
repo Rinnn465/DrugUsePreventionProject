@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Users, Search, Calendar as CalendarIcon, User, Filter } from 'lucide-react';
+import { Users, Search, Calendar as CalendarIcon, Filter } from 'lucide-react';
 import CounselorCard from '../../components/counselors/CounselorCard';
 import AppointmentCalendar from '../../components/appointments/AppointmentCalendar';
 import { Link, useLocation } from 'react-router-dom';
 import { ConsultantWithSchedule, Qualification, Specialty } from '../../types/Consultant';
+import { useUser } from '@/context/UserContext';
 
 const AppointmentsPage: React.FC = () => {
   const location = useLocation();
   const state = location.state as { counselorId?: number };
+  const { user } = useUser();
 
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -146,7 +148,7 @@ const AppointmentsPage: React.FC = () => {
     const matchesSearch = consultant.Name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSpecialty = selectedSpecialties.length === 0 ||
       selectedSpecialties.some(specialty => consultant.Specialties.some(s => s.Name === specialty));
-    return matchesSearch && matchesSpecialty;
+    return matchesSearch && matchesSpecialty && user?.AccountID !== consultant.ConsultantID;
   });
 
   const selectedConsultant = filteredConsunltants.find(c => c.ConsultantID === selectedCounselor);

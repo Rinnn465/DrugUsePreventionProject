@@ -142,6 +142,31 @@ export async function rejectAppointment(req: Request, res: Response, next: NextF
     }
 }
 
+export async function cancelAppointment(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { appointmentId } = req.params;
+
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('AppointmentID', sql.Int, appointmentId)
+            .query(`
+                DELETE
+                FROM Appointment 
+                WHERE AppointmentID = @AppointmentID
+            `);
+
+        if (result.rowsAffected[0] === 0) {
+            res.status(404).json({ message: 'Không tìm thấy cuộc hẹn để hủy' });
+            return;
+        }
+
+        res.status(200).json({ message: 'Hủy cuộc hẹn thành công' });
+    } catch (error) {
+        console.error('Error cancelling appointment:', error);
+        res.status(500).json({ message: 'Lỗi server khi hủy cuộc hẹn' });
+    }
+}
+
 
 export async function getAppointmentsByFilter(req: Request, res: Response, next: NextFunction): Promise<void> {
     const consultantId = req.query.consultantId as string;

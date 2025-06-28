@@ -148,7 +148,7 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
                 <h5 className="font-medium text-gray-800">Trạng thái</h5>
               </div>
               <span className={`inline-flex px-2 py-1 text-sm font-medium rounded-full ${getStatusColor(appointment.Status)}`}>
-                {getStatusText(appointment.Status)}
+                {getStatusText(appointment.Status) === 'rejected' ? 'Đã từ chối' : getStatusText(appointment.Status)}
               </span>
             </div>
           </div>

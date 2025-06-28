@@ -13,6 +13,8 @@ router.put('/:appointmentId/approve', appointmentController.approveAppointment);
 
 router.put('/:appointmentId/reject', appointmentController.rejectAppointment);
 
+router.delete('/:appointmentId/cancel', appointmentController.cancelAppointment);
+
 router.get('/:id', appointmentController.getAppointmentById);
 
 router.post('/', appointmentController.bookAppointment);
