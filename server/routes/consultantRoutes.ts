@@ -1,6 +1,6 @@
 import express, { Router } from 'express';
 import dotenv from 'dotenv';
-import { getConsultants, getConsultantWithCategory, getConsultantById, getQualifications, getSpecialties, updateConsultantSchedule, deleteConsultantSchedule, getPendingAppointments, addConsultantSchedule, getConsultantSchedule } from '../controllers/consultantController';
+import { getConsultants, getConsultantWithCategory, getConsultantById, getQualifications, getSpecialties, updateConsultantSchedule, deleteConsultantSchedule, getPendingAppointments, addConsultantSchedule, getConsultantSchedule, getTodayAppointments } from '../controllers/consultantController';
 
 dotenv.config();
 
@@ -26,6 +26,9 @@ router.delete('/schedules/:scheduleId', deleteConsultantSchedule);
 
 // Pending appointments - must be before /:id route
 router.get('/pending-appointments/:consultantId', getPendingAppointments);
+
+// Today's appointments - must be before /:id route
+router.get('/today-appointments/:consultantId', getTodayAppointments);
 
 // Get consultant by ID - must be LAST as it's most general
 router.get('/:id', getConsultantById);

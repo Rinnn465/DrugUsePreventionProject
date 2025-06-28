@@ -144,7 +144,7 @@ const AppointmentsPage: React.FC = () => {
 
   const filteredConsunltants = mergedConsultants.filter(consultant => {
     const matchesSearch = consultant.Name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSpecialty = selectedSpecialties.length === 0 || 
+    const matchesSpecialty = selectedSpecialties.length === 0 ||
       selectedSpecialties.some(specialty => consultant.Specialties.some(s => s.Name === specialty));
     return matchesSearch && matchesSpecialty;
   });
@@ -181,14 +181,14 @@ const AppointmentsPage: React.FC = () => {
       <div className="container mx-auto px-4 py-12">
         {/* 3 Column Layout */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 max-w-7xl mx-auto">
-          
+
           {/* Left Column - Counselor List */}
           <div className="xl:col-span-3 order-2 xl:order-1">
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden border-2 border-primary-100 animate-fade-in">
               <div className="p-4 bg-gradient-to-r from-primary-50 to-blue-50 border-b border-primary-100">
                 <h3 className="text-lg font-bold text-primary-700 flex items-center gap-2">
                   <Users className="h-5 w-5" />
-                  Danh Sách Bác Sĩ
+                  Danh Sách chuyên viên
                 </h3>
               </div>
               <div className="max-h-[600px] overflow-y-auto">
@@ -219,7 +219,7 @@ const AppointmentsPage: React.FC = () => {
               <div className="bg-white rounded-2xl shadow-xl p-6 border-2 border-primary-100 animate-fade-in">
                 <div className="mb-6">
                   <h2 className="text-xl font-bold mb-4 text-primary-700 flex items-center gap-2">
-                    <CalendarIcon className="h-6 w-6 text-primary-400" /> 
+                    <CalendarIcon className="h-6 w-6 text-primary-400" />
                     Đặt lịch với
                     <Link
                       className="text-primary-500 underline hover:text-primary-700 ml-2"
@@ -252,14 +252,14 @@ const AppointmentsPage: React.FC = () => {
           <div className="xl:col-span-3 order-3">
             <div className="bg-gradient-to-br from-primary-50 via-white to-blue-50 rounded-2xl shadow-2xl p-6 border-2 border-primary-100 animate-fade-in">
               <h2 className="text-xl font-bold mb-6 text-primary-700 flex items-center gap-2">
-                <Filter className="h-6 w-6 text-primary-400" /> 
+                <Filter className="h-6 w-6 text-primary-400" />
                 Tìm Kiếm & Lọc
               </h2>
-              
+
               {/* Search Input */}
               <div className="mb-6">
                 <label className="block text-sm font-semibold text-primary-700 mb-2">
-                  Tìm kiếm bác sĩ
+                  Tìm kiếm chuyên viên
                 </label>
                 <div className="relative">
                   <Search className="absolute left-3 top-3 text-primary-300 h-5 w-5" />
@@ -304,7 +304,7 @@ const AppointmentsPage: React.FC = () => {
               {/* Filter Summary */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="text-sm text-blue-700">
-                  <strong>Kết quả:</strong> {filteredConsunltants.length} / {mergedConsultants.length} bác sĩ
+                  <strong>Kết quả:</strong> {filteredConsunltants.length} / {mergedConsultants.length} chuyên viên
                 </div>
                 {(searchTerm || selectedSpecialties.length > 0) && (
                   <button

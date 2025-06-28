@@ -134,8 +134,6 @@ export async function getConsultantWithCategory(
     }
 }
 
-// ...existing code...
-
 /**
  * Retrieves a specific consultant by their ID
  *
@@ -486,5 +484,55 @@ export async function getConsulantCategory(req: Request, res: Response, next: Ne
     } catch (error) {
         console.error('Error fetching consultant category:', error);
         res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+export async function getTodayAppointments(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { consultantId } = req.params;
+
+    if (!consultantId) {
+        res.status(400).json({ message: 'Consultant ID is required' });
+        return;
+    }
+
+    try {
+        const pool = await poolPromise;
+        
+        // Get today's date in YYYY-MM-DD format
+        const today = new Date();
+        const todayString = today.toISOString().split('T')[0];
+
+        const result = await pool.request()
+            .input('ConsultantID', sql.Int, consultantId)
+            .input('TodayDate', sql.Date, todayString)
+            .query(`
+                SELECT 
+                    a.AppointmentID,
+                    a.ConsultantID,
+                    a.AccountID,
+                    a.Time,
+                    a.Date,
+                    a.Status,
+                    a.Description,
+                    a.Duration,
+                    acc.FullName as CustomerName,
+                    acc.Email as CustomerEmail
+                FROM Appointment a
+                LEFT JOIN Account acc ON a.AccountID = acc.AccountID
+                WHERE a.ConsultantID = @ConsultantID 
+                    AND CAST(a.Date AS DATE) = CAST(@TodayDate AS DATE)
+                    AND a.Status IN ('confirmed', 'pending')
+                ORDER BY a.Time ASC
+            `);
+
+        console.log('Today appointments query result:', result.recordset);
+
+        res.status(200).json({
+            message: 'Lấy danh sách cuộc hẹn hôm nay thành công',
+            data: result.recordset
+        });
+    } catch (error) {
+        console.error('Error fetching today appointments:', error);
+        res.status(500).json({ message: 'Lỗi server khi lấy danh sách cuộc hẹn hôm nay' });
     }
 }

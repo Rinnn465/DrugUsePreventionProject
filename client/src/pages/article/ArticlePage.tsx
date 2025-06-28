@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Newspaper, TrendingUp, Users, BookOpen, Filter, X } from 'lucide-react';
+import { Newspaper, Filter, X } from 'lucide-react';
 import BlogPostCard from '../../components/blog/BlogPostCard';
 import { Article } from '../../types/Article';
 
 // Thêm hàm gọi API chuẩn RESTful
-const API_URL = 'http://localhost:5000/api/articles';
+const API_URL = 'http://localhost:5000/api/article';
 
 const fetchArticles = async (): Promise<Article[]> => {
   const res = await fetch(API_URL);
@@ -15,7 +15,7 @@ const fetchArticles = async (): Promise<Article[]> => {
 const ArticlePage: React.FC = () => {
   const [blogPosts, setBlogPosts] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Filter states
   const [selectedDateRange, setSelectedDateRange] = useState<string>('all');
 
@@ -39,7 +39,7 @@ const ArticlePage: React.FC = () => {
         const postDate = new Date(post.PublishedDate);
         const now = new Date();
         const daysDiff = Math.floor((now.getTime() - postDate.getTime()) / (1000 * 60 * 60 * 24));
-        
+
         switch (selectedDateRange) {
           case 'week':
             if (daysDiff > 7) return false;
@@ -53,9 +53,9 @@ const ArticlePage: React.FC = () => {
         }
       }
 
-       return true;
-     }) || [];
-    }, [blogPosts, selectedDateRange]);
+      return true;
+    }) || [];
+  }, [blogPosts, selectedDateRange]);
 
   const clearFilters = () => {
     setSelectedDateRange('all');
@@ -73,7 +73,7 @@ const ArticlePage: React.FC = () => {
           <div className="absolute top-40 right-24 w-36 h-36 bg-white/5 rounded-full blur-2xl"></div>
           <div className="absolute bottom-20 left-1/4 w-28 h-28 bg-white/10 rounded-full blur-xl"></div>
         </div>
-        
+
         <div className="relative container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto text-center text-white">
             <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight flex items-center justify-center gap-3 text-white">
@@ -106,7 +106,7 @@ const ArticlePage: React.FC = () => {
                 </button>
               )}
             </div>
-            
+
             <div className="grid grid-cols-1 gap-6">
               {/* Date Range Filter */}
               <div>
@@ -181,7 +181,7 @@ const ArticlePage: React.FC = () => {
                   <p className="text-gray-600 mb-6">
                     Hãy thử điều chỉnh bộ lọc để tìm thấy bài viết phù hợp với bạn
                   </p>
-                  <button 
+                  <button
                     onClick={clearFilters}
                     className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors font-medium"
                   >

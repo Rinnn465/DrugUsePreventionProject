@@ -72,10 +72,10 @@ export const sendEmail = async (to: string, subject: string, html: string) => {
         return info;
     } catch (error) {
         console.error("Error sending email:", error);
-        
+
         // Provide more specific error information
         if (error instanceof Error) {
-            if (error.message.includes('self signed certificate') || 
+            if (error.message.includes('self signed certificate') ||
                 error.message.includes('certificate chain')) {
                 console.error("SSL Certificate Error - TLS settings have been configured to ignore self-signed certificates");
             }
@@ -86,7 +86,7 @@ export const sendEmail = async (to: string, subject: string, html: string) => {
                 console.error("Timeout Error - Check network connection and SMTP server availability");
             }
         }
-        
+
         throw error; // Re-throw to handle in calling function
     }
 };
