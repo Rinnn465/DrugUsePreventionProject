@@ -10,10 +10,10 @@ export interface Assessment {
 }
 
 export interface AssessmentQuestion {
-  id: number;
+  id: string;
   text: string;
+  type?: 'checkbox' | 'radio';
   options: AssessmentOption[];
-  type?: string
 }
 
 export interface AssessmentOption {

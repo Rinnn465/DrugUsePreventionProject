@@ -5,6 +5,11 @@ import * as Yup from 'yup';
 
 import { assessmentData } from '../../data/assessmentData';
 import { SqlCourse } from '../../types/Course';
+import { Assessment, AssessmentQuestion } from '../../types/Assessment';
+
+interface FormValues {
+    [key: string]: string | string[];
+}
 
 interface GroupedConsultant {
     AccountID: number;
@@ -27,8 +32,8 @@ interface NavigationButtonsProps {
 }
 
 interface NavigationButtonsPropsWithAssessment extends NavigationButtonsProps {
-    assessment: any;
-    formikProps: FormikProps<{ [key: string]: string | string[] }>;
+    assessment: Assessment;
+    formikProps: FormikProps<FormValues>;
 }
 
 const NavigationButtons: React.FC<NavigationButtonsPropsWithAssessment> = ({
@@ -119,20 +124,155 @@ const NavigationButtons: React.FC<NavigationButtonsPropsWithAssessment> = ({
 
 const AssessmentDetailPage: React.FC = () => {
     const { assessmentId } = useParams<{ assessmentId: string }>();
-
     const assessment = assessmentData[Number(assessmentId) - 1];
     const [result, setResult] = useState<number | null>(-1);
     const [risk, setRisk] = useState<string>('thấp');
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
+    const [hasViewedResult, setHasViewedResult] = useState<boolean>(false);
     const [courses, setCourses] = useState<SqlCourse[]>([]);
     const [consultants, setConsultants] = useState<GroupedConsultant[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
-    const [hasViewedResult, setHasViewedResult] = useState<boolean>(false);
 
     // Smooth scroll to top when changing questions
     const handleQuestionChange = (newIndex: number) => {
         setCurrentQuestionIndex(newIndex);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // Initialize form values with string IDs
+    const initialValues: FormValues = assessment.questions.reduce((acc, q) => {
+        acc[q.id] = q.type === 'checkbox' ? [] : '';
+        return acc;
+    }, {} as FormValues);
+
+    const validationSchema = Yup.object(
+        assessment.questions.reduce((acc, q) => {
+            acc[q.id] = q.type === 'checkbox'
+                ? Yup.array().min(1, 'Chọn ít nhất một lựa chọn')
+                : Yup.string().required('Không được để trống');
+            return acc;
+        }, {} as { [key: string]: Yup.Schema<any> })
+    );
+
+    const calculateScore = (formValues: FormValues) => {
+        let total = 0;
+        console.log('=== CALCULATING SCORE ===');
+        console.log('Form values:', formValues);
+
+        // ASSIST Assessment (ID: 1)
+        if (assessment.id === 1) {
+            for (const question of assessment.questions) {
+                const answer = formValues[question.id];
+                if (typeof answer === 'string') {
+                    const score = Number(answer);
+                    console.log(`ASSIST Q${question.id}:`, score);
+                    total += score;
+                }
+            }
+
+            if (total > 26) {
+                setRisk('cao');
+            } else if (total >= 4) {
+                setRisk('trung bình');
+            } else {
+                setRisk('thấp');
+            }
+            
+            return total;
+        }
+
+        // CRAFFT Assessment (ID: 2)
+        if (assessment.id === 2) {
+            let craftScore = 0;
+            
+            for (const question of assessment.questions) {
+                const answer = formValues[question.id];
+                if (typeof answer === 'string') {
+                    const score = Number(answer);
+                    console.log(`CRAFFT Q${question.id}:`, score);
+                    craftScore += score;
+                }
+            }
+
+            if (craftScore >= 4) {
+                setRisk('cao');
+            } else if (craftScore >= 2) {
+                setRisk('trung bình');
+            } else {
+                setRisk('thấp');
+            }
+            
+            return craftScore;
+        }
+
+        // Parent Assessment (ID: 3)
+        if (assessment.id === 3) {
+            let parentScore = 0;
+            const maxScores: { [key: string]: number } = {
+                'q1': 2,  // Kiến thức về ma túy
+                'q2': 3,  // Trao đổi với con
+                'q3': 2,  // Phản ứng với thay đổi hành vi
+                'q4': 2,  // Nhận biết dấu hiệu
+                'q5': 2,  // Giám sát hoạt động
+                'q6': 2,  // Biết nguồn hỗ trợ
+                'q7': 2,  // Hợp tác cộng đồng
+                'q8': 2   // Môi trường gia đình
+            };
+
+            for (const question of assessment.questions) {
+                const answer = formValues[question.id];
+                if (typeof answer === 'string') {
+                    const score = Number(answer);
+                    const maxScore = maxScores[question.id];
+                    const percentageScore = (score / maxScore) * 100;
+                    parentScore += percentageScore;
+                    console.log(`Parent Q${question.id} (${score}/${maxScore}):`, percentageScore);
+                }
+            }
+
+            parentScore = parentScore / assessment.questions.length;
+
+            if (parentScore < 50) {
+                setRisk('cần hỗ trợ tích cực');
+            } else if (parentScore < 75) {
+                setRisk('cần tăng cường');
+            } else {
+                setRisk('hiệu quả tốt');
+            }
+            
+            return Math.round(parentScore);
+        }
+
+        // School Environment Assessment (ID: 4)
+        if (assessment.id === 4) {
+            let schoolScore = 0;
+            let totalQuestions = 0;
+            
+            for (const question of assessment.questions) {
+                const answer = formValues[question.id];
+                if (typeof answer === 'string') {
+                    const score = Number(answer);
+                    const reversedScore = 3 - score;
+                    schoolScore += reversedScore;
+                    totalQuestions++;
+                    console.log(`School Q${question.id} (reversed):`, reversedScore);
+                }
+            }
+
+            const effectivenessScore = (schoolScore / (totalQuestions * 3)) * 100;
+
+            if (effectivenessScore < 60) {
+                setRisk('cần tăng cường đáng kể');
+            } else if (effectivenessScore < 80) {
+                setRisk('cần cải thiện');
+            } else {
+                setRisk('triển khai tốt');
+            }
+            
+            return Math.round(effectivenessScore);
+        }
+
+        return total;
     };
 
     useEffect(() => {
@@ -145,8 +285,6 @@ const AssessmentDetailPage: React.FC = () => {
             setHasViewedResult(true);
         }
     }, [risk, result, assessmentId]);
-
-
 
     useEffect(() => {
         const fetchData = async () => {
@@ -310,46 +448,6 @@ const AssessmentDetailPage: React.FC = () => {
         }
     }, [result]);
 
-    const initialValues = assessment.questions.reduce((acc, q) => {
-        acc[q.id] = q.type === 'checkbox' ? [] : '';
-        return acc;
-    }, {} as { [key: string]: string | string[] });
-
-    const validationSchema = Yup.object(
-        assessment.questions.reduce((acc, q) => {
-            acc[q.id] = q.type === 'checkbox'
-                ? Yup.array().min(1, 'Chọn ít nhất một lựa chọn')
-                : Yup.string().required('Không được để trống');
-            return acc;
-        }, {} as { [key: string]: Yup.Schema<any> })
-    );
-
-    const calculateScore = (formValues: { [key: string]: string | string[] }) => {
-        let total = 0;
-        console.log('=== CALCULATING SCORE ===');
-        console.log('Form values:', formValues);
-
-        for (const question of assessment.questions) {
-            const answer = formValues[question.id];
-            console.log(`Question ${question.id}:`, answer);
-
-            if (question.type === 'checkbox' && Array.isArray(answer)) {
-                const score = answer.reduce((sum, val) => sum + Number(val), 0);
-                console.log(`Checkbox score for Q${question.id}:`, score);
-                total += score;
-            }
-
-            if (question.type !== 'checkbox' && typeof answer === 'string') {
-                const score = Number(answer);
-                console.log(`Radio score for Q${question.id}:`, score);
-                total += score;
-            }
-        }
-
-        console.log('Total score:', total);
-        return total += 1 ;
-    };
-
     const handleSubmit = (values: typeof initialValues) => {
         console.log('=== FORM SUBMISSION ===');
         console.log('Form values:', values);
@@ -371,7 +469,6 @@ const AssessmentDetailPage: React.FC = () => {
                     hasErrors = true;
                 }
             } else {
-                // Fixed: Check for both string and number values, including 0
                 isAnswered = answer !== undefined && answer !== null && answer !== '';
                 if (!isAnswered) {
                     errors[question.id] = 'Không được để trống';
@@ -383,7 +480,6 @@ const AssessmentDetailPage: React.FC = () => {
         
         if (hasErrors) {
             console.log('Validation errors found:', errors);
-            // Find first unanswered question and navigate to it
             const firstErrorQuestion = assessment.questions.findIndex(q => errors[q.id]);
             if (firstErrorQuestion !== -1) {
                 setCurrentQuestionIndex(firstErrorQuestion);
@@ -394,17 +490,36 @@ const AssessmentDetailPage: React.FC = () => {
         
         const total = calculateScore(values);
 
-        // Store result in localStorage
+        // Store result in localStorage with appropriate risk level based on assessment type
+        let riskLevel = '';
+        
+        switch (assessment.id) {
+            case 1: // ASSIST
+                riskLevel = total > 26 ? 'cao' : total >= 4 ? 'trung bình' : 'thấp';
+                break;
+            case 2: // CRAFFT
+                riskLevel = total >= 4 ? 'cao' : total >= 2 ? 'trung bình' : 'thấp';
+                break;
+            case 3: // Parent Assessment
+                riskLevel = total < 50 ? 'cần hỗ trợ tích cực' : total < 75 ? 'cần tăng cường' : 'hiệu quả tốt';
+                break;
+            case 4: // School Assessment
+                riskLevel = total < 60 ? 'cần tăng cường đáng kể' : total < 80 ? 'cần cải thiện' : 'triển khai tốt';
+                break;
+            default:
+                riskLevel = 'không xác định';
+        }
+
         const resultData = {
             total,
-            risk: total > 8 ? 'cao' : total > 4 ? 'trung bình' : 'thấp',
+            risk: riskLevel,
             timestamp: new Date().toISOString()
         };
         localStorage.setItem(`assessmentResult_${assessmentId}`, JSON.stringify(resultData));
 
         // Set state and mark as having viewed result
         setResult(total);
-        setRisk(resultData.risk);
+        setRisk(riskLevel);
         setHasViewedResult(true);
     };
 
@@ -473,7 +588,7 @@ const AssessmentDetailPage: React.FC = () => {
                         return errors; // Return empty errors to prevent automatic validation
                     }}
                 >
-                    {(formikProps: FormikProps<{ [key: string]: string | string[] }>) => (
+                    {(formikProps: FormikProps<FormValues>) => (
                         <>
                             <Form className='max-w-2xl mx-auto py-8 px-6 bg-gradient-to-br from-white via-primary-50 to-accent-50 rounded-2xl shadow-2xl border-2 border-accent-100'>
                                 <div className='text-center mb-8'>
@@ -671,11 +786,65 @@ const AssessmentDetailPage: React.FC = () => {
                     </div>
 
                     <div className="mb-8 flex items-center gap-4">
-                        <span className={`inline-block px-4 py-2 rounded-full text-lg font-bold shadow-md
-                            ${risk === 'cao' ? 'bg-error-100 text-error-700' : risk === 'trung bình' ? 'bg-warning-100 text-warning-700' : 'bg-success-100 text-success-700'}`}
-                        >
-                            Nguy cơ sử dụng ma túy: {risk.toUpperCase()}
+                        {assessment.id <= 2 ? (
+                            // Hiển thị cho bài ASSIST và CRAFFT
+                            <span className={`inline-block px-4 py-2 rounded-full text-lg font-bold shadow-md
+                                ${risk === 'cao' ? 'bg-error-100 text-error-700' : 
+                                  risk === 'trung bình' ? 'bg-warning-100 text-warning-700' : 
+                                  'bg-success-100 text-success-700'}`}
+                            >
+                                Nguy cơ sử dụng ma túy: {risk.toUpperCase()}
+                            </span>
+                        ) : assessment.id === 3 ? (
+                            // Hiển thị cho bài đánh giá phụ huynh
+                            <span className={`inline-block px-4 py-2 rounded-full text-lg font-bold shadow-md
+                                ${risk === 'cần hỗ trợ tích cực' ? 'bg-warning-100 text-warning-700' : 
+                                  risk === 'cần tăng cường' ? 'bg-info-100 text-info-700' : 
+                                  'bg-success-100 text-success-700'}`}
+                            >
+                                Mức độ hiệu quả phòng chống: {risk.toUpperCase()}
+                            </span>
+                        ) : (
+                            // Hiển thị cho bài đánh giá môi trường học đường
+                            <span className={`inline-block px-4 py-2 rounded-full text-lg font-bold shadow-md
+                                ${risk === 'cần tăng cường đáng kể' ? 'bg-warning-100 text-warning-700' : 
+                                  risk === 'cần cải thiện' ? 'bg-info-100 text-info-700' : 
+                                  'bg-success-100 text-success-700'}`}
+                            >
+                                Mức độ triển khai phòng chống: {risk.toUpperCase()}
+                            </span>
+                        )}
+                        <span className="text-gray-600">
+                            Điểm số: {result}
+                            {assessment.id >= 3 && '%'}
                         </span>
+                    </div>
+
+                    {/* Hiển thị gợi ý dựa trên kết quả */}
+                    <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <h4 className="font-bold text-lg mb-2 text-primary-700">Nhận xét và gợi ý:</h4>
+                        {assessment.id <= 2 ? (
+                            // Gợi ý cho bài ASSIST và CRAFFT
+                            <p className="text-gray-700">
+                                {risk === 'cao' && 'Bạn đang có nguy cơ cao về sử dụng chất gây nghiện. Hãy tham khảo các khóa học được đề xuất và liên hệ với chuyên gia để được tư vấn kịp thời.'}
+                                {risk === 'trung bình' && 'Bạn có một số dấu hiệu cần lưu ý. Việc tham gia các khóa học phòng ngừa và tham khảo ý kiến chuyên gia sẽ giúp bạn phòng tránh rủi ro tốt hơn.'}
+                                {risk === 'thấp' && 'Bạn đang có mức độ rủi ro thấp. Tuy nhiên, việc trang bị kiến thức phòng ngừa vẫn rất quan trọng để duy trì lối sống lành mạnh.'}
+                            </p>
+                        ) : assessment.id === 3 ? (
+                            // Gợi ý cho bài đánh giá phụ huynh
+                            <p className="text-gray-700">
+                                {risk === 'cần hỗ trợ tích cực' && 'Bạn cần tăng cường các biện pháp phòng ngừa và giám sát con cái. Hãy tham khảo các khóa học về kỹ năng làm cha mẹ và phương pháp giao tiếp với con.'}
+                                {risk === 'cần tăng cường' && 'Bạn đã có những biện pháp phòng ngừa cơ bản. Tuy nhiên, cần tăng cường thêm kiến thức và kỹ năng để bảo vệ con tốt hơn.'}
+                                {risk === 'hiệu quả tốt' && 'Bạn đang thực hiện tốt vai trò phòng ngừa. Hãy duy trì và chia sẻ kinh nghiệm với các phụ huynh khác.'}
+                            </p>
+                        ) : (
+                            // Gợi ý cho bài đánh giá môi trường học đường
+                            <p className="text-gray-700">
+                                {risk === 'cần tăng cường đáng kể' && 'Nhà trường cần xây dựng và triển khai ngay các chương trình phòng ngừa ma túy. Hãy tham khảo các khóa học và chương trình đào tạo cho giáo viên.'}
+                                {risk === 'cần cải thiện' && 'Nhà trường đã có những hoạt động phòng ngừa, nhưng cần cải thiện và đa dạng hóa các hình thức triển khai để tăng hiệu quả.'}
+                                {risk === 'triển khai tốt' && 'Nhà trường đang thực hiện tốt công tác phòng ngừa. Hãy duy trì và phát triển thêm các hoạt động hiệu quả.'}
+                            </p>
+                        )}
                     </div>
 
                     <h3 className="text-xl font-bold mb-4 text-primary-700">Các khóa học được gợi ý:</h3>
