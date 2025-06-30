@@ -1,16 +1,38 @@
 import React, { useEffect, useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, Navigate } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 import MobileMenu from './MobileMenu';
 import Modal from '@/components/modal/ModalNotification';
 import useModal from '@/hooks/useModal';
+import { useUser } from '../context/UserContext';
 
+const adminOnlyRoutes = [
+  '/admin',
+  '/roles',
+  '/roles/',
+  '/roles/:userId/course-manage',
+  '/roles/:userId/program-manage',
+  '/roles/:userId/program-dashboard',
+  '/roles/:userId/employee-manage',
+  '/roles/:userId/member-manage',
+];
+
+const customerRoutes = [
+  '/',
+  '/about',
+  '/article',
+  '/courses',
+  '/assessments',
+  '/appointments',
+  '/community-programs',
+];
 
 const Layout: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { isOpen, openModal, closeModal } = useModal();
+  const { user } = useUser();
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -69,8 +91,20 @@ const Layout: React.FC = () => {
     return () => clearInterval(interval);
   }, [openModal])
 
-  return (
+  if (user && user.RoleName === 'Admin') {
+    const isCustomerRoute = customerRoutes.some(route => location.pathname === route || location.pathname.startsWith(route + '/'));
+    const isAdminRoute = location.pathname.startsWith('/admin') || location.pathname.startsWith('/roles');
+    if (!isAdminRoute) {
+      return <Navigate to="/admin" replace />;
+    }
+    return (
+      <main className="min-h-screen bg-gray-50">
+        <Outlet />
+      </main>
+    );
+  }
 
+  return (
     <div className="flex flex-col min-h-screen">
       <Header toggleMobileMenu={toggleMobileMenu} />
       <Modal

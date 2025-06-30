@@ -10,11 +10,12 @@ import {
     TrendingUp,
     Activity,
     UserCheck,
-    FileText
+    FileText,
+    LogOut
 } from "lucide-react";
 
 const AdminPage: React.FC = () => {
-    const { user } = useUser();
+    const { user, setUser } = useUser();
 
     const statsCards = [
         {
@@ -81,6 +82,25 @@ const AdminPage: React.FC = () => {
         }
     ];
 
+    const handleLogout = () => {
+        fetch('http://localhost:5000/api/auth/logout', {
+            method: 'POST',
+            credentials: 'include',
+        })
+            .then(response => {
+                setUser(null);
+                localStorage.removeItem('user');
+                localStorage.clear();
+                window.location.href = '/login';
+            })
+            .catch(err => {
+                setUser(null);
+                localStorage.removeItem('user');
+                localStorage.clear();
+                window.location.href = '/login';
+            });
+    };
+
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Header Section */}
@@ -96,7 +116,13 @@ const AdminPage: React.FC = () => {
                                 <p className="text-gray-600 mt-1">Chào mừng trở lại, {user?.FullName ?? user?.Username}</p>
                             </div>
                         </div>
-
+                        <button
+                            onClick={handleLogout}
+                            className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg font-semibold shadow-sm border border-red-200 transition-all"
+                        >
+                            <LogOut className="h-5 w-5" />
+                            <span>Đăng xuất</span>
+                        </button>
                     </div>
                 </div>
             </div>
