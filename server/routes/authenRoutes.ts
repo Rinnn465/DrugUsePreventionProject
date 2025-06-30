@@ -19,11 +19,21 @@ const router: Router = express.Router();
 
 /**
  * @route POST /api/auth/login
+ * @desc Đăng nhập
+ * @access Công khai
+ */
+/**
+ * @route POST /api/auth/login
  * @desc Đăng nhập người dùng
  * @access Công khai
  */
 router.post("/login", login);
 
+/**
+ * @route POST /api/auth/register
+ * @desc Đăng ký tài khoản
+ * @access Công khai
+ */
 /**
  * @route POST /api/auth/register
  * @desc Đăng ký người dùng
@@ -33,11 +43,21 @@ router.post("/register", register);
 
 /**
  * @route POST /api/auth/logout
+ * @desc Đăng xuất
+ * @access Công khai
+ */
+/**
+ * @route POST /api/auth/logout
  * @desc Đăng xuất người dùng
  * @access Người dùng đã xác thực
  */
 router.post("/logout", logout);
 
+/**
+ * @route POST /api/auth/forgot-password
+ * @desc Quên mật khẩu
+ * @access Công khai
+ */
 /**
  * @route POST /api/auth/forgot-password
  * @desc Khởi tạo đặt lại mật khẩu (gửi email đặt lại)
@@ -47,11 +67,21 @@ router.post("/forgot-password", forgotPassword);
 
 /**
  * @route POST /api/auth/verify-token
+ * @desc Xác thực token đặt lại mật khẩu
+ * @access Công khai
+ */
+/**
+ * @route POST /api/auth/verify-token
  * @desc Xác minh mã đặt lại mật khẩu
  * @access Công khai
  */
 router.post("/verify-token", postVerifyResetToken);
 
+/**
+ * @route POST /api/auth/reset-token
+ * @desc Đặt lại mật khẩu
+ * @access Công khai
+ */
 /**
  * @route POST /api/auth/reset-token
  * @desc Đặt lại mật khẩu bằng mã hợp lệ

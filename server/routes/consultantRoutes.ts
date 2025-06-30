@@ -27,6 +27,81 @@ const router: Router = express.Router();
 router.get('/', getConsultants);
 
 /**
+ * @route GET /api/consultant/qualifications
+ * @desc Lấy danh sách bằng cấp tư vấn viên
+ * @access Công khai
+ */
+router.get('/qualifications', getQualifications);
+
+/**
+ * @route GET /api/consultant/specialties
+ * @desc Lấy danh sách chuyên môn tư vấn viên
+ * @access Công khai
+ */
+router.get('/specialties', getSpecialties);
+
+/**
+ * @route GET /api/consultant/category
+ * @desc Lấy danh mục tư vấn viên
+ * @access Công khai
+ */
+router.get('/category', getConsultantWithCategory);
+
+/**
+ * @route POST /api/consultant/schedule
+ * @desc Thêm lịch làm việc tư vấn viên
+ * @access Công khai hoặc tư vấn viên
+ */
+router.post('/schedule', addConsultantSchedule);
+
+/**
+ * @route GET /api/consultant/schedules/:consultantId
+ * @desc Lấy lịch làm việc tư vấn viên theo ID
+ * @access Công khai hoặc tư vấn viên
+ */
+router.get('/schedules/:consultantId', getConsultantSchedule);
+
+/**
+ * @route PUT /api/consultant/schedules/:scheduleId
+ * @desc Cập nhật lịch làm việc tư vấn viên
+ * @access Công khai hoặc tư vấn viên
+ */
+router.put('/schedules/:scheduleId', updateConsultantSchedule);
+
+/**
+ * @route DELETE /api/consultant/schedules/:scheduleId
+ * @desc Xoá lịch làm việc tư vấn viên
+ * @access Công khai hoặc tư vấn viên
+ */
+router.delete('/schedules/:scheduleId', deleteConsultantSchedule);
+
+/**
+ * @route GET /api/consultant/pending-appointments/:consultantId
+ * @desc Lấy lịch hẹn chờ duyệt của tư vấn viên
+ * @access Công khai hoặc tư vấn viên
+ */
+router.get('/pending-appointments/:consultantId', getPendingAppointments);
+
+/**
+ * @route GET /api/consultant/today-appointments/:consultantId
+ * @desc Lấy lịch hẹn hôm nay của tư vấn viên
+ * @access Công khai hoặc tư vấn viên
+ */
+router.get('/today-appointments/:consultantId', getTodayAppointments);
+
+/**
+ * @route GET /api/consultant/compare-appointments/:consultantId
+ * @desc So sánh lịch hẹn tháng này và tháng trước
+ * @access Công khai hoặc tư vấn viên
+ */
+router.get('/compare-appointments/:consultantId', compareAppointments);
+
+/**
+ * @route GET /api/consultant/:id
+ * @desc Lấy tư vấn viên theo ID
+ * @access Công khai
+ */
+/**
  * @route GET /api/consultants/qualifications
  * @desc Lấy tất cả bằng cấp của tư vấn viên
  * @access Công khai

@@ -15,21 +15,36 @@ dotenv.config();
  * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
  */
 export async function getLesson(req: Request, res: Response): Promise<void> {
+    // Lấy courseId từ params (ID khoá học)
     const courseId = req.params.id;
+    // Ghi log để kiểm tra ID khoá học đang được truy vấn
+    console.log(`Fetching lessons for course ID: ${courseId}`);
     console.log(`Lấy bài học cho khóa học ID: ${courseId}`);
 
     try {
+        // Kết nối tới database
         const pool = await poolPromise;
+        // Truy vấn các bài học thuộc khoá học, sử dụng parameterized query để tránh SQL injection
         // Truy vấn bài học với truy vấn có tham số để bảo mật
         const result = await pool.request()
-            .input('CourseId', Number(courseId))
+            .input('CourseId', Number(courseId)) // Đảm bảo kiểu dữ liệu là số
             .query('SELECT * FROM Lesson WHERE CourseID = @CourseId');
+        // Trả về kết quả thành công với danh sách bài học
+        res.status(200).json({ 
+            message: 'Courses fetched successfully', 
+            data: result.recordset 
         res.status(200).json({
             message: 'Lấy khóa học thành công',
             data: result.recordset
         });
         return;
     } catch (err: any) {
+        // Ghi log lỗi nếu có lỗi xảy ra trong quá trình truy vấn
+        console.error('Error in getLesson:', err);
+        // Trả về lỗi 500 nếu có lỗi hệ thống
+        res.status(500).json({ 
+            message: 'Error fetching courses', 
+            error: err.message 
         console.error('Lỗi trong getLesson:', err);
         res.status(500).json({
             message: 'Lỗi khi lấy khóa học',
@@ -50,13 +65,16 @@ export async function getLesson(req: Request, res: Response): Promise<void> {
  * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
  */
 export async function getLessonContent(req: Request, res: Response): Promise<void> {
+    // Lấy id khoá học từ params
     const { id } = req.params;
 
     try {
+        // Kết nối tới database
         const pool = await poolPromise;
+        // Truy vấn phức tạp: lấy tất cả câu hỏi của các bài học thuộc khoá học này
         // Truy vấn phức tạp kết hợp bài học và câu hỏi
         const result = await pool.request()
-            .input('CourseId', Number(id))
+            .input('CourseId', Number(id)) // Đảm bảo id là số
             .query(`
                 SELECT * FROM LessonQuestion 
                 WHERE LessonID IN (
@@ -65,12 +83,22 @@ export async function getLessonContent(req: Request, res: Response): Promise<voi
                     JOIN Lesson l ON c.CourseID = l.CourseID 
                     WHERE l.CourseID = @CourseId
                 )`);
+        // Trả về kết quả thành công với nội dung bài học và câu hỏi
+        res.status(200).json({ 
+            message: 'Lesson content fetched successfully', 
+            data: result.recordset 
         res.status(200).json({
             message: 'Lấy nội dung bài học thành công',
             data: result.recordset
         });
         return;
     } catch (err: any) {
+        // Ghi log lỗi nếu có lỗi xảy ra trong quá trình truy vấn
+        console.error('Error in getLessonContent:', err);
+        // Trả về lỗi 500 nếu có lỗi hệ thống
+        res.status(500).json({ 
+            message: 'Error fetching lesson content', 
+            error: err.message 
         console.error('Lỗi trong getLessonContent:', err);
         res.status(500).json({
             message: 'Lỗi khi lấy nội dung bài học',
@@ -89,16 +117,26 @@ export async function getLessonContent(req: Request, res: Response): Promise<voi
  * @param {Response} res - Đối tượng response của Express
  * @returns {Promise<void>} Phản hồi JSON với danh sách câu hỏi của bài học
  * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
+ * @access Công khai
+ * @param {Request} req - Đối tượng request của Express, chứa ID bài học trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với danh sách câu hỏi của bài học
+ * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
  */
 export async function getQuestions(req: Request, res: Response): Promise<void> {
+    // Lấy lessonId từ params (ID bài học)
     const lessonId = req.params.id;
+    // Ghi log để kiểm tra ID bài học đang được truy vấn
+    console.log(`Fetching questions for lesson ID: ${lessonId}`);
     console.log(`Lấy câu hỏi cho bài học ID: ${lessonId}`);
 
     try {
+        // Kết nối tới database
         const pool = await poolPromise;
+        // Truy vấn các câu hỏi thuộc bài học, sử dụng parameterized query để tránh SQL injection
         // Truy vấn câu hỏi cho bài học cụ thể
         const result = await pool.request()
-            .input('LessonID', Number(lessonId))
+            .input('LessonID', Number(lessonId)) // Đảm bảo kiểu dữ liệu là số
             .query(`
                 SELECT * FROM LessonQuestion 
                 WHERE LessonID IN (
@@ -107,12 +145,22 @@ export async function getQuestions(req: Request, res: Response): Promise<void> {
                     JOIN Lesson l ON c.CourseID = l.CourseID 
                     WHERE l.CourseID = @CourseId
                 )`);
+        // Trả về kết quả thành công với danh sách câu hỏi
+        res.status(200).json({ 
+            message: 'Lesson questions fetched successfully', 
+            data: result.recordset 
 
         res.status(200).json({
             message: 'Lấy câu hỏi bài học thành công',
             data: result.recordset
         });
     } catch (err: any) {
+        // Ghi log lỗi nếu có lỗi xảy ra trong quá trình truy vấn
+        console.error('Error in getQuestions:', err);
+        // Trả về lỗi 500 nếu có lỗi hệ thống
+        res.status(500).json({ 
+            message: 'Error fetching lesson questions', 
+            error: err.message 
         console.error('Lỗi trong getQuestions:', err);
         res.status(500).json({
             message: 'Lỗi khi lấy câu hỏi bài học',
@@ -132,11 +180,16 @@ export async function getQuestions(req: Request, res: Response): Promise<void> {
  * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
  */
 export async function getAnswers(req: Request, res: Response): Promise<void> {
+    // Lấy id khoá học từ params
     const { id } = req.params;
+    // Ghi log để kiểm tra ID khoá học đang được truy vấn
+    console.log(`Fetching answers for question ID: ${id}`);
     console.log(`Lấy đáp án cho câu hỏi ID: ${id}`);
 
     try {
+        // Kết nối tới database
         const pool = await poolPromise;
+        // Truy vấn phức tạp: lấy tất cả đáp án của các câu hỏi thuộc các bài học trong khoá học này
         // Truy vấn phức tạp để lấy đáp án cho tất cả câu hỏi trong một khóa học
         const result = await pool.request()
             .input('CourseID', id)
@@ -149,6 +202,10 @@ export async function getAnswers(req: Request, res: Response): Promise<void> {
                 JOIN LessonQuestion lq ON l.LessonID = lq.LessonID
                 WHERE l.CourseID = @CourseID
             );`);
+        // Trả về kết quả thành công với danh sách đáp án
+        res.status(200).json({ 
+            message: 'Lesson answers fetched successfully', 
+            data: result.recordset 
 
         res.status(200).json({
             message: 'Lấy đáp án bài học thành công',
@@ -901,6 +958,12 @@ export async function getLessonsByCourseId(req: Request, res: Response): Promise
             data: result.recordset
         });
     } catch (err: any) {
+        // Ghi log lỗi nếu có lỗi xảy ra trong quá trình truy vấn
+        console.error('Error in getAnswers:', err);
+        // Trả về lỗi 500 nếu có lỗi hệ thống
+        res.status(500).json({ 
+            message: 'Error fetching lesson answers', 
+            error: err.message 
         console.error('Lỗi trong getLessonsByCourseId:', err);
         res.status(500).json({
             message: 'Lỗi khi lấy tất cả bài học cho khóa học',
