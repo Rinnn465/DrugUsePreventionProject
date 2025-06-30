@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import React, { useEffect, useState, useMemo } from 'react';
-import { Users, Filter, X } from 'lucide-react';
+import { Users, Filter, X, Video, ExternalLink } from 'lucide-react';
 import { CommunityProgram, EnrollmentStatus } from '../../types/CommunityProgram';
 import { parseDate } from '../../utils/parseDateUtils';
 import { User } from '../../types/User';
@@ -314,6 +314,20 @@ const CommunityProgramPage: React.FC = () => {
               <div className="text-center text-green-600 font-medium text-sm bg-green-50 py-2 rounded-lg">
                 ✓ Đã đăng ký tham gia
               </div>
+              
+              {/* Meeting button for enrolled users */}
+              {event.MeetingRoomName && (event.Status === 'ongoing' || event.Status === 'completed') && (
+                <a
+                  href={event.Url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                >
+                  <Video className="h-4 w-4 mr-2" />
+                  Tham gia meeting
+                </a>
+              )}
+              
               <button
                 onClick={() => handleUnenroll(event.ProgramID)}
                 disabled={isLoading}

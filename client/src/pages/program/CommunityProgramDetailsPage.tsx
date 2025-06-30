@@ -5,6 +5,7 @@ import { parseDate } from "../../utils/parseDateUtils";
 import { User } from "../../types/User";
 import { toast } from 'react-toastify';
 import { Survey } from "../../types/Survey";
+import JitsiMeet from "../../components/JitsiMeet";
 import {
   Calendar,
   Users,
@@ -17,7 +18,9 @@ import {
   ArrowLeft,
   ChevronRight,
   AlertCircle,
-  Clock4
+  Clock4,
+  Video,
+  VideoOff
 } from 'lucide-react';
 
 const CommunityProgramDetails: React.FC = () => {
@@ -27,6 +30,7 @@ const CommunityProgramDetails: React.FC = () => {
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [user, setUser] = useState<User | null>(null);
+  const [showMeeting, setShowMeeting] = useState<boolean>(false);
 
   const getAuthToken = () => localStorage.getItem('token');
   const getAuthHeaders = () => {
@@ -447,6 +451,79 @@ const CommunityProgramDetails: React.FC = () => {
                 {handleRenderSurveyForm()}
               </div>
             )}
+
+            {/* Jitsi Meet Section - Video Conference */}
+            {programData.MeetingRoomName && enrollmentStatus?.isEnrolled && (
+              <div className="bg-white rounded-2xl shadow-xl p-8">
+                <div className="flex items-center mb-6">
+                  <div className="bg-blue-100 rounded-full p-3 mr-4">
+                    <Video className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">Tham gia họp trực tuyến</h2>
+                </div>
+
+                <div className="space-y-4">
+                  <p className="text-gray-700">
+                    Bạn có thể tham gia buổi họp trực tuyến của chương trình. Cuộc họp sẽ bắt đầu trong trình duyệt.
+                  </p>
+                  
+                  {/* Meeting status based on program status */}
+                  {programData.Status === 'upcoming' && (
+                    <div className="flex items-center p-4 bg-blue-50 rounded-lg">
+                      <Clock4 className="h-5 w-5 text-blue-600 mr-3" />
+                      <div>
+                        <p className="font-medium text-blue-900">Phòng họp sẽ mở khi chương trình bắt đầu</p>
+                        <p className="text-sm text-blue-700">Thời gian: {parseDate(programData.Date)}</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {(programData.Status === 'ongoing' || programData.Status === 'completed') && (
+                    <button
+                      onClick={() => setShowMeeting(true)}
+                      className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                    >
+                      <Video className="h-5 w-5 mr-2" />
+                      Tham gia họp ngay
+                    </button>
+                  )}
+                  
+                  {/* External link option */}
+                  <div className="pt-4 border-t border-gray-200">
+                    <p className="text-sm text-gray-600 mb-3">
+                      Hoặc tham gia qua liên kết bên ngoài:
+                    </p>
+                    <a
+                      href={programData.Url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Mở trong tab mới
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Meeting not available for non-enrolled users */}
+            {programData.MeetingRoomName && !enrollmentStatus?.isEnrolled && user && (
+              <div className="bg-white rounded-2xl shadow-xl p-8">
+                <div className="flex items-center mb-6">
+                  <div className="bg-gray-100 rounded-full p-3 mr-4">
+                    <VideoOff className="h-6 w-6 text-gray-600" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">Tham gia họp trực tuyến</h2>
+                </div>
+                <div className="flex items-center p-4 bg-yellow-50 rounded-lg">
+                  <AlertCircle className="h-5 w-5 text-yellow-600 mr-3" />
+                  <p className="text-yellow-800">
+                    Bạn cần đăng ký tham gia chương trình để có thể tham gia cuộc họp trực tuyến.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -557,6 +634,16 @@ const CommunityProgramDetails: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Jitsi Meet Modal */}
+      {showMeeting && programData?.MeetingRoomName && (
+        <JitsiMeet
+          roomName={programData.MeetingRoomName}
+          userName={user?.FullName || 'Người tham gia'}
+          programName={programData.ProgramName}
+          onClose={() => setShowMeeting(false)}
+        />
+      )}
     </div>
   );
 };

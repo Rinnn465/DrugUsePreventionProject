@@ -10,6 +10,7 @@ export interface CommunityProgram {
     ImageUrl?: string | null;
     IsDisabled: boolean;
     Status: string; // 'upcoming' | 'ongoing' | 'completed'
+    MeetingRoomName?: string; // Jitsi meeting room name
 };
 
 export interface EnrollmentStatus {

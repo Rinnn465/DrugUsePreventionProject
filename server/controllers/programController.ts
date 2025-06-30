@@ -19,7 +19,8 @@ export const getAllPrograms = async (
                 Url,
                 ImageUrl,
                 IsDisabled,
-                Status
+                Status,
+                MeetingRoomName
             FROM CommunityProgram
             WHERE IsDisabled = 0
             ORDER BY Date DESC
@@ -43,7 +44,7 @@ export const getProgramById = async (
 
     const pool = await poolPromise;
     const result = await pool.request().input("id", id).query(`
-                SELECT ProgramID, ProgramName, Type, Date, Description, Content, Organizer, Url, ImageUrl, IsDisabled, Status
+                SELECT ProgramID, ProgramName, Type, Date, Description, Content, Organizer, Url, ImageUrl, IsDisabled, Status, MeetingRoomName
                 FROM CommunityProgram
                 WHERE ProgramID = @id AND IsDisabled = 0
             `);
@@ -64,9 +65,14 @@ export const getProgramById = async (
 };
 
 export async function createProgram(req: Request, res: Response): Promise<void> {
-  const { ProgramName, date, Description, Content, Organizer, Url, ImageUrl, Status, IsDisabled } = req.body;
+  const { ProgramName, date, Description, Content, Organizer, ImageUrl, Status, IsDisabled } = req.body;
   try {
     const pool = await poolPromise;
+    
+    // Generate unique meeting room name based on program name (without prefix)
+    const roomName = `${ProgramName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+    const meetingUrl = `https://meet.jit.si/${roomName}`;
+    
     const insertResult = await pool.request()
       .input('ProgramName', sql.NVarChar, ProgramName)
       .input('Type', sql.NVarChar, 'online')
@@ -74,15 +80,16 @@ export async function createProgram(req: Request, res: Response): Promise<void> 
       .input('Description', sql.NVarChar, Description || null)
       .input('Content', sql.NVarChar, Content || null)
       .input('Organizer', sql.NVarChar, Organizer || null)
-      .input('Url', sql.NVarChar, Url)
+      .input('Url', sql.NVarChar, meetingUrl)
       .input('ImageUrl', sql.NVarChar, ImageUrl || null)
       .input('Status', sql.NVarChar, Status || 'upcoming')
       .input('IsDisabled', sql.Bit, IsDisabled)
+      .input('MeetingRoomName', sql.NVarChar, roomName)
       .query(`
                 INSERT INTO CommunityProgram 
-                (ProgramName, Type, Date, Description, Content, Organizer, Url, ImageUrl, Status, IsDisabled)
+                (ProgramName, Type, Date, Description, Content, Organizer, Url, ImageUrl, Status, IsDisabled, MeetingRoomName)
                 OUTPUT INSERTED.ProgramID
-                VALUES (@ProgramName, @Type, @Date, @Description, @Content, @Organizer, @Url, @ImageUrl, @Status, @IsDisabled)
+                VALUES (@ProgramName, @Type, @Date, @Description, @Content, @Organizer, @Url, @ImageUrl, @Status, @IsDisabled, @MeetingRoomName)
             `);
     const newProgramId = insertResult.recordset[0].ProgramID;
     const result = await pool.request()
@@ -97,9 +104,25 @@ export async function createProgram(req: Request, res: Response): Promise<void> 
 
 export async function updateProgram(req: Request, res: Response): Promise<void> {
   const { id } = req.params; Number(id);
-  const { ProgramName, date, Description, Content, Organizer, Url, ImageUrl, Status, IsDisabled } = req.body; // Removed Type since it's always 'online'
+  const { ProgramName, date, Description, Content, Organizer, Url, ImageUrl, Status, IsDisabled } = req.body;
   try {
     const pool = await poolPromise;
+    
+    // Generate or keep existing meeting room name
+    let meetingRoomName = `${ProgramName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+    let meetingUrl = Url;
+    
+    // If no URL provided or it's not a Jitsi link, generate new Jitsi URL
+    if (!meetingUrl || !meetingUrl.includes('meet.jit.si')) {
+      meetingUrl = `https://meet.jit.si/${meetingRoomName}`;
+    } else if (meetingUrl.includes('meet.jit.si/')) {
+      // Extract room name from existing Jitsi URL
+      const urlParts = meetingUrl.split('meet.jit.si/');
+      if (urlParts.length > 1) {
+        meetingRoomName = urlParts[1];
+      }
+    }
+    
     const updateResult = await pool.request()
       .input('Id', sql.Int, id)
       .input('ProgramName', sql.NVarChar, ProgramName)
@@ -108,10 +131,11 @@ export async function updateProgram(req: Request, res: Response): Promise<void> 
       .input('Description', sql.NVarChar, Description || null)
       .input('Content', sql.NVarChar, Content || null)
       .input('Organizer', sql.NVarChar, Organizer || null)
-      .input('Url', sql.NVarChar, Url)
+      .input('Url', sql.NVarChar, meetingUrl)
       .input('ImageUrl', sql.NVarChar, ImageUrl || null)
       .input('Status', sql.NVarChar, Status || 'upcoming')
       .input('IsDisabled', sql.Bit, IsDisabled)
+      .input('MeetingRoomName', sql.NVarChar, meetingRoomName)
       .query(`
                 UPDATE CommunityProgram
                 SET ProgramName = @ProgramName,
@@ -123,7 +147,8 @@ export async function updateProgram(req: Request, res: Response): Promise<void> 
                     Url = @Url,
                     ImageUrl = @ImageUrl,
                     Status = @Status,
-                    IsDisabled = @IsDisabled
+                    IsDisabled = @IsDisabled,
+                    MeetingRoomName = @MeetingRoomName
                 WHERE ProgramID = @Id
             `);
     if (updateResult.rowsAffected[0] === 0) {

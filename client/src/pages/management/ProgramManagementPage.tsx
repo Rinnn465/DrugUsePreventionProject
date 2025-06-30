@@ -30,7 +30,6 @@ const ProgramManagementPage: React.FC = () => {
         Description: '',
         Content: '',
         Organizer: '',
-        Url: '',
         ImageUrl: '',
         Status: 'upcoming',
         IsDisabled: false
@@ -163,7 +162,6 @@ const ProgramManagementPage: React.FC = () => {
             Description: '',
             Content: '',
             Organizer: '',
-            Url: '',
             ImageUrl: '',
             Status: 'upcoming',
             IsDisabled: false
@@ -180,7 +178,6 @@ const ProgramManagementPage: React.FC = () => {
             Description: program.Description ?? '',
             Content: program.Content ?? '',
             Organizer: program.Organizer ?? '',
-            Url: program.Url,
             ImageUrl: program.ImageUrl ?? '',
             Status: program.Status,
             IsDisabled: program.IsDisabled
@@ -399,6 +396,25 @@ const ProgramManagementPage: React.FC = () => {
                     <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
                         <div className="mt-3">
                             <h3 className="text-lg font-medium text-gray-900 mb-4">Tạo chương trình mới</h3>
+                            
+                            {/* Info about automatic meeting room creation */}
+                            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div className="flex items-start">
+                                    <div className="flex-shrink-0">
+                                        <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-3">
+                                        <h4 className="text-sm font-medium text-blue-800">Tích hợp Meeting tự động</h4>
+                                        <p className="text-sm text-blue-700 mt-1">
+                                            Hệ thống sẽ tự động tạo phòng họp Jitsi Meet cho chương trình này. 
+                                            Người tham gia đã đăng ký sẽ có thể tham gia cuộc họp trực tuyến.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <form onSubmit={handleCreateProgram} className="space-y-4">
                                 <div>
                                     <label htmlFor="programName" className="block text-sm font-medium text-gray-700 mb-1">
@@ -470,20 +486,6 @@ const ProgramManagementPage: React.FC = () => {
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                         value={formData.Organizer}
                                         onChange={(e) => setFormData({...formData, Organizer: e.target.value})}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="url" className="block text-sm font-medium text-gray-700 mb-1">
-                                        URL/Link *
-                                    </label>
-                                    <input
-                                        id="url"
-                                        type="url"
-                                        required
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        value={formData.Url}
-                                        onChange={(e) => setFormData({...formData, Url: e.target.value})}
                                     />
                                 </div>
 
@@ -629,21 +631,6 @@ const ProgramManagementPage: React.FC = () => {
                                         onChange={(e) => setFormData({...formData, Organizer: e.target.value})}
                                     />
                                 </div>
-
-                                <div>
-                                    <label htmlFor="editUrl" className="block text-sm font-medium text-gray-700 mb-1">
-                                        URL/Link *
-                                    </label>
-                                    <input
-                                        id="editUrl"
-                                        type="url"
-                                        required
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        value={formData.Url}
-                                        onChange={(e) => setFormData({...formData, Url: e.target.value})}
-                                    />
-                                </div>
-
                                 <div>
                                     <label htmlFor="editImageUrl" className="block text-sm font-medium text-gray-700 mb-1">
                                         URL Hình ảnh

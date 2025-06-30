@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@jitsi/react-sdk": "^1.4.4",
     "@tippyjs/react": "^4.2.6",
     "axios": "^1.9.0",
     "cors": "^2.8.5",

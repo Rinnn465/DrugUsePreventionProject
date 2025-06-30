@@ -1309,8 +1309,8 @@ const DashBoardPage: React.FC = () => {
                   <Users className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Sự kiện của tôi</h1>
-                  <p className="text-gray-600">Theo dõi các sự kiện đã tham gia và sắp tới</p>
+                  <h1 className="text-3xl font-bold text-gray-900">Chương trình của tôi</h1>
+                  <p className="text-gray-600">Theo dõi các chương trình đã tham gia và sắp tới</p>
                 </div>
               </div>
             </div>
