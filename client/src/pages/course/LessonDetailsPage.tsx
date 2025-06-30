@@ -1,8 +1,22 @@
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { sqlLesson, sqlLessonAnswer, sqlLessonQuestion } from "../../types/Lesson";
 import { toast } from "react-toastify";
 import { useUser } from "@/context/UserContext";
+import { 
+  Play, 
+  CheckCircle, 
+  Clock, 
+  BookOpen, 
+  Video, 
+  Award, 
+  ArrowLeft,
+  ChevronRight,
+  Calendar,
+  FileText,
+  Lock,
+  Zap
+} from "lucide-react";
 
 const LessonDetailsPage: React.FC = () => {
     const { id } = useParams();
@@ -23,6 +37,7 @@ const LessonDetailsPage: React.FC = () => {
     const [quizCompleted, setQuizCompleted] = useState(false);
     const [videoProgress, setVideoProgress] = useState<{ [key: string]: number }>({});
     const [lastValidTime, setLastValidTime] = useState<{ [key: string]: number }>({});
+    const [courseData, setCourseData] = useState<any>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const isSeekingRef = useRef(false);
 
@@ -40,6 +55,18 @@ const LessonDetailsPage: React.FC = () => {
                 setLesson(lessonData.data);
             } catch (error) {
                 console.error("Fetch lesson error:", error);
+            }
+        };
+
+        const fetchCourseData = async () => {
+            try {
+                const courseResponse = await fetch(`http://localhost:5000/api/course/${id}`);
+                if (!courseResponse.ok) throw new Error("Failed to fetch course");
+                const courseData = await courseResponse.json();
+                console.log("Course Data:", courseData.data);
+                setCourseData(courseData.data);
+            } catch (error) {
+                console.error("Fetch course error:", error);
             }
         };
 
@@ -64,9 +91,8 @@ const LessonDetailsPage: React.FC = () => {
             }
         };
 
-
         const fetchData = async () => {
-            await Promise.all([fetchLessonDetail(), fetchQuestionsAndAnswers()]);
+            await Promise.all([fetchLessonDetail(), fetchCourseData(), fetchQuestionsAndAnswers()]);
         };
 
         fetchData();
@@ -326,42 +352,136 @@ const LessonDetailsPage: React.FC = () => {
         return lesson && lesson.length > 0 ? completedLessons.size === lesson.length : true;
     };
 
+    const getTotalLessonsDuration = () => {
+        if (!lesson) return 0;
+        return lesson.reduce((total, l) => total + (l.Duration || 0), 0);
+    };
+
+    const getCompletedLessonsCount = () => {
+        return completedLessons.size;
+    };
+
+    const getOverallProgress = () => {
+        if (!lesson || lesson.length === 0) return 0;
+        // Nếu đang ở quiz thì giữ logic cũ
+        if (selected === "question") {
+            const lessonsProgress = (completedLessons.size / lesson.length) * 80; // 80% cho bài học
+            const quizProgress = quizCompleted && passed ? 20 : 0; // 20% cho quiz
+            return Math.round(lessonsProgress + quizProgress);
+        }
+        // Nếu đang ở bài học thì lấy phần trăm video đã xem của bài học hiện tại
+        const currentProgress = videoProgress[selected?.toString()] || 0;
+        return Math.round(currentProgress);
+    };
+
+    const isLessonUnlocked = (lessonIndex: number) => {
+        // First lesson is always unlocked
+        if (lessonIndex === 0) return true;
+        // Subsequent lessons are locked until previous one is completed
+        const previousLessonId = lesson?.[lessonIndex - 1]?.LessonID;
+        return previousLessonId ? completedLessons.has(previousLessonId) : false;
+    };
+
     const handleContent = () => {
         const selectedLesson = lesson?.find((l) => l.LessonID === selected);
         if (!selectedLesson) return null;
 
+        const currentProgress = videoProgress[selected.toString()] || 0;
+        const isCompleted = completedLessons.has(selected);
+
         return (
-            <div className="bg-white p-6 rounded-2xl shadow-lg space-y-6">
-                <h2 className="text-2xl font-bold text-gray-800">📚 Nội dung bài học</h2>
-                <div className="space-y-4 border-b pb-6">
-                    <h3 className="text-xl font-semibold text-gray-700">{selectedLesson.Title}</h3>
-                    <p className="text-gray-600 leading-relaxed">{selectedLesson.Content}</p>
+            <div className="space-y-6">
+                {/* Course Progress Header */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                            <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                                <BookOpen className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-bold text-gray-800">{selectedLesson.Title}</h1>
+                                <p className="text-gray-600 flex items-center mt-1">
+                                    <Clock className="w-4 h-4 mr-1" />
+                                    {selectedLesson.Duration} phút
+                                </p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <div className="text-sm text-gray-500">Tiến độ khóa học</div>
+                            <div className="text-2xl font-bold text-blue-600">{getOverallProgress()}%</div>
+                        </div>
+                    </div>
+                    
+                    {/* Progress bar */}
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                            className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full transition-all duration-500"
+                            style={{ width: `${getOverallProgress()}%` }}
+                        ></div>
+                    </div>
+                </div>
+
+                {/* Video Content */}
+                <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                    <div className="relative">
                     <video
                         ref={videoRef}
                         width="100%"
-                        height="400px"
+                            height="500px"
                         controls
-                        className="rounded-lg border shadow-md"
-                        onTimeUpdate={() => handleVideoTimeUpdate(selectedLesson.LessonID)} // Always track progress
-                        onSeeking={() => handleSeeking(selectedLesson.LessonID)} // Always handle seeking
-                        onSeeked={() => handleSeeked(selectedLesson.LessonID)} // Always handle seeked
+                            className="w-full object-cover"
+                            onTimeUpdate={() => handleVideoTimeUpdate(selectedLesson.LessonID)}
+                            onSeeking={() => handleSeeking(selectedLesson.LessonID)}
+                            onSeeked={() => handleSeeked(selectedLesson.LessonID)}
                         onEnded={() => handleVideoEnded(selectedLesson.LessonID)}
                         onError={() => toast.error("Không thể tải video. Vui lòng thử lại.")}
                     >
                         <source src={selectedLesson.VideoUrl} type="video/mp4" />
-                        Your browser does not support the video tag.
+                            Trình duyệt của bạn không hỗ trợ video.
                     </video>
+                        
+                        {/* Content Section */}
+                        <div className="p-6">
+                            <div className="flex items-start justify-between mb-4">
+                                <div className="flex-1">
+                                    <h2 className="text-xl font-semibold text-gray-800 mb-3">Nội dung bài học</h2>
+                                    <p className="text-gray-600 leading-relaxed">{selectedLesson.Content}</p>
+                                </div>
+                                {isCompleted && (
+                                    <div className="flex items-center space-x-2 text-green-600 ml-4">
+                                        <CheckCircle className="w-5 h-5" />
+                                        <span className="text-sm font-medium">Đã hoàn thành</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Action Button */}
+                            <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                                <div className="flex items-center space-x-4 text-sm text-gray-500">
+                                    <div className="flex items-center">
+                                        <Video className="w-4 h-4 mr-1" />
+                                        Video bài học
+                                    </div>
                 </div>
+                                
                 <button
                     onClick={handleDoneLesson}
                     disabled={!isLessonVideoWatched(selectedLesson.LessonID)}
-                    className={`mt-4 px-6 py-3 rounded-lg font-medium transition duration-200 ${isLessonVideoWatched(selectedLesson.LessonID)
-                        ? "bg-primary-600 text-white hover:bg-primary-700"
-                        : "bg-gray-400 text-gray-200 cursor-not-allowed"
-                        }`}
-                >
-                    {!isSkippable ? "Hoàn thành bài học (Dev Mode)" : "Hoàn thành bài học"}
+                                className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                                    isLessonVideoWatched(selectedLesson.LessonID)
+                                        ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600 shadow-lg hover:shadow-xl transform hover:scale-105"
+                                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                }`}
+                            >
+                                <CheckCircle className="w-5 h-5" />
+                                <span>
+                                    {isCompleted ? "Đã hoàn thành" : !isSkippable ? "Hoàn thành bài học" : "Hoàn thành bài học"}
+                                </span>
                 </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     };
@@ -383,28 +503,66 @@ const LessonDetailsPage: React.FC = () => {
         if (questions && questions.length > 0) {
             const lessonsCompleted = areAllLessonsCompleted();
             return (
-                <form className="bg-white p-6 rounded-2xl shadow-lg space-y-6" onSubmit={handleSubmitQuestion}>
-                    <h2 className="text-2xl font-bold text-gray-800">Bài kiểm tra</h2>
+                <div className="space-y-6">
+                    {/* Quiz Header */}
+                    <div className="bg-gradient-to-r from-blue-100 to-blue-50 rounded-2xl p-6 border border-blue-200">
+                        <div className="flex items-center space-x-3">
+                            <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+                                <Award className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-bold text-gray-800">Bài kiểm tra</h1>
+                                <p className="text-gray-600 flex items-center mt-1">
+                                    <FileText className="w-4 h-4 mr-1" />
+                                    {questions.length} câu hỏi
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Quiz Content */}
+                    <form className="bg-white rounded-2xl shadow-lg p-6 space-y-6" onSubmit={handleSubmitQuestion}>
                     {!lessonsCompleted && (
-                        <p className="text-red-500">Vui lòng hoàn thành tất cả bài học trước khi làm bài kiểm tra.</p>
-                    )}
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                                <div className="flex items-center space-x-2 text-yellow-800">
+                                    <Lock className="w-5 h-5" />
+                                    <p className="font-medium">Vui lòng hoàn thành tất cả bài học trước khi làm bài kiểm tra.</p>
+                                </div>
+                            </div>
+                        )}
+                        
                     {showResults && (
-                        <div className={`p-4 rounded-lg ${passed ? "bg-green-100" : "bg-red-100"}`}>
-                            <p className="font-bold">
+                            <div className={`rounded-xl p-4 ${passed ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"}`}>
+                                <div className="flex items-center space-x-2">
+                                    {passed ? (
+                                        <CheckCircle className="w-6 h-6 text-green-600" />
+                                    ) : (
+                                        <Zap className="w-6 h-6 text-red-600" />
+                                    )}
+                                    <p className={`font-bold ${passed ? "text-green-800" : "text-red-800"}`}>
                                 {passed
-                                    ? `Chúc mừng! Bạn đã vượt qua với số điểm: ${score}/${questions.length}`
-                                    : `Rất tiếc! Bạn chưa vượt qua. Điểm: ${score}/${questions.length}`}
+                                            ? `🎉 Chúc mừng! Bạn đã vượt qua với ${score}/${questions.length} điểm`
+                                            : `💪 Chưa đạt! Bạn được ${score}/${questions.length} điểm. Hãy cố gắng lần sau!`}
                             </p>
+                                </div>
                         </div>
                     )}
-                    {questions?.map((question) => (
-                        <div key={question.QuestionID} className="space-y-2">
-                            <p className="font-semibold text-gray-700">{question.QuestionText}</p>
-                            <div className="pl-4 space-y-1">
+
+                        {/* Questions */}
+                        <div className="space-y-6">
+                            {questions?.map((question, index) => (
+                                <div key={question.QuestionID} className="bg-gray-50 rounded-xl p-5 space-y-3">
+                                    <div className="flex items-start space-x-3">
+                                        <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                                            {index + 1}
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="font-semibold text-gray-800 mb-3">{question.QuestionText}</p>
+                                            <div className="space-y-2">
                                 {answers
                                     ?.filter((answer) => answer.QuestionID === question.QuestionID)
-                                    .map((answer, index) => (
-                                        <label key={index} className="flex items-center space-x-2 text-gray-600">
+                                                    .map((answer, answerIndex) => (
+                                                        <label key={answerIndex} className="flex items-center space-x-3 p-3 bg-white rounded-lg hover:bg-blue-50 transition-colors cursor-pointer">
                                             <input
                                                 type={question.Type === "multiple" ? "checkbox" : "radio"}
                                                 name={`question-${question.QuestionID}`}
@@ -412,74 +570,244 @@ const LessonDetailsPage: React.FC = () => {
                                                 onChange={(e) =>
                                                     handleAnswerChange(question.QuestionID, answer.AnswerID.toString(), e.target.checked)
                                                 }
-                                                className="accent-primary-600"
+                                                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 focus:ring-2"
                                                 disabled={showResults || !lessonsCompleted}
                                                 checked={(userAnswers[question.QuestionID.toString()] || []).includes(answer.AnswerID.toString())}
                                             />
-                                            <span>{answer.AnswerText}</span>
+                                                            <span className="text-gray-700">{answer.AnswerText}</span>
                                         </label>
                                     ))}
+                                            </div>
                                 {showResults && !passed && !isQuestionCorrect(question.QuestionID) && (
-                                    <p className="text-red-500 text-sm">Câu trả lời không đúng. Vui lòng xem lại nội dung bài học.</p>
+                                                <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                                    <p className="text-red-600 text-sm font-medium">❌ Câu trả lời chưa chính xác. Hãy xem lại nội dung bài học.</p>
+                                                </div>
                                 )}
                             </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                    ))}
+
+                        {/* Submit Button */}
+                        <div className="flex justify-between items-center pt-6 border-t border-gray-100">
+                            <div className="text-sm text-gray-500">
+                                {questions.length} câu hỏi • Cần trả lời đúng để hoàn thành khóa học
+                            </div>
+                            
                     {!showResults && (
                         <button
                             type="submit"
                             disabled={!lessonsCompleted}
-                            className={`mt-4 px-6 py-3 rounded-lg font-medium transition duration-200 ${lessonsCompleted
-                                ? "bg-primary-600 text-white hover:bg-primary-700"
-                                : "bg-gray-400 text-gray-200 cursor-not-allowed"
-                                }`}
-                        >
-                            Nộp bài
+                                    className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                                        lessonsCompleted
+                                            ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 shadow-lg hover:shadow-xl transform hover:scale-105"
+                                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                    }`}
+                                >
+                                    <Award className="w-5 h-5" />
+                                    <span>Nộp bài kiểm tra</span>
                         </button>
                     )}
+                            
                     {showResults && (
                         <button
                             type="button"
-                            onClick={
-                                passed ? handleRedoWhenCourseCompleted : handleRedoQuiz
-                            }
-                            className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
-                        >
-                            Làm lại
+                                    onClick={passed ? handleRedoWhenCourseCompleted : handleRedoQuiz}
+                                    className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-100 text-white rounded-xl hover:from-blue-700 hover:to-blue-200 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                                >
+                                    <Zap className="w-5 h-5" />
+                                    <span>Làm lại</span>
                         </button>
                     )}
+                        </div>
                 </form>
+                </div>
             );
         }
-        return <p className="text-red-400">Không có câu hỏi cho bài học này</p>;
+        return (
+            <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+                <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg">Không có câu hỏi nào cho khóa học này</p>
+            </div>
+        );
     };
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <div className="container mx-auto py-10 px-6 md:px-20 flex flex-col md:flex-row gap-6">
-                <aside className="md:w-52 shrink-0 bg-white rounded-xl shadow-md p-4">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+            {/* Header with Breadcrumb */}
+            <div className="bg-white shadow-sm border-b border-gray-100">
+                <div className="container mx-auto px-6 py-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                            <Link 
+                                to="/courses" 
+                                className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
+                            >
+                                <ArrowLeft className="w-5 h-5" />
+                                <span>Khóa học</span>
+                            </Link>
+                            <ChevronRight className="w-4 h-4 text-gray-400" />
+                            <span className="text-gray-800 font-medium">
+                                {courseData?.Title ? courseData.Title : ""}
+                            </span>
+                        </div>
+                        
+                        <div className="flex items-center space-x-4">
+                            <div className="text-right">
+                                <div className="text-sm text-gray-500">Tiến độ hoàn thành</div>
+                                <div className="text-lg font-bold text-blue-600">{getOverallProgress()}%</div>
+                            </div>
+                            <div className="w-16 h-16 relative">
+                                <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 36 36">
+                                    <path
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none"
+                                        stroke="#e5e7eb"
+                                        strokeWidth="2"
+                                    />
+                                    <path
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none"
+                                        stroke="#3b82f6"
+                                        strokeWidth="2"
+                                        strokeDasharray={`${getOverallProgress()}, 100`}
+                                    />
+                                </svg>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <span className="text-xs font-bold text-blue-600">{getOverallProgress()}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="container mx-auto py-8 px-6 flex flex-col lg:flex-row gap-8">
+                {/* Enhanced Sidebar */}
+                <aside className="lg:w-80 shrink-0">
+                    <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-8">
+                        {/* Course Overview */}
+                        <div className="mb-6 pb-6 border-b border-gray-100">
+                            <h3 className="text-lg font-bold text-gray-800 mb-3">Tổng quan khóa học</h3>
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-600 flex items-center">
+                                        <BookOpen className="w-4 h-4 mr-2" />
+                                        Bài học
+                                    </span>
+                                    <span className="font-medium text-gray-800">
+                                        {getCompletedLessonsCount()}/{lesson?.length || 0}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-600 flex items-center">
+                                        <Clock className="w-4 h-4 mr-2" />
+                                        Thời lượng
+                                    </span>
+                                    <span className="font-medium text-gray-800">{getTotalLessonsDuration()} phút</span>
+                                </div>
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-600 flex items-center">
+                                        <Award className="w-4 h-4 mr-2" />
+                                        Kiểm tra
+                                    </span>
+                                    <span className="font-medium text-gray-800">
+                                        {quizCompleted ? (passed ? "Đã qua" : "Chưa qua") : "Chưa làm"}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Lesson Navigation */}
                     <nav className="space-y-2">
+                            <h4 className="text-sm font-semibold text-gray-700 mb-3">Nội dung khóa học</h4>
                         {lesson &&
-                            lesson.map((l, index) => (
+                                lesson.map((l, index) => {
+                                    const isCompleted = completedLessons.has(l.LessonID);
+                                    const isCurrent = selected === l.LessonID;
+                                    const isUnlocked = isLessonUnlocked(index);
+                                    
+                                    return (
                                 <button
                                     key={l.LessonID}
-                                    className={`w-full text-left px-4 py-2 rounded-lg font-medium transition duration-200 ${selected === l.LessonID ? "bg-primary-600 text-white" : "hover:bg-gray-100 text-gray-700"
-                                        }`}
-                                    onClick={() => setSelected(l.LessonID)}
-                                >
-                                    📘 Bài học {index + 1}
+                                            className={`w-full text-left p-4 rounded-xl font-medium transition-all duration-200 ${
+                                                isCurrent
+                                                    ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg transform scale-105"
+                                                    : isCompleted
+                                                    ? "bg-green-50 hover:bg-green-100 text-green-800 border border-green-200"
+                                                    : isUnlocked
+                                                    ? "hover:bg-gray-50 text-gray-700 border border-gray-200"
+                                                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                            }`}
+                                            onClick={() => isUnlocked && setSelected(l.LessonID)}
+                                            disabled={!isUnlocked}
+                                        >
+                                            <div className="flex items-center space-x-3">
+                                                <div className="flex-shrink-0">
+                                                    {isCompleted ? (
+                                                        <CheckCircle className="w-5 h-5" />
+                                                    ) : isCurrent ? (
+                                                        <Play className="w-5 h-5" />
+                                                    ) : isUnlocked ? (
+                                                        <Video className="w-5 h-5" />
+                                                    ) : (
+                                                        <Lock className="w-5 h-5" />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-sm font-medium truncate">
+                                                        Bài học {index + 1}
+                                                    </div>
+                                                    <div className="text-xs opacity-75 truncate">
+                                                        {l.Title}
+                                                    </div>
+                                                    <div className="text-xs opacity-60 flex items-center mt-1">
+                                                        <Clock className="w-3 h-3 mr-1" />
+                                                        {l.Duration} phút
+                                                    </div>
+                                                </div>
+                                            </div>
                                 </button>
-                            ))}
+                                    );
+                                })}
+                            
+                            {/* Quiz Button */}
                         <button
-                            className={`w-full text-left px-4 py-2 rounded-lg font-medium transition duration-200 ${selected === "question" ? "bg-primary-600 text-white" : "hover:bg-gray-100 text-gray-700"
+                                className={`w-full text-left p-4 rounded-xl font-medium transition-all duration-200 ${
+                                    selected === "question"
+                                        ? "bg-gradient-to-r from-blue-600 to-blue-100 text-white shadow-lg transform scale-105"
+                                        : areAllLessonsCompleted()
+                                        ? "hover:bg-blue-50 text-blue-700 border border-blue-200"
+                                        : "bg-gray-100 text-gray-400 cursor-not-allowed"
                                 }`}
-                            onClick={() => setSelected("question")}
-                        >
-                            ❓ Câu hỏi
+                                onClick={() => areAllLessonsCompleted() && setSelected("question")}
+                                disabled={!areAllLessonsCompleted()}
+                            >
+                                <div className="flex items-center space-x-3">
+                                    <div className="flex-shrink-0">
+                                        {areAllLessonsCompleted() ? (
+                                            <Award className="w-5 h-5" />
+                                        ) : (
+                                            <Lock className="w-5 h-5" />
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-sm font-medium">Bài kiểm tra</div>
+                                        <div className="text-xs opacity-75">
+                                            {questions?.length || 0} câu hỏi
+                                        </div>
+                                    </div>
+                                </div>
                         </button>
                     </nav>
+                    </div>
                 </aside>
-                <main className="flex-1">{selected === "question" ? handleQuestion() : handleContent()}</main>
+
+                {/* Main Content */}
+                <main className="flex-1">
+                    {selected === "question" ? handleQuestion() : handleContent()}
+                </main>
             </div>
         </div>
     );

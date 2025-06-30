@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  Clock, 
+  BookOpen, 
+  Users, 
+  Award, 
+  Play, 
+  FileText,
+  Target,
+  Sparkles,
+  TrendingUp
+} from 'lucide-react';
 import { Enrollment, SqlCourse } from '../../types/Course';
 import { sqlLesson } from '../../types/Lesson';
 import useAuthToken from '../../hooks/useAuthToken';
@@ -9,6 +20,7 @@ import Modal from '../../components/modal/ModalNotification';
 import { useUser } from '@/context/UserContext';
 import { parseSqlDate } from '@/utils/parseSqlDateUtils';
 import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const CourseEnrollPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -116,11 +128,7 @@ const CourseEnrollPage: React.FC = () => {
     );
 
     if (isEnrolled) {
-      navigate(`/courses/${id}/details`, {
-        state: {
-          isCompleted: true
-        }
-      });
+      navigate(`/courses/${id}/lessons`);
       return;
     }
 
@@ -160,7 +168,7 @@ const CourseEnrollPage: React.FC = () => {
 
       toast.success('Đăng ký khóa học thành công!');
       setTimeout(() => {
-        navigate(`/courses/${id}/details`);
+        navigate(`/courses/${id}/lessons`);
       }, 1500);
     } catch (error: any) {
       console.error('Error enrolling in course:', error);
@@ -171,21 +179,38 @@ const CourseEnrollPage: React.FC = () => {
     }
   };
 
-  const handleUnenroll = async () => {
-    if (!token || !user?.AccountID) {
+  const handleUnenroll = () => {
+    const ConfirmToast: React.FC<{ closeToast?: () => void }> = ({ closeToast }) => (
+      <div>
+        <div className="font-semibold mb-2">Xác nhận hủy đăng ký</div>
+        <div className="mb-4 text-sm text-gray-700">Bạn có chắc chắn muốn hủy đăng ký khóa học này? Hành động này không thể hoàn tác.</div>
+        <div className="flex gap-2 justify-end">
+          <button
+            className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 font-medium"
+            onClick={closeToast}
+          >
+            Hủy
+          </button>
+          <button
+            className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 font-medium"
+            onClick={async () => {
+              closeToast && closeToast();
+              await confirmUnenroll();
+            }}
+          >
+            Hủy đăng ký
+          </button>
+        </div>
+      </div>
+    );
+    toast.info(<ConfirmToast />, { autoClose: false, closeOnClick: false, draggable: false });
+  };
+
+  const confirmUnenroll = async () => {
+    if (!token || !user || !user.AccountID) {
       toast.error('Thông tin người dùng không hợp lệ.');
       return;
     }
-
-    // Confirm before unenrolling
-    const confirmUnenroll = window.confirm(
-      'Bạn có chắc chắn muốn hủy đăng ký khóa học này? Hành động này không thể hoàn tác.'
-    );
-
-    if (!confirmUnenroll) {
-      return;
-    }
-
     try {
       setIsEnrolling(true);
       const response = await fetch(`${API_URL}/api/course/${id}/unenroll`, {
@@ -205,16 +230,12 @@ const CourseEnrollPage: React.FC = () => {
         throw new Error(data.message ?? 'Hủy đăng ký khóa học không thành công.');
       }
 
-      // Update enrolledCourses locally by removing the unenrolled course
       setEnrolledCourses((prev) => 
         prev.filter(enrollment => 
           !(enrollment.AccountID === user.AccountID && enrollment.CourseID === Number(id))
         )
       );
-
-      // Re-fetch enrolled courses to ensure consistency
       await fetchEnrolledCourses();
-
       toast.success('Hủy đăng ký khóa học thành công!');
     } catch (error: unknown) {
       console.error('Error unenrolling from course:', error);
@@ -236,13 +257,17 @@ const CourseEnrollPage: React.FC = () => {
     return isUserEnrolled ? 'Tiếp tục học' : 'Tham gia khóa học';
   };
 
+  const getRandomEnrollmentCount = () => {
+    return Math.floor(Math.random() * 500) + 100;
+  };
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Đang tải...</h1>
-          </div>
+      <div className="min-h-screen bg-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-2xl font-semibold text-gray-700">Đang tải khóa học...</h2>
+          <p className="text-gray-500 mt-2">Vui lòng chờ trong giây lát</p>
         </div>
       </div>
     );
@@ -250,28 +275,32 @@ const CourseEnrollPage: React.FC = () => {
 
   if (!course || error) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+      <div className="min-h-screen bg-blue-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FileText className="w-8 h-8 text-red-600" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">
               {error ?? 'Không tìm thấy khóa học'}
             </h1>
             <p className="text-gray-600 mb-8">Khóa học không tồn tại hoặc có lỗi xảy ra.</p>
             <Link
               to="/courses"
-              className="inline-flex items-center text-primary-600 hover:text-primary-700"
+            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
             >
               <ArrowLeft className="h-5 w-5 mr-2" />
               Quay lại trang Khóa học
             </Link>
-          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div
+      className="min-h-screen"
+      style={{ background: '#2563eb' }}
+    >
       <Modal
         isOpen={isOpen}
         onClose={closeModal}
@@ -282,78 +311,164 @@ const CourseEnrollPage: React.FC = () => {
           navigate('/login');
         }}
       />
-      <div className="container mx-auto px-4">
-        {/* Navigation */}
-        <div className="max-w-4xl mx-auto mb-8">
-          <Link
-            to="/courses"
-            className="inline-flex items-center text-primary-600 hover:text-primary-700"
-          >
-            <ArrowLeft className="h-5 w-5 mr-2" />
-            Quay lại trang Khóa học
-          </Link>
-        </div>
 
-        {/* Course Header */}
-        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md overflow-hidden mb-8">
-          <img src={course.ImageUrl} alt={course.CourseName} className="w-full h-64 object-cover" />
-          <div className="p-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">{course.CourseName}</h1>
-            <p className="text-gray-600 text-lg mb-6">{course.Description}</p>
+      {/* Header Section */}
+      <div className="relative bg-transparent text-white">
+        <div className="relative container mx-auto px-6 py-12">
+          {/* Navigation */}
+          <div className="mb-8">
+            <Link
+              to="/courses"
+              className="inline-flex items-center text-white/80 hover:text-white transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5 mr-2" />
+              Quay lại trang Khóa học
+            </Link>
+          </div>
+
+          <div className="max-w-6xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              {/* Course Info */}
+              <div>
+                <h1 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                  {course.CourseName}
+                </h1>
+                
+                <p className="text-xl text-white/90 mb-8 leading-relaxed">
+                  {course.Description}
+                </p>
+
+                {/* CTA Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <button
+                    onClick={handleEnroll}
+                    disabled={isLoading || isEnrolling}
+                    className="flex items-center justify-center space-x-2 px-8 py-4 bg-white text-blue-600 rounded-xl hover:bg-gray-50 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Play className="w-5 h-5" />
+                    <span>{getButtonText()}</span>
+                  </button>
+
+                  {isUserEnrolled && !isCourseCompleted && (
+                    <button
+                      onClick={handleUnenroll}
+                      disabled={isLoading || isEnrolling}
+                      className="flex items-center justify-center space-x-2 px-8 py-4 bg-transparent border-2 border-white text-white rounded-xl hover:bg-white hover:text-blue-600 transition-all duration-200 font-semibold"
+                    >
+                      <span>{isEnrolling && isUserEnrolled ? 'Đang hủy...' : 'Hủy đăng ký'}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Course Image */}
+              <div className="relative">
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+                  <img 
+                    src={course.ImageUrl} 
+                    alt={course.CourseName} 
+                    className="w-full h-80 object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Course Content */}
-        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-8 mb-8">
-          <h2 className="text-2xl font-bold mb-6">Nội dung khóa học</h2>
-          <div className="space-y-4">
-            {sqlLessons.length > 0 ? (
-              sqlLessons.map((lesson, index) => (
-                <div
-                  key={lesson.LessonID}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-                >
-                  <div className="flex items-center">
-                    <div className="bg-primary-100 text-primary-600 w-8 h-8 rounded-full flex items-center justify-center mr-4">
-                      {index + 1}
-                    </div>
-                    <div>
-                      <h3 className="font-medium">{lesson.Title}</h3>
-                      <p className="text-md text-gray-500">{lesson.BriefDescription}</p>
-                      <p className="text-sm text-gray-500">{lesson.Duration} phút</p>
+      {/* Course Content */}
+      <div className="py-16 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-blue-900 mb-4">Nội dung khóa học</h2>
+              <p className="text-blue-700 text-lg">
+                Học tập linh hoạt theo tiến độ của bạn
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {sqlLessons.length > 0 ? (
+                sqlLessons.map((lesson, index) => (
+                  <div
+                    key={lesson.LessonID}
+                    className="group bg-blue-50 hover:bg-blue-100 rounded-xl p-6 transition-all duration-200 border border-transparent hover:border-blue-200"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold group-hover:bg-blue-600 transition-colors">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-blue-900 mb-1 group-hover:text-blue-700 transition-colors">
+                            {lesson.Title}
+                          </h3>
+                          <p className="text-blue-700 mb-2">{lesson.BriefDescription}</p>
+                          <div className="flex items-center space-x-4 text-sm text-blue-700">
+                            <div className="flex items-center space-x-1">
+                              <Clock className="w-4 h-4" />
+                              <span>{lesson.Duration} phút</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="text-right">
+                        <div className="w-8 h-8 bg-blue-200 group-hover:bg-blue-300 rounded-full flex items-center justify-center transition-colors">
+                          <Play className="w-4 h-4 text-blue-600 group-hover:text-blue-800" />
+                        </div>
+                      </div>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-12">
+                  <BookOpen className="w-16 h-16 text-blue-200 mx-auto mb-4" />
+                  <p className="text-blue-700 text-lg">Chưa có bài học nào cho khóa học này.</p>
                 </div>
-              ))
-            ) : (
-              <p className="text-gray-600">Chưa có bài học nào cho khóa học này.</p>
-            )}
+              )}
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Enrollment CTA */}
-        <div className="max-w-4xl mx-auto bg-primary-50 rounded-lg shadow-md p-8 text-center">
-          <h2 className="text-2xl font-bold text-primary-900 mb-4">Tham gia khóa học</h2>
-
-          <div className="flex justify-center gap-4">
-            <button
-              onClick={handleEnroll}
-              disabled={isLoading || isEnrolling}
-              className="bg-primary-600 text-white px-8 py-3 rounded-md shadow-md hover:bg-primary-700 transition-colors font-medium disabled:bg-gray-400"
-            >
-              {getButtonText()}
-            </button>
-
-            {/* Show Unenroll button only if user is enrolled and course is not completed */}
-            {isUserEnrolled && !isCourseCompleted && (
+      {/* Final CTA Section */}
+      <div className="py-16 bg-blue-100 text-blue-900">
+        <div className="container mx-auto px-6 text-center">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-3xl font-bold mb-4">Sẵn sàng bắt đầu hành trình học tập?</h2>
+            <p className="text-xl text-blue-900/90 mb-8">
+              Tham gia cùng hơn {getRandomEnrollmentCount()} học viên khác và nâng cao kiến thức của bạn ngay hôm nay
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
-                onClick={handleUnenroll}
+                onClick={handleEnroll}
                 disabled={isLoading || isEnrolling}
-                className="bg-red-600 text-white px-8 py-3 rounded-md shadow-md hover:bg-red-700 transition-colors font-medium disabled:bg-gray-400"
+                className="flex items-center justify-center space-x-2 px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isEnrolling && isUserEnrolled ? 'Đang hủy...' : 'Hủy đăng ký'}
+                <Award className="w-6 h-6" />
+                <span>{getButtonText()}</span>
               </button>
-            )}
+
+              {isUserEnrolled && !isCourseCompleted && (
+                <button
+                  onClick={handleUnenroll}
+                  disabled={isLoading || isEnrolling}
+                  className="flex items-center justify-center space-x-2 px-8 py-4 bg-transparent border-2 border-blue-600 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all duration-200 font-semibold"
+                >
+                  <span>{isEnrolling && isUserEnrolled ? 'Đang hủy...' : 'Hủy đăng ký'}</span>
+                </button>
+              )}
+            </div>
+
+            <div className="mt-8 flex items-center justify-center space-x-8 text-blue-700">
+              <div className="flex items-center space-x-2">
+                <Users className="w-5 h-5" />
+                <span>Cộng đồng hỗ trợ</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

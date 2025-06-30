@@ -31,6 +31,7 @@ import CommunityProgramPage from './pages/program/CommunityProgramPage';
 import CommunityProgramDetails from './pages/program/CommunityProgramDetailsPage';
 import AdminPage from './pages/management/AdminPage';
 import ConsultantPage from './pages/management/ConsultantPage';
+import VideoCallPage from '@/components/video/VideoCallPage';
 
 function App() {
   return (
@@ -45,7 +46,7 @@ function App() {
             <Route path="article/:articleId" element={<ArticleDetailsPage />} />
             <Route path="courses" element={<CoursesPage />} />
             <Route path="courses/:id" element={<CourseEnrollPage />} />
-            <Route path="courses/:id/details/" element={<LessonDetailsPage />} />
+            <Route path="courses/:id/lessons" element={<LessonDetailsPage />} />
             <Route path="consultant/:consultantId" element={<ConsultantDetailsPage />} />
             <Route path="assessments" element={<AssessmentsPage />} />
             <Route path="assessments/:assessmentId" element={<AssessmentDetailPage />} />
@@ -71,6 +72,7 @@ function App() {
             <Route path="*" element={<NotFoundPage />} />
           </Route>
 
+          <Route path='/video-call' element={<VideoCallPage />} />
           {/* different layout with no header and footer included */}
           <Route path="" element={<AuthLayout />}>
             <Route path="login" element={<LoginPage />} />
