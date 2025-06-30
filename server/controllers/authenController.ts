@@ -80,7 +80,7 @@ export async function login(
     const token = jwt.sign(
       { user: userData },
       process.env.JWT_SECRET as string,
-      { expiresIn: "1h" }
+      { expiresIn: "12h" }
     );
 
     res.status(200).json({

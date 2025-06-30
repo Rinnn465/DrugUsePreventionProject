@@ -12,6 +12,7 @@ import authorizeRoles from "./middleware/authenMiddleware";
 import apiProgramAttendeeRoutes from "./routes/programAttendeeRoutes";
 import apiProgramSurveyRoutes from "./routes/programSurveyRoutes";
 import { updateProgramStatus } from "./controllers/scheduledProgram";
+import apiLessonRoutes from "./routes/lessonRoutes";
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
@@ -69,6 +70,12 @@ app.use(
   "/api/program-survey",
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   apiProgramSurveyRoutes
+);
+
+app.use(
+  "/api/lesson",
+  authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
+  apiLessonRoutes
 );
 
 
