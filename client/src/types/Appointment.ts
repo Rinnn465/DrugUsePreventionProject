@@ -1,12 +1,19 @@
 export interface Appointment {
-    AppointmentID: number; // Optional if it's auto-generated
+    AppointmentID: number;
     ConsultantID: number;
     AccountID: number;
-    Time: string; // Format: 'HH:mm:ss'
-    Date: string; // Format: 'YYYY-MM-DD'
+    Time: string;
+    Date: string;
     MeetingURL?: string;
     Status: string;
     Description?: string;
-    Duration: number; // in minutes
-    RejectedReason?: string; // Reason for rejection when status is 'rejected'
+    Duration: number;
+    CustomerName?: string;
+    CustomerEmail?: string;
+    RejectedReason?: string;
+    // Add video call fields
+    VideoCallActive?: boolean;
+    AgoraChannelName?: string;
+    CallStartTime?: string;
+    CallEndTime?: string;
 }
