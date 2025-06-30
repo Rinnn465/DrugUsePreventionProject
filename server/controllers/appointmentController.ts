@@ -46,9 +46,9 @@ export async function getAppointmentByUserId(req: Request, res: Response, next: 
             return;
         }
 
-        res.status(200).json({ message: "Không tìm thấy lịch hẹn cho người dùng này!", data: result.recordset });
+        res.status(200).json({ message: "Tìm lịch hẹn thành công", data: result.recordset });
     } catch (error) {
-        console.error("Error fetching appointment by user ID: ", error);
+        console.log("Error fetching appointment by user ID: ", error);
         res.status(500).json({ message: "Lỗi server!" });
     }
 };

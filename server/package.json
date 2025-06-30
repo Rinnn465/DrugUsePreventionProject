@@ -13,6 +13,9 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/mssql": "^9.1.7",
     "@types/nodemailer": "^6.4.17",
+    "agora-access-token": "^2.0.4",
+    "agora-rtc-react": "^2.4.0",
+    "agora-rtc-sdk-ng": "^4.23.4",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
@@ -31,6 +34,7 @@
   },
   "devDependencies": {
     "@types/connect": "^3.4.38",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0"
   }
 }
