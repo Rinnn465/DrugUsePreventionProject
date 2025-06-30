@@ -193,7 +193,7 @@ const AppointmentsPage: React.FC = () => {
                   Danh Sách chuyên viên
                 </h3>
               </div>
-              <div className="max-h-[600px] overflow-y-auto">
+              <div className="max-h-[600px] overflow-y-auto overflow-x-hidden">
                 {filteredConsunltants.length > 0 ? (
                   filteredConsunltants.map((consultant) => (
                     <div
