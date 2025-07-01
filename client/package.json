@@ -12,6 +12,8 @@
   "dependencies": {
     "@jitsi/react-sdk": "^1.4.4",
     "@tippyjs/react": "^4.2.6",
+    "agora-rtc-react": "^2.4.0",
+    "agora-rtc-sdk-ng": "^4.23.4",
     "axios": "^1.9.0",
     "cors": "^2.8.5",
     "dayjs": "^1.11.13",

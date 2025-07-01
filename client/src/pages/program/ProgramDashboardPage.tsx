@@ -5,7 +5,8 @@ import {
     Settings,
     BarChart3,
     Users,
-    BookOpen
+    BookOpen,
+    ArrowLeft
 } from 'lucide-react';
 
 const ProgramDashboardPage: React.FC = () => {
@@ -27,6 +28,12 @@ const ProgramDashboardPage: React.FC = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
+                            <Link 
+                                to="/admin"
+                                className="p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                            >
+                                <ArrowLeft className="h-8 w-8 text-gray-600" />
+                            </Link>
                             <div className="p-3 bg-blue-100 rounded-xl">
                                 <Calendar className="h-8 w-8 text-blue-600" />
                             </div>

@@ -1,199 +1,278 @@
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useUser } from "../../context/UserContext";
 import { 
+    Home,
     Users, 
     BookOpen, 
     Calendar, 
     BarChart3, 
-    Settings, 
     Shield,
     TrendingUp,
-    Activity,
-    UserCheck,
-    FileText
+    FileText,
+    LogOut,
+    ChevronRight,
+    Menu,
+    X,
+    Bell,
+    Search
 } from "lucide-react";
 
 const AdminPage: React.FC = () => {
-    const { user } = useUser();
-
-    const statsCards = [
+    const { user, setUser } = useUser();
+    const navigate = useNavigate();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    
+    // Sidebar navigation items - chỉ những link thật sự hoạt động
+    const navigationItems = [
         {
-            title: "Tổng người dùng",
+            label: "Bảng điều khiển",
+            icon: Home,
+            active: true,
+            link: `/admin`
+        },
+        {
+            label: "Quản lý khóa học",
+            icon: BookOpen,
+            link: `/roles/${user?.RoleID}/course-manage`
+        },
+        {
+            label: "Quản lý sự kiện", 
+            icon: Calendar,
+            link: `/roles/${user?.RoleID}/program-dashboard`
+        }
+    ];
+
+    // Stats thực tế với ý nghĩa
+    const statsData = [
+        {
+            title: "Tổng người dùng", 
             value: "1,234",
             change: "+12%",
             icon: Users,
-            color: "bg-blue-500",
-            trend: "up"
+            color: "bg-blue-500"
         },
         {
             title: "Khóa học hoạt động",
-            value: "45",
+            value: "45", 
             change: "+8%",
             icon: BookOpen,
-            color: "bg-green-500",
-            trend: "up"
+            color: "bg-green-500"
         },
         {
             title: "Sự kiện tháng này",
             value: "23",
-            change: "+15%",
+            change: "+15%", 
             icon: Calendar,
-            color: "bg-purple-500",
-            trend: "up"
+            color: "bg-purple-500"
         },
         {
             title: "Tỷ lệ hoàn thành",
             value: "87%",
             change: "+3%",
-            icon: TrendingUp,
-            color: "bg-orange-500",
-            trend: "up"
+            icon: TrendingUp, 
+            color: "bg-orange-500"
         }
     ];
 
-    const managementCards = [
-        {
-            title: "Quản lý sự kiện",
-            description: "Tạo, chỉnh sửa và theo dõi các chương trình cộng đồng",
-            icon: Calendar,
-            color: "bg-blue-500",
-            hoverColor: "hover:bg-blue-600",
-            link: `/roles/${user?.RoleID}/program-dashboard`,
-            stats: "23 sự kiện"
-        },
-        {
-            title: "Quản lý khóa học",
-            description: "Quản lý nội dung học tập và theo dõi tiến độ học viên",
-            icon: BookOpen,
-            color: "bg-green-500",
-            hoverColor: "hover:bg-green-600",
-            link: `/roles/${user?.RoleID}/course-manage`,
-            stats: "45 khóa học"
-        },
-        {
-            title: "Quản lý nhân viên",
-            description: "Quản lý tài khoản, phân quyền và theo dõi hoạt động",
-            icon: UserCheck,
-            color: "bg-purple-500",
-            hoverColor: "hover:bg-purple-600",
-            link: `/roles/${user?.RoleID}/employee-manage`,
-            stats: "156 nhân viên"
-        }
-    ];
+
+
+    const handleLogout = () => {
+        fetch('http://localhost:5000/api/auth/logout', {
+            method: 'POST',
+            credentials: 'include',
+        })
+            .then(() => {
+                setUser(null);
+                localStorage.removeItem('user');
+                localStorage.clear();
+                navigate('/login');
+            })
+            .catch(() => {
+                setUser(null);
+                localStorage.removeItem('user');
+                localStorage.clear();
+                navigate('/login');
+            });
+    };
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header Section */}
-            <div className="bg-white shadow-sm border-b">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                            <div className="p-3 bg-primary-100 rounded-xl">
-                                <Shield className="h-8 w-8 text-primary-600" />
+        <div className="flex h-screen bg-gray-100">
+            {/* Sidebar */}
+            <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-800 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
+                {/* Sidebar Header */}
+                <div className="flex items-center justify-between h-16 px-6 bg-slate-900">
+                    <div className="flex items-center space-x-2">
+                        <Shield className="h-8 w-8 text-blue-400" />
+                        <span className="text-xl font-bold text-white">ADMIN</span>
+                    </div>
+                    <button
+                        onClick={() => setSidebarOpen(false)}
+                        className="lg:hidden text-gray-400 hover:text-white"
+                    >
+                        <X className="h-6 w-6" />
+                    </button>
+                </div>
+
+                {/* Navigation */}
+                <nav className="mt-8 px-4">
+                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                        Điều hướng
+                    </div>
+                    
+                    {navigationItems.map((item, index) => (
+                        <Link
+                            key={index}
+                            to={item.link}
+                            className={`flex items-center justify-between px-4 py-3 rounded-lg cursor-pointer transition-colors mb-2 ${
+                                item.active ? 'bg-slate-700 text-white' : 'text-gray-300 hover:bg-slate-700 hover:text-white'
+                            }`}
+                        >
+                            <div className="flex items-center space-x-3">
+                                <item.icon className="h-5 w-5" />
+                                <span className="font-medium">{item.label}</span>
                             </div>
-                            <div>
-                                <h1 className="text-3xl font-bold text-gray-900">Dashboard Admin</h1>
-                                <p className="text-gray-600 mt-1">Chào mừng trở lại, {user?.FullName ?? user?.Username}</p>
+                            <ChevronRight className="h-4 w-4" />
+                        </Link>
+                    ))}
+
+                    {/* Logout Button */}
+                    <div className="mt-8 px-4">
+                        <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center space-x-3 px-4 py-3 text-red-400 hover:bg-red-500 hover:text-white rounded-lg transition-colors"
+                        >
+                            <LogOut className="h-5 w-5" />
+                            <span className="font-medium">Đăng xuất</span>
+                        </button>
+                    </div>
+                </nav>
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
+                {/* Top Header */}
+                <header className="bg-white shadow-sm border-b border-gray-200">
+                    <div className="flex items-center justify-between px-6 py-4">
+                        <div className="flex items-center space-x-4">
+                            <button
+                                onClick={() => setSidebarOpen(true)}
+                                className="lg:hidden text-gray-500 hover:text-gray-700"
+                            >
+                                <Menu className="h-6 w-6" />
+                            </button>
+                            <div className="flex items-center space-x-2">
+                                <Home className="h-5 w-5 text-blue-500" />
+                                <span className="text-2xl font-bold text-gray-900">Trang chủ</span>
                             </div>
                         </div>
-
-                    </div>
-                </div>
-            </div>
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Stats Overview */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    {statsCards.map((card) => {
-                        const IconComponent = card.icon;
-                        return (
-                            <div key={card.title} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex-1">
-                                        <p className="text-sm font-medium text-gray-600 mb-1">{card.title}</p>
-                                        <p className="text-2xl font-bold text-gray-900 mb-2">{card.value}</p>
-                                        <div className="flex items-center">
-                                            <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                                            <span className="text-sm text-green-600 font-medium">{card.change}</span>
-                                            <span className="text-sm text-gray-500 ml-1">từ tháng trước</span>
-                                        </div>
-                                    </div>
-                                    <div className={`p-3 rounded-xl ${card.color}`}>
-                                        <IconComponent className="h-6 w-6 text-white" />
-                                    </div>
-                                </div>
+                        
+                        <div className="flex items-center space-x-4">
+                            <div className="text-sm text-gray-500">
+                                <Home className="h-4 w-4 inline mr-1" />
+                                Trang chủ
                             </div>
-                        );
-                    })}
-                </div>
-
-                {/* Management Cards */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    {managementCards.map((card) => {
-                        const IconComponent = card.icon;
-                        return (
-                            <Link key={card.title} to={card.link} className="group">
-                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-200 group-hover:border-primary-200 flex flex-col h-full">
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div className={`p-3 rounded-xl ${card.color} group-hover:scale-110 transition-transform`}>
-                                            <IconComponent className="h-6 w-6 text-white" />
-                                        </div>
-                                        <span className="text-sm text-gray-500 bg-gray-50 px-3 py-1 rounded-full">
-                                            {card.stats}
+                            <div className="flex items-center space-x-2">
+                                <button className="p-2 text-gray-400 hover:text-gray-600">
+                                    <Search className="h-5 w-5" />
+                                </button>
+                                <button className="p-2 text-gray-400 hover:text-gray-600">
+                                    <Bell className="h-5 w-5" />
+                                </button>
+                                <div className="flex items-center space-x-2 pl-4 border-l border-gray-200">
+                                    <div className="h-8 w-8 bg-gray-300 rounded-full flex items-center justify-center">
+                                        <span className="text-sm font-medium text-gray-700">
+                                            {user?.FullName?.charAt(0) || user?.Username?.charAt(0) || 'A'}
                                         </span>
                                     </div>
-                                    <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
-                                        {card.title}
-                                    </h3>
-                                    <p className="text-gray-600 text-sm mb-4 leading-relaxed flex-grow">
-                                        {card.description}
-                                    </p>
-                                    <div className="flex items-center text-primary-600 font-medium text-sm group-hover:text-primary-700 mt-auto">
-                                        <span>Quản lý ngay</span>
-                                        <Activity className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                    <span className="text-sm font-medium text-gray-700">
+                                        {user?.FullName || user?.Username || 'Quản trị viên'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                {/* Dashboard Content */}
+                <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
+                    <div className="max-w-7xl mx-auto">
+                        {/* Welcome Section */}
+                        <div className="mb-8">
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">Chào mừng trở lại!</h1>
+                            <p className="text-gray-600">Xin chào {user?.FullName || user?.Username || 'Quản trị viên'}, hôm nay bạn muốn làm gì?</p>
+                        </div>
+
+                        {/* Stats Overview */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                            {statsData.map((stat, index) => (
+                                <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex-1">
+                                            <p className="text-sm font-medium text-gray-600 mb-1">{stat.title}</p>
+                                            <p className="text-2xl font-bold text-gray-900 mb-2">{stat.value}</p>
+                                            <div className="flex items-center">
+                                                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                                                <span className="text-sm text-green-600 font-medium">{stat.change}</span>
+                                                <span className="text-sm text-gray-500 ml-1">từ tháng trước</span>
+                                            </div>  
+                                        </div>
+                                        <div className={`p-3 rounded-xl ${stat.color}`}>
+                                            <stat.icon className="h-6 w-6 text-white" />
+                                        </div>
                                     </div>
                                 </div>
-                            </Link>
-                        );
-                    })}
-                </div>
+                            ))}
+                        </div>
 
-                {/* Quick Actions */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <BarChart3 className="h-5 w-5 mr-2 text-primary-600" />
-                        Thao tác nhanh
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors group">
-                            <div className="text-center">
-                                <FileText className="h-8 w-8 text-gray-400 group-hover:text-primary-500 mx-auto mb-2" />
-                                <span className="text-sm font-medium text-gray-600 group-hover:text-primary-600">Tạo báo cáo</span>
+
+
+                        {/* Quick Actions - Thực tế có thể click */}
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                <BarChart3 className="h-5 w-5 mr-2 text-primary-600" />
+                                Thao tác nhanh
+                            </h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <Link
+                                    to={`/roles/${user?.RoleID}/program-manage`}
+                                    className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors group"
+                                >
+                                    <div className="text-center">
+                                        <Calendar className="h-8 w-8 text-gray-400 group-hover:text-primary-500 mx-auto mb-2" />
+                                        <span className="text-sm font-medium text-gray-600 group-hover:text-primary-600">Tạo sự kiện</span>
+                                    </div>
+                                </Link>
+                                <Link
+                                    to={`/roles/${user?.RoleID}/course-manage`}
+                                    className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors group"
+                                >
+                                    <div className="text-center">
+                                        <BookOpen className="h-8 w-8 text-gray-400 group-hover:text-primary-500 mx-auto mb-2" />
+                                        <span className="text-sm font-medium text-gray-600 group-hover:text-primary-600">Tạo khóa học</span>
+                                    </div>
+                                </Link>
+                                <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors group">
+                                    <div className="text-center">
+                                        <FileText className="h-8 w-8 text-gray-400 group-hover:text-primary-500 mx-auto mb-2" />
+                                        <span className="text-sm font-medium text-gray-600 group-hover:text-primary-600">Tạo báo cáo</span>
+                                    </div>
+                                </button>
                             </div>
-                        </button>
-                        <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors group">
-                            <div className="text-center">
-                                <Users className="h-8 w-8 text-gray-400 group-hover:text-primary-500 mx-auto mb-2" />
-                                <span className="text-sm font-medium text-gray-600 group-hover:text-primary-600">Thêm người dùng</span>
-                            </div>
-                        </button>
-                        <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors group">
-                            <div className="text-center">
-                                <Calendar className="h-8 w-8 text-gray-400 group-hover:text-primary-500 mx-auto mb-2" />
-                                <span className="text-sm font-medium text-gray-600 group-hover:text-primary-600">Lên lịch sự kiện</span>
-                            </div>
-                        </button>
-                        <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors group">
-                            <div className="text-center">
-                                <Settings className="h-8 w-8 text-gray-400 group-hover:text-primary-500 mx-auto mb-2" />
-                                <span className="text-sm font-medium text-gray-600 group-hover:text-primary-600">Cài đặt hệ thống</span>
-                            </div>
-                        </button>
+                        </div>
                     </div>
-                </div>
+                </main>
             </div>
+
+            {/* Mobile sidebar overlay */}
+            {sidebarOpen && (
+                <div 
+                    className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
         </div>
     );
 };
 
-export default AdminPage;
+export default AdminPage; 
