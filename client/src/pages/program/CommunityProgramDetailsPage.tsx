@@ -475,25 +475,6 @@ const CommunityProgramDetails: React.FC = () => {
                     <p className="text-gray-600">{programData.Organizer}</p>
                   </div>
                 </div>
-
-                {programData.Url && (
-                  <div className="flex items-start">
-                    <div className="bg-blue-100 rounded-full p-2 mr-3 mt-1">
-                      <ExternalLink className="h-4 w-4 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900">Liên kết tham gia</p>
-                      <a
-                        href={programData.Url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 underline break-all"
-                      >
-                        Tham gia ngay
-                      </a>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
