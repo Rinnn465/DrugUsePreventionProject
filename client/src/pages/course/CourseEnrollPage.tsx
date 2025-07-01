@@ -1,16 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  Clock, 
-  BookOpen, 
-  Users, 
-  Award, 
-  Play, 
+import {
+  ArrowLeft,
+  Clock,
+  BookOpen,
+  Users,
+  Award,
+  Play,
   FileText,
-  Target,
-  Sparkles,
-  TrendingUp
 } from 'lucide-react';
 import { Enrollment, SqlCourse } from '../../types/Course';
 import { sqlLesson } from '../../types/Lesson';
@@ -230,8 +227,8 @@ const CourseEnrollPage: React.FC = () => {
         throw new Error(data.message ?? 'Hủy đăng ký khóa học không thành công.');
       }
 
-      setEnrolledCourses((prev) => 
-        prev.filter(enrollment => 
+      setEnrolledCourses((prev) =>
+        prev.filter(enrollment =>
           !(enrollment.AccountID === user.AccountID && enrollment.CourseID === Number(id))
         )
       );
@@ -281,16 +278,16 @@ const CourseEnrollPage: React.FC = () => {
             <FileText className="w-8 h-8 text-red-600" />
           </div>
           <h1 className="text-2xl font-bold text-gray-800 mb-4">
-              {error ?? 'Không tìm thấy khóa học'}
-            </h1>
-            <p className="text-gray-600 mb-8">Khóa học không tồn tại hoặc có lỗi xảy ra.</p>
-            <Link
-              to="/courses"
+            {error ?? 'Không tìm thấy khóa học'}
+          </h1>
+          <p className="text-gray-600 mb-8">Khóa học không tồn tại hoặc có lỗi xảy ra.</p>
+          <Link
+            to="/courses"
             className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
-            >
-              <ArrowLeft className="h-5 w-5 mr-2" />
-              Quay lại trang Khóa học
-            </Link>
+          >
+            <ArrowLeft className="h-5 w-5 mr-2" />
+            Quay lại trang Khóa học
+          </Link>
         </div>
       </div>
     );
@@ -333,7 +330,7 @@ const CourseEnrollPage: React.FC = () => {
                 <h1 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight">
                   {course.CourseName}
                 </h1>
-                
+
                 <p className="text-xl text-white/90 mb-8 leading-relaxed">
                   {course.Description}
                 </p>
@@ -364,9 +361,9 @@ const CourseEnrollPage: React.FC = () => {
               {/* Course Image */}
               <div className="relative">
                 <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-                  <img 
-                    src={course.ImageUrl} 
-                    alt={course.CourseName} 
+                  <img
+                    src={course.ImageUrl}
+                    alt={course.CourseName}
                     className="w-full h-80 object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
@@ -413,7 +410,7 @@ const CourseEnrollPage: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="text-right">
                         <div className="w-8 h-8 bg-blue-200 group-hover:bg-blue-300 rounded-full flex items-center justify-center transition-colors">
                           <Play className="w-4 h-4 text-blue-600 group-hover:text-blue-800" />
@@ -438,10 +435,10 @@ const CourseEnrollPage: React.FC = () => {
         <div className="container mx-auto px-6 text-center">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-3xl font-bold mb-4">Sẵn sàng bắt đầu hành trình học tập?</h2>
-            <p className="text-xl text-blue-900/90 mb-8">
+            {/* <p className="text-xl text-blue-900/90 mb-8">
               Tham gia cùng hơn {getRandomEnrollmentCount()} học viên khác và nâng cao kiến thức của bạn ngay hôm nay
             </p>
-            
+             */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={handleEnroll}

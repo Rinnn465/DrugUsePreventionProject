@@ -12,8 +12,8 @@ const Sidebar = () => {
     { path: userId ? `/dashboard/${userId}` : '/', label: 'Dashboard', icon: Home },
     { path: userId ? `/dashboard/${userId}/security` : '#', label: 'Bảo mật', icon: Lock },
     { path: userId ? `/dashboard/${userId}/courses` : '#', label: 'Khóa học', icon: BookOpen },
-    { path: userId ? `/dashboard/${userId}/events` : '#', label: 'Sự kiện', icon: Users },
-    { path: userId ? `/dashboard/${userId}/appointments` : '#', label: 'Đặt lịch hẹn', icon: Calendar },
+    { path: userId ? `/dashboard/${userId}/events` : '#', label: 'Chương trình', icon: Users },
+    { path: userId ? `/dashboard/${userId}/appointments` : '#', label: 'Lịch hẹn', icon: Calendar },
   ];
 
   const isActiveRoute = (itemPath: string) => {

@@ -12,6 +12,8 @@ import authorizeRoles from "./middleware/authenMiddleware";
 import apiProgramAttendeeRoutes from "./routes/programAttendeeRoutes";
 import apiProgramSurveyRoutes from "./routes/programSurveyRoutes";
 import { updateProgramStatus } from "./controllers/scheduledProgram";
+import agoraRoutes from "./routes/agoraRoutes";
+
 import apiLessonRoutes from "./routes/lessonRoutes";
 
 const app: Application = express();
@@ -91,6 +93,10 @@ app.use(
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   appointmentRoutes
 );
+
+app.use('/api/agora',
+  authorizeRoles(['Member', 'Consultant', 'Admin']),
+  agoraRoutes);
 
 // Admin-only Routes - Full account management including role changes
 app.use("/api/account/admin", authorizeRoles(["Admin"]), apiAccountRoutes);
