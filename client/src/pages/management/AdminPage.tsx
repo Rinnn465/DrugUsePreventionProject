@@ -75,8 +75,6 @@ const AdminPage: React.FC = () => {
         }
     ];
 
-
-
     const handleLogout = () => {
         fetch('http://localhost:5000/api/auth/logout', {
             method: 'POST',
@@ -224,8 +222,6 @@ const AdminPage: React.FC = () => {
                                 </div>
                             ))}
                         </div>
-
-
 
                         {/* Quick Actions - Thực tế có thể click */}
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

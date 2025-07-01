@@ -1,0 +1,164 @@
+import React, { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useUser } from "../context/UserContext";
+import { 
+    Home,
+    Users, 
+    BookOpen, 
+    Calendar, 
+    BarChart3, 
+    Shield,
+    TrendingUp,
+    FileText,
+    LogOut,
+    ChevronRight,
+    Menu,
+    X,
+    Bell,
+    Search
+} from "lucide-react";
+
+interface AdminLayoutProps {
+    children: React.ReactNode;
+    title?: string;
+    breadcrumb?: string;
+}
+
+const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = "Trang chủ", breadcrumb = "Trang chủ" }) => {
+    const { user, setUser } = useUser();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    
+    // Sidebar navigation items
+    const navigationItems = [
+        {
+            label: "Bảng điều khiển",
+            icon: Home,
+            link: `/admin`,
+            isActive: location.pathname === '/admin'
+        },
+        {
+            label: "Quản lý khóa học",
+            icon: BookOpen,
+            link: `/roles/${user?.RoleID}/course-manage`,
+            isActive: location.pathname.includes('/course-manage')
+        },
+        {
+            label: "Quản lý sự kiện", 
+            icon: Calendar,
+            link: `/roles/${user?.RoleID}/program-dashboard`,
+            isActive: location.pathname.includes('/program-dashboard')
+        }
+    ];
+
+    const handleLogout = () => {
+        fetch('http://localhost:5000/api/auth/logout', {
+            method: 'POST',
+            credentials: 'include',
+        })
+            .then(() => {
+                setUser(null);
+                localStorage.removeItem('user');
+                localStorage.clear();
+                navigate('/login');
+            })
+            .catch(() => {
+                setUser(null);
+                localStorage.removeItem('user');
+                localStorage.clear();
+                navigate('/login');
+            });
+    };
+
+    return (
+        <div className="flex h-screen bg-gray-100">
+            {/* Sidebar */}
+            <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-800 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
+                {/* Sidebar Header */}
+                <div className="flex items-center justify-between h-16 px-6 bg-slate-900">
+                    <div className="flex items-center space-x-2">
+                        <Shield className="h-8 w-8 text-blue-400" />
+                        <span className="text-xl font-bold text-white">ADMIN</span>
+                    </div>
+                    <button
+                        onClick={() => setSidebarOpen(false)}
+                        className="lg:hidden text-gray-400 hover:text-white"
+                    >
+                        <X className="h-6 w-6" />
+                    </button>
+                </div>
+
+                {/* Navigation */}
+                <nav className="mt-8 px-4">
+                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                        Điều hướng
+                    </div>
+                    
+                    {navigationItems.map((item, index) => (
+                        <Link
+                            key={index}
+                            to={item.link}
+                            className={`flex items-center justify-between px-4 py-3 rounded-lg cursor-pointer transition-colors mb-2 ${
+                                item.isActive ? 'bg-slate-700 text-white' : 'text-gray-300 hover:bg-slate-700 hover:text-white'
+                            }`}
+                        >
+                            <div className="flex items-center space-x-3">
+                                <item.icon className="h-5 w-5" />
+                                <span className="font-medium">{item.label}</span>
+                            </div>
+                            <ChevronRight className="h-4 w-4" />
+                        </Link>
+                    ))}
+
+                    {/* Logout Button */}
+                    <div className="mt-8 px-4">
+                        <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center space-x-3 px-4 py-3 text-red-400 hover:bg-red-500 hover:text-white rounded-lg transition-colors"
+                        >
+                            <LogOut className="h-5 w-5" />
+                            <span className="font-medium">Đăng xuất</span>
+                        </button>
+                    </div>
+                </nav>
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
+                {/* Top Header */}
+                <header className="bg-white shadow-sm border-b border-gray-200">
+                    <div className="flex items-center justify-between px-6 py-4">
+                        <div className="flex items-center space-x-4">
+                            <button
+                                onClick={() => setSidebarOpen(true)}
+                                className="lg:hidden text-gray-500 hover:text-gray-700"
+                            >
+                                <Menu className="h-6 w-6" />
+                            </button>
+                            <div className="flex items-center space-x-2">
+                                <Home className="h-5 w-5 text-blue-500" />
+                                <span className="text-2xl font-bold text-gray-900">{title}</span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                {/* Page Content */}
+                <main className="flex-1 overflow-y-auto bg-gray-50">
+                    {children}
+                </main>
+            </div>
+
+            {/* Mobile sidebar overlay */}
+            {sidebarOpen && (
+                <div 
+                    className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
+        </div>
+    );
+};
+
+export default AdminLayout; 
