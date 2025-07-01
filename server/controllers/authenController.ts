@@ -109,7 +109,7 @@ export async function login(
       //   });
       // }
       process.env.JWT_SECRET as string,
-      { expiresIn: "1h" }
+      { expiresIn: "12h" }
     );
 
     // Log token and decoded payload

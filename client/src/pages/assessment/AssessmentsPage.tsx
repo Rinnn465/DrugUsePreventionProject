@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ClipboardCheck, AlertTriangle, InfoIcon, Filter, X } from 'lucide-react';
+import { ClipboardCheck, AlertTriangle, InfoIcon, Search } from 'lucide-react';
 import { assessmentData } from '../../data/assessmentData';
 
 type AssessmentColor = 'primary' | 'secondary' | 'accent' | 'success' | 'warning' | 'error';
@@ -45,6 +45,7 @@ const colorMap: Record<AssessmentColor, { gradient: string; text: string; badge:
 
 const AssessmentsPage: React.FC = () => {
   const [selectedAudience, setSelectedAudience] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Get unique audiences from assessment data
   const audiences = useMemo(() => {
@@ -60,15 +61,20 @@ const AssessmentsPage: React.FC = () => {
         return false;
       }
 
-      return true;
+      if (!searchTerm) return true;
+      return (
+        assessment.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assessment.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     });
-  }, [selectedAudience]);
+  }, [selectedAudience, searchTerm]);
 
   const clearFilters = () => {
     setSelectedAudience('all');
+    setSearchTerm('');
   };
 
-  const hasActiveFilters = selectedAudience !== 'all';
+  const hasActiveFilters = selectedAudience !== 'all' || searchTerm !== '';
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -100,44 +106,19 @@ const AssessmentsPage: React.FC = () => {
         <div className="max-w-6xl mx-auto mb-12">
           {/* Filter Section */}
           <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
-            <div className="flex items-center gap-3 mb-6">
-              <Filter className="h-5 w-5 text-blue-600" />
-              <h2 className="text-xl font-bold text-gray-800">Lọc bài trắc nghiệm</h2>
-              {hasActiveFilters && (
-                <button
-                  onClick={clearFilters}
-                  className="ml-auto flex items-center gap-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                  Xóa bộ lọc
-                </button>
-              )}
-            </div>
-            
-            <div className="grid grid-cols-1 gap-6">
-              {/* Audience Filter */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Đối tượng
-                </label>
-                <select
-                  value={selectedAudience}
-                  onChange={(e) => setSelectedAudience(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                >
-                  <option value="all">Tất cả đối tượng</option>
-                  {audiences.map((audience) => (
-                    <option key={audience} value={audience}>
-                      mọi người
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Results Count */}
-            <div className="mt-4 text-sm text-gray-600">
-              Hiển thị <span className="font-semibold text-blue-600">{filteredAssessments.length}</span> / {assessmentData.length} bài trắc nghiệm
+            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <Search className="h-5 w-5 text-blue-600" />
+              Tìm kiếm bài trắc nghiệm
+            </h2>
+            <div className="relative w-full md:w-96">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Nhập từ khóa..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
+              />
             </div>
           </div>
 

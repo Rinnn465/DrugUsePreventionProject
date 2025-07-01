@@ -76,6 +76,7 @@ const SurveyBeforeEventPage = () => {
             });
 
             if (response.ok) {
+                sessionStorage.setItem(`survey_completed_${programId}`, 'true');
                 toast.success('Hoàn thành khảo sát thành công!');
                 setTimeout(() => {
                     window.location.href = `/survey/${programId}/completed`;
