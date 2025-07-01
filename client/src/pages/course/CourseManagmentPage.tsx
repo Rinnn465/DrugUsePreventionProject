@@ -274,7 +274,7 @@ const CourseManagmentPage: React.FC = () => {
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
                             <Link 
-                                to={`/roles/${userId}/course-dashboard`}
+                                to="/admin"
                                 className="p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
                             >
                                 <ArrowLeft className="h-8 w-8 text-gray-600" />
