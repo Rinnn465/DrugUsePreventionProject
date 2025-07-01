@@ -29,12 +29,30 @@ export async function login(
   const { email, password } = req.body;
 
   try {
+    // Log request body
+    console.log("Request body:", req.body);
+
+    // Validate input
+    if (!email || !password) {
+      res.status(400).json({ message: "Email and password are required" });
+      return;
+    }
+
     // Get database connection and find user by email
     const pool = await poolPromise;
     const result = await pool
       .request()
       .input("email", sql.NVarChar, email)
-      .query("SELECT Account.*, Role.RoleName FROM Account JOIN Role ON Account.RoleID = Role.RoleID WHERE Email = @email");
+      .query(
+        "SELECT Account.*, Role.RoleName FROM Account JOIN Role ON Account.RoleID = Role.RoleID WHERE Email = @email"
+      );
+
+    // Check for unique user
+    if (result.recordset.length > 1) {
+      console.error("Multiple users found for email:", email);
+      res.status(400).json({ message: "Multiple accounts found" });
+      return;
+    }
     const user = result.recordset[0];
 
     // Validate user exists
@@ -59,38 +77,61 @@ export async function login(
       RoleID: user.RoleID,
       RoleName: user.RoleName,
       CreatedAt: user.CreatedAt,
-      IsDisabled: user.IsDisabled
+      IsDisabled: user.IsDisabled,
     };
 
-    // Include consultant data if user is a consultant
-    if (user.RoleName === "Consultant" && user.ConsultantID) {
-      Object.assign(userData, {
-        Consultant: {
-          ConsultantID: user.ConsultantID,
-          Name: user.ConsultantName,
-          Bio: user.Bio,
-          Title: user.Title,
-          ImageUrl: user.ImageUrl,
-          IsDisabled: user.ConsultantIsDisabled
-        }
-      });
+    // Log userData
+    console.log("userData:", userData);
+
+    // Verify JWT_SECRET
+    if (!process.env.JWT_SECRET) {
+      console.error("JWT_SECRET is not set");
+      res.status(500).json({ message: "Server configuration error" });
+      return;
     }
+    console.log("JWT_SECRET length:", process.env.JWT_SECRET.length);
 
     // Generate JWT token
     const token = jwt.sign(
       { user: userData },
+
+      // // Include consultant data if user is a consultant
+      // if (user.RoleName === "Consultant" && user.AccountID) {
+      //   Object.assign(userData, {
+      //     Consultant: {
+      //       ConsultantID: user.AccountID,
+      //       Name: user.ConsultantName,
+      //       Bio: user.Bio,
+      //       Title: user.Title,
+      //       ImageUrl: user.ImageUrl,
+      //       IsDisabled: user.ConsultantIsDisabled
+      //     }
+      //   });
+      // }
       process.env.JWT_SECRET as string,
       { expiresIn: "1h" }
     );
 
-    res.status(200).json({
+    // Log token and decoded payload
+    console.log("Generated token:", token);
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
+      console.log("Decoded token payload:", decoded);
+    } catch (err) {
+      console.error("Token verification failed:", err);
+    }
+
+    // Prepare and log response
+    const response = {
       message: "Login successful",
       token,
-      user: userData
-    });
+      user: userData,
+    };
+    console.log("Response:", response);
 
+    res.status(200).json(response);
   } catch (err: any) {
-    console.error(err);
+    console.error("Login error:", err);
     res.status(500).json({ message: "Server error" });
   }
 }

@@ -38,9 +38,9 @@ const VideoCallComponent: React.FC<VideoCallProps> = ({
             try {
                 // Join channel
                 const channelName = generateChannelName(appointmentId);
-                const token = await getAgoraToken(channelName); // You'll implement this
+                const data = await getAgoraToken(channelName); // You'll implement this
 
-                await client.join(AGORA_CONFIG.appId, channelName, token, null);
+                await client.join(AGORA_CONFIG.appId, channelName, data?.token, data?.uid);
 
                 // Create and publish local tracks
                 const videoTrack = await AgoraRTC.createCameraVideoTrack();
@@ -126,9 +126,9 @@ const VideoCallComponent: React.FC<VideoCallProps> = ({
     };
 
     // Function to get Agora token from your backend
-    const getAgoraToken = async (channelName: string): Promise<string | null> => {
+    const getAgoraToken = async (channelName: string): Promise<object | null> => {
         try {
-            const response = await fetch(`/api/agora/token`, {
+            const response = await fetch(`http://localhost:5000/api/agora/token`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -143,7 +143,7 @@ const VideoCallComponent: React.FC<VideoCallProps> = ({
 
             if (response.ok) {
                 const data = await response.json();
-                return data.token;
+                return data
             }
         } catch (error) {
             console.error('Failed to get Agora token:', error);

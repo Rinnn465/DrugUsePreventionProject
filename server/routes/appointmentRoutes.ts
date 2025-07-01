@@ -5,7 +5,9 @@ const router = express.Router();
 
 router.get('/', appointmentController.getAppointments);
 
-router.get('/user/:id', appointmentController.getAppointmentByUserId);
+router.get('/user/:id', appointmentController.getAppointmentByMemberId);
+
+router.get('/consultant/:id', appointmentController.getAppointmentByConsultantId);
 
 router.get('/filter', appointmentController.getAppointmentsByFilter);
 

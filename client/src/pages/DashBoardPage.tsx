@@ -1517,18 +1517,6 @@ const DashBoardPage: React.FC = () => {
                             <Calendar className="h-4 w-4" />
                             <span>Chi tiết</span>
                           </button>
-
-                          {appointment.Status === 'confirmed' && appointment.MeetingURL && (
-                            <a
-                              href={appointment.MeetingURL}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
-                            >
-                              <Users className="h-4 w-4" />
-                              <span>Tham gia</span>
-                            </a>
-                          )}
                         </div>
                       </div>
 
