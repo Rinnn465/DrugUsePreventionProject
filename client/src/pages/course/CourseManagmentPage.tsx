@@ -6,12 +6,12 @@ import {
     BookOpen,
     Search,
     ChevronDown,
-    ArrowLeft,
     Clock
 } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { SqlCourse } from '../../types/Course';
 import { CourseFormData } from '../../types/Course';
+import AdminLayout from '../../components/AdminLayout';
 
 
 const CourseManagmentPage: React.FC = () => {
@@ -267,18 +267,12 @@ const CourseManagmentPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header Section */}
+        <AdminLayout title="Quản lý Khóa học" breadcrumb="Quản lý Khóa học">
+            {/* Page Header */}
             <div className="bg-white shadow-sm border-b">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
-                            <Link 
-                                to="/admin"
-                                className="p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
-                            >
-                                <ArrowLeft className="h-8 w-8 text-gray-600" />
-                            </Link>
                             <div className="p-3 bg-blue-100 rounded-xl">
                                 <BookOpen className="h-8 w-8 text-blue-600" />
                             </div>
@@ -717,7 +711,7 @@ const CourseManagmentPage: React.FC = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </AdminLayout>
     );
 };
 
