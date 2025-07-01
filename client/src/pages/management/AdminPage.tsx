@@ -37,7 +37,7 @@ const AdminPage: React.FC = () => {
             link: `/roles/${user?.RoleID}/course-manage`
         },
         {
-            label: "Quản lý sự kiện", 
+            label: "Quản lý chương trình", 
             icon: Calendar,
             link: `/roles/${user?.RoleID}/program-dashboard`
         }
@@ -240,7 +240,7 @@ const AdminPage: React.FC = () => {
                                 >
                                     <div className="text-center">
                                         <Calendar className="h-8 w-8 text-gray-400 group-hover:text-primary-500 mx-auto mb-2" />
-                                        <span className="text-sm font-medium text-gray-600 group-hover:text-primary-600">Tạo sự kiện</span>
+                                        <span className="text-sm font-medium text-gray-600 group-hover:text-primary-600">Thêm chương trình</span>
                                     </div>
                                 </Link>
                                 <Link
@@ -249,7 +249,7 @@ const AdminPage: React.FC = () => {
                                 >
                                     <div className="text-center">
                                         <BookOpen className="h-8 w-8 text-gray-400 group-hover:text-primary-500 mx-auto mb-2" />
-                                        <span className="text-sm font-medium text-gray-600 group-hover:text-primary-600">Tạo khóa học</span>
+                                        <span className="text-sm font-medium text-gray-600 group-hover:text-primary-600">Thêm khóa học</span>
                                     </div>
                                 </Link>
                                 <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors group">
