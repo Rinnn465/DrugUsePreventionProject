@@ -155,6 +155,7 @@ const DashBoardPage: React.FC = () => {
 
   // Check if user is a consultant
   const isConsultant = user?.RoleName === 'consultant' || user?.RoleName === 'Consultant';
+  const role = isConsultant ? 'consultant' : 'user';
 
   // Fetch all appointments function
   const fetchAllAppointments = useCallback(async () => {
@@ -165,19 +166,21 @@ const DashBoardPage: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/appointment/user/${userId}`, {
+      const response = await fetch(`http://localhost:5000/api/appointment/${role}/${user?.AccountID}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       const data = await response.json();
+      console.log(data
+      );
 
       setAppointments(data.data || []);
     } catch (err) {
       console.error("Error fetching appointments:", err);
       setMessage({ type: "error", text: "Không thể tải danh sách lịch hẹn" });
     }
-  }, [userId, setMessage]);
+  }, [role, user?.AccountID]);
 
   // Auto-hide message after 5 seconds
   useEffect(() => {
@@ -1534,7 +1537,8 @@ const DashBoardPage: React.FC = () => {
                   <div className="h-24 w-24 bg-gradient-to-br from-purple-100 to-violet-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
                     <Calendar className="h-12 w-12 text-purple-500" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Chưa có lịch hẹn nào</h3>
+                  <h3 className="text-2xl text-bold-800">Chưa có hẹn</h3>
+
                   {!isConsultant && (
                     <Link
                       to="/appointments"
