@@ -15,7 +15,9 @@ import {
     X,
     Eye,
     User,
-    TrendingDown
+    TrendingDown,
+    Video,
+    ExternalLink
 } from "lucide-react";
 
 // Interfaces for appointment management
@@ -166,7 +168,7 @@ const ConsultantPage: React.FC = () => {
         setIsLoadingAllAppointments(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/appointment/user/${user.AccountID}`, {
+            const response = await fetch(`http://localhost:5000/api/appointment/consultant/${user.AccountID}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -260,6 +262,35 @@ const ConsultantPage: React.FC = () => {
         return timeString.substring(0, 5);
     };
 
+    const generateVideoCallUrl = (appointment: PendingAppointment) => {
+        const appointmentData = {
+            appointmentId: appointment.AppointmentID,
+            isConsultant: true,
+            appointmentDetails: {
+                customerName: appointment.CustomerName,
+                consultantName: user?.FullName || user?.Username || 'Chuyên viên tư vấn',
+                time: appointment.Time,
+                date: appointment.Date
+            }
+        };
+
+        const encodedData = encodeURIComponent(JSON.stringify(appointmentData));
+        return `/video-call?data=${encodedData}`;
+    };
+
+    const handleStartVideoCall = (appointment: PendingAppointment) => {
+        const videoCallUrl = generateVideoCallUrl(appointment);
+        const videoCallWindow = window.open(
+            videoCallUrl,
+            '_blank',
+            'width=1200,height=800,resizable=yes,scrollbars=yes'
+        );
+
+        if (!videoCallWindow) {
+            toast.error('Vui lòng cho phép popup để mở cuộc gọi video');
+        }
+    };
+
     // Load data on component mount
     useEffect(() => {
         if (user?.AccountID) {
@@ -316,18 +347,20 @@ const ConsultantPage: React.FC = () => {
                                         </p>
                                         <p className="text-2xl font-bold text-gray-900 mb-2">{card.value}</p>
                                         <div className="flex items-center">
-                                            {card.trend === "increase" ? (
-                                                <>
-                                                    <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                                                    <span className="text-sm text-green-600 font-medium">{card.change}</span>
-                                                    <span className="text-sm text-gray-500 ml-1">so với tháng trước</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
-                                                    <span className="text-sm text-red-600 font-medium">{card.change}</span>
-                                                    <span className="text-sm text-gray-500 ml-1">so với tháng trước</span>
-                                                </>
+                                            {card.value !== 0 && (
+                                                card.trend === "increase" ? (
+                                                    <>
+                                                        <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                                                        <span className="text-sm text-green-600 font-medium">{card.change}</span>
+                                                        <span className="text-sm text-gray-500 ml-1">so với tháng trước</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
+                                                        <span className="text-sm text-red-600 font-medium">{card.change}</span>
+                                                        <span className="text-sm text-gray-500 ml-1">so với tháng trước</span>
+                                                    </>
+                                                )
                                             )}
                                         </div>
                                     </div>
@@ -448,7 +481,7 @@ const ConsultantPage: React.FC = () => {
                                     {todayAppointments.map((appointment) => (
                                         <div
                                             key={appointment.AppointmentID}
-                                            className={`flex items-center p-3 rounded-lg border cursor-pointer hover:shadow-sm transition-all ${appointment.Status === 'confirmed'
+                                            className={`group flex items-center p-3 rounded-lg border cursor-pointer hover:shadow-sm transition-all ${appointment.Status === 'confirmed'
                                                 ? 'bg-green-50 border-green-200'
                                                 : 'bg-blue-50 border-blue-200 hover:border-blue-300'
                                                 }`}
@@ -482,7 +515,21 @@ const ConsultantPage: React.FC = () => {
                                                             {appointment.Description || 'Tư vấn cá nhân'} • {appointment.Duration || 60} phút
                                                         </p>
                                                     </div>
-                                                    <Eye className="h-4 w-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        {appointment.Status === 'confirmed' && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleStartVideoCall(appointment);
+                                                                }}
+                                                                className="p-1.5 bg-green-100 text-green-600 rounded-md hover:bg-green-200 transition-colors"
+                                                                title="Bắt đầu cuộc gọi video"
+                                                            >
+                                                                <Video className="h-3.5 w-3.5" />
+                                                            </button>
+                                                        )}
+                                                        <Eye className="h-4 w-4 text-gray-400" />
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -618,7 +665,7 @@ const ConsultantPage: React.FC = () => {
 
             {/* Appointment Detail Modal - Simplified for PendingAppointment */}
             {selectedAppointment && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
                     <div className="bg-white rounded-xl p-6 max-w-lg w-full">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-xl font-semibold text-gray-900">Chi tiết cuộc hẹn</h3>
@@ -655,19 +702,59 @@ const ConsultantPage: React.FC = () => {
                                 </div>
                             )}
 
-                            {selectedAppointment.MeetingURL && (
-                                <div className="border-t pt-4">
-                                    <h4 className="font-medium text-gray-900 mb-2">Link cuộc họp</h4>
-                                    <a
-                                        href={selectedAppointment.MeetingURL}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-blue-600 hover:text-blue-700 underline"
-                                    >
-                                        {selectedAppointment.MeetingURL}
-                                    </a>
-                                </div>
-                            )}
+                            {/* Video Call and Meeting URL Section */}
+                            <div className="border-t pt-4">
+                                <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                                    <Video className="h-4 w-4" />
+                                    Cuộc gọi video
+                                </h4>
+
+                                {selectedAppointment.Status === 'confirmed' ? (
+                                    <div className="space-y-3">
+                                        <button
+                                            onClick={() => handleStartVideoCall(selectedAppointment)}
+                                            className="w-full bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2"
+                                        >
+                                            <Video className="h-4 w-4" />
+                                            Bắt đầu cuộc gọi video
+                                            <ExternalLink className="h-4 w-4" />
+                                        </button>
+
+                                        {selectedAppointment.MeetingURL && (
+                                            <div>
+                                                <p className="text-sm text-gray-600 mb-2">Hoặc sử dụng link cuộc họp:</p>
+                                                <a
+                                                    href={selectedAppointment.MeetingURL}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:text-blue-700 underline text-sm break-all"
+                                                >
+                                                    {selectedAppointment.MeetingURL}
+                                                </a>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                                        <p className="text-sm text-yellow-800">
+                                            Cuộc gọi video sẽ khả dụng sau khi cuộc hẹn được xác nhận
+                                        </p>
+                                        {selectedAppointment.MeetingURL && (
+                                            <div className="mt-2">
+                                                <p className="text-sm text-gray-600 mb-1">Link cuộc họp:</p>
+                                                <a
+                                                    href={selectedAppointment.MeetingURL}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:text-blue-700 underline text-sm break-all"
+                                                >
+                                                    {selectedAppointment.MeetingURL}
+                                                </a>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         <div className="mt-6 flex gap-3">
@@ -879,7 +966,21 @@ const ConsultantPage: React.FC = () => {
                                                             <p className="text-xs text-gray-500">{appointment.CustomerEmail}</p>
                                                         )}
                                                     </div>
-                                                    <Eye className="h-5 w-5 text-gray-400 hover:text-blue-600 transition-colors" />
+                                                    <div className="flex items-center gap-2">
+                                                        {appointment.Status === 'confirmed' && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleStartVideoCall(appointment);
+                                                                }}
+                                                                className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"
+                                                                title="Bắt đầu cuộc gọi video"
+                                                            >
+                                                                <Video className="h-4 w-4" />
+                                                            </button>
+                                                        )}
+                                                        <Eye className="h-5 w-5 text-gray-400 hover:text-blue-600 transition-colors" />
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
