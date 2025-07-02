@@ -24,6 +24,7 @@ import ProgramManagementPage from './pages/management/ProgramManagementPage';
 import EmployeeManagmentPage from './pages/management/EmployeeManagementPage';
 import MemberManagmentPage from './pages/management/MemberManagementPage';
 import ForgotPasswordPage from './pages/authen/ForgotPasswordPage';
+import ResetPasswordPage from './pages/authen/ResetPasswordPage';
 import { UserProvider } from './context/UserContext';
 import ArticlePage from './pages/article/ArticlePage';
 import ArticleDetailsPage from './pages/article/ArticleDetailsPage';
@@ -78,6 +79,7 @@ function App() {
             <Route path="login" element={<LoginPage />} />
             <Route path="signup" element={<SignUpPage />} />
             <Route path="forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="reset-password" element={<ResetPasswordPage />} />
           </Route>
         </Routes>
         <ToastContainer
