@@ -159,24 +159,9 @@ const AdminPage: React.FC = () => {
                             >
                                 <Menu className="h-6 w-6" />
                             </button>
-                            <div className="flex items-center space-x-2">
-                                <Home className="h-5 w-5 text-blue-500" />
-                                <span className="text-2xl font-bold text-gray-900">Trang chủ</span>
-                            </div>
                         </div>
-                        
                         <div className="flex items-center space-x-4">
-                            <div className="text-sm text-gray-500">
-                                <Home className="h-4 w-4 inline mr-1" />
-                                Trang chủ
-                            </div>
                             <div className="flex items-center space-x-2">
-                                <button className="p-2 text-gray-400 hover:text-gray-600">
-                                    <Search className="h-5 w-5" />
-                                </button>
-                                <button className="p-2 text-gray-400 hover:text-gray-600">
-                                    <Bell className="h-5 w-5" />
-                                </button>
                                 <div className="flex items-center space-x-2 pl-4 border-l border-gray-200">
                                     <div className="h-8 w-8 bg-gray-300 rounded-full flex items-center justify-center">
                                         <span className="text-sm font-medium text-gray-700">

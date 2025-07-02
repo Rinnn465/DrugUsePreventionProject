@@ -45,7 +45,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = "Trang ch�
             isActive: location.pathname.includes('/course-manage')
         },
         {
-            label: "Quản lý sự kiện", 
+            label: "Quản lý chương trình", 
             icon: Calendar,
             link: `/roles/${user?.RoleID}/program-dashboard`,
             isActive: location.pathname.includes('/program-dashboard')
@@ -136,10 +136,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = "Trang ch�
                             >
                                 <Menu className="h-6 w-6" />
                             </button>
-                            <div className="flex items-center space-x-2">
-                                <Home className="h-5 w-5 text-blue-500" />
-                                <span className="text-2xl font-bold text-gray-900">{title}</span>
-                            </div>
                         </div>
                     </div>
                 </header>

@@ -94,6 +94,21 @@ const HeroSection: React.FC = () => {
 
   return (
     <section className="relative min-h-[900px] bg-gradient-to-br from-gray-50 to-white overflow-hidden">
+      {/* Navigation Arrows - Absolute to section edges */}
+      <button
+        onClick={prevSlide}
+        className="absolute left-0 top-1/2 -translate-y-1/2 z-[9999] w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-white hover:scale-110 transition-all duration-300 ml-2"
+      >
+        <ChevronLeft className="h-6 w-6 text-gray-700" />
+      </button>
+
+      <button
+        onClick={nextSlide}
+        className="absolute right-0 top-1/2 -translate-y-1/2 z-[9999] w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-white hover:scale-110 transition-all duration-300 mr-2"
+      >
+        <ChevronRight className="h-6 w-6 text-gray-700" />
+      </button>
+
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full blur-3xl"></div>
@@ -188,24 +203,7 @@ const HeroSection: React.FC = () => {
                   />
                 </div>
               </div>
-
-              {/* Navigation Arrows */}
-              <button
-                onClick={prevSlide}
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-white hover:scale-110 transition-all duration-300"
-              >
-                <ChevronLeft className="h-6 w-6 text-gray-700" />
-              </button>
-
-              <button
-                onClick={nextSlide}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-white hover:scale-110 transition-all duration-300"
-              >
-                <ChevronRight className="h-6 w-6 text-gray-700" />
-              </button>
             </div>
-
-
           </div>
         </div>
       </div>

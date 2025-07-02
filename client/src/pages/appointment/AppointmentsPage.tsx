@@ -240,11 +240,12 @@ const AppointmentsPage: React.FC = () => {
                 />
               </div>
             ) : (
-              <div className="bg-white rounded-2xl shadow-xl p-8 flex flex-col items-center justify-center h-full min-h-[400px] border-2 border-primary-100 animate-fade-in">
-                <CalendarIcon className="h-16 w-16 text-primary-100 mb-4" />
-                <h2 className="text-xl font-bold mb-2 text-primary-700">Chọn Chuyên Gia Tư Vấn</h2>
-                <p className="text-primary-400 text-center max-w-md">
-                  Vui lòng chọn một chuyên gia tư vấn từ danh sách để xem các khung giờ hẹn có sẵn.
+              <div className="bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-none border-2 border-blue-200 p-10 flex flex-col items-center justify-center h-full min-h-[400px] select-none cursor-default animate-fade-in">
+                <CalendarIcon className="h-20 w-20 text-blue-200 mb-6" />
+                <h2 className="text-2xl font-bold mb-2 text-blue-600">Chưa chọn chuyên gia tư vấn</h2>
+                <p className="text-blue-400 text-center max-w-md text-base">
+                  Vui lòng chọn một chuyên gia tư vấn từ danh sách bên trái để xem lịch và đặt hẹn.<br/>
+                  <span className="text-xs text-blue-300">(Bạn cần chọn chuyên gia trước khi đặt lịch hẹn)</span>
                 </p>
               </div>
             )}
