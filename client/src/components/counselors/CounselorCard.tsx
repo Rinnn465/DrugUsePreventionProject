@@ -1,18 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, MapPin, Calendar } from 'lucide-react';
-import { Consultant } from '../../types/Consultant';
+import { Star, MapPin, Calendar, Clock, Video, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
+import { Consultant, ConsultantWithSchedule } from '../../types/Consultant';
+import AppointmentCalendar from '../appointments/AppointmentCalendar';
 
 interface CounselorCardProps {
-  consultant: Consultant;
+  consultant: ConsultantWithSchedule;
   compact?: boolean;
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
-const CounselorCard: React.FC<CounselorCardProps> = ({ consultant, compact = false }) => {
+const CounselorCard: React.FC<CounselorCardProps> = ({ consultant, compact = false, isSelected = false, onSelect }) => {
+  const [showBookingPanel, setShowBookingPanel] = useState(false);
 
   if (compact) {
     return (
-      <div className="p-4 flex items-start gap-4 hover:bg-gradient-to-r hover:from-sky-50 hover:to-blue-100 rounded-xl transition-all duration-200 border-b-2 border-sky-100 shadow-md">
+      <div 
+        className={`p-4 flex items-start gap-4 hover:bg-gradient-to-r hover:from-sky-50 hover:to-blue-100 rounded-xl transition-all duration-200 border-b-2 border-sky-100 shadow-md cursor-pointer ${isSelected ? 'bg-primary-100 scale-[1.01] shadow-lg' : ''}`}
+        onClick={onSelect}
+      >
         <img
           src={consultant.ImageUrl}
           alt={consultant.Name}
@@ -35,57 +42,93 @@ const CounselorCard: React.FC<CounselorCardProps> = ({ consultant, compact = fal
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:-translate-y-1 hover:shadow-lg">
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden mb-6 hover:shadow-xl transition-all duration-300">
+      {/* Main Card Content */}
       <div className="p-6">
-        <div className="flex flex-col sm:flex-row gap-6">
-          <div className="flex-shrink-0">
-            <img
-              src={consultant.ImageUrl}
-              alt={consultant.Name}
-              className="w-24 h-24 rounded-full object-cover mx-auto sm:mx-0"
-              style={{ aspectRatio: '1', borderRadius: '50%' }}
-            />
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left Column - Consultant Info */}
+          <div className="lg:w-1/3 flex flex-col">
+            <div className="flex items-start gap-4 mb-4">
+              <img
+                src={consultant.ImageUrl}
+                alt={consultant.Name}
+                className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover border-4 border-blue-100 shadow-lg flex-shrink-0"
+              />
+              <div className="flex-1">
+                <Link
+                  to={`/consultant/${consultant.ConsultantID}`}
+                  className="text-blue-600 hover:text-blue-800 font-bold text-base md:text-lg hover:underline"
+                >
+                  {consultant.Name}
+                </Link>
+                <p className="text-gray-600 text-sm mt-1">{consultant.Title}</p>
+                <div className="text-xs text-gray-500 mt-1">
+                  <ExternalLink className="h-3 w-3 inline mr-1" />
+                  Xem thêm
+                </div>
+              </div>
+            </div>
+
+            {/* Consultant Details */}
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  {consultant.Bio}
+                </p>
+              </div>
+              
+
+
+              <div className="flex flex-wrap gap-1">
+                {consultant.Specialties.slice(0, 3).map((specialty, index) => (
+                  <span 
+                    key={index} 
+                    className="bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded-full border border-blue-200"
+                  >
+                    {specialty.Name}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="text-xl font-semibold">{consultant.Name}</h3>
-              <div className="flex items-center text-warning-500">
-                <Star className="h-4 w-4 fill-current" />
-                {/* <span className="text-sm ml-1">{counselor.rating.toFixed(1)}</span> */}
+
+          {/* Right Column - Booking Section */}
+          <div className="lg:w-2/3 flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-blue-600" />
+                <h3 className="font-bold text-gray-800">LỊCH TƯ VẤN QUA VIDEO</h3>
               </div>
             </div>
-            <p className="text-gray-600 mb-3">{consultant.Title}</p>
 
-            <div className="flex flex-wrap gap-2 mb-4">
-              {consultant.Specialties.map((specialty, index) => (
-                <span key={index} className="bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-full">
-                  {specialty.Name}
-                </span>
-              ))}
-            </div>
-
-            <p className="text-gray-700 mb-4 line-clamp-3">{consultant.Bio}</p>
-
-            <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-              <div className="flex items-center">
-                <MapPin className="h-4 w-4 mr-1" />
-                {/* <span>{counselor.location}</span> */}
-              </div>
-              <div className="flex items-center">
-                <Calendar className="h-4 w-4 mr-1" />
-                {/* <span>{counselor.availability}</span> */}
+            {/* Booking Section */}
+            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Video className="h-5 w-5 text-blue-600" />
+                  <span className="font-bold text-gray-800">TƯ VẤN ONLINE VỚI CHUYÊN GIA</span>
+                </div>
+                <button 
+                  onClick={() => setShowBookingPanel(!showBookingPanel)}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium w-full md:w-auto flex items-center justify-center gap-2"
+                >
+                  {showBookingPanel ? 'Ẩn lịch đặt' : 'Chọn và đặt lịch'}
+                  {showBookingPanel ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </button>
               </div>
             </div>
+
+            {/* Booking Panel */}
+            {showBookingPanel && (
+              <div className="border-t border-gray-200 pt-4">
+                <AppointmentCalendar
+                  consultantId={consultant.ConsultantID}
+                  schedule={consultant}
+                />
+              </div>
+            )}
           </div>
-        </div>
-
-        <div className="mt-6 flex justify-end">
-          <Link
-            to={`/appointments?counselor=${consultant.ConsultantID}`}
-            className="bg-primary-600 text-white font-medium py-2 px-4 rounded hover:bg-primary-700 transition-colors"
-          >
-            Đặt lịch
-          </Link>
         </div>
       </div>
     </div>
