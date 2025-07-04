@@ -118,4 +118,18 @@ router.get("/:id/lessons/questions", lessonController.getQuestions);
  */
 router.get("/:id/lessons/questions/answers", lessonController.getAnswers);
 
+/**
+ * @route GET /api/course/statistics/enroll
+ * @desc Thống kê số người tham gia từng khóa học
+ * @access Chỉ Admin, Staff, Manager
+ */
+router.get("/statistics/enroll", authorizeRoles(["Admin"]), courseController.getCourseEnrollmentStatistics);
+
+/**
+ * @route GET /api/course/statistics/completion-rate
+ * @desc Thống kê tỷ lệ số người hoàn thành trên tổng số người tham gia từng khóa học
+ * @access Chỉ Admin
+ */
+router.get("/statistics/completion-rate", authorizeRoles(["Admin"]), courseController.getCourseCompletionRateStatistics);
+
 export default router;

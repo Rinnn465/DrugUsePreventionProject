@@ -542,3 +542,46 @@ export async function compareAppointments(req: Request, res: Response, next: Nex
         res.status(500).json({ message: 'Lỗi server khi so sánh cuộc hẹn' });
     }
 }
+
+/**
+ * Thống kê số lịch hẹn trong tháng hiện tại của một chuyên viên
+ *
+ * @route GET /api/consultants/:consultantId/statistics/month-appointments
+ * @access Chỉ Admin
+ * @returns {Promise<void>} Phản hồi JSON với tổng số lịch hẹn trong tháng của chuyên viên
+ */
+export async function getMonthlyAppointmentStatistics(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { consultantId } = req.params;
+    if (!consultantId) {
+        res.status(400).json({ message: 'Consultant ID is required' });
+        return;
+    }
+    try {
+        const pool = await poolPromise;
+        // Lấy ngày đầu và cuối tháng hiện tại
+        const now = new Date();
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        // Truy vấn số lịch hẹn trong tháng của chuyên viên
+        const result = await pool.request()
+            .input('ConsultantID', sql.Int, consultantId)
+            .input('StartDate', sql.Date, firstDay)
+            .input('EndDate', sql.Date, lastDay)
+            .query(`
+                SELECT COUNT(*) AS appointment_count
+                FROM Appointment
+                WHERE ConsultantID = @ConsultantID
+                  AND Date >= @StartDate AND Date <= @EndDate
+            `);
+        res.status(200).json({
+            message: 'Thống kê số lịch hẹn trong tháng thành công',
+            consultantId,
+            month: now.getMonth() + 1,
+            year: now.getFullYear(),
+            appointmentCount: result.recordset[0]?.appointment_count || 0
+        });
+    } catch (error) {
+        console.error('Error getting monthly appointment statistics:', error);
+        res.status(500).json({ message: 'Lỗi server khi thống kê lịch hẹn trong tháng' });
+    }
+}
