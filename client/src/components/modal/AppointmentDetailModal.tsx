@@ -26,6 +26,9 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
 }) => {
   const { user } = useUser();
 
+  console.log('Current user in AppointmentDetailModal:', user);
+  console.log('User RoleName:', user?.RoleName);
+
   const handleStartVideoCall = () => {
     const appointmentData = {
       appointmentId: appointment?.AppointmentID,
@@ -284,7 +287,7 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
                 className="w-full sm:w-44 px-6 py-3.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 flex items-center justify-center font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 <Video className="h-5 w-5 mr-2" />
-                Bắt đầu video
+                {(user?.RoleName === 'user' || user?.RoleName === 'User') ? 'Tham gia video' : 'Bắt đầu video'}
               </button>
             )}
             <button

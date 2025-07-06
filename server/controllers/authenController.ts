@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import { sql, poolPromise } from "../config/database";
 import { sendEmail } from "./mailController";
 import { welcomeTemplate } from "../templates/welcome";
-import { passwordReset } from "../templates/passwordreset";
+import { passwordReset } from "../templates/passwordReset";
 dotenv.config();
 
 /**

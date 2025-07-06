@@ -40,7 +40,7 @@ const navMenus = [
   },
   {
     to: '/appointments',
-    label: 'Đặt lịch trực tuyến',
+    label: 'Tư vấn trực tuyến',
     icon: Calendar,
   },
   {

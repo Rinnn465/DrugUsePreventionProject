@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Newspaper, Search } from 'lucide-react';
-import BlogPostCard from '../../components/blog/BlogPostCard';
+import { Newspaper, Search, Calendar, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Article } from '../../types/Article';
 
 // Thêm hàm gọi API chuẩn RESTful
@@ -12,12 +12,71 @@ const fetchArticles = async (): Promise<Article[]> => {
   return res.json();
 };
 
+function formatDate(dateString: string) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('vi-VN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+const HorizontalBlogCard: React.FC<Article> = ({
+  BlogID,
+  ArticleTitle,
+  PublishedDate,
+  ImageUrl,
+  Content,
+  Description,
+}) => {
+  return (
+    <article className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100 hover:border-gray-200">
+      <div className="flex flex-col md:flex-row">
+        {/* Image Section */}
+        <div className="md:w-1/3 relative overflow-hidden">
+          <img
+            src={ImageUrl || 'https://images.pexels.com/photos/8197525/pexels-photo-8197525.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'}
+            alt={ArticleTitle}
+            className="w-full h-48 md:h-full object-cover hover:scale-105 transition-transform duration-500"
+          />
+        </div>
+
+        {/* Content Section */}
+        <div className="md:w-2/3 p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+              <span>{formatDate(PublishedDate)}</span>
+            </div>
+
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
+              <Link to={`/article/${BlogID}`}>
+                {ArticleTitle}
+              </Link>
+            </h2>
+
+            <p className="text-gray-600 leading-relaxed mb-4 line-clamp-3">
+              {Description || (Content && Content.replace(/<[^>]*>/g, '').substring(0, 200))}
+            </p>
+          </div>
+
+          <div className="flex items-center justify-end">
+            <Link
+              to={`/article/${BlogID}`}
+              className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center gap-1 hover:gap-2 transition-all"
+            >
+              Đọc thêm
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+};
+
 const ArticlePage: React.FC = () => {
   const [blogPosts, setBlogPosts] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Filter states
-  const [selectedDateRange, setSelectedDateRange] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -43,27 +102,20 @@ const ArticlePage: React.FC = () => {
     }) || [];
   }, [blogPosts, searchTerm]);
 
-  const clearFilters = () => {
-    setSelectedDateRange('all');
-    setSearchTerm('');
-  };
-
-  const hasActiveFilters = selectedDateRange !== 'all' || !!searchTerm;
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-primary-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-primary-600 via-primary-700 to-blue-600 overflow-hidden">
+      <div className="relative bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="absolute inset-0">
-          <div className="absolute top-20 left-16 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
-          <div className="absolute top-40 right-24 w-36 h-36 bg-white/5 rounded-full blur-2xl"></div>
-          <div className="absolute bottom-20 left-1/4 w-28 h-28 bg-white/10 rounded-full blur-xl"></div>
+          <div className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
+          <div className="absolute top-32 right-20 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+          <div className="absolute bottom-10 left-1/3 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
         </div>
 
-        <div className="relative container mx-auto px-4 py-12">
+        <div className="relative container mx-auto px-4 py-16">
           <div className="max-w-4xl mx-auto text-center text-white">
-            <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight flex items-center justify-center gap-3 text-white">
+            <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight flex items-center justify-center gap-3">
               <div className="p-2 bg-white/20 rounded-full backdrop-blur-sm">
                 <Newspaper className="h-6 w-6" />
               </div>
@@ -76,99 +128,71 @@ const ArticlePage: React.FC = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-16">
-        {/* Filter Section */}
-        <div className="mb-12">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
-            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <Search className="h-5 w-5 text-blue-600" />
-              Tìm kiếm bài viết
-            </h2>
-            <div className="relative w-full md:w-96">
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto">
+          {/* Search */}
+          <div className="mb-8">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Nhập từ khóa..."
+                placeholder="Tìm kiếm bài viết..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
               />
             </div>
           </div>
-        </div>
 
-        {/* Blog Results Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Bài viết mới nhất
-                {filteredPosts.length > 0 && (
-                  <span className="text-primary-600"> ({filteredPosts.length} bài viết)</span>
-                )}
-              </h2>
-              <p className="text-gray-600">
-                Khám phá những bài viết hữu ích và cập nhật nhất
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Blog Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[...Array(6)].map((_, index) => (
-              <div key={index} className="bg-white rounded-2xl shadow-lg p-6 animate-pulse">
-                <div className="w-full h-48 bg-gray-200 rounded-xl mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-                <div className="h-3 bg-gray-200 rounded mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredPosts.length > 0 ? (
-              filteredPosts.map((blog) => (
-                <BlogPostCard key={blog.BlogID} {...blog} />
-              ))
-            ) : (
-              <div className="col-span-full text-center py-20">
-                <div className="max-w-md mx-auto">
-                  <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Newspaper className="h-12 w-12 text-gray-400" />
+          {/* Blog Posts */}
+          {loading ? (
+            <div className="space-y-6">
+              {[...Array(5)].map((_, index) => (
+                <div key={index} className="bg-white rounded-xl p-6 animate-pulse">
+                  <div className="flex flex-col md:flex-row gap-6">
+                    <div className="md:w-1/3 h-48 bg-gray-200 rounded-lg"></div>
+                    <div className="md:w-2/3 space-y-4">
+                      <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                      <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                      <div className="space-y-2">
+                        <div className="h-4 bg-gray-200 rounded"></div>
+                        <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                      </div>
+                    </div>
                   </div>
-                  <h3 className="text-2xl font-semibold mb-4 text-gray-900">
-                    Không tìm thấy bài viết phù hợp
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    Hãy thử điều chỉnh bộ lọc để tìm thấy bài viết phù hợp với bạn
-                  </p>
-                  <button
-                    onClick={clearFilters}
-                    className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors font-medium"
-                  >
-                    Xóa bộ lọc
-                  </button>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* No posts at all */}
-        {blogPosts.length === 0 && !loading && (
-          <div className="text-center py-20">
-            <div className="max-w-md mx-auto">
-              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Newspaper className="h-12 w-12 text-gray-400" />
-              </div>
-              <h3 className="text-2xl font-semibold mb-4 text-gray-900">Chưa có bài viết</h3>
-              <p className="text-gray-600">Hãy quay lại sau để xem những bài viết mới nhất</p>
+              ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="space-y-6">
+              {filteredPosts.length > 0 ? (
+                filteredPosts.map((blog) => (
+                  <HorizontalBlogCard key={blog.BlogID} {...blog} />
+                ))
+              ) : (
+                <div className="text-center py-20">
+                  <div className="max-w-md mx-auto">
+                    <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <Newspaper className="h-12 w-12 text-gray-400" />
+                    </div>
+                    <h3 className="text-2xl font-semibold mb-4 text-gray-900">
+                      Không tìm thấy bài viết phù hợp
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                      Hãy thử từ khóa khác để tìm kiếm bài viết
+                    </p>
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Xóa tìm kiếm
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
