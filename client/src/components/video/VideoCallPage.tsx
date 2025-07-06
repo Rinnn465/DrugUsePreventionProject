@@ -3,7 +3,11 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import VideoCallComponent from '@/components/video/VideoCall';
 import { Phone } from 'lucide-react';
-import { parseSqlDate } from '@/utils/parseSqlDateUtils';
+import RatingModal from '../modal/RatingModal';
+import { useUser } from '@/context/UserContext';
+import apiUtils from '@/utils/apiUtils';
+import { toast } from 'react-toastify';
+import AppointmentCompletionModal from '../modal/AppointmentCompletionModal';
 
 interface VideoCallData {
     appointmentId: number;
@@ -17,10 +21,14 @@ interface VideoCallData {
 }
 
 const VideoCallPage: React.FC = () => {
+
+    const { user } = useUser();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const [callData, setCallData] = useState<VideoCallData | null>(null);
+    const [showRatingModal, setShowRatingModal] = useState(false);
     const [showCallComponent, setShowCallComponent] = useState(false);
+    const [showCompletionModal, setShowCompletionModal] = useState(false);
 
     useEffect(() => {
         const dataParam = searchParams.get('data');
@@ -39,10 +47,13 @@ const VideoCallPage: React.FC = () => {
 
     const handleCallEnd = () => {
         setShowCallComponent(false);
-        // Optional: Close the tab or redirect
-        if (window.opener) {
-            window.close();
+        setShowCompletionModal(true);
+        if (window.opener && user?.RoleName.toLocaleLowerCase() === 'member') {
+            setShowRatingModal(true);
+        } else if (window.opener && user?.RoleName.toLocaleLowerCase() === 'consultant') {
+            setShowCompletionModal(true);
         } else {
+
             navigate('/');
         }
     };
@@ -50,6 +61,33 @@ const VideoCallPage: React.FC = () => {
     const startCall = () => {
         setShowCallComponent(true);
     };
+
+    const handleRatingSubmit = (rating: number, feedback: string | undefined) => {
+        try {
+            apiUtils.appointments.rate(callData!.appointmentId, {
+                rating,
+                feedback: feedback?.trim() || undefined
+            })
+            toast.success('Đánh giá cuộc gọi thành công!');
+        }
+        catch (error) {
+            console.log('Error submitting rating:', error);
+            toast.error('Đánh giá cuộc gọi không thành công. Vui lòng thử lại sau.');
+        }
+
+        setTimeout(() => {
+            handleCloseRatingModal();
+        }, 1000);
+    }
+
+    const handleCloseRatingModal = () => {
+        setShowRatingModal(false);
+        if (window.opener) {
+            window.close();
+        } else {
+            navigate('/');
+        }
+    }
 
     if (!callData) {
         return (
@@ -72,10 +110,35 @@ const VideoCallPage: React.FC = () => {
         );
     }
 
+    const { consultantName, ...rest } = callData.appointmentDetails;
+    console.log(rest);
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
             <div className="container mx-auto px-4 py-8">
                 {/* Call Preparation Card */}
+                {showRatingModal && user?.RoleName.toLowerCase() !== 'consultant' ? (
+                    <RatingModal
+                        isOpen={showRatingModal}
+                        onClose={handleCloseRatingModal}
+                        onSubmit={handleRatingSubmit}
+                        appointmentId={callData.appointmentId}
+                        isConsultant={callData.isConsultant}
+                    />) : (
+
+                    <AppointmentCompletionModal
+                        isOpen={showCompletionModal}
+                        onClose={() => setShowCompletionModal(false)}
+                        appointment={
+                            {
+                                ...rest,
+                                appointmentID: callData.appointmentId,
+                                duration: 60
+                            }
+                        }
+                    />
+                )
+                }
                 <div className="max-w-2xl mx-auto">
                     <div className="bg-white rounded-2xl shadow-lg p-8">
                         <div className="text-center mb-8">
@@ -108,12 +171,12 @@ const VideoCallPage: React.FC = () => {
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-600">Ngày</p>
-                                    <p className="font-semibold">{parseSqlDate(callData.appointmentDetails.date)}</p>
+                                    <p className="font-semibold">{callData.appointmentDetails.date}</p>
                                 </div>
-                                {/* <div>
+                                <div>
                                     <p className="text-sm text-gray-600">Thời gian</p>
-                                    <p className="font-semibold">{parseSqlDate(callData.appointmentDetails.time)}</p>
-                                </div> */}
+                                    <p className="font-semibold">{callData.appointmentDetails.time}</p>
+                                </div>
                             </div>
                         </div>
 
@@ -124,20 +187,16 @@ const VideoCallPage: React.FC = () => {
                             </h3>
                             <div className="space-y-3">
                                 <div className="flex items-center">
-                                    <input type="checkbox" className="h-4 w-4 text-green-600 rounded mr-3" />
-                                    <span className="text-gray-700">Camera hoạt động bình thường</span>
+                                    <li className="text-gray-700">Camera hoạt động bình thường</li>
                                 </div>
                                 <div className="flex items-center">
-                                    <input type="checkbox" className="h-4 w-4 text-green-600 rounded mr-3" />
-                                    <span className="text-gray-700">Microphone hoạt động bình thường</span>
+                                    <li className="text-gray-700">Microphone hoạt động bình thường</li>
                                 </div>
                                 <div className="flex items-center">
-                                    <input type="checkbox" className="h-4 w-4 text-green-600 rounded mr-3" />
-                                    <span className="text-gray-700">Kết nối internet ổn định</span>
+                                    <li className="text-gray-700">Kết nối internet ổn định</li>
                                 </div>
                                 <div className="flex items-center">
-                                    <input type="checkbox" className="h-4 w-4 text-green-600 rounded mr-3" />
-                                    <span className="text-gray-700">Không gian riêng tư</span>
+                                    <li className="text-gray-700">Không gian riêng tư</li>
                                 </div>
                             </div>
                         </div>

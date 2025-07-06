@@ -1,5 +1,7 @@
 import { parseDate } from '../utils/parseDateUtils'; // Adjust path as needed
 import { ConsultantWithSchedule } from '../types/Consultant'; // Adjust path as needed
+import { parseSqlDate } from './parseSqlDateUtils';
+import { parseSQLTime } from './parseTimeUtils';
 
 export const getAvailableTimeSlots = (
   consultant: ConsultantWithSchedule | undefined,
@@ -58,7 +60,16 @@ export const getAvailableTimeSlots = (
   return [...new Set(timeSlots)].sort();
 };
 
-export const formatAppointmentForSql = (data: any) => {
+export const formatAppointmentForSql = (data: {
+  consultantId: number;
+  accountId: number;
+  time: string;
+  date: string;
+  meetingUrl?: string;
+  status: string;
+  description?: string;
+  duration: number;
+}) => {
   // Format time to HH:mm:ss
   const formattedTime = `${data.time}:00`; // e.g., "17:00" -> "17:00:00"
 
@@ -83,4 +94,96 @@ export const formatAppointmentForSql = (data: any) => {
     description: data.description,
     duration: data.duration,
   };
+};
+
+/**
+ * Check if video call is available for an appointment based on time window
+ * @param appointmentDate - Date string (YYYY-MM-DD format)
+ * @param appointmentTime - Time string (HH:mm:ss or ISO format)
+ * @param duration - Duration in minutes
+ * @param startBufferMinutes - Minutes before appointment start when video is available (default: 15)
+ * @param endBufferMinutes - Minutes after appointment end when video is available (default: 15)
+ * @returns boolean indicating if video call is currently available
+ */
+export const isVideoCallAvailable = (
+  appointmentDate: string,
+  appointmentTime: string,
+  duration: number = 60,
+  startBufferMinutes: number = import.meta.env.VITE_VIDEO_CALL_BUFFERED_TIME,
+  endBufferMinutes: number = import.meta.env.VITE_VIDEO_CALL_BUFFERED_TIME
+): boolean => {
+  try {
+    appointmentDate = parseSqlDate(appointmentDate);
+    appointmentTime = parseSQLTime(appointmentTime.split('T')[1]);
+
+    const appointmentDateTime = new Date(`${appointmentDate}T${appointmentTime}`);
+
+    if (isNaN(appointmentDateTime.getTime())) {
+      console.error('Invalid appointment date/time:', { appointmentDate, appointmentTime });
+      return false;
+    }
+
+    const currentDateTime = new Date();
+
+    // Calculate end time by adding duration in minutes
+    const endDateTime = new Date(appointmentDateTime.getTime() + (duration * 60 * 1000));
+
+    // Calculate allowed time window
+    const startBuffer = startBufferMinutes * 60 * 1000; // Convert to milliseconds
+    const endBuffer = endBufferMinutes * 60 * 1000; // Convert to milliseconds
+
+    const allowedStartTime = appointmentDateTime.getTime() - startBuffer;
+    const allowedEndTime = endDateTime.getTime() + endBuffer;
+    const currentTime = currentDateTime.getTime();
+
+    const isAvailable = currentTime >= allowedStartTime && currentTime <= allowedEndTime;
+
+    console.log('Video call availability check:', {
+      appointmentStart: appointmentDateTime.toLocaleString(),
+      appointmentEnd: endDateTime.toLocaleString(),
+      current: currentDateTime.toLocaleString(),
+      allowedWindow: `${new Date(allowedStartTime).toLocaleString()} - ${new Date(allowedEndTime).toLocaleString()}`,
+      isAvailable
+    });
+
+    return isAvailable;
+  } catch (error) {
+    console.error('Error checking video call availability:', error);
+    return false;
+  }
+};
+
+/**
+ * Get video call availability info for display
+ * @param appointmentDate - Date string (YYYY-MM-DD format)
+ * @param appointmentTime - Time string (HH:mm:ss or ISO format)
+ * @param duration - Duration in minutes
+ * @returns object with availability status and display text
+ */
+export const getVideoCallAvailabilityInfo = (
+  appointmentDate: string,
+  appointmentTime: string,
+  duration: number = 60
+): {
+  isAvailable: boolean;
+  buttonText: string;
+  tooltipText: string;
+  statusText?: string;
+} => {
+  const isAvailable = isVideoCallAvailable(appointmentDate, appointmentTime, duration);
+
+  if (isAvailable) {
+    return {
+      isAvailable: true,
+      buttonText: 'Bắt đầu video',
+      tooltipText: 'Bắt đầu cuộc gọi video',
+    };
+  } else {
+    return {
+      isAvailable: false,
+      buttonText: 'Video chưa khả dụng',
+      tooltipText: 'Cuộc gọi video chỉ khả dụng trong khoảng thời gian từ 15 phút trước đến 15 phút sau cuộc hẹn',
+      statusText: 'Video khả dụng 15 phút trước cuộc hẹn',
+    };
+  }
 };

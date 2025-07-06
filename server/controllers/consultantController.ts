@@ -489,7 +489,7 @@ export async function getTodayAppointments(req: Request, res: Response, next: Ne
                 LEFT JOIN Account acc ON a.AccountID = acc.AccountID
                 WHERE a.ConsultantID = @ConsultantID 
                     AND CAST(a.Date AS DATE) = CAST(@TodayDate AS DATE)
-                    AND a.Status IN ('confirmed', 'pending')
+                    AND a.Status IN ('confirmed')
                 ORDER BY a.Time ASC
             `);
 
@@ -501,6 +501,59 @@ export async function getTodayAppointments(req: Request, res: Response, next: Ne
     } catch (error) {
         console.error('Error fetching today appointments:', error);
         res.status(500).json({ message: 'Lỗi server khi lấy danh sách cuộc hẹn hôm nay' });
+    }
+}
+
+export async function getWeekAppointments(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { consultantId, week } = req.params;
+
+    if (!consultantId) {
+        res.status(400).json({ message: 'Consultant ID is required' });
+        return;
+    }
+    try {
+        const pool = await poolPromise;
+
+        //get first and last day of the week
+        const firstDayOfWeek = new Date(week);
+        const lastDayOfWeek = new Date(firstDayOfWeek);
+        lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
+
+
+        const result = await pool.request()
+            .input('ConsultantID', sql.Int, consultantId)
+            .input('FirstDay', sql.DateTime, firstDayOfWeek)
+            .input('LastDay', sql.DateTime, lastDayOfWeek)
+            .query(`
+                SELECT 
+                    a.AppointmentID,
+                    a.ConsultantID,
+                    a.AccountID,
+                    a.Time,
+                    a.Date,
+                    a.Status,
+                    a.Description,
+                    a.Duration,
+                    a.Rating,
+                    a.Feedback,
+                    acc.FullName as CustomerName,
+                    acc.Email as CustomerEmail
+                FROM Appointment a
+                LEFT JOIN Account acc ON a.AccountID = acc.AccountID
+                WHERE a.ConsultantID = @ConsultantID 
+                    AND a.Date >= @FirstDay 
+                    AND a.Date <= @LastDay
+                    AND a.Status IN ('confirmed')
+                ORDER BY a.Date ASC, a.Time ASC
+            `);
+
+        res.status(200).json({
+            message: 'Lấy danh sách cuộc hẹn trong tuần thành công',
+            data: result.recordset
+        });
+    } catch (error) {
+        console.error('Error fetching this month appointments:', error);
+        res.status(500).json({ message: 'Lỗi server khi lấy danh sách cuộc hẹn trong tuần' });
     }
 }
 
@@ -541,4 +594,37 @@ export async function compareAppointments(req: Request, res: Response, next: Nex
         console.error('Error comparing appointments:', error);
         res.status(500).json({ message: 'Lỗi server khi so sánh cuộc hẹn' });
     }
+}
+
+export async function getAverageRating(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { consultantId } = req.params;
+
+    if (!consultantId) {
+        res.status(400).json({ message: 'Consultant ID is required' });
+        return;
+    }
+
+    try {
+        const pool = await poolPromise;
+
+        // Query to get average rating for the consultant
+        const result = await pool.request()
+            .input('ConsultantID', sql.Int, consultantId)
+            .query(`
+                SELECT AVG(Rating) AS averageRating
+                FROM Appointment
+                WHERE ConsultantID = @ConsultantID
+            `);
+
+        const averageRating = result.recordset[0]?.averageRating || 0;
+
+        res.status(200).json({
+            message: 'Lấy đánh giá trung bình thành công',
+            data: { averageRating }
+        });
+    } catch (error) {
+        console.error('Error getting average rating:', error);
+        res.status(500).json({ message: 'Lỗi server khi lấy đánh giá trung bình' });
+    }
+
 }

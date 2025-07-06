@@ -3,19 +3,18 @@ import { useEffect, useState, useRef } from "react";
 import { sqlLesson, sqlLessonAnswer, sqlLessonQuestion } from "../../types/Lesson";
 import { toast } from "react-toastify";
 import { useUser } from "@/context/UserContext";
-import { 
-  Play, 
-  CheckCircle, 
-  Clock, 
-  BookOpen, 
-  Video, 
-  Award, 
-  ArrowLeft,
-  ChevronRight,
-  Calendar,
-  FileText,
-  Lock,
-  Zap
+import {
+    Play,
+    CheckCircle,
+    Clock,
+    BookOpen,
+    Video,
+    Award,
+    ArrowLeft,
+    ChevronRight,
+    FileText,
+    Lock,
+    Zap
 } from "lucide-react";
 
 const LessonDetailsPage: React.FC = () => {
@@ -386,7 +385,6 @@ const LessonDetailsPage: React.FC = () => {
         const selectedLesson = lesson?.find((l) => l.LessonID === selected);
         if (!selectedLesson) return null;
 
-        const currentProgress = videoProgress[selected.toString()] || 0;
         const isCompleted = completedLessons.has(selected);
 
         return (
@@ -411,10 +409,10 @@ const LessonDetailsPage: React.FC = () => {
                             <div className="text-2xl font-bold text-blue-600">{getOverallProgress()}%</div>
                         </div>
                     </div>
-                    
+
                     {/* Progress bar */}
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
+                        <div
                             className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full transition-all duration-500"
                             style={{ width: `${getOverallProgress()}%` }}
                         ></div>
@@ -424,22 +422,22 @@ const LessonDetailsPage: React.FC = () => {
                 {/* Video Content */}
                 <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
                     <div className="relative">
-                    <video
-                        ref={videoRef}
-                        width="100%"
+                        <video
+                            ref={videoRef}
+                            width="100%"
                             height="500px"
-                        controls
+                            controls
                             className="w-full object-cover"
                             onTimeUpdate={() => handleVideoTimeUpdate(selectedLesson.LessonID)}
                             onSeeking={() => handleSeeking(selectedLesson.LessonID)}
                             onSeeked={() => handleSeeked(selectedLesson.LessonID)}
-                        onEnded={() => handleVideoEnded(selectedLesson.LessonID)}
-                        onError={() => toast.error("Không thể tải video. Vui lòng thử lại.")}
-                    >
-                        <source src={selectedLesson.VideoUrl} type="video/mp4" />
+                            onEnded={() => handleVideoEnded(selectedLesson.LessonID)}
+                            onError={() => toast.error("Không thể tải video. Vui lòng thử lại.")}
+                        >
+                            <source src={selectedLesson.VideoUrl} type="video/mp4" />
                             Trình duyệt của bạn không hỗ trợ video.
-                    </video>
-                        
+                        </video>
+
                         {/* Content Section */}
                         <div className="p-6">
                             <div className="flex items-start justify-between mb-4">
@@ -462,22 +460,21 @@ const LessonDetailsPage: React.FC = () => {
                                         <Video className="w-4 h-4 mr-1" />
                                         Video bài học
                                     </div>
-                </div>
-                                
-                <button
-                    onClick={handleDoneLesson}
-                    disabled={!isLessonVideoWatched(selectedLesson.LessonID)}
-                                className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
-                                    isLessonVideoWatched(selectedLesson.LessonID)
+                                </div>
+
+                                <button
+                                    onClick={handleDoneLesson}
+                                    disabled={!isLessonVideoWatched(selectedLesson.LessonID)}
+                                    className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${isLessonVideoWatched(selectedLesson.LessonID)
                                         ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600 shadow-lg hover:shadow-xl transform hover:scale-105"
                                         : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                }`}
-                            >
-                                <CheckCircle className="w-5 h-5" />
-                                <span>
-                                    {isCompleted ? "Đã hoàn thành" : !isSkippable ? "Hoàn thành bài học" : "Hoàn thành bài học"}
-                                </span>
-                </button>
+                                        }`}
+                                >
+                                    <CheckCircle className="w-5 h-5" />
+                                    <span>
+                                        {isCompleted ? "Đã hoàn thành" : !isSkippable ? "Hoàn thành bài học" : "Hoàn thành bài học"}
+                                    </span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -522,7 +519,7 @@ const LessonDetailsPage: React.FC = () => {
 
                     {/* Quiz Content */}
                     <form className="bg-white rounded-2xl shadow-lg p-6 space-y-6" onSubmit={handleSubmitQuestion}>
-                    {!lessonsCompleted && (
+                        {!lessonsCompleted && (
                             <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
                                 <div className="flex items-center space-x-2 text-yellow-800">
                                     <Lock className="w-5 h-5" />
@@ -530,8 +527,8 @@ const LessonDetailsPage: React.FC = () => {
                                 </div>
                             </div>
                         )}
-                        
-                    {showResults && (
+
+                        {showResults && (
                             <div className={`rounded-xl p-4 ${passed ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"}`}>
                                 <div className="flex items-center space-x-2">
                                     {passed ? (
@@ -540,13 +537,13 @@ const LessonDetailsPage: React.FC = () => {
                                         <Zap className="w-6 h-6 text-red-600" />
                                     )}
                                     <p className={`font-bold ${passed ? "text-green-800" : "text-red-800"}`}>
-                                {passed
+                                        {passed
                                             ? `🎉 Chúc mừng! Bạn đã vượt qua với ${score}/${questions.length} điểm`
                                             : `💪 Chưa đạt! Bạn được ${score}/${questions.length} điểm. Hãy cố gắng lần sau!`}
-                            </p>
+                                    </p>
                                 </div>
-                        </div>
-                    )}
+                            </div>
+                        )}
 
                         {/* Questions */}
                         <div className="space-y-6">
@@ -559,31 +556,31 @@ const LessonDetailsPage: React.FC = () => {
                                         <div className="flex-1">
                                             <p className="font-semibold text-gray-800 mb-3">{question.QuestionText}</p>
                                             <div className="space-y-2">
-                                {answers
-                                    ?.filter((answer) => answer.QuestionID === question.QuestionID)
+                                                {answers
+                                                    ?.filter((answer) => answer.QuestionID === question.QuestionID)
                                                     .map((answer, answerIndex) => (
                                                         <label key={answerIndex} className="flex items-center space-x-3 p-3 bg-white rounded-lg hover:bg-blue-50 transition-colors cursor-pointer">
-                                            <input
-                                                type={question.Type === "multiple" ? "checkbox" : "radio"}
-                                                name={`question-${question.QuestionID}`}
-                                                value={answer.AnswerID}
-                                                onChange={(e) =>
-                                                    handleAnswerChange(question.QuestionID, answer.AnswerID.toString(), e.target.checked)
-                                                }
+                                                            <input
+                                                                type={question.Type === "multiple" ? "checkbox" : "radio"}
+                                                                name={`question-${question.QuestionID}`}
+                                                                value={answer.AnswerID}
+                                                                onChange={(e) =>
+                                                                    handleAnswerChange(question.QuestionID, answer.AnswerID.toString(), e.target.checked)
+                                                                }
                                                                 className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 focus:ring-2"
-                                                disabled={showResults || !lessonsCompleted}
-                                                checked={(userAnswers[question.QuestionID.toString()] || []).includes(answer.AnswerID.toString())}
-                                            />
+                                                                disabled={showResults || !lessonsCompleted}
+                                                                checked={(userAnswers[question.QuestionID.toString()] || []).includes(answer.AnswerID.toString())}
+                                                            />
                                                             <span className="text-gray-700">{answer.AnswerText}</span>
-                                        </label>
-                                    ))}
+                                                        </label>
+                                                    ))}
                                             </div>
-                                {showResults && !passed && !isQuestionCorrect(question.QuestionID) && (
+                                            {showResults && !passed && !isQuestionCorrect(question.QuestionID) && (
                                                 <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
                                                     <p className="text-red-600 text-sm font-medium">❌ Câu trả lời chưa chính xác. Hãy xem lại nội dung bài học.</p>
                                                 </div>
-                                )}
-                            </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -594,34 +591,33 @@ const LessonDetailsPage: React.FC = () => {
                             <div className="text-sm text-gray-500">
                                 {questions.length} câu hỏi • Cần trả lời đúng để hoàn thành khóa học
                             </div>
-                            
-                    {!showResults && (
-                        <button
-                            type="submit"
-                            disabled={!lessonsCompleted}
-                                    className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
-                                        lessonsCompleted
-                                            ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 shadow-lg hover:shadow-xl transform hover:scale-105"
-                                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                    }`}
+
+                            {!showResults && (
+                                <button
+                                    type="submit"
+                                    disabled={!lessonsCompleted}
+                                    className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${lessonsCompleted
+                                        ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 shadow-lg hover:shadow-xl transform hover:scale-105"
+                                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                        }`}
                                 >
                                     <Award className="w-5 h-5" />
                                     <span>Nộp bài kiểm tra</span>
-                        </button>
-                    )}
-                            
-                    {showResults && (
-                        <button
-                            type="button"
+                                </button>
+                            )}
+
+                            {showResults && (
+                                <button
+                                    type="button"
                                     onClick={passed ? handleRedoWhenCourseCompleted : handleRedoQuiz}
                                     className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-100 text-white rounded-xl hover:from-blue-700 hover:to-blue-200 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
                                 >
                                     <Zap className="w-5 h-5" />
                                     <span>Làm lại</span>
-                        </button>
-                    )}
+                                </button>
+                            )}
                         </div>
-                </form>
+                    </form>
                 </div>
             );
         }
@@ -640,8 +636,8 @@ const LessonDetailsPage: React.FC = () => {
                 <div className="container mx-auto px-6 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
-                            <Link 
-                                to="/courses" 
+                            <Link
+                                to="/courses"
                                 className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
                             >
                                 <ArrowLeft className="w-5 h-5" />
@@ -652,7 +648,7 @@ const LessonDetailsPage: React.FC = () => {
                                 {courseData?.Title ? courseData.Title : ""}
                             </span>
                         </div>
-                        
+
                         <div className="flex items-center space-x-4">
                             <div className="text-right">
                                 <div className="text-sm text-gray-500">Tiến độ hoàn thành</div>
@@ -720,26 +716,25 @@ const LessonDetailsPage: React.FC = () => {
                         </div>
 
                         {/* Lesson Navigation */}
-                    <nav className="space-y-2">
+                        <nav className="space-y-2">
                             <h4 className="text-sm font-semibold text-gray-700 mb-3">Nội dung khóa học</h4>
-                        {lesson &&
+                            {lesson &&
                                 lesson.map((l, index) => {
                                     const isCompleted = completedLessons.has(l.LessonID);
                                     const isCurrent = selected === l.LessonID;
                                     const isUnlocked = isLessonUnlocked(index);
-                                    
+
                                     return (
-                                <button
-                                    key={l.LessonID}
-                                            className={`w-full text-left p-4 rounded-xl font-medium transition-all duration-200 ${
-                                                isCurrent
-                                                    ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg transform scale-105"
-                                                    : isCompleted
+                                        <button
+                                            key={l.LessonID}
+                                            className={`w-full text-left p-4 rounded-xl font-medium transition-all duration-200 ${isCurrent
+                                                ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg transform scale-105"
+                                                : isCompleted
                                                     ? "bg-green-50 hover:bg-green-100 text-green-800 border border-green-200"
                                                     : isUnlocked
-                                                    ? "hover:bg-gray-50 text-gray-700 border border-gray-200"
-                                                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                            }`}
+                                                        ? "hover:bg-gray-50 text-gray-700 border border-gray-200"
+                                                        : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                                }`}
                                             onClick={() => isUnlocked && setSelected(l.LessonID)}
                                             disabled={!isUnlocked}
                                         >
@@ -768,19 +763,18 @@ const LessonDetailsPage: React.FC = () => {
                                                     </div>
                                                 </div>
                                             </div>
-                                </button>
+                                        </button>
                                     );
                                 })}
-                            
+
                             {/* Quiz Button */}
-                        <button
-                                className={`w-full text-left p-4 rounded-xl font-medium transition-all duration-200 ${
-                                    selected === "question"
-                                        ? "bg-gradient-to-r from-blue-600 to-blue-100 text-white shadow-lg transform scale-105"
-                                        : areAllLessonsCompleted()
+                            <button
+                                className={`w-full text-left p-4 rounded-xl font-medium transition-all duration-200 ${selected === "question"
+                                    ? "bg-gradient-to-r from-blue-600 to-blue-100 text-white shadow-lg transform scale-105"
+                                    : areAllLessonsCompleted()
                                         ? "hover:bg-blue-50 text-blue-700 border border-blue-200"
                                         : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                }`}
+                                    }`}
                                 onClick={() => areAllLessonsCompleted() && setSelected("question")}
                                 disabled={!areAllLessonsCompleted()}
                             >
@@ -799,8 +793,8 @@ const LessonDetailsPage: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
-                        </button>
-                    </nav>
+                            </button>
+                        </nav>
                     </div>
                 </aside>
 

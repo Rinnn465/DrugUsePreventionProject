@@ -177,6 +177,7 @@ const consultants = {
 
     compareMonthAppointments: (consultantId: number) => get<any>(`/consultant/compare-appointments/${consultantId}`),
 
+    getAverageRating: (consultantId: number) => get<any>(`/consultant/average-month-rating/${consultantId}`),
 };
 
 // Appointment APIs
@@ -188,7 +189,6 @@ const appointments = {
         accountId: number;
         time: string;
         date: string;
-        meetingUrl?: string;
         status?: string;
         description?: string;
         duration?: number;
@@ -207,6 +207,19 @@ const appointments = {
         put<{ message: string }>(`/appointment/${appointmentId}/reject`, { rejectionReason }),
 
     cancel: (appointmentId: number) => deleteRequest<{ message: string }>(`/appointment/${appointmentId}/cancel`),
+
+    //compare Month Appointments
+
+    // Get appointments for a consultant in a specific month
+
+    //
+    getByConsultantId: (consultantId: number | undefined) => get<any[]>(`/appointment/consultant/${consultantId}`),
+
+    rate: (appointmentId: number, ratingData: { rating: number; feedback?: string }) =>
+        put<{ message: string }>(`/appointment/${appointmentId}/rate`, ratingData),
+
+    completeAppointment: (appointmentId: number) => put<{ message: string }>(`/appointment/${appointmentId}/complete`),
+
 };
 
 // Article APIs

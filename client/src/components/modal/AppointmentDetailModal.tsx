@@ -3,7 +3,7 @@ import { X, Calendar, Clock, User, MessageSquare, AlertCircle, Video } from 'luc
 import { Appointment } from '@/types/Appointment';
 import { parseDate } from '@/utils/parseDateUtils';
 import { useUser } from '@/context/UserContext';
-import { addMinutesToISOTime, parseISODateTime } from '@/utils/parseTimeUtils';
+import { parseISODateTime } from '@/utils/parseTimeUtils';
 
 interface AppointmentDetailModalProps {
   appointment: Appointment | null;
@@ -194,7 +194,7 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
               </div>
               <div className="space-y-2">
                 <p className="text-lg font-medium text-gray-800">
-                  {parseISODateTime(appointment.Time, { format: '12h' }) || 'Chưa xác định'}
+                  {parseISODateTime(appointment.Time, { format: '12h' }) || 'Không xác định'}
                 </p>
                 <div className="flex flex-wrap gap-4 text-sm">
                   <p className="text-gray-600">
@@ -202,9 +202,32 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
                   </p>
                   {appointment.Time && appointment.Duration && (
                     <p className="text-gray-600">
-                      <span className="font-medium">Kết thúc dự kiến:</span>
-                      {" " + addMinutesToISOTime(appointment.Time, appointment.Duration) || 'Không xác định'}
+                      <span className="font-medium">Kết thúc dự kiến:</span> {(() => {
+                        try {
+                          let timeStr = appointment.Time;
 
+                          // Xử lý nếu là ISO string
+                          if (timeStr.includes('T')) {
+                            const date = new Date(timeStr);
+                            if (isNaN(date.getTime())) return 'Không xác định';
+                            timeStr = date.toTimeString().substr(0, 5);
+                          }
+
+                          // Xử lý nếu là HH:mm:ss, chỉ lấy HH:mm
+                          if (timeStr.match(/^\d{2}:\d{2}:\d{2}$/)) {
+                            timeStr = timeStr.substring(0, 5);
+                          }
+
+                          const [hours, minutes] = timeStr.split(':').map(Number);
+                          if (isNaN(hours) || isNaN(minutes)) return 'Không xác định';
+
+                          const endTime = new Date();
+                          endTime.setHours(hours, minutes + appointment.Duration);
+                          return endTime.toTimeString().substr(0, 5);
+                        } catch {
+                          return 'Không xác định';
+                        }
+                      })()}
                     </p>
                   )}
                 </div>

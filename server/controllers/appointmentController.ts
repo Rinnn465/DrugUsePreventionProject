@@ -61,10 +61,12 @@ export async function getAppointmentByConsultantId(req: Request, res: Response, 
         const result = await pool.request()
             .input("consultantId", sql.Int, consultantId)
             .query(`
-                SELECT a.AppointmentID, a.ConsultantID, a.AccountID, a.Time, a.Date, a.Status, a.Description, a.Duration
+                SELECT a.AppointmentID, a.ConsultantID, a.AccountID, a.Time, a.Date, 
+                a.Status, a.Description, a.Duration, a.RejectedReason, a.Rating, a.Feedback
                 , ac.Fullname AS CustomerName, ac.Email AS CustomerEmail
                 FROM Appointment a JOIN Account ac ON a.AccountID = ac.AccountID 
                 WHERE ConsultantID = @consultantId
+                ORDER BY a.Date ASC, a.Time ASC;  
                 `);
 
         if (!result.recordset) {
@@ -198,6 +200,62 @@ export async function cancelAppointment(req: Request, res: Response, next: NextF
     }
 }
 
+export async function rateAppointment(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { appointmentId } = req.params;
+    const { rating, feedback } = req.body;
+
+    if (rating < 1 || rating > 5) {
+        res.status(400).json({ message: 'Đánh giá phải từ 1 đến 5 sao' });
+        return;
+    }
+
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('AppointmentID', sql.Int, appointmentId)
+            .input('Rating', sql.Int, rating)
+            .input('Feedback', sql.NVarChar, feedback || '')
+            .query(`
+                UPDATE Appointment 
+                SET Rating = @Rating, Feedback = @Feedback
+                WHERE AppointmentID = @AppointmentID
+            `);
+
+        if (result.rowsAffected[0] === 0) {
+            res.status(404).json({ message: 'Không tìm thấy cuộc hẹn để đánh giá' });
+            return;
+        }
+
+        res.status(200).json({ message: 'Đánh giá cuộc hẹn thành công' });
+    } catch (error) {
+        console.error('Error rating appointment:', error);
+        res.status(500).json({ message: 'Lỗi server khi đánh giá cuộc hẹn' });
+    }
+}
+
+export async function completeAppointment(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { appointmentId } = req.params;
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('AppointmentID', sql.Int, appointmentId)
+            .query(`
+                UPDATE Appointment 
+                SET Status = 'completed'
+                WHERE AppointmentID = @AppointmentID
+            `);
+
+        if (result.rowsAffected[0] === 0) {
+            res.status(404).json({ message: 'Không tìm thấy cuộc hẹn để hoàn thành' });
+            return;
+        }
+
+        res.status(200).json({ message: 'Hoàn thành cuộc hẹn thành công' });
+    } catch (error) {
+        console.error('Error completing appointment:', error);
+        res.status(500).json({ message: 'Lỗi server khi hoàn thành cuộc hẹn' });
+    }
+}
 
 export async function getAppointmentsByFilter(req: Request, res: Response, next: NextFunction): Promise<void> {
     const consultantId = req.query.consultantId as string;

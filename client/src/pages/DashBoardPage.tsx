@@ -3,11 +3,13 @@ import { Link, useParams, useLocation } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 import Sidebar from "../components/sidebar/Sidebar";
 import { parseDate } from "../utils/parseDateUtils";
-import { User, BookOpen, Calendar, Clock, Users, Mail, Edit, Plus, CheckCircle, XCircle, Edit2 } from "lucide-react";
+import { User, BookOpen, Calendar, Clock, Users, Mail, Edit, CheckCircle, XCircle, Edit2 } from "lucide-react";
 import { Appointment } from "../types/Appointment";
 import AppointmentDetailModal from "../components/modal/AppointmentDetailModal";
 import { toast } from 'react-toastify';
 import apiUtils from "@/utils/apiUtils";
+import useModal from "@/hooks/useModal";
+import Modal from "@/components/modal/ModalNotification";
 
 interface ProfileFormData {
   username: string;
@@ -20,28 +22,6 @@ interface PasswordFormData {
   currentPassword: string;
   newPassword: string;
   confirmPassword: string;
-}
-
-interface Schedule {
-  ScheduleID: number;
-  ConsultantID: number;
-  Date: string;
-  StartTime: string;
-  EndTime: string;
-}
-
-interface PendingAppointment {
-  AppointmentID: number;
-  ConsultantID: number;
-  AccountID: number;
-  Time: string;
-  Date: string;
-  MeetingURL?: string;
-  Status: string;
-  Description?: string;
-  Duration: number;
-  CustomerName?: string;
-  CustomerEmail?: string;
 }
 
 interface EnrolledCourse {
@@ -79,6 +59,7 @@ interface EnrolledEventsResponse {
 const DashBoardPage: React.FC = () => {
   const { userId } = useParams();
   const { user, setUser } = useUser();
+  const { isOpen, openModal, closeModal } = useModal();
 
   const location = useLocation();
 
@@ -87,6 +68,7 @@ const DashBoardPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
+  const [confirmCancel, setConfirmCancel] = useState(false);
   const [isLoadingCourses, setIsLoadingCourses] = useState(false);
   const [enrolledEvents, setEnrolledEvents] = useState<EnrolledEvent[]>([]);
   const [isLoadingEvents, setIsLoadingEvents] = useState(false);
@@ -106,27 +88,6 @@ const DashBoardPage: React.FC = () => {
   const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [appointmentToReject, setAppointmentToReject] = useState<number | null>(null);
-
-  // Consultant-specific states
-  const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [pendingAppointments, setPendingAppointments] = useState<PendingAppointment[]>([]);
-  const [showAddSchedule, setShowAddSchedule] = useState(false);
-  const [newSchedule, setNewSchedule] = useState({
-    date: '',
-    selectedSlots: [] as string[]
-  });
-  const [scheduledDates, setScheduledDates] = useState<string[]>([]);
-
-  // Define time slots
-  const timeSlots = [
-    { id: 'slot1', label: 'SLOT 1: 8H - 9H (Sáng)', startTime: '08:00', endTime: '09:00', period: 'Sáng' },
-    { id: 'slot2', label: 'SLOT 2: 9H30 - 10H30 (Sáng)', startTime: '09:30', endTime: '10:30', period: 'Sáng' },
-    { id: 'slot3', label: 'SLOT 3: 11H - 12H (Sáng)', startTime: '11:00', endTime: '12:00', period: 'Sáng' },
-    { id: 'slot4', label: 'SLOT 4: 1H30 - 2H30 (Chiều)', startTime: '13:30', endTime: '14:30', period: 'Chiều' },
-    { id: 'slot5', label: 'SLOT 5: 3H - 4H (Chiều)', startTime: '15:00', endTime: '16:00', period: 'Chiều' },
-    { id: 'slot6', label: 'SLOT 6: 4H30 - 5H30 (Chiều)', startTime: '16:30', endTime: '17:30', period: 'Chiều' },
-    { id: 'slot7', label: 'SLOT 7: 7H - 8H (Tối)', startTime: '19:00', endTime: '20:00', period: 'Tối' }
-  ];
 
   // Profile form state
   const [profileForm, setProfileForm] = useState<ProfileFormData>({
@@ -250,156 +211,6 @@ const DashBoardPage: React.FC = () => {
     fetchEnrolledEvents();
   }, [user?.AccountID]);
 
-  const fetchSchedules = useCallback(async () => {
-    if (!user?.AccountID) return;
-
-    console.log('Fetching schedules for AccountID:', user.AccountID);
-    console.log('Current user:', user);
-
-    try {
-      const token = localStorage.getItem('token');
-
-      const response = await fetch(`http://localhost:5000/api/consultant/schedules/${user.AccountID}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      console.log(response);
-
-      console.log('Schedule fetch response status:', response.status);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Fetched schedules:', data);
-
-      setSchedules(data || []);
-
-      // Extract unique dates that already have schedules
-      const existingDates = [...new Set((data || []).map((schedule: Schedule) =>
-        new Date(schedule.Date).toISOString().split('T')[0]
-      ))] as string[];
-
-      console.log('Scheduled dates:', existingDates);
-      setScheduledDates(existingDates);
-    } catch (error) {
-      console.error('Error fetching schedules:', error);
-      toast.error('Không thể tải lịch làm việc');
-      // Don't fail silently - set empty arrays so the UI still works
-      setSchedules([]);
-      setScheduledDates([]);
-    }
-  }, [user]);
-
-  const fetchPendingAppointments = useCallback(async () => {
-    if (!user?.AccountID) return;
-
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/consultant/pending-appointments/${user.AccountID}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setPendingAppointments(data.data || []);
-    } catch (error) {
-      console.error('Error fetching pending appointments:', error);
-      toast.error('Không thể tải danh sách cuộc hẹn chờ duyệt');
-      // Don't fail silently
-      setPendingAppointments([]);
-    }
-  }, [user?.AccountID]);
-
-  // Fetch consultant-specific data
-  useEffect(() => {
-    if (isConsultant && user?.AccountID) {
-      fetchSchedules();
-      fetchPendingAppointments();
-    }
-  }, [isConsultant, user?.AccountID, fetchSchedules, fetchPendingAppointments]);
-
-  const handleAddSchedule = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (newSchedule.selectedSlots.length === 0) {
-      toast.error('Vui lòng chọn ít nhất một khung giờ');
-      return;
-    }
-
-    // Check if the selected date is disabled
-    if (isDateDisabled(newSchedule.date)) {
-      toast.error('Ngày này đã có lịch làm việc. Vui lòng chọn ngày khác.');
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem('token');
-
-      // Create multiple schedule entries for each selected slot
-      const schedulePromises = newSchedule.selectedSlots.map(slotId => {
-        const selectedSlot = timeSlots.find(slot => slot.id === slotId);
-        if (!selectedSlot) return null;
-
-        return fetch('http://localhost:5000/api/consultant/schedule', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-
-          body: JSON.stringify({
-            consultantId: user?.AccountID,
-            date: newSchedule.date,
-            startTime: selectedSlot.startTime + ':00', // Ensure time is in HH:mm:ss format
-            endTime: selectedSlot.endTime + ':00' // Ensure time is in HH:mm:ss format
-          })
-        });
-      }).filter(promise => promise !== null);
-
-      const results = await Promise.all(schedulePromises);
-      const failedRequests = results.filter(result => !result.ok);
-
-      if (failedRequests.length === 0) {
-        toast.success(`Thêm ${newSchedule.selectedSlots.length} lịch làm việc thành công!`);
-        setShowAddSchedule(false);
-        setNewSchedule({ date: '', selectedSlots: [] });
-        fetchSchedules();
-      } else {
-        throw new Error(`Có ${failedRequests.length} lịch không thể thêm được`);
-      }
-    } catch (error) {
-      console.error('Error adding schedule:', error);
-      toast.error('Có lỗi xảy ra khi thêm lịch làm việc');
-    }
-  };
-
-  const handleApproveAppointment = async (appointmentId: number) => {
-    try {
-      await apiUtils.appointments.approve(appointmentId);
-      toast.success('Đã phê duyệt cuộc hẉn!');
-
-      // Refresh both pending appointments and main appointments list
-      fetchPendingAppointments();
-      fetchAllAppointments();
-    } catch (error) {
-      console.error('Error approving appointment:', error);
-      toast.error('Có lỗi xảy ra khi phê duyệt cuộc hẹn');
-    }
-  };
-
-  const handleRejectAppointment = async (appointmentId: number) => {
-    setAppointmentToReject(appointmentId);
-    setIsRejectionModalOpen(true);
-  };
-
   const confirmRejectAppointment = async () => {
     if (!appointmentToReject || !rejectionReason.trim()) {
       toast.error('Vui lòng nhập lý do từ chối');
@@ -410,8 +221,7 @@ const DashBoardPage: React.FC = () => {
       await apiUtils.appointments.reject(appointmentToReject, rejectionReason.trim());
       toast.success('Đã từ chối cuộc hẹn!');
 
-      // Refresh both pending appointments and main appointments list
-      fetchPendingAppointments();
+      // Refresh main appointments list
       fetchAllAppointments();
 
       setIsRejectionModalOpen(false);
@@ -440,38 +250,6 @@ const DashBoardPage: React.FC = () => {
     }
 
     return date.toLocaleDateString('vi-VN');
-  };
-
-  // Helper function to check if a date is disabled (already has schedules)
-  const isDateDisabled = (dateString: string) => {
-    return scheduledDates.includes(dateString);
-  };
-
-  // Helper function to get today's date in YYYY-MM-DD format
-  const getTodayString = () => {
-    return new Date().toISOString().split('T')[0];
-  };
-
-  const formatTime = (timeString: string) => {
-    if (!timeString) return '';
-
-    // If it's a full datetime string, extract just the time part
-    if (timeString.includes('T')) {
-      const timePart = timeString.split('T')[1];
-      return timePart.substring(0, 5);
-    }
-
-    // If it's already just a time string like "08:00:00"
-    return timeString.substring(0, 5);
-  };
-
-  const handleSlotToggle = (slotId: string) => {
-    setNewSchedule(prev => ({
-      ...prev,
-      selectedSlots: prev.selectedSlots.includes(slotId)
-        ? prev.selectedSlots.filter(id => id !== slotId)
-        : [...prev.selectedSlots, slotId]
-    }));
   };
 
   // Handle profile form input changes
@@ -616,16 +394,20 @@ const DashBoardPage: React.FC = () => {
       });
     }
   };
-  const handleCancelAppointment = async (appointmentId: number) => {
-    try {
-      await apiUtils.appointments.cancel(appointmentId);
-      fetchAllAppointments();
-      toast.success('Đã hủy cuộc hẹn thành công!');
-    } catch (error) {
-      console.error('Error cancelling appointment:', error);
-      toast.error('Có lỗi xảy ra khi hủy cuộc hẹn');
+
+  const handleCancelAppointment = useCallback(async (appointmentId: number) => {
+    openModal();
+    if (confirmCancel) {
+      try {
+        await apiUtils.appointments.cancel(appointmentId)
+        toast.success('Đã hủy cuộc hẹn thành công!');
+        fetchAllAppointments(); // Refresh appointments list
+      } catch (error) {
+        console.error('Error cancelling appointment:', error);
+        toast.error('Không thể hủy cuộc hẹn');
+      }
     }
-  }
+  }, [confirmCancel, fetchAllAppointments, openModal])
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -769,360 +551,6 @@ const DashBoardPage: React.FC = () => {
           {/* Consultant-Specific Sections */}
           {isConsultant && (
             <>
-              {/* Schedule Management Section */}
-              <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-semibold text-gray-800 flex items-center">
-                    <Calendar className="h-6 w-6 mr-2 text-blue-600" />
-                    Lịch Làm Việc
-                  </h2>
-                  <button
-                    onClick={() => setShowAddSchedule(true)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Thêm Lịch
-                  </button>
-                </div>
-
-                {/* Add Schedule Form */}
-                {showAddSchedule && (
-                  <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                    <form onSubmit={handleAddSchedule} className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Ngày</label>
-                        <input
-                          type="date"
-                          value={newSchedule.date}
-                          onChange={(e) => {
-                            const selectedDate = e.target.value;
-                            if (isDateDisabled(selectedDate)) {
-                              toast.error('Ngày này đã có lịch làm việc. Vui lòng chọn ngày khác.');
-                              return;
-                            }
-                            setNewSchedule({ ...newSchedule, date: selectedDate });
-                          }}
-                          min={getTodayString()}
-                          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${newSchedule.date && isDateDisabled(newSchedule.date)
-                            ? 'border-red-300 bg-red-50 focus:ring-red-500'
-                            : 'border-gray-300 focus:ring-blue-500'
-                            }`}
-                          required
-                        />
-                        {newSchedule.date && isDateDisabled(newSchedule.date) && (
-                          <p className="text-red-600 text-sm mt-1">
-                            ⚠️ Ngày này đã có lịch làm việc
-                          </p>
-                        )}
-                        {scheduledDates.length > 0 && (
-                          <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-md">
-                            <p className="text-sm text-yellow-800 font-medium">
-                              📅 Những ngày đã có lịch làm việc:
-                            </p>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {scheduledDates.map((date, index) => (
-                                <span
-                                  key={index}
-                                  className="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-md"
-                                >
-                                  {formatDate(date)}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-3">
-                          Chọn khung giờ (có thể chọn nhiều)
-                        </label>
-
-                        {/* Morning Slots */}
-                        <div className="mb-4">
-                          <h4 className="text-sm font-medium text-gray-600 mb-2">Sáng</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                            {timeSlots.filter(slot => slot.period === 'Sáng').map(slot => (
-                              <label key={slot.id} className="flex items-center space-x-2 p-2 border border-gray-200 rounded-md hover:bg-blue-50 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={newSchedule.selectedSlots.includes(slot.id)}
-                                  onChange={() => handleSlotToggle(slot.id)}
-                                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                />
-                                <span className="text-sm">{slot.label}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Afternoon Slots */}
-                        <div className="mb-4">
-                          <h4 className="text-sm font-medium text-gray-600 mb-2">Chiều</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                            {timeSlots.filter(slot => slot.period === 'Chiều').map(slot => (
-                              <label key={slot.id} className="flex items-center space-x-2 p-2 border border-gray-200 rounded-md hover:bg-blue-50 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={newSchedule.selectedSlots.includes(slot.id)}
-                                  onChange={() => handleSlotToggle(slot.id)}
-                                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                />
-                                <span className="text-sm">{slot.label}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Evening Slots */}
-                        <div className="mb-4">
-                          <h4 className="text-sm font-medium text-gray-600 mb-2">Tối</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                            {timeSlots.filter(slot => slot.period === 'Tối').map(slot => (
-                              <label key={slot.id} className="flex items-center space-x-2 p-2 border border-gray-200 rounded-md hover:bg-blue-50 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={newSchedule.selectedSlots.includes(slot.id)}
-                                  onChange={() => handleSlotToggle(slot.id)}
-                                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                />
-                                <span className="text-sm">{slot.label}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Selected slots summary */}
-                        {newSchedule.selectedSlots.length > 0 && (
-                          <div className="mt-3 p-3 bg-blue-50 rounded-md">
-                            <p className="text-sm text-blue-800">
-                              Đã chọn {newSchedule.selectedSlots.length} khung giờ
-                            </p>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex space-x-2">
-                        <button
-                          type="submit"
-                          className={`px-4 py-2 rounded-md transition-colors ${newSchedule.selectedSlots.length === 0 || isDateDisabled(newSchedule.date)
-                            ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                            : 'bg-green-600 text-white hover:bg-green-700'
-                            }`}
-                          disabled={newSchedule.selectedSlots.length === 0 || isDateDisabled(newSchedule.date)}
-                        >
-                          {isDateDisabled(newSchedule.date)
-                            ? 'Ngày đã có lịch'
-                            : `Thêm ${newSchedule.selectedSlots.length > 0 ? `${newSchedule.selectedSlots.length} lịch` : 'lịch'}`
-                          }
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowAddSchedule(false);
-                            setNewSchedule({ date: '', selectedSlots: [] });
-                          }}
-                          className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
-                        >
-                          Hủy
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                )}
-
-                {/* Schedule List - Enhanced Weekly View */}
-                {schedules.length > 0 ? (
-                  <div className="space-y-6">
-                    {(() => {
-                      // Group schedules by date
-                      const groupedSchedules = schedules.reduce((acc, schedule) => {
-                        const dateKey = new Date(schedule.Date).toISOString().split('T')[0];
-                        if (!acc[dateKey]) {
-                          acc[dateKey] = [];
-                        }
-                        acc[dateKey].push(schedule);
-                        return acc;
-                      }, {} as Record<string, typeof schedules>);
-
-                      // Sort dates
-                      const sortedDates = Object.keys(groupedSchedules).sort();
-
-                      return sortedDates.map((dateKey) => {
-                        const daySchedules = groupedSchedules[dateKey];
-                        const date = new Date(dateKey);
-                        const dayName = date.toLocaleDateString('vi-VN', { weekday: 'long' });
-                        const dateString = date.toLocaleDateString('vi-VN', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric'
-                        });
-
-                        // Group by time periods
-                        const morningSlots = daySchedules.filter(s => {
-                          const hour = parseInt(s.StartTime.split(':')[0]);
-                          return hour >= 6 && hour < 12;
-                        });
-                        const afternoonSlots = daySchedules.filter(s => {
-                          const hour = parseInt(s.StartTime.split(':')[0]);
-                          return hour >= 12 && hour < 18;
-                        });
-                        const eveningSlots = daySchedules.filter(s => {
-                          const hour = parseInt(s.StartTime.split(':')[0]);
-                          return hour >= 18;
-                        });
-
-                        return (
-                          <div key={dateKey} className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
-                            {/* Date Header */}
-                            <div className="flex items-center justify-between mb-4">
-                              <div className="flex items-center space-x-3">
-                                <div className="h-10 w-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                                  <Calendar className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                  <h3 className="font-bold text-gray-800 capitalize">{dayName}</h3>
-                                  <p className="text-sm text-gray-600">{dateString}</p>
-                                </div>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <span className="text-sm font-medium text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
-                                  {daySchedules.length} khung giờ
-                                </span>
-                                <Edit2 className="h-4 w-4 text-gray-500 cursor-pointer hover:text-gray-700" />
-                              </div>
-                            </div>
-
-                            {/* Time Slots Display */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              {/* Morning */}
-                              {morningSlots.length > 0 && (
-                                <div className="bg-white rounded-lg p-4 border">
-                                  <div className="flex items-center mb-3">
-                                    <div className="h-2 w-2 bg-yellow-400 rounded-full mr-2"></div>
-                                    <h4 className="font-semibold text-gray-700">Sáng</h4>
-                                  </div>
-                                  <div className="space-y-2">
-                                    {morningSlots.map((schedule) => (
-                                      <div key={schedule.ScheduleID} className="flex items-center text-sm text-gray-600">
-                                        <Clock className="h-3 w-3 mr-2" />
-                                        <span>{formatTime(schedule.StartTime)} - {formatTime(schedule.EndTime)}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Afternoon */}
-                              {afternoonSlots.length > 0 && (
-                                <div className="bg-white rounded-lg p-4 border">
-                                  <div className="flex items-center mb-3">
-                                    <div className="h-2 w-2 bg-orange-400 rounded-full mr-2"></div>
-                                    <h4 className="font-semibold text-gray-700">Chiều</h4>
-                                  </div>
-                                  <div className="space-y-2">
-                                    {afternoonSlots.map((schedule) => (
-                                      <div key={schedule.ScheduleID} className="flex items-center text-sm text-gray-600">
-                                        <Clock className="h-3 w-3 mr-2" />
-                                        <span>{formatTime(schedule.StartTime)} - {formatTime(schedule.EndTime)}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Evening */}
-                              {eveningSlots.length > 0 && (
-                                <div className="bg-white rounded-lg p-4 border">
-                                  <div className="flex items-center mb-3">
-                                    <div className="h-2 w-2 bg-purple-400 rounded-full mr-2"></div>
-                                    <h4 className="font-semibold text-gray-700">Tối</h4>
-                                  </div>
-                                  <div className="space-y-2">
-                                    {eveningSlots.map((schedule) => (
-                                      <div key={schedule.ScheduleID} className="flex items-center text-sm text-gray-600">
-                                        <Clock className="h-3 w-3 mr-2" />
-                                        <span>{formatTime(schedule.StartTime)} - {formatTime(schedule.EndTime)}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      });
-                    })()}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 bg-gray-50 rounded-xl">
-                    <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Chưa có lịch làm việc</h3>
-                    <p className="text-gray-600">Bấm "Thêm Lịch" để thiết lập lịch làm việc của bạn</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Pending Appointments Section */}
-              <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
-                  <Clock className="h-6 w-6 mr-2 text-orange-600" />
-                  Cuộc Hẹn Chờ Duyệt ({pendingAppointments.length})
-                </h2>
-
-                {pendingAppointments.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">Không có cuộc hẹn nào chờ duyệt</p>
-                ) : (
-                  <div className="space-y-4">
-                    {pendingAppointments.map((appointment) => (
-                      <div key={appointment.AppointmentID} className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              <div>
-                                <p className="text-sm text-gray-600">Tên: </p>
-                                <p className="font-semibold">{appointment.CustomerName || 'Không rõ'}</p>
-                              </div>
-                              <div>
-                                <p className="text-sm text-gray-600">Ngày & Giờ</p>
-                                <p className="font-semibold">
-                                  {formatDate(appointment.Date)} - {formatTime(appointment.Time)}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-sm text-gray-600">Thời lượng</p>
-                                <p className="font-semibold">{appointment.Duration} phút</p>
-                              </div>
-                            </div>
-                            {appointment.Description && (
-                              <div className="mt-3">
-                                <p className="text-sm text-gray-600">Mô tả</p>
-                                <p className="text-gray-800">{appointment.Description}</p>
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex space-x-2 ml-4">
-                            <button
-                              onClick={() => handleApproveAppointment(appointment.AppointmentID)}
-                              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center"
-                            >
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Duyệt
-                            </button>
-                            <button
-                              onClick={() => handleRejectAppointment(appointment.AppointmentID)}
-                              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center"
-                            >
-                              <XCircle className="h-4 w-4 mr-1" />
-                              Từ chối
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
             </>
           )}
         </main>
@@ -1467,6 +895,7 @@ const DashBoardPage: React.FC = () => {
             <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
               {appointments.length > 0 ? (
                 <div className="space-y-6">
+
                   {appointments.map((appointment) => (
                     <div key={appointment.AppointmentID} className="group bg-gradient-to-r from-white to-purple-50 border border-purple-100 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02] p-6">
                       <div className="flex items-center justify-between mb-4">
@@ -1563,6 +992,17 @@ const DashBoardPage: React.FC = () => {
           consultantTitle={consultantDetails?.title}
           consultantImageUrl={consultantDetails?.imageUrl}
           consultantSpecialties={consultantDetails?.specialties}
+        />
+        <Modal
+          isOpen={isOpen}
+          onClose={closeModal}
+          title="Bạn có chắc muốn hủy cuộc hẹn này không?"
+          description="Cuộc hẹn sẽ bị hủy và không thể khôi phục."
+          confirmMessage="Hủy cuộc hẹn"
+          confirmUrl={() => {
+            setConfirmCancel(true)
+            if (selectedAppointment) handleCancelAppointment(selectedAppointment.AppointmentID);
+          }}
         />
 
         {/* Rejection Reason Modal */}
@@ -1769,7 +1209,7 @@ const DashBoardPage: React.FC = () => {
                       </button>
                       <button
                         onClick={() => {
-                          if (profilePassword.trim()) {
+                          if (profilePassword.trim() === user?.Password) {
                             setIsEditingProfile(true);
                           } else {
                             setMessage({ type: "error", text: "Vui lòng nhập mật khẩu để xác thực" });
