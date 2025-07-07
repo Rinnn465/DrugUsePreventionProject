@@ -16,6 +16,7 @@ import SignUpPage from './pages/authen/SignupPage';
 import AuthLayout from './components/AuthLayout';
 import ConsultantDetailsPage from './pages/appointment/ConsultantDetailsPage';
 import LessonDetailsPage from './pages/course/LessonDetailsPage';
+import ExamPage from './pages/course/ExamPage';
 import SurveyCompletePage from './pages/survey/SurveyCompletePage';
 import SurveyAfterEventPage from './pages/survey/SurveyAfterEventPage';
 import CourseManagmentPage from './pages/course/CourseManagmentPage';
@@ -48,6 +49,7 @@ function App() {
             <Route path="courses" element={<CoursesPage />} />
             <Route path="courses/:id" element={<CourseEnrollPage />} />
             <Route path="courses/:id/lessons" element={<LessonDetailsPage />} />
+            <Route path="courses/:id/exam" element={<ExamPage />} />
             <Route path="consultant/:consultantId" element={<ConsultantDetailsPage />} />
             <Route path="assessments" element={<AssessmentsPage />} />
             <Route path="assessments/:assessmentId" element={<AssessmentDetailPage />} />

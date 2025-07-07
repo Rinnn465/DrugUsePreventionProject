@@ -136,43 +136,98 @@ export async function submitExam(req: Request, res: Response): Promise<void> {
 
         const exam = examResult.recordset[0];
 
+        // Lấy tất cả câu hỏi của bài thi
+        const allQuestionsResult = await pool.request()
+            .input('ExamId', sql.Int, examId)
+            .query(`
+                SELECT QuestionID, Type
+                FROM ExamQuestion 
+                WHERE ExamID = @ExamId AND IsDisabled = 0
+            `);
+
         // Lấy đáp án đúng
         const correctAnswersResult = await pool.request()
             .input('ExamId', sql.Int, examId)
             .query(`
-                SELECT q.QuestionID, a.AnswerID
+                SELECT q.QuestionID, a.AnswerID, q.Type
                 FROM ExamQuestion q
                 JOIN ExamAnswer a ON q.QuestionID = a.QuestionID
                 WHERE q.ExamID = @ExamId AND a.IsCorrect = 1 AND q.IsDisabled = 0 AND a.IsDisabled = 0
             `);
 
-        // Tạo map đáp án đúng
+        // Tạo map đáp án đúng và loại câu hỏi
         const correctAnswersMap = new Map();
+        const questionTypeMap = new Map();
+        
         correctAnswersResult.recordset.forEach(row => {
             if (!correctAnswersMap.has(row.QuestionID)) {
                 correctAnswersMap.set(row.QuestionID, []);
             }
             correctAnswersMap.get(row.QuestionID).push(row.AnswerID);
+            questionTypeMap.set(row.QuestionID, row.Type);
         });
 
-        // Tính điểm
+        // Tính điểm - sử dụng tổng số câu hỏi thực tế
         let correctCount = 0;
-        const totalQuestions = correctAnswersMap.size;
+        const totalQuestions = allQuestionsResult.recordset.length;
         
-        answers.forEach((answer: any) => {
+        console.log('=== BEFORE CALCULATION ===');
+        console.log('allQuestionsResult.recordset:', allQuestionsResult.recordset);
+        console.log('totalQuestions:', totalQuestions);
+        console.log('correctAnswersMap size:', correctAnswersMap.size);
+        console.log('questionTypeMap size:', questionTypeMap.size);
+        console.log('answers received:', answers);
+        console.log('===========================');
+        
+        answers.forEach((answer: any, index: number) => {
             const questionId = answer.questionId;
             const selectedAnswers = Array.isArray(answer.selectedAnswers) ? answer.selectedAnswers : [answer.selectedAnswers];
             const correctAnswers = correctAnswersMap.get(questionId) || [];
+            const questionType = questionTypeMap.get(questionId);
+            
+            console.log(`--- Question ${index + 1} (ID: ${questionId}) ---`);
+            console.log('Selected answers:', selectedAnswers);
+            console.log('Correct answers:', correctAnswers);
+            console.log('Question type:', questionType);
             
             // Kiểm tra đáp án có đúng không
-            if (selectedAnswers.length === correctAnswers.length &&
-                selectedAnswers.every((id: number) => correctAnswers.includes(id))) {
-                correctCount++;
+            let isCorrect = false;
+            if (questionType === 'single') {
+                // Đối với câu hỏi single choice: chỉ cần chọn đúng 1 đáp án đúng
+                if (selectedAnswers.length === 1 && correctAnswers.includes(selectedAnswers[0])) {
+                    correctCount++;
+                    isCorrect = true;
+                }
+            } else {
+                // Đối với câu hỏi multiple choice: phải chọn đúng tất cả đáp án
+                if (selectedAnswers.length === correctAnswers.length &&
+                    selectedAnswers.every((id: number) => correctAnswers.includes(id))) {
+                    correctCount++;
+                    isCorrect = true;
+                }
             }
+            
+            console.log('Is correct:', isCorrect);
+            console.log('Current correct count:', correctCount);
+            console.log('-----------------------------------');
         });
 
-        const score = Math.round((correctCount / totalQuestions) * 100);
+        const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
         const isPassed = score >= exam.PassingScore;
+
+        // Debug logging
+        console.log('=== EXAM SUBMISSION DEBUG ===');
+        console.log('Exam ID:', examId);
+        console.log('Total Questions:', totalQuestions);
+        console.log('Correct Count:', correctCount);
+        console.log('Score calculation:', `(${correctCount} / ${totalQuestions}) * 100 = ${score}`);
+        console.log('Score:', score);
+        console.log('Passing Score:', exam.PassingScore);
+        console.log('Is Passed:', isPassed);
+        console.log('User Answers:', answers);
+        console.log('Correct Answers Map:', Object.fromEntries(correctAnswersMap));
+        console.log('Question Type Map:', Object.fromEntries(questionTypeMap));
+        console.log('=============================');
 
         // Lưu kết quả thi và lấy ResultID
         const insertResult = await pool.request()

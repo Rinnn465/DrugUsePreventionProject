@@ -21,19 +21,28 @@ const ExamPage: React.FC = () => {
     const [exam, setExam] = useState<CourseExam | null>(null);
     const [userAnswers, setUserAnswers] = useState<{ [key: number]: number[] }>({});
     const [showResults, setShowResults] = useState(false);
-    const [score, setScore] = useState(0);
-    const [passed, setPassed] = useState(false);
+    const [examResult, setExamResult] = useState<{
+        score: number;
+        correctAnswersCount: number;
+        totalQuestionsCount: number;
+        passed: boolean;
+    } | null>(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [timeLeft, setTimeLeft] = useState<number>(0);
     const [examStarted, setExamStarted] = useState(false);
+    const [renderKey, setRenderKey] = useState(0); // Force re-render key
 
     useEffect(() => {
         const fetchExam = async () => {
             try {
                 setLoading(true);
                 const examData = await courses.getExam(Number(id));
-                setExam(examData);
+                console.log('=== FETCHED EXAM DATA ===');
+                console.log('Exam data:', examData);
+                console.log('Questions count:', examData.data?.Questions?.length || 0);
+                console.log('========================');
+                setExam(examData.data || examData);
                 setTimeLeft(30 * 60); // 30 minutes default
             } catch (error) {
                 console.error("Fetch exam error:", error);
@@ -47,23 +56,6 @@ const ExamPage: React.FC = () => {
             fetchExam();
         }
     }, [id]);
-
-    // Timer for exam
-    useEffect(() => {
-        if (examStarted && timeLeft > 0) {
-            const timer = setInterval(() => {
-                setTimeLeft(prev => {
-                    if (prev <= 1) {
-                        // Auto submit when time runs out
-                        handleSubmitExam();
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
-            return () => clearInterval(timer);
-        }
-    }, [examStarted, timeLeft]);
 
     const handleStartExam = () => {
         setExamStarted(true);
@@ -129,15 +121,68 @@ const ExamPage: React.FC = () => {
 
             const result = await courses.submitExam(submissionData);
             
-            // Sử dụng dữ liệu từ response mới
-            const correctAnswers = result.correctAnswers;
-            const totalQuestions = result.totalQuestions;
-            const scorePercentage = Math.round((correctAnswers / totalQuestions) * 100);
+            console.log('=== EXAM RESULT DEBUG ===');
+            console.log('Full result:', result);
+            console.log('Result keys:', Object.keys(result));
+            console.log('Raw result JSON:', JSON.stringify(result, null, 2));
+            console.log('Type of result:', typeof result);
+            console.log('Correct count:', result.correctCount);
+            console.log('Total questions:', result.totalQuestions);
+            console.log('Score:', result.score);
+            console.log('Is passed:', result.isPassed);
+            console.log('========================');
             
-            setScore(scorePercentage);
-            setPassed(result.isPassed);
+            // Sử dụng dữ liệu từ response với validation
+            const correctAnswers = Number(result.correctCount) || 0;
+            const totalQuestions = Number(result.totalQuestions) || 1;
+            const scorePercentage = Number(result.score) || Math.round((correctAnswers / totalQuestions) * 100);
+            
+            console.log('=== PROCESSED VALUES DEBUG ===');
+            console.log('Processed correctAnswers:', correctAnswers);
+            console.log('Processed totalQuestions:', totalQuestions);
+            console.log('Processed scorePercentage:', scorePercentage);
+            console.log('Using direct result.score:', result.score);
+            console.log('Using direct result.correctCount:', result.correctCount);
+            console.log('===============================');
+            
+            // Set the result data and show results together
+            const resultData = {
+                score: scorePercentage,
+                correctAnswersCount: correctAnswers,
+                totalQuestionsCount: totalQuestions,
+                passed: result.isPassed
+            };
+            
+            console.log('=== STATE UPDATE DEBUG ===');
+            console.log('Setting resultData:', resultData);
+            console.log('===========================');
+            
+            // Set both states together to avoid timing issues
+            setExamResult(resultData);
             setShowResults(true);
             setExamStarted(false);
+            setRenderKey(prev => prev + 1); // Force re-render
+            
+            // Additional debug after state set
+            setTimeout(() => {
+                console.log('=== AFTER STATE SET (100ms delay) ===');
+                console.log('examResult after setState:', resultData);
+                console.log('showResults after setState:', true);
+                console.log('=====================================');
+            }, 100);
+            
+            console.log('=== STATE UPDATE DEBUG ===');
+            console.log('Setting score to:', scorePercentage);
+            console.log('Setting correctAnswersCount to:', correctAnswers);
+            console.log('Setting totalQuestionsCount to:', totalQuestions);
+            console.log('Setting passed to:', result.isPassed);
+            console.log('Final examResult object:', {
+                score: scorePercentage,
+                correctAnswersCount: correctAnswers,
+                totalQuestionsCount: totalQuestions,
+                passed: result.isPassed
+            });
+            console.log('=============================');
             
             if (result.isPassed) {
                 toast.success(`Chúc mừng! Bạn đã trả lời đúng ${correctAnswers}/${totalQuestions} câu (${scorePercentage}%) và vượt qua bài thi!`);
@@ -151,6 +196,39 @@ const ExamPage: React.FC = () => {
             setSubmitting(false);
         }
     }, [exam, user?.AccountID, userAnswers]);
+
+    // Timer for exam - moved after handleSubmitExam definition
+    useEffect(() => {
+        if (examStarted && timeLeft > 0) {
+            const timer = setInterval(() => {
+                setTimeLeft(prev => {
+                    if (prev <= 1) {
+                        // Auto submit when time runs out
+                        handleSubmitExam();
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+            return () => clearInterval(timer);
+        }
+    }, [examStarted, timeLeft, handleSubmitExam]);
+
+    // Debug effect to track state changes
+    useEffect(() => {
+        console.log('=== STATE CHANGE DEBUG ===');
+        console.log('examResult:', examResult);
+        console.log('showResults:', showResults);
+        console.log('renderKey:', renderKey);
+        if (examResult) {
+            console.log('examResult values:');
+            console.log('- score:', examResult.score);
+            console.log('- correctAnswersCount:', examResult.correctAnswersCount);
+            console.log('- totalQuestionsCount:', examResult.totalQuestionsCount);
+            console.log('- passed:', examResult.passed);
+        }
+        console.log('==========================');
+    }, [examResult, showResults, renderKey]);
 
     const formatTime = (seconds: number) => {
         const minutes = Math.floor(seconds / 60);
@@ -244,16 +322,38 @@ const ExamPage: React.FC = () => {
                 </div>
             </div>
         );
-    };
-
-    const renderExamResults = () => {
-        if (!showResults || !exam) return null;
+    };    const renderExamResults = useCallback(() => {
+        console.log('=== RENDER FUNCTION CALLED ===');
+        console.log('showResults:', showResults);
+        console.log('exam exists:', !!exam);
+        console.log('examResult exists:', !!examResult);
+        console.log('examResult content:', examResult);
+        console.log('==============================');
+        
+        if (!showResults || !exam || !examResult) {
+            console.log('Early return from renderExamResults');
+            return null;
+        }
         
         const totalQuestions = exam.Questions.length;
         const answeredQuestions = Object.keys(userAnswers).length;
         
+        console.log('=== RENDER RESULTS DEBUG ===');
+        console.log('showResults:', showResults);
+        console.log('examResult object:', examResult);
+        console.log('examResult.score:', examResult.score);
+        console.log('examResult.correctAnswersCount:', examResult.correctAnswersCount);
+        console.log('examResult.totalQuestionsCount:', examResult.totalQuestionsCount);
+        console.log('examResult.passed:', examResult.passed);
+        console.log('Component render time:', new Date().toISOString());
+        console.log('About to render with values:');
+        console.log('- Score display:', examResult.score || 0);
+        console.log('- Correct answers display:', examResult.correctAnswersCount || 0);
+        console.log('- Total questions display:', examResult.totalQuestionsCount || 0);
+        console.log('============================');
+
         return (
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div key={`exam-result-${renderKey}-${examResult.score}-${examResult.correctAnswersCount}-${Date.now()}`} className="bg-white rounded-lg shadow-sm p-6 mb-6">
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                     <Award className="w-6 h-6 text-blue-600" />
                     Kết quả bài thi
@@ -261,29 +361,29 @@ const ExamPage: React.FC = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 p-4 rounded-lg">
-                        <div className="text-2xl font-bold text-blue-600">{score}%</div>
+                        <div className="text-2xl font-bold text-blue-600">{examResult.score || 0}%</div>
                         <div className="text-sm text-blue-700">Điểm số</div>
                     </div>
                     <div className="bg-green-50 p-4 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600">{Math.round((score / 100) * totalQuestions)}/{totalQuestions}</div>
+                        <div className="text-2xl font-bold text-green-600">{examResult.correctAnswersCount || 0}/{examResult.totalQuestionsCount || 0}</div>
                         <div className="text-sm text-green-700">Câu trả lời đúng</div>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
                         <div className="text-2xl font-bold text-gray-600">{answeredQuestions}/{totalQuestions}</div>
                         <div className="text-sm text-gray-700">Câu đã trả lời</div>
                     </div>
-                    <div className={`p-4 rounded-lg ${passed ? 'bg-green-50' : 'bg-red-50'}`}>
-                        <div className={`text-2xl font-bold ${passed ? 'text-green-600' : 'text-red-600'}`}>
-                            {passed ? 'ĐẠT' : 'CHƯA ĐẠT'}
+                    <div className={`p-4 rounded-lg ${examResult.passed ? 'bg-green-50' : 'bg-red-50'}`}>
+                        <div className={`text-2xl font-bold ${examResult.passed ? 'text-green-600' : 'text-red-600'}`}>
+                            {examResult.passed ? 'ĐẠT' : 'CHƯA ĐẠT'}
                         </div>
-                        <div className={`text-sm ${passed ? 'text-green-700' : 'text-red-700'}`}>
+                        <div className={`text-sm ${examResult.passed ? 'text-green-700' : 'text-red-700'}`}>
                             Yêu cầu: {exam.PassingScore}%
                         </div>
                     </div>
                 </div>
             </div>
         );
-    };
+    }, [showResults, exam, examResult, userAnswers, renderKey]);
 
     if (loading) {
         return (
