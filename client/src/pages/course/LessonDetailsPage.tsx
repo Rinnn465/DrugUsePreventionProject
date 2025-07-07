@@ -572,7 +572,6 @@ const LessonDetailsPage: React.FC = () => {
                             </div>
                             <div>
                                 <h1 className="text-3xl font-bold text-gray-900 mb-2">{currentLesson.Title}</h1>
-                                <p className="text-gray-600 text-lg">{currentLesson.BriefDescription}</p>
                                 {currentLesson.Duration && (
                                     <div className="flex items-center gap-2 mt-3">
                                         <Clock className="w-4 h-4 text-gray-500" />
@@ -735,7 +734,6 @@ const LessonDetailsPage: React.FC = () => {
                                         <p className={`text-xs mt-1 line-clamp-2 ${
                                             canAccess ? 'text-gray-600' : 'text-gray-400'
                                         }`}>
-                                            {lessonItem.BriefDescription}
                                         </p>
                                         {!canAccess && (
                                             <p className="text-xs text-orange-600 mt-1">
