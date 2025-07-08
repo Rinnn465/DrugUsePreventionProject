@@ -8,7 +8,7 @@ const config: sql.config = {
   server: process.env.DB_SERVER as string,
   database: process.env.DB_NAME,
   options: {
-    encrypt: false, // Use true if you're on Azure or need encryption
+    encrypt: true, // Use true if you're on Azure or need encryption
     trustServerCertificate: true // For development only
   }
 };
