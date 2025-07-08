@@ -13,6 +13,7 @@ import apiProgramAttendeeRoutes from "./routes/programAttendeeRoutes";
 import apiProgramSurveyRoutes from "./routes/programSurveyRoutes";
 import { updateProgramStatus } from "./controllers/scheduledProgram";
 import agoraRoutes from "./routes/agoraRoutes";
+import courseExamRoutes from "./routes/courseExamRoutes";
 
 import apiLessonRoutes from "./routes/lessonRoutes";
 
@@ -78,6 +79,12 @@ app.use(
   "/api/lesson",
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   apiLessonRoutes
+);
+
+app.use(
+  "/api/exam",
+  authorizeRoles(["Member", "Consultant", "Admin"]),
+  courseExamRoutes
 );
 
 

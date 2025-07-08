@@ -10,7 +10,7 @@ dotenv.config();
  *
  * @route GET /api/courses
  * @access Công khai
- * @param {Request} req - Đối tượng request của Express
+ * @param {Request} req - Đối tượng request của Express (hỗ trợ phân trang, lọc)
  * @param {Response} res - Đối tượng response của Express
  * @returns {Promise<void>} Phản hồi JSON với mảng các khóa học
  * @throws {400} Nếu tham số request không hợp lệ
@@ -20,9 +20,36 @@ dotenv.config();
 export async function getCourses(req: Request, res: Response): Promise<void> {
     try {
         const pool = await poolPromise; // Kết nối tới pool của database
+        
+        // Thêm các tham số lọc và phân trang
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const offset = (page - 1) * limit;
+        const category = req.query.category as string;
+        const risk = req.query.risk as string;
+        const search = req.query.search as string;
 
-        // Sử dụng truy vấn SQL để lấy danh sách khóa học và gom nhóm category dạng JSON
-        const result = await pool.request().query(`
+        // Xây dựng truy vấn động
+        let whereClause = 'WHERE c.IsDisabled = 0';
+        const params: any[] = [];
+
+        if (category) {
+            whereClause += ' AND EXISTS (SELECT 1 FROM CourseCategory cc JOIN Category cat ON cc.CategoryID = cat.CategoryID WHERE cc.CourseID = c.CourseID AND cat.CategoryName = @category)';
+            params.push({ name: 'category', value: category });
+        }
+
+        if (risk) {
+            whereClause += ' AND c.Risk = @risk';
+            params.push({ name: 'risk', value: risk });
+        }
+
+        if (search) {
+            whereClause += ' AND (c.CourseName LIKE @search OR c.Description LIKE @search)';
+            params.push({ name: 'search', value: `%${search}%` });
+        }
+
+        // Sử dụng truy vấn SQL để lấy danh sách khóa học với phân trang
+        const query = `
             SELECT 
                 c.CourseID, 
                 c.CourseName, 
@@ -41,8 +68,33 @@ export async function getCourses(req: Request, res: Response): Promise<void> {
                     FOR JSON PATH
                 ) AS CategoryJSON
             FROM Course c
-            WHERE c.IsDisabled = 0
-        `);
+            ${whereClause}
+            ORDER BY c.CourseID
+            OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY
+        `;
+
+        // Truy vấn đếm tổng số
+        const countQuery = `
+            SELECT COUNT(*) as total
+            FROM Course c
+            ${whereClause}
+        `;
+
+        const request = pool.request();
+        request.input('offset', sql.Int, offset);
+        request.input('limit', sql.Int, limit);
+        
+        // Thêm các tham số lọc
+        params.forEach(param => {
+            request.input(param.name, sql.NVarChar, param.value);
+        });
+
+        const [result, countResult] = await Promise.all([
+            request.query(query),
+            request.query(countQuery)
+        ]);
+
+        const total = countResult.recordset[0].total;
 
         // Xử lý parse CategoryJSON thành mảng object
         const courses = result.recordset.map(course => {
@@ -70,10 +122,16 @@ export async function getCourses(req: Request, res: Response): Promise<void> {
             };
         });
 
-        // Trả về kết quả thành công
+        // Trả về kết quả thành công với thông tin phân trang
         res.status(200).json({
             message: 'Lấy danh sách khóa học thành công',
-            data: courses
+            data: courses,
+            pagination: {
+                page,
+                limit,
+                total,
+                pages: Math.ceil(total / limit)
+            }
         });
         return;
     } catch (err: any) {

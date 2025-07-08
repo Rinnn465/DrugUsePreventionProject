@@ -16,7 +16,7 @@ const CounselorCard: React.FC<CounselorCardProps> = ({ consultant, compact = fal
 
   if (compact) {
     return (
-      <div 
+      <div
         className={`p-4 flex items-start gap-4 hover:bg-gradient-to-r hover:from-sky-50 hover:to-blue-100 rounded-xl transition-all duration-200 border-b-2 border-sky-100 shadow-md cursor-pointer ${isSelected ? 'bg-primary-100 scale-[1.01] shadow-lg' : ''}`}
         onClick={onSelect}
       >
@@ -76,13 +76,13 @@ const CounselorCard: React.FC<CounselorCardProps> = ({ consultant, compact = fal
                   {consultant.Bio}
                 </p>
               </div>
-              
+
 
 
               <div className="flex flex-wrap gap-1">
                 {consultant.Specialties.slice(0, 3).map((specialty, index) => (
-                  <span 
-                    key={index} 
+                  <span
+                    key={index}
                     className="bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded-full border border-blue-200"
                   >
                     {specialty.Name}
@@ -94,13 +94,6 @@ const CounselorCard: React.FC<CounselorCardProps> = ({ consultant, compact = fal
 
           {/* Right Column - Booking Section */}
           <div className="lg:w-2/3 flex flex-col">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-blue-600" />
-                <h3 className="font-bold text-gray-800">LỊCH TƯ VẤN QUA VIDEO</h3>
-              </div>
-            </div>
 
             {/* Booking Section */}
             <div className="bg-gray-50 rounded-lg p-4 mb-4">
@@ -109,7 +102,7 @@ const CounselorCard: React.FC<CounselorCardProps> = ({ consultant, compact = fal
                   <Video className="h-5 w-5 text-blue-600" />
                   <span className="font-bold text-gray-800">TƯ VẤN ONLINE VỚI CHUYÊN GIA</span>
                 </div>
-                <button 
+                <button
                   onClick={() => setShowBookingPanel(!showBookingPanel)}
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium w-full md:w-auto flex items-center justify-center gap-2"
                 >

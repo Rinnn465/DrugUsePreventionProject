@@ -149,16 +149,35 @@ const courses = {
 
     getEnrolledByUser: (userId: number) => get<any[]>(`/course/${userId}/enrolled/user`),
 
-    complete: (courseId: number) => post<{ message: string }>(`/course/${courseId}/complete`),
+    complete: (courseId: number, accountId: number) => post<{ message: string }>(`/course/${courseId}/complete`, { accountId }),
 
     getCompleted: (courseId: number, userId: number) => get<any>(`/course/${courseId}/completed/${userId}`),
 
     // Lesson APIs
     getLessons: (courseId: number) => get<any[]>(`/course/${courseId}/lessons`),
 
-    getQuestions: (courseId: number) => get<any[]>(`/course/${courseId}/lessons/questions`),
+    getLessonDetail: (courseId: number, lessonId: number) => get<any>(`/course/${courseId}/lessons/${lessonId}`),
 
-    getAnswers: (courseId: number) => get<any[]>(`/course/${courseId}/lessons/questions/answers`),
+    // Course Exam APIs
+    getExam: (courseId: number) => get<any>(`/exam/course/${courseId}`),
+
+    submitExam: (examData: {
+        examId: number;
+        accountId: number;
+        answers: Array<{ questionId: number; selectedAnswers: number[] }>;
+    }) => post<{ 
+        examId: number;
+        accountId: number;
+        score: number;
+        correctCount: number;
+        totalQuestions: number;
+        isPassed: boolean;
+        passingScore: number;
+    }>('/exam/submit', examData),
+
+    getExamResult: (resultId: number) => get<any>(`/exam/result/${resultId}`),
+
+    getExamResults: (accountId: number) => get<any[]>(`/exam/results/${accountId}`),
 };
 
 // Consultant APIs

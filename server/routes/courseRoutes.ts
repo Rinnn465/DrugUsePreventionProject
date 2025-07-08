@@ -21,6 +21,13 @@ router.get("/", courseController.getCourses);
 router.get("/category", courseController.getCourseCategories);
 
 /**
+ * @route GET /api/course/enrolled
+ * @desc Lấy tất cả các khóa học đã đăng ký (route tổng hợp)
+ * @access Thành viên
+ */
+router.get("/enrolled", courseController.getEnrolledCourses);
+
+/**
  * @route GET /api/course/:id
  * @desc Lấy chi tiết khóa học theo ID
  * @access Công khai
@@ -77,13 +84,6 @@ router.delete("/:id/unenroll", courseController.unenrollCourse);
 router.patch("/:id/complete", courseController.completeCourse);
 
 /**
- * @route GET /api/course/enrolled
- * @desc Lấy tất cả các khóa học đã đăng ký (route tổng hợp)
- * @access Thành viên
- */
-router.get("/enrolled", courseController.getEnrolledCourses);
-
-/**
  * @route GET /api/course/:courseId/completed/:accountId
  * @desc Lấy thông tin hoàn thành khóa học
  * @access Thành viên
@@ -98,24 +98,10 @@ router.get("/:courseId/completed/:accountId", courseController.getCompletedCours
 router.get("/:id/lessons", lessonController.getLesson);
 
 /**
- * @route GET /api/course/:id/lessons/:lessonId
- * @desc Lấy nội dung bài học theo ID bài học
+ * @route GET /api/course/:courseId/lessons/:lessonId
+ * @desc Lấy chi tiết bài học theo ID bài học trong khóa học cụ thể
  * @access Công khai
  */
-router.get("/:id/lessons/:lessonId", lessonController.getLessonContent);
-
-/**
- * @route GET /api/course/:id/lessons/questions
- * @desc Lấy tất cả câu hỏi của các bài học trong một khóa học theo ID khóa học
- * @access Công khai
- */
-router.get("/:id/lessons/questions", lessonController.getQuestions);
-
-/**
- * @route GET /api/course/:id/lessons/questions/answers
- * @desc Lấy tất cả đáp án cho các câu hỏi bài học theo ID khóa học
- * @access Công khai
- */
-router.get("/:id/lessons/questions/answers", lessonController.getAnswers);
+router.get("/:courseId/lessons/:lessonId", lessonController.getLessonByCourseAndLessonId);
 
 export default router;

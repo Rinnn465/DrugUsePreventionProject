@@ -1,20 +1,28 @@
 import { useParams, Link } from "react-router-dom";
-import { useEffect, useState, useRef } from "react";
-import { sqlLesson, sqlLessonAnswer, sqlLessonQuestion } from "../../types/Lesson";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { sqlLesson } from "../../types/Lesson";
 import { toast } from "react-toastify";
 import { useUser } from "@/context/UserContext";
+import { courses } from "../../utils/apiUtils";
 import {
-    Play,
     CheckCircle,
     Clock,
-    BookOpen,
     Video,
     Award,
     ArrowLeft,
     ChevronRight,
     FileText,
-    Lock,
-    Zap
+    BookOpen,
+    Users,
+    Target,
+    Play,
+    Pause,
+    RotateCcw,
+    Volume2,
+    VolumeX,
+    Maximize,
+    Settings,
+    Lock
 } from "lucide-react";
 
 const LessonDetailsPage: React.FC = () => {
@@ -24,21 +32,30 @@ const LessonDetailsPage: React.FC = () => {
 
     const [selected, setSelected] = useState<string | number>("lesson");
     const [lesson, setLesson] = useState<sqlLesson[] | null>(null);
-    const [questions, setQuestions] = useState<sqlLessonQuestion[] | null>(null);
-    const [answers, setAnswers] = useState<sqlLessonAnswer[] | null>(null);
-    const [userAnswers, setUserAnswers] = useState<{ [key: string]: string[] }>({});
-    const [showResults, setShowResults] = useState(false);
-    const [score, setScore] = useState(0);
-    const [passed, setPassed] = useState(false);
     const [completedLessons, setCompletedLessons] = useState<Set<string | number>>(
         new Set()
     );
-    const [quizCompleted, setQuizCompleted] = useState(false);
     const [videoProgress, setVideoProgress] = useState<{ [key: string]: number }>({});
     const [lastValidTime, setLastValidTime] = useState<{ [key: string]: number }>({});
-    const [courseData, setCourseData] = useState<any>(null);
+
+    const [isPlaying, setIsPlaying] = useState<boolean>(false);
+    const [currentTime, setCurrentTime] = useState<number>(0);
+    const [duration, setDuration] = useState<number>(0);
+    const [isMuted, setIsMuted] = useState<boolean>(false);
+    const [volume, setVolume] = useState<number>(1);
+    const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+    const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
+    const [showControls, setShowControls] = useState<boolean>(true);
+    const [courseCompleted, setCourseCompleted] = useState<boolean>(false);
+    
     const videoRef = useRef<HTMLVideoElement>(null);
     const isSeekingRef = useRef(false);
+    const playerRef = useRef<HTMLDivElement>(null);
+    const controlsTimeoutRef = useRef<number | null>(null);
+    const processingCompletionRef = useRef<Set<string | number>>(new Set());
+    const lastCompletionTimeRef = useRef<Map<string | number, number>>(new Map());
+    const completionInProgressRef = useRef<Set<string | number>>(new Set());
+    const completionToastShownRef = useRef<Set<string | number>>(new Set());
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -47,66 +64,43 @@ const LessonDetailsPage: React.FC = () => {
     useEffect(() => {
         const fetchLessonDetail = async () => {
             try {
-                const lessonResponse = await fetch(`http://localhost:5000/api/course/${id}/lessons/`);
-                if (!lessonResponse.ok) throw new Error("Failed to fetch lesson");
-                const lessonData = await lessonResponse.json();
-                console.log("Lessons:", lessonData.data);
-                setLesson(lessonData.data);
+                const lessonsData = await courses.getLessons(Number(id));
+                setLesson(lessonsData);
             } catch (error) {
                 console.error("Fetch lesson error:", error);
+                toast.error("Không thể tải danh sách bài học");
             }
         };
 
         const fetchCourseData = async () => {
             try {
-                const courseResponse = await fetch(`http://localhost:5000/api/course/${id}`);
-                if (!courseResponse.ok) throw new Error("Failed to fetch course");
-                const courseData = await courseResponse.json();
-                console.log("Course Data:", courseData.data);
-                setCourseData(courseData.data);
+                await courses.getById(Number(id));
+                // Course data loaded successfully
             } catch (error) {
                 console.error("Fetch course error:", error);
-            }
-        };
-
-        const fetchQuestionsAndAnswers = async () => {
-            try {
-                const questionResponse = await fetch(
-                    `http://localhost:5000/api/course/${id}/lessons/questions`
-                );
-                if (!questionResponse.ok) throw new Error("Failed to fetch questions");
-                const questionData = await questionResponse.json();
-                console.log("Questions:", questionData.data);
-                setQuestions(questionData.data);
-
-                const answerResponse = await fetch(
-                    `http://localhost:5000/api/course/${id}/lessons/questions/answers`
-                );
-                const answerData = await answerResponse.json();
-                console.log("Answers:", answerData.data);
-                setAnswers(answerData.data);
-            } catch (error) {
-                console.error("Fetch questions/answers error:", error);
+                toast.error("Không thể tải thông tin khóa học");
             }
         };
 
         const fetchData = async () => {
-            await Promise.all([fetchLessonDetail(), fetchCourseData(), fetchQuestionsAndAnswers()]);
+            await Promise.all([fetchLessonDetail(), fetchCourseData()]);
         };
 
-        fetchData();
+        if (id) {
+            fetchData();
+        }
     }, [id]);
 
     useEffect(() => {
         if (lesson && lesson.length > 0 && selected === "lesson") {
             setSelected(lesson[0].LessonID);
         }
-    }, [lesson]);
+    }, [lesson, selected]);
 
     // Reset video progress and last valid time when switching lessons
     useEffect(() => {
-        if (selected !== "question" && videoRef.current) {
-            videoRef.current.currentTime = 0; // Reset video to start
+        if (selected !== "lesson" && selected !== "exam" && videoRef.current) {
+            videoRef.current.currentTime = 0;
             setVideoProgress((prev) => ({
                 ...prev,
                 [selected.toString()]: 0,
@@ -115,81 +109,88 @@ const LessonDetailsPage: React.FC = () => {
                 ...prev,
                 [selected.toString()]: 0,
             }));
-            console.log(`Reset video state for lesson ${selected}`);
+            setCurrentTime(0);
+            setIsPlaying(false);
         }
     }, [selected]);
 
+    // Auto-hide controls
     useEffect(() => {
-        if (quizCompleted && passed) {
-            console.log("Quiz completed and passed. Checking course completion...");
-            checkCourseCompletion();
-        }
-    }, [quizCompleted, passed]);
+        const handleMouseMove = () => {
+            setShowControls(true);
+            if (controlsTimeoutRef.current) {
+                clearTimeout(controlsTimeoutRef.current);
+            }
+            controlsTimeoutRef.current = setTimeout(() => {
+                if (isPlaying) {
+                    setShowControls(false);
+                }
+            }, 3000);
+        };
 
-    const checkCourseCompletion = () => {
+        const playerElement = playerRef.current;
+        if (playerElement) {
+            playerElement.addEventListener('mousemove', handleMouseMove);
+            return () => {
+                playerElement.removeEventListener('mousemove', handleMouseMove);
+                if (controlsTimeoutRef.current) {
+                    clearTimeout(controlsTimeoutRef.current);
+                }
+            };
+        }
+    }, [isPlaying]);
+
+    const completeCourse = useCallback(async () => {
+        if (!user?.AccountID) {
+            toast.error("Bạn cần đăng nhập để hoàn thành khóa học");
+            return;
+        }
+
+        try {
+            await courses.complete(Number(id), user.AccountID);
+            toast.success("🏆 Khóa học đã được hoàn thành thành công!");
+        } catch (error) {
+            console.error("Error completing course:", error);
+            toast.error("Không thể hoàn thành khóa học");
+        }
+    }, [user?.AccountID, id]);
+
+    const checkCourseCompletion = useCallback(() => {
         const allLessonsCompleted = !lesson || completedLessons.size === lesson.length;
-        const allQuestionsCompleted = !questions || quizCompleted;
-        console.log("Checking completion:", {
-            allLessonsCompleted,
-            allQuestionsCompleted,
-            quizCompleted,
-        });
-        if (allLessonsCompleted && allQuestionsCompleted) {
-            toast.success("Chúc mừng! Bạn đã hoàn thành khóa học.");
-            fetch(`http://localhost:5000/api/course/${id}/complete`, {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    accountId: user?.AccountID,
-                }),
-            })
-                .then((response) => {
-                    if (response.ok) {
-                        console.log("Course completed successfully, email sent");
-                        // You could add navigation to a completion page here if needed
-                    } else {
-                        console.error("Failed to complete course");
-                    }
-                })
-                .catch((error) => {
-                    console.error("Error completing course:", error);
-                });
+        if (allLessonsCompleted && !courseCompleted) {
+            setCourseCompleted(true);
+            toast.success("🎉 Chúc mừng! Bạn đã hoàn thành tất cả bài học.");
+            completeCourse();
             return true;
         }
         return false;
-    };
+    }, [lesson, completedLessons.size, courseCompleted, completeCourse]);
 
     const handleVideoTimeUpdate = (lessonId: string | number) => {
         if (videoRef.current && !isSeekingRef.current && !videoRef.current.paused) {
             const currentTime = videoRef.current.currentTime;
             const duration = videoRef.current.duration;
+            
+            setCurrentTime(currentTime);
+            setDuration(duration);
+            
             if (duration && !isNaN(duration)) {
                 const progress = (currentTime / duration) * 100;
                 setVideoProgress((prev) => {
                     const newProgress = { ...prev, [lessonId.toString()]: progress };
-                    console.log(
-                        `Video progress for lesson ${lessonId}: ${progress}% (currentTime: ${currentTime}s)`
-                    );
                     return newProgress;
                 });
 
-                // In development mode, always allow seeking
-                if (!isSkippable) {
-                    setLastValidTime((prev) => {
-                        const newTime = currentTime; // Allow any time in development
-                        console.log(
-                            `Last valid time for lesson ${lessonId} (dev mode): ${newTime}s`
-                        );
-                        return { ...prev, [lessonId.toString()]: newTime };
-                    });
-                } else {
+                // Handle seeking restrictions
+                if (isSkippable) {
                     setLastValidTime((prev) => {
                         const newTime = Math.max(prev[lessonId.toString()] || 0, currentTime);
-                        console.log(
-                            `Last valid time for lesson ${lessonId} (prod mode): ${newTime}s`
-                        );
+                        return { ...prev, [lessonId.toString()]: newTime };
+                    });
+                } else {
+                    // Development mode - allow any time
+                    setLastValidTime((prev) => {
+                        const newTime = currentTime;
                         return { ...prev, [lessonId.toString()]: newTime };
                     });
                 }
@@ -197,611 +198,789 @@ const LessonDetailsPage: React.FC = () => {
         }
     };
 
-    const handleVideoEnded = (lessonId: string | number) => {
-        setVideoProgress((prev) => {
-            const newProgress = { ...prev, [lessonId.toString()]: 100 };
-            console.log(`Video ended for lesson ${lessonId}: 100%`);
-            return newProgress;
-        });
-        setLastValidTime((prev) => {
-            const duration = videoRef.current?.duration || 0;
-            console.log(`Last valid time set to duration for lesson ${lessonId}: ${duration}s`);
-            return { ...prev, [lessonId.toString()]: duration };
-        });
-    };
-
-    const handleSeeking = (lessonId: string | number) => {
-        if (videoRef.current) {
-            const currentTime = videoRef.current.currentTime;
-            const duration = videoRef.current.duration;
-            const lastTime = lastValidTime[lessonId.toString()] || 0;
-
-            if (duration && !isNaN(duration)) {
-                const watchedProgress = (lastTime / duration) * 100;
-
-                // Only prevent seeking in production mode (when isSkippable is true)
-                if (isSkippable && currentTime > lastTime && watchedProgress < 80) {
-                    isSeekingRef.current = true;
-                    videoRef.current.currentTime = lastTime;
-                    toast.info("Vui lòng xem ít nhất 80% video trước khi hoàn thành bài học.");
-                    console.log(
-                        `Seek prevented for lesson ${lessonId}. Reverted to ${lastTime}s (attempted: ${currentTime}s, watchedProgress: ${watchedProgress}%)`
-                    );
-                } else {
-                    console.log(
-                        `Seek allowed for lesson ${lessonId}. Current time: ${currentTime}s, lastTime: ${lastTime}s, watchedProgress: ${watchedProgress}%`
-                    );
-                }
-            }
-        }
-    };
-
-    const handleSeeked = (lessonId: string | number) => {
-        isSeekingRef.current = false;
-        console.log(`Seek completed for lesson ${lessonId}. isSeeking: ${isSeekingRef.current}`);
-    };
-
-    const isLessonVideoWatched = (lessonId: string | number) => {
-        const progress = videoProgress[lessonId.toString()] || 0;
-        console.log(`Checking if lesson ${lessonId} watched: ${progress}% (threshold: 80%, dev mode: ${!isSkippable})`);
-
-        // In development mode, allow completion with any progress
-        // In production mode, require 80% progress
-        return !isSkippable ? true : progress >= 80;
-    };
-
-    const handleAnswerChange = (questionId: number, answerId: string, isChecked: boolean) => {
-        setUserAnswers((prev) => {
-            const currentAnswers = prev[questionId.toString()] || [];
-            if (isChecked) {
-                const newAnswers = [...currentAnswers, answerId];
-                console.log(`Question ${questionId} selected answers:`, newAnswers);
-                return { ...prev, [questionId.toString()]: newAnswers };
-            } else {
-                const newAnswers = currentAnswers.filter((id) => id !== answerId);
-                console.log(`Question ${questionId} updated answers:`, newAnswers);
-                return { ...prev, [questionId.toString()]: newAnswers };
-            }
-        });
-    };
-
-    const calculateScore = () => {
-        let totalScore = 0;
-        if (!questions || !answers) {
-            console.log("No questions or answers available");
-            return totalScore;
+    const markLessonAsCompleted = useCallback((lessonId: string | number) => {
+        if (!user?.AccountID) {
+            toast.error("Bạn cần đăng nhập để hoàn thành bài học");
+            return;
         }
 
-        questions.forEach((question) => {
-            const userAnswerIds = userAnswers[question.QuestionID.toString()] || [];
-            const correctAnswers = answers
-                .filter((answer) => answer.QuestionID === question.QuestionID && answer.IsCorrect)
-                .map((answer) => answer.AnswerID.toString());
+        // Ultimate atomic check: if already in progress or completed, abort immediately
+        if (completionInProgressRef.current.has(lessonId) || completedLessons.has(lessonId)) {
+            return;
+        }
 
-            console.log(`Question ${question.QuestionID}:`, {
-                userAnswerIds,
-                correctAnswers,
-                questionType: question.Type,
-            });
+        // Mark as in progress atomically before any other checks
+        completionInProgressRef.current.add(lessonId);
 
-            if (question.Type === "multiple") {
-                const allCorrect = correctAnswers.every((id) => userAnswerIds.includes(id));
-                const noIncorrect = userAnswerIds.every((id) => correctAnswers.includes(id));
-                if (allCorrect && noIncorrect && userAnswerIds.length > 0) {
-                    totalScore += 1;
-                    console.log(`Question ${question.QuestionID} correct (multiple choice)`);
-                }
-            } else {
-                if (userAnswerIds.length === 1 && correctAnswers.includes(userAnswerIds[0])) {
-                    totalScore += 1;
-                    console.log(`Question ${question.QuestionID} correct (single choice)`);
-                }
+        // Time-based debounce check - more aggressive timing
+        const now = Date.now();
+        const lastTime = lastCompletionTimeRef.current.get(lessonId);
+        if (lastTime && (now - lastTime) < 2000) {
+            completionInProgressRef.current.delete(lessonId);
+            return;
+        }
+        lastCompletionTimeRef.current.set(lessonId, now);
+
+        // Process completion with single toast guarantee
+        setCompletedLessons((prevCompleted) => {
+            // Final atomic check inside setState
+            if (prevCompleted.has(lessonId)) {
+                completionInProgressRef.current.delete(lessonId);
+                return prevCompleted;
             }
-        });
-        console.log("Total Score:", totalScore);
-        return totalScore;
-    };
 
-    const handleDoneLesson = () => {
-        if (lesson && selected !== "question" && isLessonVideoWatched(selected)) {
-            setCompletedLessons((prev) => new Set(prev).add(selected));
-            const currentIndex = lesson.findIndex((l) => l.LessonID === selected);
-            if (currentIndex < lesson.length - 1) {
-                setSelected(lesson[currentIndex + 1].LessonID);
-            } else if (questions && questions.length > 0) {
-                setSelected("question");
-            } else {
+            const newSet = new Set(prevCompleted);
+            newSet.add(lessonId);
+            
+            // Show toast only if not already shown for this lesson
+            if (!completionToastShownRef.current.has(lessonId)) {
+                completionToastShownRef.current.add(lessonId);
+                toast.success("🎉 Bài học đã được hoàn thành!");
+            }
+            
+            // Schedule cleanup and course completion check
+            setTimeout(() => {
                 checkCourseCompletion();
+                completionInProgressRef.current.delete(lessonId);
+            }, 1500);
+            
+            return newSet;
+        });
+    }, [user?.AccountID, completedLessons, checkCourseCompletion]);
+
+    const handleLessonCompletion = useCallback((lessonId: string | number) => {
+        // Immediate atomic check
+        if (completionInProgressRef.current.has(lessonId) || completedLessons.has(lessonId)) {
+            return;
+        }
+        markLessonAsCompleted(lessonId);
+    }, [markLessonAsCompleted, completedLessons]);
+
+    const canAccessLesson = (lessonIndex: number): boolean => {
+        if (lessonIndex === 0) return true; // First lesson is always accessible
+        
+        if (!lesson) return false;
+        
+        // Check if previous lesson is completed
+        const previousLessonId = lesson[lessonIndex - 1].LessonID;
+        return completedLessons.has(previousLessonId);
+    };
+
+    const handleVideoEnded = useCallback((lessonId: string | number) => {
+        // Immediate atomic check
+        if (completionInProgressRef.current.has(lessonId) || completedLessons.has(lessonId)) {
+            setIsPlaying(false);
+            return;
+        }
+        markLessonAsCompleted(lessonId);
+        setIsPlaying(false);
+    }, [markLessonAsCompleted, completedLessons]);
+
+    const handleVideoSeeking = (lessonId: string | number) => {
+        if (videoRef.current) {
+            isSeekingRef.current = true;
+            const currentTime = videoRef.current.currentTime;
+            const lastValid = lastValidTime[lessonId.toString()] || 0;
+            
+            if (isSkippable && currentTime > lastValid + 2) {
+                videoRef.current.currentTime = lastValid;
+                toast.warning("Bạn cần xem video tuần tự để hoàn thành bài học");
             }
-        } else if (!isLessonVideoWatched(selected) && isSkippable) {
-            toast.info("Vui lòng xem ít nhất 80% video trước khi hoàn thành bài học.");
-        } else {
-            checkCourseCompletion();
         }
     };
 
-
-    const handleSubmitQuestion = (e: React.FormEvent) => {
-        e.preventDefault();
-        const finalScore = calculateScore();
-        const hasPassed = finalScore > 0;
-        setScore(finalScore);
-        setPassed(hasPassed);
-        setShowResults(true);
-        setQuizCompleted(true);
-        console.log("Quiz submitted:", { finalScore, hasPassed, quizCompleted: true });
+    const handleVideoSeeked = () => {
+        setTimeout(() => {
+            isSeekingRef.current = false;
+        }, 100);
     };
 
-    const handleRedoQuiz = () => {
-        setUserAnswers({});
-        setShowResults(false);
-        setScore(0);
-        setPassed(false);
-        setQuizCompleted(false);
-        console.log("Quiz reset. quizCompleted:", false);
-    };
-
-    const handleRedoWhenCourseCompleted = () => {
-        setUserAnswers({});
-        setShowResults(false);
-        setScore(0);
-    }
-
-    const areAllLessonsCompleted = () => {
-        return lesson && lesson.length > 0 ? completedLessons.size === lesson.length : true;
-    };
-
-    const getTotalLessonsDuration = () => {
-        if (!lesson) return 0;
-        return lesson.reduce((total, l) => total + (l.Duration || 0), 0);
-    };
-
-    const getCompletedLessonsCount = () => {
-        return completedLessons.size;
-    };
-
-    const getOverallProgress = () => {
-        if (!lesson || lesson.length === 0) return 0;
-        // Nếu đang ở quiz thì giữ logic cũ
-        if (selected === "question") {
-            const lessonsProgress = (completedLessons.size / lesson.length) * 80; // 80% cho bài học
-            const quizProgress = quizCompleted && passed ? 20 : 0; // 20% cho quiz
-            return Math.round(lessonsProgress + quizProgress);
+    const togglePlayPause = () => {
+        if (videoRef.current) {
+            if (isPlaying) {
+                videoRef.current.pause();
+            } else {
+                videoRef.current.play();
+            }
+            setIsPlaying(!isPlaying);
         }
-        // Nếu đang ở bài học thì lấy phần trăm video đã xem của bài học hiện tại
-        const currentProgress = videoProgress[selected?.toString()] || 0;
-        return Math.round(currentProgress);
     };
 
-    const isLessonUnlocked = (lessonIndex: number) => {
-        // First lesson is always unlocked
-        if (lessonIndex === 0) return true;
-        // Subsequent lessons are locked until previous one is completed
-        const previousLessonId = lesson?.[lessonIndex - 1]?.LessonID;
-        return previousLessonId ? completedLessons.has(previousLessonId) : false;
+    const handleVolumeChange = (newVolume: number) => {
+        if (videoRef.current) {
+            videoRef.current.volume = newVolume;
+            setVolume(newVolume);
+            setIsMuted(newVolume === 0);
+        }
     };
 
-    const handleContent = () => {
-        const selectedLesson = lesson?.find((l) => l.LessonID === selected);
-        if (!selectedLesson) return null;
+    const toggleMute = () => {
+        if (videoRef.current) {
+            if (isMuted) {
+                videoRef.current.volume = volume;
+                setIsMuted(false);
+            } else {
+                videoRef.current.volume = 0;
+                setIsMuted(true);
+            }
+        }
+    };
 
-        const isCompleted = completedLessons.has(selected);
+    const handleSpeedChange = (speed: number) => {
+        if (videoRef.current) {
+            videoRef.current.playbackRate = speed;
+            setPlaybackSpeed(speed);
+        }
+    };
 
-        return (
-            <div className="space-y-6">
-                {/* Course Progress Header */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
-                                <BookOpen className="w-6 h-6 text-white" />
-                            </div>
-                            <div>
-                                <h1 className="text-2xl font-bold text-gray-800">{selectedLesson.Title}</h1>
-                                <p className="text-gray-600 flex items-center mt-1">
-                                    <Clock className="w-4 h-4 mr-1" />
-                                    {selectedLesson.Duration} phút
-                                </p>
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <div className="text-sm text-gray-500">Tiến độ khóa học</div>
-                            <div className="text-2xl font-bold text-blue-600">{getOverallProgress()}%</div>
-                        </div>
-                    </div>
+    const toggleFullscreen = () => {
+        if (playerRef.current) {
+            if (!isFullscreen) {
+                if (playerRef.current.requestFullscreen) {
+                    playerRef.current.requestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+            setIsFullscreen(!isFullscreen);
+        }
+    };
 
-                    {/* Progress bar */}
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                            className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full transition-all duration-500"
-                            style={{ width: `${getOverallProgress()}%` }}
-                        ></div>
+    const formatTime = (time: number) => {
+        if (isNaN(time)) return "0:00";
+        const minutes = Math.floor(time / 60);
+        const seconds = Math.floor(time % 60);
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    const handleSeek = (seekTime: number) => {
+        if (videoRef.current) {
+            const lessonId = selected.toString();
+            const lastValid = lastValidTime[lessonId] || 0;
+            
+            if (isSkippable && seekTime > lastValid + 2) {
+                toast.warning("Bạn cần xem video tuần tự để hoàn thành bài học");
+                return;
+            }
+            
+            videoRef.current.currentTime = seekTime;
+        }
+    };
+
+    const renderVideoLesson = (currentLesson: sqlLesson) => {
+        if (!currentLesson.VideoUrl) {
+            return (
+                <div className="flex items-center justify-center h-64 bg-gray-900 rounded-lg">
+                    <div className="text-center text-white">
+                        <Video className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p className="text-gray-400">Không có video cho bài học này</p>
                     </div>
                 </div>
+            );
+        }
 
-                {/* Video Content */}
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                    <div className="relative">
-                        <video
-                            ref={videoRef}
-                            width="100%"
-                            height="500px"
-                            controls
-                            className="w-full object-cover"
-                            onTimeUpdate={() => handleVideoTimeUpdate(selectedLesson.LessonID)}
-                            onSeeking={() => handleSeeking(selectedLesson.LessonID)}
-                            onSeeked={() => handleSeeked(selectedLesson.LessonID)}
-                            onEnded={() => handleVideoEnded(selectedLesson.LessonID)}
-                            onError={() => toast.error("Không thể tải video. Vui lòng thử lại.")}
-                        >
-                            <source src={selectedLesson.VideoUrl} type="video/mp4" />
-                            Trình duyệt của bạn không hỗ trợ video.
-                        </video>
+        const progress = videoProgress[currentLesson.LessonID.toString()] || 0;
+        const isCompleted = completedLessons.has(currentLesson.LessonID);
 
-                        {/* Content Section */}
-                        <div className="p-6">
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="flex-1">
-                                    <h2 className="text-xl font-semibold text-gray-800 mb-3">Nội dung bài học</h2>
-                                    <p className="text-gray-600 leading-relaxed">{selectedLesson.Content}</p>
+        return (
+            <div ref={playerRef} className="relative w-full bg-black rounded-lg overflow-hidden">
+                <video
+                    ref={videoRef}
+                    className="w-full h-auto cursor-pointer"
+                    onTimeUpdate={() => handleVideoTimeUpdate(currentLesson.LessonID)}
+                    onEnded={() => handleVideoEnded(currentLesson.LessonID)}
+                    onSeeking={() => handleVideoSeeking(currentLesson.LessonID)}
+                    onSeeked={handleVideoSeeked}
+                    onPlay={() => setIsPlaying(true)}
+                    onPause={() => setIsPlaying(false)}
+                    onLoadedMetadata={() => {
+                        if (videoRef.current) {
+                            setDuration(videoRef.current.duration);
+                        }
+                    }}
+                    onClick={togglePlayPause}
+                    src={currentLesson.VideoUrl}
+                    preload="metadata"
+                />
+                
+                {/* Custom Controls Overlay */}
+                <div className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 transition-opacity duration-300 ${
+                    showControls || !isPlaying ? 'opacity-100' : 'opacity-0'
+                }`}>
+                    
+                    {/* Top Controls */}
+                    <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                            <h3 className="text-white font-semibold text-lg">{currentLesson.Title}</h3>
+                            {isCompleted && (
+                                <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                                    <CheckCircle className="w-3 h-3" />
+                                    Hoàn thành
                                 </div>
-                                {isCompleted && (
-                                    <div className="flex items-center space-x-2 text-green-600 ml-4">
-                                        <CheckCircle className="w-5 h-5" />
-                                        <span className="text-sm font-medium">Đã hoàn thành</span>
+                            )}
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                            <div className="text-white text-sm bg-black/50 px-2 py-1 rounded">
+                                {Math.round(progress)}%
+                            </div>
+                            <button
+                                onClick={toggleFullscreen}
+                                className="text-white hover:text-blue-400 transition-colors"
+                            >
+                                <Maximize className="w-5 h-5" />
+                            </button>
+                        </div>
+                    </div>
+                    
+                    {/* Center Play Button */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <button
+                            onClick={togglePlayPause}
+                            className="bg-white/20 hover:bg-white/30 text-white p-4 rounded-full transition-all duration-300 transform hover:scale-110"
+                        >
+                            {isPlaying ? (
+                                <Pause className="w-8 h-8" />
+                            ) : (
+                                <Play className="w-8 h-8 ml-1" />
+                            )}
+                        </button>
+                    </div>
+                    
+                    {/* Bottom Controls */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                        
+                        {/* Progress Bar */}
+                        <div className="mb-4">
+                            <div className="relative w-full h-2 bg-white/20 rounded-full overflow-hidden">
+                                <div
+                                    className="absolute left-0 top-0 h-full bg-blue-500 transition-all duration-300"
+                                    style={{ width: `${progress}%` }}
+                                />
+                                <div
+                                    className="absolute left-0 top-0 h-full bg-white/30"
+                                    style={{ width: `${(lastValidTime[currentLesson.LessonID.toString()] || 0) / duration * 100}%` }}
+                                />
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max={duration || 0}
+                                    value={currentTime}
+                                    onChange={(e) => handleSeek(Number(e.target.value))}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                />
+                            </div>
+                        </div>
+                        
+                        {/* Control Buttons */}
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={togglePlayPause}
+                                    className="text-white hover:text-blue-400 transition-colors"
+                                >
+                                    {isPlaying ? (
+                                        <Pause className="w-6 h-6" />
+                                    ) : (
+                                        <Play className="w-6 h-6" />
+                                    )}
+                                </button>
+                                
+                                <button
+                                    onClick={() => handleSeek(0)}
+                                    className="text-white hover:text-blue-400 transition-colors"
+                                >
+                                    <RotateCcw className="w-5 h-5" />
+                                </button>
+                                
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={toggleMute}
+                                        className="text-white hover:text-blue-400 transition-colors"
+                                    >
+                                        {isMuted ? (
+                                            <VolumeX className="w-5 h-5" />
+                                        ) : (
+                                            <Volume2 className="w-5 h-5" />
+                                        )}
+                                    </button>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="1"
+                                        step="0.1"
+                                        value={isMuted ? 0 : volume}
+                                        onChange={(e) => handleVolumeChange(Number(e.target.value))}
+                                        className="w-20 h-1 bg-white/20 rounded-full outline-none"
+                                    />
+                                </div>
+                                
+                                <div className="text-white text-sm">
+                                    {formatTime(currentTime)} / {formatTime(duration)}
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                    <Settings className="w-4 h-4 text-white" />
+                                    <select
+                                        value={playbackSpeed}
+                                        onChange={(e) => handleSpeedChange(Number(e.target.value))}
+                                        className="bg-white/20 text-white text-sm border-none rounded px-2 py-1"
+                                    >
+                                        <option value={0.5}>0.5x</option>
+                                        <option value={0.75}>0.75x</option>
+                                        <option value={1}>1x</option>
+                                        <option value={1.25}>1.25x</option>
+                                        <option value={1.5}>1.5x</option>
+                                        <option value={2}>2x</option>
+                                    </select>
+                                </div>
+                                
+                                <button
+                                    onClick={toggleFullscreen}
+                                    className="text-white hover:text-blue-400 transition-colors"
+                                >
+                                    <Maximize className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    const renderLessonContent = (currentLesson: sqlLesson) => {
+        const isCompleted = completedLessons.has(currentLesson.LessonID);
+        const progress = videoProgress[currentLesson.LessonID.toString()] || 0;
+        
+        return (
+            <div className="space-y-8">
+                {/* Lesson Header */}
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                    <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className={`p-3 rounded-full ${isCompleted ? 'bg-green-100' : 'bg-blue-100'}`}>
+                                {isCompleted ? (
+                                    <CheckCircle className="w-8 h-8 text-green-600" />
+                                ) : (
+                                    <Video className="w-8 h-8 text-blue-600" />
+                                )}
+                            </div>
+                            <div>
+                                <h1 className="text-3xl font-bold text-gray-900 mb-2">{currentLesson.Title}</h1>
+                                {currentLesson.Duration && (
+                                    <div className="flex items-center gap-2 mt-3">
+                                        <Clock className="w-4 h-4 text-gray-500" />
+                                        <span className="text-sm text-gray-500">{currentLesson.Duration} phút</span>
                                     </div>
                                 )}
                             </div>
-
-                            {/* Action Button */}
-                            <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                                <div className="flex items-center space-x-4 text-sm text-gray-500">
-                                    <div className="flex items-center">
-                                        <Video className="w-4 h-4 mr-1" />
-                                        Video bài học
-                                    </div>
-                                </div>
-
-                                <button
-                                    onClick={handleDoneLesson}
-                                    disabled={!isLessonVideoWatched(selectedLesson.LessonID)}
-                                    className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${isLessonVideoWatched(selectedLesson.LessonID)
-                                        ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600 shadow-lg hover:shadow-xl transform hover:scale-105"
-                                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                        }`}
-                                >
-                                    <CheckCircle className="w-5 h-5" />
-                                    <span>
-                                        {isCompleted ? "Đã hoàn thành" : !isSkippable ? "Hoàn thành bài học" : "Hoàn thành bài học"}
-                                    </span>
-                                </button>
-                            </div>
+                        </div>
+                        
+                        <div className="text-right">
+                            <div className="text-sm text-gray-500 mb-1">Tiến độ xem</div>
+                            <div className="text-2xl font-bold text-blue-600">{Math.round(progress)}%</div>
+                        </div>
+                    </div>
+                    
+                    {/* Progress Bar */}
+                    <div className="mt-6">
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${progress}%` }}
+                            />
                         </div>
                     </div>
                 </div>
-            </div>
-        );
-    };
 
-    const isQuestionCorrect = (questionId: number) => {
-        const userAnswerIds = userAnswers[questionId.toString()] || [];
-        const correctAnswers =
-            answers?.filter((answer) => answer.QuestionID === questionId && answer.IsCorrect).map((answer) => answer.AnswerID.toString()) || [];
+                {/* Video Player */}
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                    <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                        <Video className="w-6 h-6 text-blue-600" />
+                        Video bài học
+                    </h2>
+                    {currentLesson.VideoUrl && renderVideoLesson(currentLesson)}
+                </div>
 
-        if (questions?.find((q) => q.QuestionID === questionId)?.Type === "multiple") {
-            return (
-                correctAnswers.every((id) => userAnswerIds.includes(id)) && userAnswerIds.every((id) => correctAnswers.includes(id))
-            );
-        }
-        return userAnswerIds.length === 1 && correctAnswers.includes(userAnswerIds[0]);
-    };
+                {/* Lesson Content */}
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                    <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                        <FileText className="w-6 h-6 text-gray-600" />
+                        Nội dung bài học
+                    </h2>
+                    <div className="prose max-w-none">
+                        <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                            {currentLesson.Content}
+                        </div>
+                    </div>
+                </div>
 
-    const handleQuestion = () => {
-        if (questions && questions.length > 0) {
-            const lessonsCompleted = areAllLessonsCompleted();
-            return (
-                <div className="space-y-6">
-                    {/* Quiz Header */}
-                    <div className="bg-gradient-to-r from-blue-100 to-blue-50 rounded-2xl p-6 border border-blue-200">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-                                <Award className="w-6 h-6 text-white" />
-                            </div>
+                {/* Completion Status */}
+                {isCompleted ? (
+                    <div className="bg-green-50 border border-green-200 rounded-xl p-6">
+                        <div className="flex items-center gap-3 text-green-800">
+                            <CheckCircle className="w-6 h-6" />
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-800">Bài kiểm tra</h1>
-                                <p className="text-gray-600 flex items-center mt-1">
-                                    <FileText className="w-4 h-4 mr-1" />
-                                    {questions.length} câu hỏi
-                                </p>
+                                <h3 className="font-semibold text-lg">Bài học đã hoàn thành!</h3>
+                                <p className="text-sm text-green-700">Bạn đã xem hết video và hoàn thành bài học này.</p>
                             </div>
                         </div>
                     </div>
-
-                    {/* Quiz Content */}
-                    <form className="bg-white rounded-2xl shadow-lg p-6 space-y-6" onSubmit={handleSubmitQuestion}>
-                        {!lessonsCompleted && (
-                            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                                <div className="flex items-center space-x-2 text-yellow-800">
-                                    <Lock className="w-5 h-5" />
-                                    <p className="font-medium">Vui lòng hoàn thành tất cả bài học trước khi làm bài kiểm tra.</p>
+                ) : (
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3 text-blue-800">
+                                <Video className="w-6 h-6" />
+                                <div>
+                                    <h3 className="font-semibold text-lg">Hoàn thành bài học</h3>
+                                    <p className="text-sm text-blue-700">Bấm nút bên dưới để đánh dấu hoàn thành bài học này.</p>
                                 </div>
                             </div>
-                        )}
-
-                        {showResults && (
-                            <div className={`rounded-xl p-4 ${passed ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"}`}>
-                                <div className="flex items-center space-x-2">
-                                    {passed ? (
-                                        <CheckCircle className="w-6 h-6 text-green-600" />
-                                    ) : (
-                                        <Zap className="w-6 h-6 text-red-600" />
-                                    )}
-                                    <p className={`font-bold ${passed ? "text-green-800" : "text-red-800"}`}>
-                                        {passed
-                                            ? `🎉 Chúc mừng! Bạn đã vượt qua với ${score}/${questions.length} điểm`
-                                            : `💪 Chưa đạt! Bạn được ${score}/${questions.length} điểm. Hãy cố gắng lần sau!`}
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Questions */}
-                        <div className="space-y-6">
-                            {questions?.map((question, index) => (
-                                <div key={question.QuestionID} className="bg-gray-50 rounded-xl p-5 space-y-3">
-                                    <div className="flex items-start space-x-3">
-                                        <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                                            {index + 1}
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="font-semibold text-gray-800 mb-3">{question.QuestionText}</p>
-                                            <div className="space-y-2">
-                                                {answers
-                                                    ?.filter((answer) => answer.QuestionID === question.QuestionID)
-                                                    .map((answer, answerIndex) => (
-                                                        <label key={answerIndex} className="flex items-center space-x-3 p-3 bg-white rounded-lg hover:bg-blue-50 transition-colors cursor-pointer">
-                                                            <input
-                                                                type={question.Type === "multiple" ? "checkbox" : "radio"}
-                                                                name={`question-${question.QuestionID}`}
-                                                                value={answer.AnswerID}
-                                                                onChange={(e) =>
-                                                                    handleAnswerChange(question.QuestionID, answer.AnswerID.toString(), e.target.checked)
-                                                                }
-                                                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 focus:ring-2"
-                                                                disabled={showResults || !lessonsCompleted}
-                                                                checked={(userAnswers[question.QuestionID.toString()] || []).includes(answer.AnswerID.toString())}
-                                                            />
-                                                            <span className="text-gray-700">{answer.AnswerText}</span>
-                                                        </label>
-                                                    ))}
-                                            </div>
-                                            {showResults && !passed && !isQuestionCorrect(question.QuestionID) && (
-                                                <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                                    <p className="text-red-600 text-sm font-medium">❌ Câu trả lời chưa chính xác. Hãy xem lại nội dung bài học.</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
+                            <button
+                                onClick={() => handleLessonCompletion(currentLesson.LessonID)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                            >
+                                Hoàn thành
+                            </button>
                         </div>
-
-                        {/* Submit Button */}
-                        <div className="flex justify-between items-center pt-6 border-t border-gray-100">
-                            <div className="text-sm text-gray-500">
-                                {questions.length} câu hỏi • Cần trả lời đúng để hoàn thành khóa học
-                            </div>
-
-                            {!showResults && (
-                                <button
-                                    type="submit"
-                                    disabled={!lessonsCompleted}
-                                    className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${lessonsCompleted
-                                        ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 shadow-lg hover:shadow-xl transform hover:scale-105"
-                                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                        }`}
-                                >
-                                    <Award className="w-5 h-5" />
-                                    <span>Nộp bài kiểm tra</span>
-                                </button>
-                            )}
-
-                            {showResults && (
-                                <button
-                                    type="button"
-                                    onClick={passed ? handleRedoWhenCourseCompleted : handleRedoQuiz}
-                                    className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-100 text-white rounded-xl hover:from-blue-700 hover:to-blue-200 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-                                >
-                                    <Zap className="w-5 h-5" />
-                                    <span>Làm lại</span>
-                                </button>
-                            )}
-                        </div>
-                    </form>
-                </div>
-            );
-        }
-        return (
-            <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-                <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">Không có câu hỏi nào cho khóa học này</p>
+                    </div>
+                )}
             </div>
         );
     };
 
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
-            {/* Header with Breadcrumb */}
-            <div className="bg-white shadow-sm border-b border-gray-100">
-                <div className="container mx-auto px-6 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                            <Link
-                                to="/courses"
-                                className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
-                            >
-                                <ArrowLeft className="w-5 h-5" />
-                                <span>Khóa học</span>
-                            </Link>
-                            <ChevronRight className="w-4 h-4 text-gray-400" />
-                            <span className="text-gray-800 font-medium">
-                                {courseData?.Title ? courseData.Title : ""}
-                            </span>
-                        </div>
-
-                        <div className="flex items-center space-x-4">
-                            <div className="text-right">
-                                <div className="text-sm text-gray-500">Tiến độ hoàn thành</div>
-                                <div className="text-lg font-bold text-blue-600">{getOverallProgress()}%</div>
-                            </div>
-                            <div className="w-16 h-16 relative">
-                                <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 36 36">
-                                    <path
-                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                        fill="none"
-                                        stroke="#e5e7eb"
-                                        strokeWidth="2"
-                                    />
-                                    <path
-                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                        fill="none"
-                                        stroke="#3b82f6"
-                                        strokeWidth="2"
-                                        strokeDasharray={`${getOverallProgress()}, 100`}
-                                    />
-                                </svg>
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <span className="text-xs font-bold text-blue-600">{getOverallProgress()}%</span>
-                                </div>
-                            </div>
-                        </div>
+    const renderSidebar = () => {
+        if (!lesson || lesson.length === 0) {
+            return (
+                <div className="w-80 bg-white rounded-lg shadow-sm p-4">
+                    <div className="animate-pulse space-y-4">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
                     </div>
                 </div>
-            </div>
+            );
+        }
 
-            <div className="container mx-auto py-8 px-6 flex flex-col lg:flex-row gap-8">
-                {/* Enhanced Sidebar */}
-                <aside className="lg:w-80 shrink-0">
-                    <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-8">
-                        {/* Course Overview */}
-                        <div className="mb-6 pb-6 border-b border-gray-100">
-                            <h3 className="text-lg font-bold text-gray-800 mb-3">Tổng quan khóa học</h3>
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-600 flex items-center">
-                                        <BookOpen className="w-4 h-4 mr-2" />
-                                        Bài học
-                                    </span>
-                                    <span className="font-medium text-gray-800">
-                                        {getCompletedLessonsCount()}/{lesson?.length || 0}
-                                    </span>
-                                </div>
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-600 flex items-center">
-                                        <Clock className="w-4 h-4 mr-2" />
-                                        Thời lượng
-                                    </span>
-                                    <span className="font-medium text-gray-800">{getTotalLessonsDuration()} phút</span>
-                                </div>
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-600 flex items-center">
-                                        <Award className="w-4 h-4 mr-2" />
-                                        Kiểm tra
-                                    </span>
-                                    <span className="font-medium text-gray-800">
-                                        {quizCompleted ? (passed ? "Đã qua" : "Chưa qua") : "Chưa làm"}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Lesson Navigation */}
-                        <nav className="space-y-2">
-                            <h4 className="text-sm font-semibold text-gray-700 mb-3">Nội dung khóa học</h4>
-                            {lesson &&
-                                lesson.map((l, index) => {
-                                    const isCompleted = completedLessons.has(l.LessonID);
-                                    const isCurrent = selected === l.LessonID;
-                                    const isUnlocked = isLessonUnlocked(index);
-
-                                    return (
-                                        <button
-                                            key={l.LessonID}
-                                            className={`w-full text-left p-4 rounded-xl font-medium transition-all duration-200 ${isCurrent
-                                                ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg transform scale-105"
-                                                : isCompleted
-                                                    ? "bg-green-50 hover:bg-green-100 text-green-800 border border-green-200"
-                                                    : isUnlocked
-                                                        ? "hover:bg-gray-50 text-gray-700 border border-gray-200"
-                                                        : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                                }`}
-                                            onClick={() => isUnlocked && setSelected(l.LessonID)}
-                                            disabled={!isUnlocked}
-                                        >
-                                            <div className="flex items-center space-x-3">
-                                                <div className="flex-shrink-0">
-                                                    {isCompleted ? (
-                                                        <CheckCircle className="w-5 h-5" />
-                                                    ) : isCurrent ? (
-                                                        <Play className="w-5 h-5" />
-                                                    ) : isUnlocked ? (
-                                                        <Video className="w-5 h-5" />
-                                                    ) : (
-                                                        <Lock className="w-5 h-5" />
-                                                    )}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="text-sm font-medium truncate">
-                                                        Bài học {index + 1}
-                                                    </div>
-                                                    <div className="text-xs opacity-75 truncate">
-                                                        {l.Title}
-                                                    </div>
-                                                    <div className="text-xs opacity-60 flex items-center mt-1">
-                                                        <Clock className="w-3 h-3 mr-1" />
-                                                        {l.Duration} phút
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </button>
-                                    );
-                                })}
-
-                            {/* Quiz Button */}
+        return (
+            <div className="w-80 bg-white rounded-xl shadow-sm overflow-hidden">
+                <div className="p-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                    <h3 className="font-semibold text-lg mb-2">Nội dung khóa học</h3>
+                    <div className="flex items-center gap-2 text-blue-100">
+                        <Award className="w-4 h-4" />
+                        <span className="text-sm">
+                            {completedLessons.size} / {lesson.length} bài học
+                        </span>
+                    </div>
+                    <div className="mt-3 bg-white/20 rounded-full h-2">
+                        <div
+                            className="bg-white h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${(completedLessons.size / lesson.length) * 100}%` }}
+                        />
+                    </div>
+                </div>
+                
+                <div className="p-4 max-h-96 overflow-y-auto">
+                    {lesson.map((lessonItem, index) => {
+                        const isCompleted = completedLessons.has(lessonItem.LessonID);
+                        const isActive = selected === lessonItem.LessonID;
+                        const progress = videoProgress[lessonItem.LessonID.toString()] || 0;
+                        const canAccess = canAccessLesson(index);
+                        
+                        return (
                             <button
-                                className={`w-full text-left p-4 rounded-xl font-medium transition-all duration-200 ${selected === "question"
-                                    ? "bg-gradient-to-r from-blue-600 to-blue-100 text-white shadow-lg transform scale-105"
-                                    : areAllLessonsCompleted()
-                                        ? "hover:bg-blue-50 text-blue-700 border border-blue-200"
-                                        : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                    }`}
-                                onClick={() => areAllLessonsCompleted() && setSelected("question")}
-                                disabled={!areAllLessonsCompleted()}
+                                key={lessonItem.LessonID}
+                                onClick={() => {
+                                    if (canAccess) {
+                                        setSelected(lessonItem.LessonID);
+                                    } else {
+                                        toast.error("Bạn cần hoàn thành bài học trước đó để mở khóa bài học này!");
+                                    }
+                                }}
+                                disabled={!canAccess}
+                                className={`w-full text-left p-3 rounded-lg mb-2 transition-all duration-200 group ${
+                                    isActive
+                                        ? 'bg-blue-50 border-2 border-blue-200 shadow-sm'
+                                        : canAccess 
+                                            ? 'hover:bg-gray-50 border-2 border-transparent'
+                                            : 'bg-gray-50 border-2 border-transparent opacity-60 cursor-not-allowed'
+                                }`}
                             >
-                                <div className="flex items-center space-x-3">
-                                    <div className="flex-shrink-0">
-                                        {areAllLessonsCompleted() ? (
-                                            <Award className="w-5 h-5" />
+                                <div className="flex items-center gap-3">
+                                    <div className={`p-2 rounded-full flex-shrink-0 ${
+                                        isCompleted ? 'bg-green-100' : canAccess ? 'bg-gray-100' : 'bg-gray-50'
+                                    }`}>
+                                        {isCompleted ? (
+                                            <CheckCircle className="w-4 h-4 text-green-600" />
+                                        ) : canAccess ? (
+                                            <span className="w-4 h-4 flex items-center justify-center text-xs font-medium text-gray-600">
+                                                {index + 1}
+                                            </span>
                                         ) : (
-                                            <Lock className="w-5 h-5" />
+                                            <Lock className="w-4 h-4 text-gray-400" />
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <div className="text-sm font-medium">Bài kiểm tra</div>
-                                        <div className="text-xs opacity-75">
-                                            {questions?.length || 0} câu hỏi
-                                        </div>
+                                        <h4 className={`font-medium text-sm truncate ${
+                                            isActive ? 'text-blue-900' : canAccess ? 'text-gray-900' : 'text-gray-500'
+                                        }`}>
+                                            {lessonItem.Title}
+                                        </h4>
+                                        <p className={`text-xs mt-1 line-clamp-2 ${
+                                            canAccess ? 'text-gray-600' : 'text-gray-400'
+                                        }`}>
+                                        </p>
+                                        {!canAccess && (
+                                            <p className="text-xs text-orange-600 mt-1">
+                                                Hoàn thành bài học trước để mở khóa
+                                            </p>
+                                        )}
+                                        {lessonItem.Duration && (
+                                            <div className="flex items-center gap-1 mt-2">
+                                                <Clock className={`w-3 h-3 ${canAccess ? 'text-gray-500' : 'text-gray-400'}`} />
+                                                <span className={`text-xs ${canAccess ? 'text-gray-500' : 'text-gray-400'}`}>
+                                                    {lessonItem.Duration} phút
+                                                </span>
+                                            </div>
+                                        )}
+                                        {progress > 0 && canAccess && (
+                                            <div className="mt-2">
+                                                <div className="w-full bg-gray-200 rounded-full h-1">
+                                                    <div
+                                                        className="bg-blue-600 h-1 rounded-full transition-all duration-300"
+                                                        style={{ width: `${progress}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
+                                    {isActive && (
+                                        <ChevronRight className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                                    )}
                                 </div>
                             </button>
-                        </nav>
+                        );
+                    })}
+                    
+                    {/* Exam Section - Always visible like old format */}
+                    <div className="border-t border-gray-200 pt-4 mt-4">
+                        <button
+                            onClick={() => setSelected("exam")}
+                            className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${
+                                selected === "exam"
+                                    ? 'bg-orange-50 border-2 border-orange-200 shadow-sm'
+                                    : 'hover:bg-gray-50 border-2 border-transparent'
+                            }`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-full ${
+                                    lesson && completedLessons.size === lesson.length ? 'bg-orange-100' : 'bg-gray-100'
+                                }`}>
+                                    <Target className={`w-4 h-4 ${
+                                        lesson && completedLessons.size === lesson.length ? 'text-orange-600' : 'text-gray-400'
+                                    }`} />
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className={`font-medium text-sm ${
+                                        selected === "exam" ? 'text-orange-900' : 'text-gray-900'
+                                    }`}>
+                                        Bài kiểm tra
+                                    </h4>
+                                    <p className="text-xs text-gray-600 mt-1">
+                                        Kiểm tra kiến thức đã học
+                                    </p>
+                                    {lesson && completedLessons.size !== lesson.length && (
+                                        <p className="text-xs text-orange-600 mt-1">
+                                            Hoàn thành tất cả bài học để mở khóa
+                                        </p>
+                                    )}
+                                </div>
+                                {selected === "exam" && (
+                                    <ChevronRight className="w-4 h-4 text-orange-600" />
+                                )}
+                            </div>
+                        </button>
                     </div>
-                </aside>
+                </div>
+            </div>
+        );
+    };
+
+    if (!lesson || lesson.length === 0) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Đang tải bài học...</p>
+                </div>
+            </div>
+        );
+    }
+
+    const currentLesson = lesson.find(l => l.LessonID === selected);
+    
+    // Handle exam selection
+    if (selected === "exam") {
+        return (
+            <div className="min-h-screen bg-gray-50">
+                {/* Header */}
+                <div className="bg-white shadow-sm border-b">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="flex items-center justify-between h-16">
+                            <div className="flex items-center gap-4">
+                                <Link 
+                                    to={`/courses/${id}`}
+                                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+                                >
+                                    <ArrowLeft className="w-5 h-5" />
+                                    <span>Quay lại khóa học</span>
+                                </Link>
+                            </div>
+                            
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <Target className="w-4 h-4" />
+                                    <span>Bài kiểm tra</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 {/* Main Content */}
-                <main className="flex-1">
-                    {selected === "question" ? handleQuestion() : handleContent()}
-                </main>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <div className="flex gap-8">
+                        {/* Sidebar */}
+                        <div className="flex-shrink-0">
+                            {renderSidebar()}
+                        </div>
+
+                        {/* Exam Content */}
+                        <div className="flex-1">
+                            <div className="bg-white rounded-lg shadow-sm p-8">
+                                <div className="text-center">
+                                    <div className="mx-auto w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mb-6">
+                                        <Target className="w-12 h-12 text-orange-600" />
+                                    </div>
+                                    <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                                        Bài kiểm tra khóa học
+                                    </h1>
+                                    <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
+                                        Hoàn thành bài kiểm tra để đánh giá kiến thức bạn đã học được trong khóa học này.
+                                    </p>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                                        <div className="bg-blue-50 p-4 rounded-lg">
+                                            <BookOpen className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                                            <h3 className="font-semibold text-gray-900 mb-1">Kiến thức tổng hợp</h3>
+                                            <p className="text-sm text-gray-600">Câu hỏi bao gồm toàn bộ kiến thức trong khóa học</p>
+                                        </div>
+                                        <div className="bg-green-50 p-4 rounded-lg">
+                                            <Clock className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                                            <h3 className="font-semibold text-gray-900 mb-1">Thời gian làm bài</h3>
+                                            <p className="text-sm text-gray-600">30 phút để hoàn thành bài kiểm tra</p>
+                                        </div>
+                                        <div className="bg-purple-50 p-4 rounded-lg">
+                                            <Users className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                                            <h3 className="font-semibold text-gray-900 mb-1">Kết quả</h3>
+                                            <p className="text-sm text-gray-600">Xem kết quả ngay sau khi hoàn thành</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
+                                        <div className="flex items-center gap-2 text-yellow-800">
+                                            <Award className="w-5 h-5" />
+                                            <p className="text-sm">
+                                                <strong>Lưu ý:</strong> Bạn cần hoàn thành tất cả bài học trước khi làm bài kiểm tra
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    {lesson && completedLessons.size === lesson.length ? (
+                                        <Link
+                                            to={`/courses/${id}/exam`}
+                                            className="inline-flex items-center gap-2 bg-orange-600 text-white px-8 py-3 rounded-lg hover:bg-orange-700 transition-colors font-semibold"
+                                        >
+                                            <Target className="w-5 h-5" />
+                                            Bắt đầu làm bài
+                                        </Link>
+                                    ) : (
+                                        <div className="inline-flex items-center gap-2 bg-gray-300 text-gray-600 px-8 py-3 rounded-lg font-semibold cursor-not-allowed">
+                                            <Target className="w-5 h-5" />
+                                            Hoàn thành tất cả bài học để mở khóa
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    
+    if (!currentLesson) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600">Không tìm thấy bài học</p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            {/* Header */}
+            <div className="bg-white shadow-sm border-b">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-between h-16">
+                        <div className="flex items-center gap-4">
+                            <Link 
+                                to={`/courses/${id}`}
+                                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+                            >
+                                <ArrowLeft className="w-5 h-5" />
+                                <span>Quay lại khóa học</span>
+                            </Link>
+                        </div>
+                        
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <Award className="w-4 h-4" />
+                                <span>{completedLessons.size} / {lesson.length} bài học</span>
+                            </div>
+                            
+                            {courseCompleted && (
+                                <div className="flex items-center gap-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
+                                    <CheckCircle className="w-4 h-4" />
+                                    <span>Khóa học hoàn thành</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="flex gap-8">
+                    {/* Sidebar */}
+                    <div className="flex-shrink-0">
+                        {renderSidebar()}
+                    </div>
+
+                    {/* Main Content */}
+                    <div className="flex-1">
+                        {renderLessonContent(currentLesson)}
+                    </div>
+                </div>
             </div>
         </div>
     );

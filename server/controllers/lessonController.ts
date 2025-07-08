@@ -12,24 +12,50 @@ dotenv.config();
  * @param {Request} req - Đối tượng request của Express, chứa course ID trong params
  * @param {Response} res - Đối tượng response của Express
  * @returns {Promise<void>} Phản hồi JSON với mảng bài học
+ * @throws {400} Nếu ID không hợp lệ
+ * @throws {404} Nếu không tìm thấy bài học nào
  * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
  */
 export async function getLesson(req: Request, res: Response): Promise<void> {
     // Lấy courseId từ params của request
-    const courseId = req.params.id;
-    // In ra log để kiểm tra courseId nhận được
-    console.log(`Fetching lessons for course ID: ${courseId}`);
-
+    const courseId = Number(req.params.id);
+    
+    if (isNaN(courseId)) {
+        res.status(400).json({ message: 'ID khóa học không hợp lệ' });
+        return;
+    }
+    
     try {
         // Kết nối tới pool của database
         const pool = await poolPromise;
-        // Truy vấn lấy tất cả bài học thuộc CourseID, dùng parameter để tránh SQL injection
+        
+        // Truy vấn lấy tất cả bài học thuộc CourseID, bao gồm cả trạng thái
         const result = await pool.request()
-            .input('CourseId', Number(courseId)) // Gán giá trị CourseId vào query
-            .query('SELECT * FROM Lesson WHERE CourseID = @CourseId'); // Truy vấn lấy bài học
+            .input('CourseId', sql.Int, courseId)
+            .query(`
+                SELECT 
+                    LessonID, 
+                    CourseID, 
+                    Title, 
+                    BriefDescription, 
+                    Content, 
+                    Duration, 
+                    VideoUrl, 
+                    Status, 
+                    IsDisabled
+                FROM Lesson 
+                WHERE CourseID = @CourseId AND IsDisabled = 0
+                ORDER BY LessonID
+            `);
+        
+        if (result.recordset.length === 0) {
+            res.status(404).json({ message: 'Không tìm thấy bài học nào cho khóa học này' });
+            return;
+        }
+        
         // Trả về kết quả thành công với dữ liệu bài học
         res.status(200).json({ 
-            message: 'Courses fetched successfully', 
+            message: 'Lấy danh sách bài học thành công', 
             data: result.recordset 
         });
         return;
@@ -37,7 +63,7 @@ export async function getLesson(req: Request, res: Response): Promise<void> {
         // Nếu có lỗi, in ra log và trả về lỗi 500
         console.error('Error in getLesson:', err);
         res.status(500).json({ 
-            message: 'Error fetching courses', 
+            message: 'Lỗi khi lấy danh sách bài học', 
             error: err.message 
         });
         return;
@@ -45,44 +71,61 @@ export async function getLesson(req: Request, res: Response): Promise<void> {
 }
 
 /**
- * Lấy nội dung bài học và các câu hỏi cho một khóa học cụ thể
+ * Lấy chi tiết một bài học cụ thể
  * 
- * @route GET /api/lessons/content/:id
+ * @route GET /api/lessons/:id
  * @access Công khai
- * @param {Request} req - Đối tượng request của Express, chứa course ID trong params
+ * @param {Request} req - Đối tượng request của Express, chứa lesson ID trong params
  * @param {Response} res - Đối tượng response của Express
- * @returns {Promise<void>} Phản hồi JSON với nội dung bài học và câu hỏi
+ * @returns {Promise<void>} Phản hồi JSON với chi tiết bài học
+ * @throws {400} Nếu ID không hợp lệ
+ * @throws {404} Nếu không tìm thấy bài học
  * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
  */
-export async function getLessonContent(req: Request, res: Response): Promise<void> {
-    // Lấy id khóa học từ params
-    const { id } = req.params;
+export async function getLessonById(req: Request, res: Response): Promise<void> {
+    const lessonId = Number(req.params.id);
+    
+    if (isNaN(lessonId)) {
+        res.status(400).json({ message: 'ID bài học không hợp lệ' });
+        return;
+    }
 
     try {
-        // Kết nối tới pool của database
         const pool = await poolPromise;
-        // Truy vấn phức tạp: lấy tất cả câu hỏi thuộc các bài học của khóa học này
+        
         const result = await pool.request()
-            .input('CourseId', Number(id)) // Gán giá trị CourseId vào query
+            .input('LessonId', sql.Int, lessonId)
             .query(`
-                SELECT * FROM LessonQuestion 
-                WHERE LessonID IN (
-                    SELECT l.LessonID 
-                    FROM Course c 
-                    JOIN Lesson l ON c.CourseID = l.CourseID 
-                    WHERE l.CourseID = @CourseId
-                )`); // Truy vấn lấy câu hỏi của các bài học thuộc khóa học
-        // Trả về kết quả thành công với dữ liệu câu hỏi
+                SELECT 
+                    l.LessonID, 
+                    l.CourseID, 
+                    l.Title, 
+                    l.BriefDescription, 
+                    l.Content, 
+                    l.Duration, 
+                    l.VideoUrl, 
+                    l.Status, 
+                    l.IsDisabled,
+                    c.CourseName
+                FROM Lesson l
+                JOIN Course c ON l.CourseID = c.CourseID
+                WHERE l.LessonID = @LessonId AND l.IsDisabled = 0
+            `);
+        
+        if (result.recordset.length === 0) {
+            res.status(404).json({ message: 'Không tìm thấy bài học' });
+            return;
+        }
+        
         res.status(200).json({ 
-            message: 'Lesson content fetched successfully', 
-            data: result.recordset 
+            message: 'Lấy chi tiết bài học thành công', 
+            data: result.recordset[0] 
         });
         return;
     } catch (err: any) {
-        // Nếu có lỗi, in ra log và trả về lỗi 500
-        console.error('Error in getLessonContent:', err);
+        console.error('Error in getLessonById:', err);
         res.status(500).json({ 
-            message: 'Error fetching lesson content', 
+            message: 'Lỗi khi lấy chi tiết bài học', 
             error: err.message 
         });
         return;
@@ -102,8 +145,6 @@ export async function getLessonContent(req: Request, res: Response): Promise<voi
 export async function getQuestions(req: Request, res: Response): Promise<void> {
     // Lấy lessonId từ params
     const lessonId = req.params.id;
-    // In ra log để kiểm tra lessonId nhận được
-    console.log(`Fetching questions for lesson ID: ${lessonId}`);
 
     try {
         // Kết nối tới pool của database
@@ -148,8 +189,6 @@ export async function getQuestions(req: Request, res: Response): Promise<void> {
 export async function getAnswers(req: Request, res: Response): Promise<void> {
     // Lấy id khóa học từ params
     const { id } = req.params;
-    // In ra log để kiểm tra id nhận được
-    console.log(`Fetching answers for question ID: ${id}`);
 
     try {
         // Kết nối tới pool của database
@@ -220,89 +259,154 @@ export async function createLesson(req: Request, res: Response): Promise<void> {
 /**
  * Cập nhật bài học theo ID
  * 
- * @route PUT /api/lesson/:id
+ * @route PUT /api/lessons/:id
  * @access Quản trị viên, Nhân viên
  * @param {Request} req - ID bài học trong params, dữ liệu cập nhật trong body
  * @param {Response} res - Kết quả trả về
+ * @throws {400} Nếu dữ liệu đầu vào không hợp lệ
+ * @throws {404} Nếu không tìm thấy bài học
+ * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
  */
 export async function updateLesson(req: Request, res: Response): Promise<void> {
     // Lấy lessonId từ params
     const lessonId = Number(req.params.id);
     if (isNaN(lessonId)) {
-        res.status(400).json({ message: 'lessonId không hợp lệ' });
+        res.status(400).json({ message: 'ID bài học không hợp lệ' });
         return;
     }
+    
     // Lấy dữ liệu cập nhật từ body
-    const fields = req.body;
-    if (!fields || Object.keys(fields).length === 0) {
-        res.status(400).json({ message: 'Không có dữ liệu để cập nhật.' });
+    const { CourseID, Title, BriefDescription, Content, Duration, VideoUrl, Status } = req.body;
+    
+    if (!Title && !Content && !CourseID && !BriefDescription && Duration === undefined && !VideoUrl && !Status) {
+        res.status(400).json({ message: 'Không có dữ liệu để cập nhật' });
         return;
     }
-    // Tạo câu lệnh cập nhật động và tham số
-    const updates: string[] = [];
-    const params: any = { LessonID: lessonId };
-    Object.entries(fields).forEach(([key, value]) => {
-        updates.push(`${key} = @${key}`);
-        params[key] = value;
-    });
+    
     try {
         // Kết nối tới pool của database
         const pool = await poolPromise;
-        // Tạo câu lệnh SQL cập nhật động
-        const sqlUpdate = `
-            UPDATE Lesson SET ${updates.join(', ')}
-            WHERE LessonID = @LessonID;
-            SELECT * FROM Lesson WHERE LessonID = @LessonID
-        `;
-        const request = pool.request();
-        Object.entries(params).forEach(([key, value]) => {
-            request.input(key, value);
-        });
-        // Thực thi truy vấn cập nhật
-        const result = await request.query(sqlUpdate);
-        if (result.recordset.length === 0) {
+        
+        // Kiểm tra bài học có tồn tại không
+        const checkResult = await pool.request()
+            .input('LessonID', sql.Int, lessonId)
+            .query('SELECT LessonID FROM Lesson WHERE LessonID = @LessonID AND IsDisabled = 0');
+            
+        if (checkResult.recordset.length === 0) {
             res.status(404).json({ message: 'Không tìm thấy bài học' });
             return;
         }
+        
+        // Tạo câu lệnh cập nhật động
+        const updateFields: string[] = [];
+        const request = pool.request();
+        request.input('LessonID', sql.Int, lessonId);
+        
+        if (CourseID) {
+            updateFields.push('CourseID = @CourseID');
+            request.input('CourseID', sql.Int, CourseID);
+        }
+        if (Title) {
+            updateFields.push('Title = @Title');
+            request.input('Title', sql.NVarChar, Title);
+        }
+        if (BriefDescription !== undefined) {
+            updateFields.push('BriefDescription = @BriefDescription');
+            request.input('BriefDescription', sql.NVarChar, BriefDescription);
+        }
+        if (Content) {
+            updateFields.push('Content = @Content');
+            request.input('Content', sql.NVarChar(sql.MAX), Content);
+        }
+        if (Duration !== undefined) {
+            updateFields.push('Duration = @Duration');
+            request.input('Duration', sql.Int, Duration);
+        }
+        if (VideoUrl !== undefined) {
+            updateFields.push('VideoUrl = @VideoUrl');
+            request.input('VideoUrl', sql.NVarChar, VideoUrl);
+        }
+        if (Status) {
+            updateFields.push('Status = @Status');
+            request.input('Status', sql.NVarChar, Status);
+        }
+        
+        // Thực thi truy vấn cập nhật
+        const sqlUpdate = `
+            UPDATE Lesson SET ${updateFields.join(', ')}
+            WHERE LessonID = @LessonID;
+            
+            SELECT 
+                LessonID, CourseID, Title, BriefDescription, Content, 
+                Duration, VideoUrl, Status, IsDisabled
+            FROM Lesson 
+            WHERE LessonID = @LessonID
+        `;
+        
+        const result = await request.query(sqlUpdate);
+        
         // Trả về bài học đã cập nhật
-        res.status(200).json({ message: 'Cập nhật bài học thành công', data: result.recordset[0] });
+        res.status(200).json({ 
+            message: 'Cập nhật bài học thành công', 
+            data: result.recordset[0] 
+        });
+        return;
     } catch (err: any) {
         // Nếu có lỗi, trả về lỗi 500
-        res.status(500).json({ message: 'Lỗi khi cập nhật bài học', error: err.message });
+        console.error('Lỗi trong updateLesson:', err);
+        res.status(500).json({ 
+            message: 'Lỗi khi cập nhật bài học', 
+            error: err.message 
+        });
+        return;
     }
 }
 
 /**
- * Xoá bài học theo ID
+ * Xoá bài học theo ID (soft delete)
  * 
- * @route DELETE /api/lesson/:id
+ * @route DELETE /api/lessons/:id
  * @access Quản trị viên, Nhân viên
  * @param {Request} req - ID bài học trong params
  * @param {Response} res - Kết quả trả về
+ * @throws {400} Nếu ID không hợp lệ
+ * @throws {404} Nếu không tìm thấy bài học
+ * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
  */
 export async function deleteLesson(req: Request, res: Response): Promise<void> {
     // Lấy lessonId từ params
     const lessonId = Number(req.params.id);
     if (isNaN(lessonId)) {
-        res.status(400).json({ message: 'lessonId không hợp lệ' });
+        res.status(400).json({ message: 'ID bài học không hợp lệ' });
         return;
     }
     try {
         // Kết nối tới pool của database
         const pool = await poolPromise;
-        // Thực hiện truy vấn xoá bài học theo LessonID
-        const result = await pool.request()
+        
+        // Kiểm tra bài học có tồn tại không
+        const checkResult = await pool.request()
             .input('LessonID', sql.Int, lessonId)
-            .query('DELETE FROM Lesson WHERE LessonID = @LessonID');
-        if (result.rowsAffected[0] === 0) {
+            .query('SELECT LessonID FROM Lesson WHERE LessonID = @LessonID AND IsDisabled = 0');
+            
+        if (checkResult.recordset.length === 0) {
             res.status(404).json({ message: 'Không tìm thấy bài học' });
             return;
         }
+        
+        // Thực hiện soft delete (đánh dấu IsDisabled = 1)
+        const result = await pool.request()
+            .input('LessonID', sql.Int, lessonId)
+            .query('UPDATE Lesson SET IsDisabled = 1 WHERE LessonID = @LessonID');
+            
         // Trả về kết quả xoá thành công
         res.status(200).json({ message: 'Xoá bài học thành công' });
+        return;
     } catch (err: any) {
         // Nếu có lỗi, trả về lỗi 500
+        console.error('Lỗi trong deleteLesson:', err);
         res.status(500).json({ message: 'Lỗi khi xoá bài học', error: err.message });
+        return;
     }
 }
 
@@ -542,5 +646,71 @@ export async function deleteLessonAnswer(req: Request, res: Response): Promise<v
     } catch (err: any) {
         // Nếu có lỗi, trả về lỗi 500
         res.status(500).json({ message: 'Lỗi khi xoá đáp án', error: err.message });
+    }
+}
+
+/**
+ * Lấy chi tiết một bài học cụ thể trong một khóa học
+ * 
+ * @route GET /api/course/:courseId/lessons/:lessonId
+ * @access Công khai
+ * @param {Request} req - Đối tượng request với courseId và lessonId trong params
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với chi tiết bài học
+ * @throws {400} Nếu ID không hợp lệ
+ * @throws {404} Nếu không tìm thấy bài học
+ * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
+ */
+export async function getLessonByCourseAndLessonId(req: Request, res: Response): Promise<void> {
+    const courseId = Number(req.params.courseId);
+    const lessonId = Number(req.params.lessonId);
+    
+    if (isNaN(courseId) || isNaN(lessonId)) {
+        res.status(400).json({ 
+            message: 'ID khóa học hoặc ID bài học không hợp lệ'
+        });
+        return;
+    }
+
+    try {
+        const pool = await poolPromise;
+        
+        const result = await pool.request()
+            .input('CourseId', sql.Int, courseId)
+            .input('LessonId', sql.Int, lessonId)
+            .query(`
+                SELECT 
+                    l.LessonID, 
+                    l.CourseID, 
+                    l.Title, 
+                    l.BriefDescription, 
+                    l.Content, 
+                    l.Duration, 
+                    l.VideoUrl, 
+                    l.Status, 
+                    l.IsDisabled,
+                    c.CourseName
+                FROM Lesson l
+                JOIN Course c ON l.CourseID = c.CourseID
+                WHERE l.LessonID = @LessonId AND l.CourseID = @CourseId AND l.IsDisabled = 0
+            `);
+        
+        if (result.recordset.length === 0) {
+            res.status(404).json({ message: 'Không tìm thấy bài học trong khóa học này' });
+            return;
+        }
+        
+        res.status(200).json({ 
+            message: 'Lấy chi tiết bài học thành công', 
+            data: result.recordset[0] 
+        });
+        return;
+    } catch (err: any) {
+        console.error('Error in getLessonByCourseAndLessonId:', err);
+        res.status(500).json({ 
+            message: 'Lỗi khi lấy chi tiết bài học', 
+            error: err.message 
+        });
+        return;
     }
 }
