@@ -461,10 +461,6 @@ const CourseEnrollPage: React.FC = () => {
             </div>
 
             <div className="mt-8 flex items-center justify-center space-x-8 text-blue-700">
-              <div className="flex items-center space-x-2">
-                <Users className="w-5 h-5" />
-                <span>Cộng đồng hỗ trợ</span>
-              </div>
             </div>
           </div>
         </div>
