@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Formik, Field, Form, ErrorMessage, useFormikContext, FormikProps } from 'formik';
+import { Formik, Field, Form, FormikProps } from 'formik';
 import * as Yup from 'yup';
 
 import { assessmentData } from '../../data/assessmentData';
 import { SqlCourse } from '../../types/Course';
-import { Assessment, AssessmentQuestion } from '../../types/Assessment';
+import { Assessment } from '../../types/Assessment';
 
 interface FormValues {
     [key: string]: string | string[];
@@ -29,14 +29,11 @@ interface NavigationButtonsProps {
     totalQuestions: number;
     onNext: () => void;
     onPrev: () => void;
-}
-
-interface NavigationButtonsPropsWithAssessment extends NavigationButtonsProps {
     assessment: Assessment;
     formikProps: FormikProps<FormValues>;
 }
 
-const NavigationButtons: React.FC<NavigationButtonsPropsWithAssessment> = ({
+const NavigationButtons: React.FC<NavigationButtonsProps> = ({
     currentIndex,
     totalQuestions,
     onNext,
@@ -47,7 +44,6 @@ const NavigationButtons: React.FC<NavigationButtonsPropsWithAssessment> = ({
     const { values, errors, touched } = formikProps;
     const currentQuestion = assessment.questions[currentIndex];
 
-    // Check if current question is answered
     const isCurrentQuestionAnswered = () => {
         const answer = values[currentQuestion.id];
         if (currentQuestion.type === 'checkbox') {
@@ -56,7 +52,6 @@ const NavigationButtons: React.FC<NavigationButtonsPropsWithAssessment> = ({
         return Boolean(answer && answer !== '');
     };
 
-    // Manual validation for the current question
     const validateCurrentQuestion = () => {
         if (!isCurrentQuestionAnswered()) {
             const message = currentQuestion.type === 'checkbox' ? 'Chọn ít nhất một lựa chọn' : 'Không được để trống';
@@ -68,11 +63,9 @@ const NavigationButtons: React.FC<NavigationButtonsPropsWithAssessment> = ({
     const handleNextClick = () => {
         const validationError = validateCurrentQuestion();
         if (validationError) {
-            // Set error manually for this specific field
             formikProps.setFieldError(currentQuestion.id, validationError);
             formikProps.setFieldTouched(currentQuestion.id, true);
         } else {
-            // Clear any previous errors and proceed
             formikProps.setFieldError(currentQuestion.id, undefined);
             onNext();
         }
@@ -133,13 +126,11 @@ const AssessmentDetailPage: React.FC = () => {
     const [consultants, setConsultants] = useState<GroupedConsultant[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
-    // Smooth scroll to top when changing questions
     const handleQuestionChange = (newIndex: number) => {
         setCurrentQuestionIndex(newIndex);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    // Initialize form values with string IDs
     const initialValues: FormValues = assessment.questions.reduce((acc, q) => {
         acc[q.id] = q.type === 'checkbox' ? [] : '';
         return acc;
@@ -159,7 +150,6 @@ const AssessmentDetailPage: React.FC = () => {
         console.log('=== CALCULATING SCORE ===');
         console.log('Form values:', formValues);
 
-        // ASSIST Assessment (ID: 1)
         if (assessment.id === 1) {
             for (const question of assessment.questions) {
                 const answer = formValues[question.id];
@@ -169,22 +159,11 @@ const AssessmentDetailPage: React.FC = () => {
                     total += score;
                 }
             }
-
-            if (total > 26) {
-                setRisk('cao');
-            } else if (total >= 4) {
-                setRisk('trung bình');
-            } else {
-                setRisk('thấp');
-            }
-            
             return total;
         }
 
-        // CRAFFT Assessment (ID: 2)
         if (assessment.id === 2) {
             let craftScore = 0;
-            
             for (const question of assessment.questions) {
                 const answer = formValues[question.id];
                 if (typeof answer === 'string') {
@@ -193,32 +172,21 @@ const AssessmentDetailPage: React.FC = () => {
                     craftScore += score;
                 }
             }
-
-            if (craftScore >= 4) {
-                setRisk('cao');
-            } else if (craftScore >= 2) {
-                setRisk('trung bình');
-            } else {
-                setRisk('thấp');
-            }
-            
             return craftScore;
         }
 
-        // Parent Assessment (ID: 3)
         if (assessment.id === 3) {
             let parentScore = 0;
             const maxScores: { [key: string]: number } = {
-                'q1': 2,  // Kiến thức về ma túy
-                'q2': 3,  // Trao đổi với con
-                'q3': 2,  // Phản ứng với thay đổi hành vi
-                'q4': 2,  // Nhận biết dấu hiệu
-                'q5': 2,  // Giám sát hoạt động
-                'q6': 2,  // Biết nguồn hỗ trợ
-                'q7': 2,  // Hợp tác cộng đồng
-                'q8': 2   // Môi trường gia đình
+                'q1': 2,
+                'q2': 3,
+                'q3': 2,
+                'q4': 2,
+                'q5': 2,
+                'q6': 2,
+                'q7': 2,
+                'q8': 2
             };
-
             for (const question of assessment.questions) {
                 const answer = formValues[question.id];
                 if (typeof answer === 'string') {
@@ -229,25 +197,13 @@ const AssessmentDetailPage: React.FC = () => {
                     console.log(`Parent Q${question.id} (${score}/${maxScore}):`, percentageScore);
                 }
             }
-
             parentScore = parentScore / assessment.questions.length;
-
-            if (parentScore < 50) {
-                setRisk('cần hỗ trợ tích cực');
-            } else if (parentScore < 75) {
-                setRisk('cần tăng cường');
-            } else {
-                setRisk('hiệu quả tốt');
-            }
-            
             return Math.round(parentScore);
         }
 
-        // School Environment Assessment (ID: 4)
         if (assessment.id === 4) {
             let schoolScore = 0;
             let totalQuestions = 0;
-            
             for (const question of assessment.questions) {
                 const answer = formValues[question.id];
                 if (typeof answer === 'string') {
@@ -258,21 +214,124 @@ const AssessmentDetailPage: React.FC = () => {
                     console.log(`School Q${question.id} (reversed):`, reversedScore);
                 }
             }
-
             const effectivenessScore = (schoolScore / (totalQuestions * 3)) * 100;
-
-            if (effectivenessScore < 60) {
-                setRisk('cần tăng cường đáng kể');
-            } else if (effectivenessScore < 80) {
-                setRisk('cần cải thiện');
-            } else {
-                setRisk('triển khai tốt');
-            }
-            
             return Math.round(effectivenessScore);
         }
 
         return total;
+    };
+
+    const handleSubmit = async (values: typeof initialValues) => {
+        console.log('=== FORM SUBMISSION ===');
+        console.log('Form values:', values);
+
+        let hasErrors = false;
+        const errors: { [key: string]: string } = {};
+
+        assessment.questions.forEach(question => {
+            const answer = values[question.id];
+            let isAnswered = false;
+
+            console.log(`Validating Q${question.id}:`, answer);
+            if (question.type === 'checkbox') {
+                isAnswered = Array.isArray(answer) && answer.length > 0;
+                if (!isAnswered) {
+                    errors[question.id] = 'Chọn ít nhất một lựa chọn';
+                    hasErrors = true;
+                }
+            } else {
+                isAnswered = answer !== undefined && answer !== null && answer !== '';
+                if (!isAnswered) {
+                    errors[question.id] = 'Không được để trống';
+                    hasErrors = true;
+                }
+            }
+            console.log(`Q${question.id} answered:`, isAnswered);
+        });
+
+        if (hasErrors) {
+            console.log('Validation errors found:', errors);
+            const firstErrorQuestion = assessment.questions.findIndex(q => errors[q.id]);
+            if (firstErrorQuestion !== -1) {
+                setCurrentQuestionIndex(firstErrorQuestion);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            return;
+        }
+
+        const total = calculateScore(values);
+
+        let riskLevel = '';
+        switch (assessment.id) {
+            case 1: // ASSIST
+                riskLevel = total > 26 ? 'cao' : total >= 4 ? 'trung bình' : 'thấp';
+                break;
+            case 2: // CRAFFT
+                riskLevel = total >= 4 ? 'cao' : total >= 2 ? 'trung bình' : 'thấp';
+                break;
+            case 3: // Parent Assessment
+                riskLevel = total < 50 ? 'cần hỗ trợ tích cực' : total < 75 ? 'cần tăng cường' : 'hiệu quả tốt';
+                break;
+            case 4: // School Assessment
+                riskLevel = total < 60 ? 'cần tăng cường đáng kể' : total < 80 ? 'cần cải thiện' : 'triển khai tốt';
+                break;
+            default:
+                riskLevel = 'không xác định';
+        }
+
+        try {
+            const accountId = 1; // TODO: Thay bằng AccountID từ AuthContext hoặc token
+            const resultData = {
+                account_id: accountId,
+                assessment_id: Number(assessmentId),
+                score: total,
+                risk_level: riskLevel,
+            };
+
+            console.log('=== GỬI YÊU CẦU POST ===');
+            console.log('URL:', 'http://localhost:5000/api/assessment-results');
+            console.log('Dữ liệu gửi:', JSON.stringify(resultData, null, 2));
+
+            const response = await fetch('http://localhost:5000/api/assessment-results', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Nếu cần token: 'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                },
+                body: JSON.stringify(resultData),
+            });
+
+            console.log('=== PHẢN HỒI TỪ POST ===');
+            console.log('Status:', response.status);
+            console.log('Status Text:', response.statusText);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Phản hồi lỗi:', errorText);
+                throw new Error(`Lỗi khi gửi kết quả: ${response.status} - ${errorText}`);
+            }
+
+            const responseData = await response.json();
+            console.log('Dữ liệu phản hồi:', JSON.stringify(responseData, null, 2));
+
+            if (!responseData.message || !responseData.id) {
+                throw new Error('Phản hồi từ server không hợp lệ');
+            }
+
+            localStorage.setItem(`assessmentResult_${assessmentId}`, JSON.stringify({
+                total,
+                risk: riskLevel,
+                timestamp: new Date().toISOString(),
+            }));
+
+            setResult(total);
+            setRisk(riskLevel);
+            setHasViewedResult(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (error: any) {
+            console.error('Lỗi chi tiết:', error);
+            alert(`Không thể lưu kết quả: ${error.message}\nKiểm tra console log để biết thêm chi tiết.`);
+        }
     };
 
     useEffect(() => {
@@ -284,30 +343,27 @@ const AssessmentDetailPage: React.FC = () => {
             setRisk(parsedResult.risk);
             setHasViewedResult(true);
         }
-    }, [risk, result, assessmentId]);
+    }, [assessmentId]);
 
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                // Fetch courses
                 const coursesResponse = await fetch('http://localhost:5000/api/course');
+                if (!coursesResponse.ok) throw new Error(`Lỗi khi lấy khóa học: ${coursesResponse.status}`);
                 const coursesData = await coursesResponse.json();
                 setCourses(coursesData.data || []);
 
-                // Fetch consultants - make sure the endpoint is correct
                 const consultantsResponse = await fetch('http://localhost:5000/api/consultant/category');
+                if (!consultantsResponse.ok) throw new Error(`Lỗi khi lấy chuyên viên: ${consultantsResponse.status}`);
                 const consultantsData = await consultantsResponse.json();
-
-                // The API already returns grouped data, just filter out disabled ones
                 const filteredConsultants = (consultantsData.data || []).filter(
                     (consultant: GroupedConsultant) => !consultant.IsDisabled
                 );
                 console.log('Filtered consultants:', filteredConsultants);
                 setConsultants(filteredConsultants);
-
-            } catch (error) {
-                console.error('Error fetching data:', error);
+            } catch (error: any) {
+                console.error('Lỗi khi lấy dữ liệu:', error.message);
                 setCourses([]);
                 setConsultants([]);
             } finally {
@@ -318,7 +374,6 @@ const AssessmentDetailPage: React.FC = () => {
         fetchData();
     }, []);
 
-    // Filter courses based on both risk and audience matching
     const getFilteredCourses = () => {
         console.log('=== COURSE FILTERING DEBUG ===');
         console.log('Current risk:', risk);
@@ -335,11 +390,9 @@ const AssessmentDetailPage: React.FC = () => {
             console.log('Course risk:', course.Risk);
             console.log('Course categories:', course.Category?.map(cat => cat.CategoryName) || []);
 
-            // Check if risk matches
             const riskMatches = course.Risk === risk;
             console.log('Risk matches:', riskMatches);
 
-            // Check if any assessment audience matches any course category
             const audienceMatches = assessment.audiences.some(audience =>
                 course.Category?.some(category => {
                     const audienceNormalized = audience.toLowerCase().trim();
@@ -347,7 +400,6 @@ const AssessmentDetailPage: React.FC = () => {
 
                     console.log(`  Comparing audience "${audienceNormalized}" with category "${categoryNormalized}"`);
 
-                    // Multiple matching strategies for flexibility
                     const exactMatch = audienceNormalized === categoryNormalized;
                     const audienceContainsCategory = audienceNormalized.includes(categoryNormalized);
                     const categoryContainsAudience = categoryNormalized.includes(audienceNormalized);
@@ -377,7 +429,6 @@ const AssessmentDetailPage: React.FC = () => {
         return filtered;
     };
 
-    // Get consultants filtered by audience only (no risk filtering for consultants)
     const getFilteredConsultants = () => {
         console.log('=== CONSULTANT FILTERING DEBUG ===');
         console.log('Assessment audiences:', assessment.audiences);
@@ -402,7 +453,6 @@ const AssessmentDetailPage: React.FC = () => {
                 return false;
             }
 
-            // Check if any assessment audience matches any consultant category
             const audienceMatches = assessment.audiences.some(audience => {
                 console.log(`Checking audience: "${audience}"`);
 
@@ -412,7 +462,6 @@ const AssessmentDetailPage: React.FC = () => {
 
                     console.log(`  Comparing "${audienceNormalized}" with "${categoryNormalized}"`);
 
-                    // Multiple matching strategies for flexibility
                     const exactMatch = audienceNormalized === categoryNormalized;
                     const audienceContainsCategory = audienceNormalized.includes(categoryNormalized);
                     const categoryContainsAudience = categoryNormalized.includes(audienceNormalized);
@@ -438,92 +487,6 @@ const AssessmentDetailPage: React.FC = () => {
         return filtered;
     };
 
-    useEffect(() => {
-        if (result !== null && result >= 8) {
-            setRisk('cao');
-        } else if (result !== null && result >= 4) {
-            setRisk('trung bình');
-        } else {
-            setRisk('thấp');
-        }
-    }, [result]);
-
-    const handleSubmit = (values: typeof initialValues) => {
-        console.log('=== FORM SUBMISSION ===');
-        console.log('Form values:', values);
-        
-        // Validate all questions before submitting
-        let hasErrors = false;
-        const errors: { [key: string]: string } = {};
-        
-        assessment.questions.forEach(question => {
-            const answer = values[question.id];
-            let isAnswered = false;
-            
-            console.log(`Validating Q${question.id}:`, answer);
-            
-            if (question.type === 'checkbox') {
-                isAnswered = Array.isArray(answer) && answer.length > 0;
-                if (!isAnswered) {
-                    errors[question.id] = 'Chọn ít nhất một lựa chọn';
-                    hasErrors = true;
-                }
-            } else {
-                isAnswered = answer !== undefined && answer !== null && answer !== '';
-                if (!isAnswered) {
-                    errors[question.id] = 'Không được để trống';
-                    hasErrors = true;
-                }
-            }
-            console.log(`Q${question.id} answered:`, isAnswered);
-        });
-        
-        if (hasErrors) {
-            console.log('Validation errors found:', errors);
-            const firstErrorQuestion = assessment.questions.findIndex(q => errors[q.id]);
-            if (firstErrorQuestion !== -1) {
-                setCurrentQuestionIndex(firstErrorQuestion);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-            return;
-        }
-        
-        const total = calculateScore(values);
-
-        // Store result in localStorage with appropriate risk level based on assessment type
-        let riskLevel = '';
-        
-        switch (assessment.id) {
-            case 1: // ASSIST
-                riskLevel = total > 26 ? 'cao' : total >= 4 ? 'trung bình' : 'thấp';
-                break;
-            case 2: // CRAFFT
-                riskLevel = total >= 4 ? 'cao' : total >= 2 ? 'trung bình' : 'thấp';
-                break;
-            case 3: // Parent Assessment
-                riskLevel = total < 50 ? 'cần hỗ trợ tích cực' : total < 75 ? 'cần tăng cường' : 'hiệu quả tốt';
-                break;
-            case 4: // School Assessment
-                riskLevel = total < 60 ? 'cần tăng cường đáng kể' : total < 80 ? 'cần cải thiện' : 'triển khai tốt';
-                break;
-            default:
-                riskLevel = 'không xác định';
-        }
-
-        const resultData = {
-            total,
-            risk: riskLevel,
-            timestamp: new Date().toISOString()
-        };
-        localStorage.setItem(`assessmentResult_${assessmentId}`, JSON.stringify(resultData));
-
-        // Set state and mark as having viewed result
-        setResult(total);
-        setRisk(riskLevel);
-        setHasViewedResult(true);
-    };
-
-    // Function to validate all questions and check if assessment is complete
     const isAssessmentComplete = (values: { [key: string]: string | string[] }) => {
         console.log('=== CHECKING COMPLETION ===');
         return assessment.questions.every(question => {
@@ -533,7 +496,6 @@ const AssessmentDetailPage: React.FC = () => {
             if (question.type === 'checkbox') {
                 isComplete = Array.isArray(answer) && answer.length > 0;
             } else {
-                // Fixed: Check for both string and number values, including 0
                 isComplete = answer !== undefined && answer !== null && answer !== '';
             }
             
@@ -542,36 +504,22 @@ const AssessmentDetailPage: React.FC = () => {
         });
     };
 
-    // Function to reset the assessment
     const handleRedoAssessment = () => {
-        // Clear the stored result for this specific assessment
         localStorage.removeItem(`assessmentResult_${assessmentId}`);
-
-        // Reset state
         setResult(-1);
         setRisk('thấp');
         setCurrentQuestionIndex(0);
         setHasViewedResult(false);
-
-        // Scroll to top for better UX
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    // Function to clear data and navigate to assessments page
     const handleBackToAssessments = () => {
-        
-        // Reset hasViewedResult to prevent cleanup from firing
         setHasViewedResult(false);
-        
-        // Navigate to assessments page
         window.location.href = '/assessments';
     };
 
-    // Get filtered results only when result is submitted
     const filteredCourses = result !== null && result > -1 ? getFilteredCourses() : [];
     const filteredConsultants = result !== null && result > -1 ? getFilteredConsultants() : [];
-
-    console.log(filteredConsultants);
 
     return (
         <div className='container mx-auto px-4 py-8'>
@@ -583,9 +531,8 @@ const AssessmentDetailPage: React.FC = () => {
                     validateOnChange={false}
                     validateOnBlur={false}
                     validate={(values) => {
-                        // Custom validation logic - only validate fields that have been touched
                         const errors: { [key: string]: string } = {};
-                        return errors; // Return empty errors to prevent automatic validation
+                        return errors;
                     }}
                 >
                     {(formikProps: FormikProps<FormValues>) => (
@@ -612,9 +559,7 @@ const AssessmentDetailPage: React.FC = () => {
                                     const question = assessment.questions[currentQuestionIndex];
                                     return (
                                         <div className="relative mb-8">
-                                            {/* Navigation Buttons - Positioned on sides of question card */}
                                             <div className="flex items-center justify-center gap-4 mb-6">
-                                                {/* Left Button - Quay lại */}
                                                 <button
                                                     type="button"
                                                     onClick={() => handleQuestionChange(Math.max(0, currentQuestionIndex - 1))}
@@ -631,7 +576,6 @@ const AssessmentDetailPage: React.FC = () => {
                                                     </svg>
                                                 </button>
 
-                                                {/* Question Card */}
                                                 <div
                                                     aria-labelledby="checkbox-group"
                                                     key={`${question.id}-${currentQuestionIndex}`}
@@ -675,12 +619,10 @@ const AssessmentDetailPage: React.FC = () => {
                                                     )}
                                                 </div>
 
-                                                {/* Right Button - Tiếp theo hoặc Hoàn thành */}
                                                 {currentQuestionIndex < assessment.questions.length - 1 ? (
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            // First validate current question
                                                             const currentValidationError = (() => {
                                                                 const answer = formikProps.values[question.id];
                                                                 if (question.type === 'checkbox') {
@@ -695,10 +637,7 @@ const AssessmentDetailPage: React.FC = () => {
                                                                 return;
                                                             }
                                                             
-                                                            // Clear current question error
                                                             formikProps.setFieldError(question.id, undefined);
-                                                            
-                                                            // Move to next question
                                                             handleQuestionChange(Math.min(assessment.questions.length - 1, currentQuestionIndex + 1));
                                                         }}
                                                         className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg hover:scale-110"
@@ -712,7 +651,6 @@ const AssessmentDetailPage: React.FC = () => {
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            // First validate current question
                                                             const currentValidationError = (() => {
                                                                 const answer = formikProps.values[question.id];
                                                                 if (question.type === 'checkbox') {
@@ -727,16 +665,13 @@ const AssessmentDetailPage: React.FC = () => {
                                                                 return;
                                                             }
                                                             
-                                                            // Clear current question error
                                                             formikProps.setFieldError(question.id, undefined);
                                                             
-                                                            // Check if all questions are answered
                                                             if (!isAssessmentComplete(formikProps.values)) {
                                                                 alert('Vui lòng trả lời tất cả câu hỏi trước khi hoàn thành đánh giá.');
                                                                 return;
                                                             }
                                                             
-                                                            // Submit the form
                                                             formikProps.submitForm();
                                                         }}
                                                         className="flex items-center justify-center w-12 h-12 rounded-full bg-green-600 text-white hover:bg-green-700 transition-all shadow-lg hover:scale-110"
@@ -787,7 +722,6 @@ const AssessmentDetailPage: React.FC = () => {
 
                     <div className="mb-8 flex items-center gap-4">
                         {assessment.id <= 2 ? (
-                            // Hiển thị cho bài ASSIST và CRAFFT
                             <span className={`inline-block px-4 py-2 rounded-full text-lg font-bold shadow-md
                                 ${risk === 'cao' ? 'bg-error-100 text-error-700' : 
                                   risk === 'trung bình' ? 'bg-warning-100 text-warning-700' : 
@@ -796,7 +730,6 @@ const AssessmentDetailPage: React.FC = () => {
                                 Nguy cơ sử dụng ma túy: {risk.toUpperCase()}
                             </span>
                         ) : assessment.id === 3 ? (
-                            // Hiển thị cho bài đánh giá phụ huynh
                             <span className={`inline-block px-4 py-2 rounded-full text-lg font-bold shadow-md
                                 ${risk === 'cần hỗ trợ tích cực' ? 'bg-warning-100 text-warning-700' : 
                                   risk === 'cần tăng cường' ? 'bg-info-100 text-info-700' : 
@@ -805,7 +738,6 @@ const AssessmentDetailPage: React.FC = () => {
                                 Mức độ hiệu quả phòng chống: {risk.toUpperCase()}
                             </span>
                         ) : (
-                            // Hiển thị cho bài đánh giá môi trường học đường
                             <span className={`inline-block px-4 py-2 rounded-full text-lg font-bold shadow-md
                                 ${risk === 'cần tăng cường đáng kể' ? 'bg-warning-100 text-warning-700' : 
                                   risk === 'cần cải thiện' ? 'bg-info-100 text-info-700' : 
@@ -820,25 +752,21 @@ const AssessmentDetailPage: React.FC = () => {
                         </span>
                     </div>
 
-                    {/* Hiển thị gợi ý dựa trên kết quả */}
                     <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
                         <h4 className="font-bold text-lg mb-2 text-primary-700">Nhận xét và gợi ý:</h4>
                         {assessment.id <= 2 ? (
-                            // Gợi ý cho bài ASSIST và CRAFFT
                             <p className="text-gray-700">
                                 {risk === 'cao' && 'Bạn đang có nguy cơ cao về sử dụng chất gây nghiện. Hãy tham khảo các khóa học được đề xuất và liên hệ với chuyên gia để được tư vấn kịp thời.'}
                                 {risk === 'trung bình' && 'Bạn có một số dấu hiệu cần lưu ý. Việc tham gia các khóa học phòng ngừa và tham khảo ý kiến chuyên gia sẽ giúp bạn phòng tránh rủi ro tốt hơn.'}
                                 {risk === 'thấp' && 'Bạn đang có mức độ rủi ro thấp. Tuy nhiên, việc trang bị kiến thức phòng ngừa vẫn rất quan trọng để duy trì lối sống lành mạnh.'}
                             </p>
                         ) : assessment.id === 3 ? (
-                            // Gợi ý cho bài đánh giá phụ huynh
                             <p className="text-gray-700">
                                 {risk === 'cần hỗ trợ tích cực' && 'Bạn cần tăng cường các biện pháp phòng ngừa và giám sát con cái. Hãy tham khảo các khóa học về kỹ năng làm cha mẹ và phương pháp giao tiếp với con.'}
                                 {risk === 'cần tăng cường' && 'Bạn đã có những biện pháp phòng ngừa cơ bản. Tuy nhiên, cần tăng cường thêm kiến thức và kỹ năng để bảo vệ con tốt hơn.'}
                                 {risk === 'hiệu quả tốt' && 'Bạn đang thực hiện tốt vai trò phòng ngừa. Hãy duy trì và chia sẻ kinh nghiệm với các phụ huynh khác.'}
                             </p>
                         ) : (
-                            // Gợi ý cho bài đánh giá môi trường học đường
                             <p className="text-gray-700">
                                 {risk === 'cần tăng cường đáng kể' && 'Nhà trường cần xây dựng và triển khai ngay các chương trình phòng ngừa ma túy. Hãy tham khảo các khóa học và chương trình đào tạo cho giáo viên.'}
                                 {risk === 'cần cải thiện' && 'Nhà trường đã có những hoạt động phòng ngừa, nhưng cần cải thiện và đa dạng hóa các hình thức triển khai để tăng hiệu quả.'}
@@ -867,7 +795,6 @@ const AssessmentDetailPage: React.FC = () => {
                                         />
                                         <h4 className="text-lg font-bold text-primary-700 mb-2">{course.CourseName}</h4>
                                         <p className="mb-2 text-gray-700">{course.Description}</p>
-
                                         <div className="text-xs text-gray-500 mb-2">Mức độ rủi ro: {course.Risk}</div>
                                         <div className="text-xs text-gray-500 mb-2">
                                             Đối tượng: {course.Category?.map((category, index) => (

@@ -12,6 +12,7 @@ import authorizeRoles from "./middleware/authenMiddleware";
 import apiProgramAttendeeRoutes from "./routes/programAttendeeRoutes";
 import apiProgramSurveyRoutes from "./routes/programSurveyRoutes";
 import { updateProgramStatus } from "./controllers/scheduledProgram";
+import assessmentResultRoutes from './routes/assessmentResultRoutes';
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
@@ -91,6 +92,9 @@ app.use("/api/account/admin", authorizeRoles(["Admin"]), apiAccountRoutes);
 app.use("/api/survey/admin", authorizeRoles(["Admin"]), apiSurveyRoutes);
 // Start scheduled program status updates
 updateProgramStatus();
+
+app.use('/api', assessmentResultRoutes);
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
