@@ -60,7 +60,7 @@ router.delete("/:id", authorizeRoles(["Admin", "Staff", "Manager"]), courseContr
  * @desc Đăng ký khóa học
  * @access Thành viên
  */
-router.post("/:id/enroll", courseController.enrollCourse);
+router.post("/:id/enroll", authorizeRoles(['Admin', "Staff", "Manager", "Member", "Consultant"]), courseController.enrollCourse);
 
 /**
  * @route GET /api/course/:id/enrolled/user
@@ -102,6 +102,25 @@ router.get("/:id/lessons", lessonController.getLesson);
  * @desc Lấy chi tiết bài học theo ID bài học trong khóa học cụ thể
  * @access Công khai
  */
-router.get("/:courseId/lessons/:lessonId", lessonController.getLessonByCourseAndLessonId);
+router.get("/:courseId/lessons/:lessonId/:accountId", lessonController.getLessonProgressByCourseAndLessonId);
+
+/**
+ * @route PUT /api/course/:courseId/lessons/:lessonId/progress
+ * @desc Cập nhật tiến độ hoàn thành bài học
+ * @access Thành viên
+ */
+router.put("/:courseId/lessons/:lessonId/progress", authorizeRoles(["Member", "Consultant", "Admin", "Staff", "Manager"]), lessonController.updateLessonProgress);
+
+/**
+ * @route POST /api/course/:courseId/lessons/:lessonId/complete
+ * @desc Đánh dấu bài học là hoàn thành
+ * @access Thành viên
+ */
+router.post("/:courseId/lessons/:lessonId/complete", authorizeRoles(["Member", "Consultant", "Admin", "Staff", "Manager"]), lessonController.markLessonCompleted);
+
+router.get("/:courseId/lessons/:lessonId/enrollment-status/:accountId", lessonController.checkLessonEnrollment);
+
+router.post("/lesson/:lessonId/enroll/:accountId", authorizeRoles(["Member", "Consultant", "Admin", "Staff", "Manager"]), lessonController.lessonEnroll);
+
 
 export default router;

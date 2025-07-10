@@ -19,6 +19,7 @@ router.get("/course/:id", lessonController.getLesson);
  */
 router.get("/:id", lessonController.getLessonById);
 
+
 /**
  * @route POST /api/lessons
  * @desc Tạo mới bài học
