@@ -156,7 +156,24 @@ const courses = {
     // Lesson APIs
     getLessons: (courseId: number) => get<any[]>(`/course/${courseId}/lessons`),
 
-    getLessonDetail: (courseId: number, lessonId: number) => get<any>(`/course/${courseId}/lessons/${lessonId}`),
+    getLessonDetail: (courseId: number, lessonId: number, accountId: number) => get<any>(`/course/${courseId}/lessons/${lessonId}/${accountId}`),
+
+    //check enroll lesson
+    checkLessonEnrollment: (courseId: number, lessonId: number, accountId: number) =>
+        get<any>(`/course/${courseId}/lessons/${lessonId}/enrollment-status/${accountId}`),
+
+
+    // Lesson Progress APIs
+    lessonEnroll: (lessonId: number, accountId: number) => post<{ message: string }>(`/course/lesson/${lessonId}/enroll/${accountId}`),
+
+    updateLessonProgress: (courseId: number, lessonId: number, progressData: {
+        accountId: number;
+        completionPercentage: number;
+        lastValidTime?: number;
+    }) => put<{ message: string; data: any }>(`/course/${courseId}/lessons/${lessonId}/progress`, progressData),
+
+    markLessonCompleted: (courseId: number, lessonId: number, accountId: number) =>
+        post<{ message: string; data: any }>(`/course/${courseId}/lessons/${lessonId}/complete`, { accountId }),
 
     // Course Exam APIs
     getExam: (courseId: number) => get<any>(`/exam/course/${courseId}`),
@@ -165,7 +182,7 @@ const courses = {
         examId: number;
         accountId: number;
         answers: Array<{ questionId: number; selectedAnswers: number[] }>;
-    }) => post<{ 
+    }) => post<{
         examId: number;
         accountId: number;
         score: number;

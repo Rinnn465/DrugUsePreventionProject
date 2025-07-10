@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   Clock,
   BookOpen,
-  Users,
   Award,
   Play,
   FileText,
@@ -254,9 +253,6 @@ const CourseEnrollPage: React.FC = () => {
     return isUserEnrolled ? 'Tiếp tục học' : 'Tham gia khóa học';
   };
 
-  const getRandomEnrollmentCount = () => {
-    return Math.floor(Math.random() * 500) + 100;
-  };
 
   if (isLoading) {
     return (

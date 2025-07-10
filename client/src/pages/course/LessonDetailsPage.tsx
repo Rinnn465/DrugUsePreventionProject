@@ -3,7 +3,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { sqlLesson } from "../../types/Lesson";
 import { toast } from "react-toastify";
 import { useUser } from "@/context/UserContext";
-import { courses } from "../../utils/apiUtils";
+import apiUtils, { courses } from "../../utils/apiUtils";
 import {
     CheckCircle,
     Clock,
@@ -35,8 +35,10 @@ const LessonDetailsPage: React.FC = () => {
     const [completedLessons, setCompletedLessons] = useState<Set<string | number>>(
         new Set()
     );
+    const [isLessonEnrolled, setIsLessonEnrolled] = useState<boolean>(false);
     const [videoProgress, setVideoProgress] = useState<{ [key: string]: number }>({});
     const [lastValidTime, setLastValidTime] = useState<{ [key: string]: number }>({});
+    const [completedMilestones, setCompletedMilestones] = useState<{ [key: string]: Set<number> }>({});
 
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
     const [currentTime, setCurrentTime] = useState<number>(0);
@@ -47,15 +49,15 @@ const LessonDetailsPage: React.FC = () => {
     const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
     const [showControls, setShowControls] = useState<boolean>(true);
     const [courseCompleted, setCourseCompleted] = useState<boolean>(false);
-    
+
     const videoRef = useRef<HTMLVideoElement>(null);
     const isSeekingRef = useRef(false);
     const playerRef = useRef<HTMLDivElement>(null);
     const controlsTimeoutRef = useRef<number | null>(null);
-    const processingCompletionRef = useRef<Set<string | number>>(new Set());
     const lastCompletionTimeRef = useRef<Map<string | number, number>>(new Map());
     const completionInProgressRef = useRef<Set<string | number>>(new Set());
     const completionToastShownRef = useRef<Set<string | number>>(new Set());
+
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -66,6 +68,11 @@ const LessonDetailsPage: React.FC = () => {
             try {
                 const lessonsData = await courses.getLessons(Number(id));
                 setLesson(lessonsData);
+
+                // Set first lesson as selected by default if no lesson is selected
+                if (lessonsData && lessonsData.length > 0 && selected === 'lesson') {
+                    setSelected(lessonsData[0].LessonID);
+                }
             } catch (error) {
                 console.error("Fetch lesson error:", error);
                 toast.error("Không thể tải danh sách bài học");
@@ -89,30 +96,170 @@ const LessonDetailsPage: React.FC = () => {
         if (id) {
             fetchData();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
+    // Separate useEffect for fetching lesson progress after lessons are loaded
     useEffect(() => {
-        if (lesson && lesson.length > 0 && selected === "lesson") {
-            setSelected(lesson[0].LessonID);
-        }
-    }, [lesson, selected]);
+        const fetchAllLessonProgress = async () => {
+            if (!lesson || lesson.length === 0 || !user?.AccountID) {
+                return;
+            }
 
-    // Reset video progress and last valid time when switching lessons
+            try {
+                // Fetch progress for all lessons in parallel
+                const progressPromises = lesson.map(async (lessonItem) => {
+                    try {
+                        const progressData = await apiUtils.courses.getLessonDetail(
+                            Number(id),
+                            lessonItem.LessonID,
+                            user.AccountID
+                        );
+                        return {
+                            lessonId: lessonItem.LessonID,
+                            progressData: progressData
+                        };
+                    } catch {
+                        // If lesson progress doesn't exist, return null
+                        console.log(`No progress found for lesson ${lessonItem.LessonID}`);
+                        return {
+                            lessonId: lessonItem.LessonID,
+                            progressData: null
+                        };
+                    }
+                });
+
+                const progressResults = await Promise.allSettled(progressPromises);
+
+                // Process the results
+                const newVideoProgress: { [key: string]: number } = {};
+                const newLastValidTime: { [key: string]: number } = {};
+                const newCompletedLessons = new Set<string | number>();
+                const newCompletedMilestones: { [key: string]: Set<number> } = {};
+
+                progressResults.forEach((result) => {
+                    if (result.status === 'fulfilled' && result.value.progressData) {
+                        const { lessonId, progressData } = result.value;
+                        const lessonIdStr = lessonId.toString();
+
+                        // Set video progress
+                        newVideoProgress[lessonIdStr] = progressData.CompletionPercentage || 0;
+
+                        // Set last valid time (if available in your database schema)
+                        newLastValidTime[lessonIdStr] = progressData.LastValidTime || 0;
+
+                        // Initialize milestones based on current progress
+                        const currentProgress = progressData.CompletionPercentage || 0;
+                        const milestonesSet = new Set<number>();
+                        for (let i = 10; i <= Math.floor(currentProgress / 10) * 10; i += 10) {
+                            milestonesSet.add(i);
+                        }
+                        newCompletedMilestones[lessonIdStr] = milestonesSet;
+
+                        // Mark as completed if necessary
+                        if (progressData.IsCompleted) {
+                            newCompletedLessons.add(lessonId);
+                        }
+                    }
+                });
+
+                // Update state with all progress data
+                setVideoProgress(prev => ({ ...prev, ...newVideoProgress }));
+                setLastValidTime(prev => ({ ...prev, ...newLastValidTime }));
+                setCompletedMilestones(prev => ({ ...prev, ...newCompletedMilestones }));
+                setCompletedLessons(prev => {
+                    const updatedSet = new Set(prev);
+                    newCompletedLessons.forEach(lessonId => updatedSet.add(lessonId));
+                    return updatedSet;
+                });
+
+            } catch (error) {
+                console.error("Fetch lesson progress error:", error);
+                toast.error("Không thể tải tiến độ bài học");
+            }
+        };
+
+        fetchAllLessonProgress();
+    }, [lesson, user?.AccountID, id]);
+
+    // console.log(lastValidTime);
+
     useEffect(() => {
-        if (selected !== "lesson" && selected !== "exam" && videoRef.current) {
-            videoRef.current.currentTime = 0;
-            setVideoProgress((prev) => ({
-                ...prev,
-                [selected.toString()]: 0,
-            }));
-            setLastValidTime((prev) => ({
-                ...prev,
-                [selected.toString()]: 0,
-            }));
-            setCurrentTime(0);
-            setIsPlaying(false);
+        const checkEnrollmentLesson = async () => {
+            if (!id || !selected || typeof selected !== 'number') return;
+            try {
+                const enrollmentStatus = await apiUtils.courses.checkLessonEnrollment(Number(id), Number(selected), user?.AccountID || 0);
+                console.log('Enrollment status response:', enrollmentStatus);
+
+                // Handle different response formats
+                const isEnrolled = enrollmentStatus?.isEnrolled || enrollmentStatus?.data?.isEnrolled || false;
+                setIsLessonEnrolled(isEnrolled);
+
+                console.log('Lesson enrollment status for lesson', selected, ':', isEnrolled);
+
+            } catch (error) {
+                console.error("Error checking enrollment:", error);
+                // If there's an error, assume not enrolled and try to enroll
+                setIsLessonEnrolled(false);
+                toast.error("Không thể kiểm tra đăng ký bài học");
+            }
         }
-    }, [selected]);
+
+        checkEnrollmentLesson();
+    }, [id, selected, user?.AccountID]);
+
+    // Separate effect for enrolling in lesson if not already enrolled
+    useEffect(() => {
+        const enrollInLesson = async () => {
+            if (!id || !selected || typeof selected !== 'number') return;
+            if (isLessonEnrolled) return; // Already enrolled
+            if (!user?.AccountID) return; // No user
+
+            try {
+                console.log('Attempting to enroll in lesson:', selected, 'for user:', user.AccountID);
+
+                // First try to enroll
+                await apiUtils.courses.lessonEnroll(selected, user.AccountID);
+                console.log('Enrollment API call completed for lesson:', selected);
+
+                // Wait a bit for the database to update
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Re-check enrollment status after enrolling
+                const enrollmentStatus = await apiUtils.courses.checkLessonEnrollment(Number(id), Number(selected), user.AccountID);
+                const isEnrolled = enrollmentStatus?.isEnrolled || enrollmentStatus?.data?.isEnrolled || false;
+                setIsLessonEnrolled(isEnrolled);
+
+                if (isEnrolled) {
+                    console.log('Successfully enrolled and verified for lesson:', selected);
+                } else {
+                    console.warn('Enrollment may have failed for lesson:', selected);
+                }
+            } catch (error: unknown) {
+                console.error("Error enrolling in lesson:", error);
+
+                // If the error indicates already enrolled, that's okay
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                const responseMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+
+                if (responseMessage?.includes('đã đăng ký')) {
+                    setIsLessonEnrolled(true);
+                    console.log('User was already enrolled in lesson:', selected);
+                } else {
+                    toast.error("Không thể đăng ký bài học: " + (responseMessage || errorMessage));
+                }
+            }
+        }
+
+        // Add a small delay before trying to enroll to let the check complete first
+        const timeoutId = setTimeout(() => {
+            if (!isLessonEnrolled) {
+                enrollInLesson();
+            }
+        }, 1000);
+
+        return () => clearTimeout(timeoutId);
+    }, [id, selected, user?.AccountID, isLessonEnrolled]);
 
     // Auto-hide controls
     useEffect(() => {
@@ -170,33 +317,99 @@ const LessonDetailsPage: React.FC = () => {
         if (videoRef.current && !isSeekingRef.current && !videoRef.current.paused) {
             const currentTime = videoRef.current.currentTime;
             const duration = videoRef.current.duration;
-            
+
             setCurrentTime(currentTime);
             setDuration(duration);
-            
+
             if (duration && !isNaN(duration)) {
                 const progress = (currentTime / duration) * 100;
+                const lessonIdStr = lessonId.toString();
+
+                // Calculate the current 10% milestone
+                const currentMilestone = Math.floor(progress / 10) * 10;
+
                 setVideoProgress((prev) => {
-                    const newProgress = { ...prev, [lessonId.toString()]: progress };
+                    const newProgress = { ...prev, [lessonIdStr]: progress };
                     return newProgress;
                 });
 
-                // Handle seeking restrictions
+                // Handle seeking restrictions and get the new last valid time
+                let newLastValidTime: number = currentTime;
                 if (isSkippable) {
                     setLastValidTime((prev) => {
-                        const newTime = Math.max(prev[lessonId.toString()] || 0, currentTime);
-                        return { ...prev, [lessonId.toString()]: newTime };
+                        newLastValidTime = Math.max(prev[lessonIdStr] || 0, currentTime);
+                        return { ...prev, [lessonIdStr]: newLastValidTime };
                     });
                 } else {
                     // Development mode - allow any time
                     setLastValidTime((prev) => {
-                        const newTime = currentTime;
-                        return { ...prev, [lessonId.toString()]: newTime };
+                        return { ...prev, [lessonIdStr]: currentTime };
                     });
+                }
+
+                // Update progress on server when reaching new 10% milestones
+                if (currentMilestone >= 10) {
+                    const lessonMilestones = completedMilestones[lessonIdStr] || new Set<number>();
+
+                    // Check if this milestone hasn't been reached before
+                    if (!lessonMilestones.has(currentMilestone)) {
+                        setCompletedMilestones((prev) => {
+                            const newMilestones = new Set(lessonMilestones);
+                            newMilestones.add(currentMilestone);
+                            console.log(`Reached ${currentMilestone}% milestone for lesson ${lessonId}`);
+                            updateLessonProgress(lessonId, currentMilestone, newLastValidTime);
+
+                            return { ...prev, [lessonIdStr]: newMilestones };
+                        });
+                    }
+                }
+
+                // Also update every 30 seconds for more granular progress tracking (but less frequent than milestones)
+                if (Math.floor(currentTime) % 30 === 0 && Math.floor(currentTime) > 0) {
+                    updateLessonProgress(lessonId, Math.round(progress), newLastValidTime);
                 }
             }
         }
     };
+
+    // Function to update lesson progress on server
+    const updateLessonProgress = useCallback(async (lessonId: string | number, progressPercentage: number, lastValidTime: number = 0) => {
+        if (!user?.AccountID) return;
+
+        try {
+            await apiUtils.courses.updateLessonProgress(Number(id), Number(lessonId), {
+                accountId: user.AccountID,
+                completionPercentage: progressPercentage,
+                lastValidTime: lastValidTime
+            });
+
+            console.log('Lesson progress updated:', {
+                lessonId,
+                progressPercentage,
+                lastValidTime,
+                accountId: user.AccountID
+            });
+        } catch (error) {
+            console.error('Error updating lesson progress:', error);
+        }
+    }, [user?.AccountID, id]);
+
+    // Function to mark lesson as completed on server
+    const markLessonCompletedOnServer = useCallback(async (lessonId: string | number) => {
+        if (!user?.AccountID) return;
+
+        try {
+            await apiUtils.courses.markLessonCompleted(Number(id), Number(lessonId), user.AccountID);
+
+            console.log('Lesson completed on server:', {
+                lessonId,
+                accountId: user.AccountID,
+                courseId: id
+            });
+        } catch (error) {
+            console.error('Error marking lesson as completed on server:', error);
+        }
+    }, [user?.AccountID, id]);
 
     const markLessonAsCompleted = useCallback((lessonId: string | number) => {
         if (!user?.AccountID) {
@@ -231,22 +444,25 @@ const LessonDetailsPage: React.FC = () => {
 
             const newSet = new Set(prevCompleted);
             newSet.add(lessonId);
-            
+
             // Show toast only if not already shown for this lesson
             if (!completionToastShownRef.current.has(lessonId)) {
                 completionToastShownRef.current.add(lessonId);
                 toast.success("🎉 Bài học đã được hoàn thành!");
             }
-            
+
+            // Mark lesson as completed on server
+            markLessonCompletedOnServer(lessonId);
+
             // Schedule cleanup and course completion check
             setTimeout(() => {
                 checkCourseCompletion();
                 completionInProgressRef.current.delete(lessonId);
             }, 1500);
-            
+
             return newSet;
         });
-    }, [user?.AccountID, completedLessons, checkCourseCompletion]);
+    }, [user?.AccountID, completedLessons, checkCourseCompletion, markLessonCompletedOnServer]);
 
     const handleLessonCompletion = useCallback((lessonId: string | number) => {
         // Immediate atomic check
@@ -258,9 +474,9 @@ const LessonDetailsPage: React.FC = () => {
 
     const canAccessLesson = (lessonIndex: number): boolean => {
         if (lessonIndex === 0) return true; // First lesson is always accessible
-        
+
         if (!lesson) return false;
-        
+
         // Check if previous lesson is completed
         const previousLessonId = lesson[lessonIndex - 1].LessonID;
         return completedLessons.has(previousLessonId);
@@ -281,7 +497,7 @@ const LessonDetailsPage: React.FC = () => {
             isSeekingRef.current = true;
             const currentTime = videoRef.current.currentTime;
             const lastValid = lastValidTime[lessonId.toString()] || 0;
-            
+
             if (isSkippable && currentTime > lastValid + 2) {
                 videoRef.current.currentTime = lastValid;
                 toast.warning("Bạn cần xem video tuần tự để hoàn thành bài học");
@@ -359,12 +575,12 @@ const LessonDetailsPage: React.FC = () => {
         if (videoRef.current) {
             const lessonId = selected.toString();
             const lastValid = lastValidTime[lessonId] || 0;
-            
+
             if (isSkippable && seekTime > lastValid + 2) {
                 toast.warning("Bạn cần xem video tuần tự để hoàn thành bài học");
                 return;
             }
-            
+
             videoRef.current.currentTime = seekTime;
         }
     };
@@ -404,12 +620,11 @@ const LessonDetailsPage: React.FC = () => {
                     src={currentLesson.VideoUrl}
                     preload="metadata"
                 />
-                
+
                 {/* Custom Controls Overlay */}
-                <div className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 transition-opacity duration-300 ${
-                    showControls || !isPlaying ? 'opacity-100' : 'opacity-0'
-                }`}>
-                    
+                <div className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 transition-opacity duration-300 ${showControls || !isPlaying ? 'opacity-100' : 'opacity-0'
+                    }`}>
+
                     {/* Top Controls */}
                     <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
                         <div className="flex items-center gap-2">
@@ -421,7 +636,7 @@ const LessonDetailsPage: React.FC = () => {
                                 </div>
                             )}
                         </div>
-                        
+
                         <div className="flex items-center gap-2">
                             <div className="text-white text-sm bg-black/50 px-2 py-1 rounded">
                                 {Math.round(progress)}%
@@ -434,7 +649,7 @@ const LessonDetailsPage: React.FC = () => {
                             </button>
                         </div>
                     </div>
-                    
+
                     {/* Center Play Button */}
                     <div className="absolute inset-0 flex items-center justify-center">
                         <button
@@ -448,10 +663,10 @@ const LessonDetailsPage: React.FC = () => {
                             )}
                         </button>
                     </div>
-                    
+
                     {/* Bottom Controls */}
                     <div className="absolute bottom-0 left-0 right-0 p-4">
-                        
+
                         {/* Progress Bar */}
                         <div className="mb-4">
                             <div className="relative w-full h-2 bg-white/20 rounded-full overflow-hidden">
@@ -473,7 +688,7 @@ const LessonDetailsPage: React.FC = () => {
                                 />
                             </div>
                         </div>
-                        
+
                         {/* Control Buttons */}
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
@@ -487,14 +702,14 @@ const LessonDetailsPage: React.FC = () => {
                                         <Play className="w-6 h-6" />
                                     )}
                                 </button>
-                                
+
                                 <button
                                     onClick={() => handleSeek(0)}
                                     className="text-white hover:text-blue-400 transition-colors"
                                 >
                                     <RotateCcw className="w-5 h-5" />
                                 </button>
-                                
+
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={toggleMute}
@@ -516,12 +731,12 @@ const LessonDetailsPage: React.FC = () => {
                                         className="w-20 h-1 bg-white/20 rounded-full outline-none"
                                     />
                                 </div>
-                                
+
                                 <div className="text-white text-sm">
                                     {formatTime(currentTime)} / {formatTime(duration)}
                                 </div>
                             </div>
-                            
+
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-2">
                                     <Settings className="w-4 h-4 text-white" />
@@ -538,7 +753,7 @@ const LessonDetailsPage: React.FC = () => {
                                         <option value={2}>2x</option>
                                     </select>
                                 </div>
-                                
+
                                 <button
                                     onClick={toggleFullscreen}
                                     className="text-white hover:text-blue-400 transition-colors"
@@ -556,7 +771,7 @@ const LessonDetailsPage: React.FC = () => {
     const renderLessonContent = (currentLesson: sqlLesson) => {
         const isCompleted = completedLessons.has(currentLesson.LessonID);
         const progress = videoProgress[currentLesson.LessonID.toString()] || 0;
-        
+
         return (
             <div className="space-y-8">
                 {/* Lesson Header */}
@@ -580,13 +795,13 @@ const LessonDetailsPage: React.FC = () => {
                                 )}
                             </div>
                         </div>
-                        
+
                         <div className="text-right">
                             <div className="text-sm text-gray-500 mb-1">Tiến độ xem</div>
                             <div className="text-2xl font-bold text-blue-600">{Math.round(progress)}%</div>
                         </div>
                     </div>
-                    
+
                     {/* Progress Bar */}
                     <div className="mt-6">
                         <div className="w-full bg-gray-200 rounded-full h-2">
@@ -684,14 +899,14 @@ const LessonDetailsPage: React.FC = () => {
                         />
                     </div>
                 </div>
-                
+
                 <div className="p-4 max-h-96 overflow-y-auto">
                     {lesson.map((lessonItem, index) => {
                         const isCompleted = completedLessons.has(lessonItem.LessonID);
                         const isActive = selected === lessonItem.LessonID;
                         const progress = videoProgress[lessonItem.LessonID.toString()] || 0;
                         const canAccess = canAccessLesson(index);
-                        
+
                         return (
                             <button
                                 key={lessonItem.LessonID}
@@ -703,18 +918,16 @@ const LessonDetailsPage: React.FC = () => {
                                     }
                                 }}
                                 disabled={!canAccess}
-                                className={`w-full text-left p-3 rounded-lg mb-2 transition-all duration-200 group ${
-                                    isActive
-                                        ? 'bg-blue-50 border-2 border-blue-200 shadow-sm'
-                                        : canAccess 
-                                            ? 'hover:bg-gray-50 border-2 border-transparent'
-                                            : 'bg-gray-50 border-2 border-transparent opacity-60 cursor-not-allowed'
-                                }`}
+                                className={`w-full text-left p-3 rounded-lg mb-2 transition-all duration-200 group ${isActive
+                                    ? 'bg-blue-50 border-2 border-blue-200 shadow-sm'
+                                    : canAccess
+                                        ? 'hover:bg-gray-50 border-2 border-transparent'
+                                        : 'bg-gray-50 border-2 border-transparent opacity-60 cursor-not-allowed'
+                                    }`}
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className={`p-2 rounded-full flex-shrink-0 ${
-                                        isCompleted ? 'bg-green-100' : canAccess ? 'bg-gray-100' : 'bg-gray-50'
-                                    }`}>
+                                    <div className={`p-2 rounded-full flex-shrink-0 ${isCompleted ? 'bg-green-100' : canAccess ? 'bg-gray-100' : 'bg-gray-50'
+                                        }`}>
                                         {isCompleted ? (
                                             <CheckCircle className="w-4 h-4 text-green-600" />
                                         ) : canAccess ? (
@@ -726,14 +939,12 @@ const LessonDetailsPage: React.FC = () => {
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className={`font-medium text-sm truncate ${
-                                            isActive ? 'text-blue-900' : canAccess ? 'text-gray-900' : 'text-gray-500'
-                                        }`}>
+                                        <h4 className={`font-medium text-sm truncate ${isActive ? 'text-blue-900' : canAccess ? 'text-gray-900' : 'text-gray-500'
+                                            }`}>
                                             {lessonItem.Title}
                                         </h4>
-                                        <p className={`text-xs mt-1 line-clamp-2 ${
-                                            canAccess ? 'text-gray-600' : 'text-gray-400'
-                                        }`}>
+                                        <p className={`text-xs mt-1 line-clamp-2 ${canAccess ? 'text-gray-600' : 'text-gray-400'
+                                            }`}>
                                         </p>
                                         {!canAccess && (
                                             <p className="text-xs text-orange-600 mt-1">
@@ -766,29 +977,25 @@ const LessonDetailsPage: React.FC = () => {
                             </button>
                         );
                     })}
-                    
+
                     {/* Exam Section - Always visible like old format */}
                     <div className="border-t border-gray-200 pt-4 mt-4">
                         <button
                             onClick={() => setSelected("exam")}
-                            className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${
-                                selected === "exam"
-                                    ? 'bg-orange-50 border-2 border-orange-200 shadow-sm'
-                                    : 'hover:bg-gray-50 border-2 border-transparent'
-                            }`}
+                            className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${selected === "exam"
+                                ? 'bg-orange-50 border-2 border-orange-200 shadow-sm'
+                                : 'hover:bg-gray-50 border-2 border-transparent'
+                                }`}
                         >
                             <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-full ${
-                                    lesson && completedLessons.size === lesson.length ? 'bg-orange-100' : 'bg-gray-100'
-                                }`}>
-                                    <Target className={`w-4 h-4 ${
-                                        lesson && completedLessons.size === lesson.length ? 'text-orange-600' : 'text-gray-400'
-                                    }`} />
+                                <div className={`p-2 rounded-full ${lesson && completedLessons.size === lesson.length ? 'bg-orange-100' : 'bg-gray-100'
+                                    }`}>
+                                    <Target className={`w-4 h-4 ${lesson && completedLessons.size === lesson.length ? 'text-orange-600' : 'text-gray-400'
+                                        }`} />
                                 </div>
                                 <div className="flex-1">
-                                    <h4 className={`font-medium text-sm ${
-                                        selected === "exam" ? 'text-orange-900' : 'text-gray-900'
-                                    }`}>
+                                    <h4 className={`font-medium text-sm ${selected === "exam" ? 'text-orange-900' : 'text-gray-900'
+                                        }`}>
                                         Bài kiểm tra
                                     </h4>
                                     <p className="text-xs text-gray-600 mt-1">
@@ -823,7 +1030,7 @@ const LessonDetailsPage: React.FC = () => {
     }
 
     const currentLesson = lesson.find(l => l.LessonID === selected);
-    
+
     // Handle exam selection
     if (selected === "exam") {
         return (
@@ -833,7 +1040,7 @@ const LessonDetailsPage: React.FC = () => {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex items-center justify-between h-16">
                             <div className="flex items-center gap-4">
-                                <Link 
+                                <Link
                                     to={`/courses/${id}`}
                                     className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
                                 >
@@ -841,7 +1048,7 @@ const LessonDetailsPage: React.FC = () => {
                                     <span>Quay lại khóa học</span>
                                 </Link>
                             </div>
-                            
+
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-2 text-sm text-gray-600">
                                     <Target className="w-4 h-4" />
@@ -873,7 +1080,7 @@ const LessonDetailsPage: React.FC = () => {
                                     <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
                                         Hoàn thành bài kiểm tra để đánh giá kiến thức bạn đã học được trong khóa học này.
                                     </p>
-                                    
+
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                                         <div className="bg-blue-50 p-4 rounded-lg">
                                             <BookOpen className="w-8 h-8 text-blue-600 mx-auto mb-2" />
@@ -891,7 +1098,7 @@ const LessonDetailsPage: React.FC = () => {
                                             <p className="text-sm text-gray-600">Xem kết quả ngay sau khi hoàn thành</p>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
                                         <div className="flex items-center gap-2 text-yellow-800">
                                             <Award className="w-5 h-5" />
@@ -900,7 +1107,7 @@ const LessonDetailsPage: React.FC = () => {
                                             </p>
                                         </div>
                                     </div>
-                                    
+
                                     {lesson && completedLessons.size === lesson.length ? (
                                         <Link
                                             to={`/courses/${id}/exam`}
@@ -923,7 +1130,7 @@ const LessonDetailsPage: React.FC = () => {
             </div>
         );
     }
-    
+
     if (!currentLesson) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -942,7 +1149,7 @@ const LessonDetailsPage: React.FC = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
                         <div className="flex items-center gap-4">
-                            <Link 
+                            <Link
                                 to={`/courses/${id}`}
                                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
                             >
@@ -950,13 +1157,13 @@ const LessonDetailsPage: React.FC = () => {
                                 <span>Quay lại khóa học</span>
                             </Link>
                         </div>
-                        
+
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                                 <Award className="w-4 h-4" />
                                 <span>{completedLessons.size} / {lesson.length} bài học</span>
                             </div>
-                            
+
                             {courseCompleted && (
                                 <div className="flex items-center gap-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
                                     <CheckCircle className="w-4 h-4" />

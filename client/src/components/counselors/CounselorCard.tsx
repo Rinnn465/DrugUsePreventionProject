@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, MapPin, Calendar, Clock, Video, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
-import { Consultant, ConsultantWithSchedule } from '../../types/Consultant';
+import { Video, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
+import { ConsultantWithSchedule } from '../../types/Consultant';
 import AppointmentCalendar from '../appointments/AppointmentCalendar';
 
 interface CounselorCardProps {
