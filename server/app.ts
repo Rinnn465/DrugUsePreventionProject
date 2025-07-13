@@ -93,7 +93,7 @@ app.use("/api/survey/admin", authorizeRoles(["Admin"]), apiSurveyRoutes);
 // Start scheduled program status updates
 updateProgramStatus();
 
-app.use('/api', assessmentResultRoutes);
+app.use('/api/assessment', assessmentResultRoutes);
 
 // Start the server
 app.listen(PORT, () => {

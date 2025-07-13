@@ -158,3 +158,11 @@ export type MailOptions = {
   subject: string;  // Email subject line
   html: string;     // HTML content of the email
 };
+export type AssessmentResults = {
+  ResultID: number;
+  AccountID: number;
+  AssessmentID: number;
+  Score: number;
+  RiskLevel: string;
+  CreatedAt: Date; // ISO datetime string
+};

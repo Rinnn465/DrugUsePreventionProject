@@ -33,10 +33,10 @@ export const saveAssessmentResult = async (req: Request, res: Response): Promise
         const checkQuery = `
             SELECT ResultID 
             FROM AssessmentResults 
-            WHERE AccountID = @account_id AND AssessmentID = @assessment_id;
+            WHERE AccountID = @AccountID AND AssessmentID = @AssessmentID;
         `;
-        request.input('account_id', sql.Int, account_id);
-        request.input('assessment_id', sql.Int, assessment_id);
+        request.input('AccountID', sql.Int, account_id);
+        request.input('AssessmentID', sql.Int, assessment_id);
         const checkResult = await request.query(checkQuery);
         console.log('Kết quả kiểm tra bản ghi:', JSON.stringify(checkResult.recordset, null, 2));
 
@@ -45,12 +45,12 @@ export const saveAssessmentResult = async (req: Request, res: Response): Promise
             const resultId = checkResult.recordset[0].ResultID;
             const updateQuery = `
                 UPDATE AssessmentResults 
-                SET Score = @score, RiskLevel = @risk_level, CreatedAt = GETDATE()
-                WHERE ResultID = @result_id;
+                SET Score = @Score, RiskLevel = @RiskLevel, CreatedAt = GETDATE()
+                WHERE ResultID = @ResultID;
             `;
-            request.input('result_id', sql.Int, resultId);
-            request.input('score', sql.Int, score);
-            request.input('risk_level', sql.NVarChar, risk_level);
+            request.input('ResultID', sql.Int, resultId);
+            request.input('Score', sql.Int, score);
+            request.input('RiskLevel', sql.NVarChar, risk_level);
 
             console.log('Thực thi query cập nhật:', updateQuery);
             console.log('Tham số:', { result_id: resultId, score, risk_level });
@@ -68,11 +68,11 @@ export const saveAssessmentResult = async (req: Request, res: Response): Promise
             // Thêm bản ghi mới
             const insertQuery = `
                 INSERT INTO AssessmentResults (AccountID, AssessmentID, Score, RiskLevel)
-                VALUES (@account_id, @assessment_id, @score, @risk_level);
+                VALUES (@AccountID, @AssessmentID, @Score, @RiskLevel);
                 SELECT SCOPE_IDENTITY() as id;
             `;
-            request.input('score', sql.Int, score);
-            request.input('risk_level', sql.NVarChar, risk_level);
+            request.input('Score', sql.Int, score);
+            request.input('RiskLevel', sql.NVarChar, risk_level);
 
             console.log('Thực thi query thêm mới:', insertQuery);
             console.log('Tham số:', { account_id, assessment_id, score, risk_level });
@@ -92,6 +92,69 @@ export const saveAssessmentResult = async (req: Request, res: Response): Promise
         console.error('Stack trace:', error.stack);
         res.status(500).json({ 
             error: 'Không thể lưu kết quả vào database',
+            details: error.message
+        });
+    }
+};
+
+export const getAssessmentResult = async (req: Request, res: Response): Promise<void> => {
+    const { resultId } = req.params;
+
+    try {
+        const pool = await poolPromise;
+        const request = pool.request();
+        
+        const query = `
+            SELECT ResultID, AccountID, AssessmentID, Score, RiskLevel, CreatedAt
+            FROM AssessmentResults
+            WHERE ResultID = @resultId;
+        `;
+        
+        request.input('resultId', sql.Int, parseInt(resultId));
+        const result = await request.query(query);
+        
+        if (result.recordset.length === 0) {
+            res.status(404).json({ error: 'Không tìm thấy kết quả đánh giá' });
+            return;
+        }
+        
+        res.status(200).json({ 
+            message: 'Lấy kết quả đánh giá thành công',
+            data: result.recordset[0]
+        });
+    } catch (error: any) {
+        console.error('Lỗi khi lấy kết quả đánh giá:', error.message);
+        res.status(500).json({ 
+            error: 'Không thể lấy kết quả đánh giá',
+            details: error.message
+        });
+    }
+};
+
+export const deleteAssessmentResult = async (req: Request, res: Response): Promise<void> => {
+    const { resultId } = req.params;
+
+    try {
+        const pool = await poolPromise;
+        const request = pool.request();
+        
+        const query = `DELETE FROM AssessmentResults WHERE ResultID = @resultId;`;
+        request.input('resultId', sql.Int, parseInt(resultId));
+        
+        const result = await request.query(query);
+        
+        if (result.rowsAffected[0] === 0) {
+            res.status(404).json({ error: 'Không tìm thấy kết quả đánh giá để xóa' });
+            return;
+        }
+        
+        res.status(200).json({ 
+            message: 'Xóa kết quả đánh giá thành công'
+        });
+    } catch (error: any) {
+        console.error('Lỗi khi xóa kết quả đánh giá:', error.message);
+        res.status(500).json({ 
+            error: 'Không thể xóa kết quả đánh giá',
             details: error.message
         });
     }
