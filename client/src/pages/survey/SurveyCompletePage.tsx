@@ -1,7 +1,20 @@
-import { Link, useParams } from "react-router-dom"
+import { Link, useParams, useNavigate } from "react-router-dom"
+import { useEffect } from "react";
 
 const SurveyCompletePage: React.FC = () => {
     const { programId } = useParams();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const surveyFlag = sessionStorage.getItem(`survey_completed_${programId}`);
+        if (!surveyFlag) {
+            navigate(`/survey/${programId}/before`, { replace: true });
+        }
+        // Xóa flag khi rời trang (đảm bảo chỉ xem 1 lần)
+        return () => {
+            sessionStorage.removeItem(`survey_completed_${programId}`);
+        };
+    }, [programId, navigate]);
 
     return (
         <div className="flex items-center justify-center h-screen bg-gray-100">

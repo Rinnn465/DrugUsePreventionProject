@@ -15,7 +15,9 @@ import {
     X,
     Eye,
     User,
-    TrendingDown
+    TrendingDown,
+    Video,
+    ExternalLink
 } from "lucide-react";
 
 // Interfaces for appointment management
@@ -43,11 +45,14 @@ const ConsultantPage: React.FC = () => {
     const [selectedAppointment, setSelectedAppointment] = useState<PendingAppointment | null>(null);
     const [showSearchModal, setShowSearchModal] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [showAllAppointmentsModal, setShowAllAppointmentsModal] = useState(false);
 
     // Appointment management state
     const [pendingAppointments, setPendingAppointments] = useState<PendingAppointment[]>([]);
     const [todayAppointments, setTodayAppointments] = useState<PendingAppointment[]>([]);
+    const [allAppointments, setAllAppointments] = useState<PendingAppointment[]>([]);
     const [isLoadingTodayAppointments, setIsLoadingTodayAppointments] = useState(false);
+    const [isLoadingAllAppointments, setIsLoadingAllAppointments] = useState(false);
 
     // Rejection modal state
     const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
@@ -157,6 +162,38 @@ const ConsultantPage: React.FC = () => {
         }
     }, [user?.AccountID]);
 
+    const fetchAllAppointments = useCallback(async () => {
+        if (!user?.AccountID) return;
+
+        setIsLoadingAllAppointments(true);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/appointment/consultant/${user.AccountID}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            setAllAppointments(data.data || []);
+        } catch (error) {
+            console.error('Error fetching all appointments:', error);
+            toast.error('Không thể tải danh sách tất cả cuộc hẹn');
+            setAllAppointments([]);
+        } finally {
+            setIsLoadingAllAppointments(false);
+        }
+    }, [user?.AccountID]);
+
+    const handleShowAllAppointments = () => {
+        setShowAllAppointmentsModal(true);
+        fetchAllAppointments();
+    };
+
 
 
     // Handle appointment approval
@@ -225,6 +262,35 @@ const ConsultantPage: React.FC = () => {
         return timeString.substring(0, 5);
     };
 
+    const generateVideoCallUrl = (appointment: PendingAppointment) => {
+        const appointmentData = {
+            appointmentId: appointment.AppointmentID,
+            isConsultant: true,
+            appointmentDetails: {
+                customerName: appointment.CustomerName,
+                consultantName: user?.FullName || user?.Username || 'Chuyên viên tư vấn',
+                time: appointment.Time,
+                date: appointment.Date
+            }
+        };
+
+        const encodedData = encodeURIComponent(JSON.stringify(appointmentData));
+        return `/video-call?data=${encodedData}`;
+    };
+
+    const handleStartVideoCall = (appointment: PendingAppointment) => {
+        const videoCallUrl = generateVideoCallUrl(appointment);
+        const videoCallWindow = window.open(
+            videoCallUrl,
+            '_blank',
+            'width=1200,height=800,resizable=yes,scrollbars=yes'
+        );
+
+        if (!videoCallWindow) {
+            toast.error('Vui lòng cho phép popup để mở cuộc gọi video');
+        }
+    };
+
     // Load data on component mount
     useEffect(() => {
         if (user?.AccountID) {
@@ -281,18 +347,20 @@ const ConsultantPage: React.FC = () => {
                                         </p>
                                         <p className="text-2xl font-bold text-gray-900 mb-2">{card.value}</p>
                                         <div className="flex items-center">
-                                            {card.trend === "increase" ? (
-                                                <>
-                                                    <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                                                    <span className="text-sm text-green-600 font-medium">{card.change}</span>
-                                                    <span className="text-sm text-gray-500 ml-1">so với tháng trước</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
-                                                    <span className="text-sm text-red-600 font-medium">{card.change}</span>
-                                                    <span className="text-sm text-gray-500 ml-1">so với tháng trước</span>
-                                                </>
+                                            {card.value !== 0 && (
+                                                card.trend === "increase" ? (
+                                                    <>
+                                                        <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                                                        <span className="text-sm text-green-600 font-medium">{card.change}</span>
+                                                        <span className="text-sm text-gray-500 ml-1">so với tháng trước</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
+                                                        <span className="text-sm text-red-600 font-medium">{card.change}</span>
+                                                        <span className="text-sm text-gray-500 ml-1">so với tháng trước</span>
+                                                    </>
+                                                )
                                             )}
                                         </div>
                                     </div>
@@ -413,7 +481,7 @@ const ConsultantPage: React.FC = () => {
                                     {todayAppointments.map((appointment) => (
                                         <div
                                             key={appointment.AppointmentID}
-                                            className={`flex items-center p-3 rounded-lg border cursor-pointer hover:shadow-sm transition-all ${appointment.Status === 'confirmed'
+                                            className={`group flex items-center p-3 rounded-lg border cursor-pointer hover:shadow-sm transition-all ${appointment.Status === 'confirmed'
                                                 ? 'bg-green-50 border-green-200'
                                                 : 'bg-blue-50 border-blue-200 hover:border-blue-300'
                                                 }`}
@@ -447,7 +515,21 @@ const ConsultantPage: React.FC = () => {
                                                             {appointment.Description || 'Tư vấn cá nhân'} • {appointment.Duration || 60} phút
                                                         </p>
                                                     </div>
-                                                    <Eye className="h-4 w-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        {appointment.Status === 'confirmed' && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleStartVideoCall(appointment);
+                                                                }}
+                                                                className="p-1.5 bg-green-100 text-green-600 rounded-md hover:bg-green-200 transition-colors"
+                                                                title="Bắt đầu cuộc gọi video"
+                                                            >
+                                                                <Video className="h-3.5 w-3.5" />
+                                                            </button>
+                                                        )}
+                                                        <Eye className="h-4 w-4 text-gray-400" />
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -461,13 +543,13 @@ const ConsultantPage: React.FC = () => {
                                 </div>
                             )}
                             <div className="mt-6 pt-4 border-t border-gray-200">
-                                <Link
-                                    to="/appointments"
-                                    className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center justify-center"
+                                <button
+                                    onClick={handleShowAllAppointments}
+                                    className="w-full text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center justify-center transition-colors"
                                 >
                                     Xem tất cả lịch hẹn
                                     <Activity className="h-4 w-4 ml-1" />
-                                </Link>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -583,7 +665,7 @@ const ConsultantPage: React.FC = () => {
 
             {/* Appointment Detail Modal - Simplified for PendingAppointment */}
             {selectedAppointment && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
                     <div className="bg-white rounded-xl p-6 max-w-lg w-full">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-xl font-semibold text-gray-900">Chi tiết cuộc hẹn</h3>
@@ -620,19 +702,59 @@ const ConsultantPage: React.FC = () => {
                                 </div>
                             )}
 
-                            {selectedAppointment.MeetingURL && (
-                                <div className="border-t pt-4">
-                                    <h4 className="font-medium text-gray-900 mb-2">Link cuộc họp</h4>
-                                    <a
-                                        href={selectedAppointment.MeetingURL}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-blue-600 hover:text-blue-700 underline"
-                                    >
-                                        {selectedAppointment.MeetingURL}
-                                    </a>
-                                </div>
-                            )}
+                            {/* Video Call and Meeting URL Section */}
+                            <div className="border-t pt-4">
+                                <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                                    <Video className="h-4 w-4" />
+                                    Cuộc gọi video
+                                </h4>
+
+                                {selectedAppointment.Status === 'confirmed' ? (
+                                    <div className="space-y-3">
+                                        <button
+                                            onClick={() => handleStartVideoCall(selectedAppointment)}
+                                            className="w-full bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2"
+                                        >
+                                            <Video className="h-4 w-4" />
+                                            Bắt đầu cuộc gọi video
+                                            <ExternalLink className="h-4 w-4" />
+                                        </button>
+
+                                        {selectedAppointment.MeetingURL && (
+                                            <div>
+                                                <p className="text-sm text-gray-600 mb-2">Hoặc sử dụng link cuộc họp:</p>
+                                                <a
+                                                    href={selectedAppointment.MeetingURL}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:text-blue-700 underline text-sm break-all"
+                                                >
+                                                    {selectedAppointment.MeetingURL}
+                                                </a>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                                        <p className="text-sm text-yellow-800">
+                                            Cuộc gọi video sẽ khả dụng sau khi cuộc hẹn được xác nhận
+                                        </p>
+                                        {selectedAppointment.MeetingURL && (
+                                            <div className="mt-2">
+                                                <p className="text-sm text-gray-600 mb-1">Link cuộc họp:</p>
+                                                <a
+                                                    href={selectedAppointment.MeetingURL}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:text-blue-700 underline text-sm break-all"
+                                                >
+                                                    {selectedAppointment.MeetingURL}
+                                                </a>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         <div className="mt-6 flex gap-3">
@@ -755,6 +877,137 @@ const ConsultantPage: React.FC = () => {
                             >
                                 Hủy
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* All Appointments Modal */}
+            {showAllAppointmentsModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-700">
+                            <h2 className="text-2xl font-bold text-white flex items-center">
+                                <Calendar className="h-6 w-6 mr-3" />
+                                Tất cả lịch hẹn
+                            </h2>
+                            <button
+                                onClick={() => setShowAllAppointmentsModal(false)}
+                                className="p-2 hover:bg-white/20 rounded-full transition-colors duration-200"
+                            >
+                                <X className="h-6 w-6 text-white" />
+                            </button>
+                        </div>
+
+                        {/* Modal Content */}
+                        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+                            {isLoadingAllAppointments ? (
+                                <div className="flex items-center justify-center py-12">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                                    <p className="ml-4 text-gray-600">Đang tải danh sách cuộc hẹn...</p>
+                                </div>
+                            ) : allAppointments.length > 0 ? (
+                                <div className="space-y-4">
+                                    {allAppointments.map((appointment) => (
+                                        <div
+                                            key={appointment.AppointmentID}
+                                            className={`flex items-center p-4 rounded-xl border-2 cursor-pointer hover:shadow-md transition-all ${appointment.Status === 'confirmed'
+                                                ? 'bg-green-50 border-green-200 hover:border-green-300'
+                                                : appointment.Status === 'completed'
+                                                    ? 'bg-blue-50 border-blue-200 hover:border-blue-300'
+                                                    : appointment.Status === 'cancelled'
+                                                        ? 'bg-red-50 border-red-200 hover:border-red-300'
+                                                        : 'bg-yellow-50 border-yellow-200 hover:border-yellow-300'
+                                                }`}
+                                            onClick={() => setSelectedAppointment(appointment)}
+                                        >
+                                            <div className="flex-shrink-0">
+                                                <div className={`w-4 h-4 rounded-full ${appointment.Status === 'confirmed'
+                                                    ? 'bg-green-500'
+                                                    : appointment.Status === 'completed'
+                                                        ? 'bg-blue-500'
+                                                        : appointment.Status === 'cancelled'
+                                                            ? 'bg-red-500'
+                                                            : 'bg-yellow-500'
+                                                    }`}></div>
+                                            </div>
+                                            <div className="ml-4 flex-1">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-lg font-semibold text-gray-900">
+                                                            {formatTime(appointment.Time)}
+                                                        </span>
+                                                        <span className="text-sm text-gray-500">
+                                                            {formatDate(appointment.Date)}
+                                                        </span>
+                                                        <Clock className="h-4 w-4 text-gray-400" />
+                                                    </div>
+                                                    <span className={`text-xs px-3 py-1 rounded-full font-medium ${appointment.Status === 'confirmed'
+                                                        ? 'bg-green-100 text-green-800'
+                                                        : appointment.Status === 'completed'
+                                                            ? 'bg-blue-100 text-blue-800'
+                                                            : appointment.Status === 'cancelled'
+                                                                ? 'bg-red-100 text-red-800'
+                                                                : 'bg-yellow-100 text-yellow-800'
+                                                        }`}>
+                                                        {appointment.Status === 'confirmed' ? 'Đã xác nhận' :
+                                                            appointment.Status === 'completed' ? 'Hoàn thành' :
+                                                                appointment.Status === 'cancelled' ? 'Đã hủy' : 'Chờ xác nhận'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <p className="font-medium text-gray-800">{appointment.CustomerName || 'Không rõ tên'}</p>
+                                                        <p className="text-sm text-gray-600">
+                                                            {appointment.Description || 'Tư vấn cá nhân'} • {appointment.Duration || 60} phút
+                                                        </p>
+                                                        {appointment.CustomerEmail && (
+                                                            <p className="text-xs text-gray-500">{appointment.CustomerEmail}</p>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        {appointment.Status === 'confirmed' && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleStartVideoCall(appointment);
+                                                                }}
+                                                                className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"
+                                                                title="Bắt đầu cuộc gọi video"
+                                                            >
+                                                                <Video className="h-4 w-4" />
+                                                            </button>
+                                                        )}
+                                                        <Eye className="h-5 w-5 text-gray-400 hover:text-blue-600 transition-colors" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <Calendar className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                                    <p className="text-lg font-medium text-gray-500 mb-2">Không có cuộc hẹn nào</p>
+                                    <p className="text-gray-400">Bạn chưa có cuộc hẹn nào được ghi nhận trong hệ thống</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="p-6 border-t border-gray-200 bg-gray-50">
+                            <div className="flex justify-between items-center">
+                                <p className="text-sm text-gray-600">
+                                    Tổng cộng: <span className="font-semibold">{allAppointments.length}</span> cuộc hẹn
+                                </p>
+                                <button
+                                    onClick={() => setShowAllAppointmentsModal(false)}
+                                    className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
+                                >
+                                    Đóng
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ClipboardCheck, AlertTriangle, InfoIcon, Filter, X } from 'lucide-react';
+import { ClipboardCheck, AlertTriangle, InfoIcon, Search } from 'lucide-react';
 import { assessmentData } from '../../data/assessmentData';
 
 type AssessmentColor = 'primary' | 'secondary' | 'accent' | 'success' | 'warning' | 'error';
@@ -43,8 +43,10 @@ const colorMap: Record<AssessmentColor, { gradient: string; text: string; badge:
   },
 };
 
+// Update the AssessmentsPage component
 const AssessmentsPage: React.FC = () => {
   const [selectedAudience, setSelectedAudience] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Get unique audiences from assessment data
   const audiences = useMemo(() => {
@@ -60,19 +62,24 @@ const AssessmentsPage: React.FC = () => {
         return false;
       }
 
-      return true;
+      if (!searchTerm) return true;
+      return (
+        assessment.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assessment.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     });
-  }, [selectedAudience]);
+  }, [selectedAudience, searchTerm]);
 
   const clearFilters = () => {
     setSelectedAudience('all');
+    setSearchTerm('');
   };
 
-  const hasActiveFilters = selectedAudience !== 'all';
+  const hasActiveFilters = selectedAudience !== 'all' || searchTerm !== '';
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* Hero Section */}
+      {/* Hero Section - keep as is */}
       <div className="relative bg-gradient-to-r from-primary-600 via-primary-700 to-blue-600 overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="absolute inset-0">
@@ -80,7 +87,7 @@ const AssessmentsPage: React.FC = () => {
           <div className="absolute top-32 right-20 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
           <div className="absolute bottom-10 left-1/3 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
         </div>
-        
+
         <div className="relative container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto text-center text-white">
             <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight flex items-center justify-center gap-3 text-white">
@@ -95,53 +102,106 @@ const AssessmentsPage: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-6xl mx-auto mb-12">
-          {/* Filter Section */}
+          {/* Updated Filter Section */}
           <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
-            <div className="flex items-center gap-3 mb-6">
-              <Filter className="h-5 w-5 text-blue-600" />
-              <h2 className="text-xl font-bold text-gray-800">Lọc bài trắc nghiệm</h2>
-              {hasActiveFilters && (
-                <button
-                  onClick={clearFilters}
-                  className="ml-auto flex items-center gap-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                  Xóa bộ lọc
-                </button>
-              )}
-            </div>
-            
-            <div className="grid grid-cols-1 gap-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <Search className="h-5 w-5 text-blue-600" />
+              Tìm kiếm và lọc bài trắc nghiệm
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              {/* Search Input */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Nhập từ khóa..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
+                />
+              </div>
+
               {/* Audience Filter */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Đối tượng
-                </label>
+              <div className="relative">
                 <select
                   value={selectedAudience}
-                  onChange={(e) => setSelectedAudience(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  onChange={e => setSelectedAudience(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm appearance-none cursor-pointer"
                 >
                   <option value="all">Tất cả đối tượng</option>
-                  {audiences.map((audience) => (
+                  {audiences.map(audience => (
                     <option key={audience} value={audience}>
-                      mọi người
+                      {audience}
                     </option>
                   ))}
                 </select>
+                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
             </div>
 
-            {/* Results Count */}
-            <div className="mt-4 text-sm text-gray-600">
-              Hiển thị <span className="font-semibold text-blue-600">{filteredAssessments.length}</span> / {assessmentData.length} bài trắc nghiệm
-            </div>
+            {/* Active Filters Display */}
+            {hasActiveFilters && (
+              <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-gray-200">
+                <span className="text-sm font-medium text-gray-600">Bộ lọc đang áp dụng:</span>
+
+                {selectedAudience !== 'all' && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                    Đối tượng: {selectedAudience}
+                    <button
+                      onClick={() => setSelectedAudience('all')}
+                      className="hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </span>
+                )}
+
+                {searchTerm && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                    Từ khóa: "{searchTerm}"
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="hover:bg-green-200 rounded-full p-0.5 transition-colors"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </span>
+                )}
+
+                <button
+                  onClick={clearFilters}
+                  className="text-sm text-red-600 hover:text-red-700 font-medium hover:underline transition-colors"
+                >
+                  Xóa tất cả bộ lọc
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Info Section */}
+          {/* Results Summary */}
+          <div className="mb-6">
+            <p className="text-gray-600">
+              Hiển thị <span className="font-semibold text-gray-800">{filteredAssessments.length}</span>
+              {' '}trong tổng số <span className="font-semibold text-gray-800">{assessmentData.length}</span> bài trắc nghiệm
+              {selectedAudience !== 'all' && (
+                <span> cho đối tượng <span className="font-semibold text-blue-600">{selectedAudience}</span></span>
+              )}
+            </p>
+          </div>
+
+          {/* Info Section - keep as is */}
           <div className="bg-accent-50 border border-accent-200 rounded-lg p-6 mb-8 text-left">
             <div className="flex gap-4">
               <div className="flex-shrink-0">
@@ -182,48 +242,56 @@ const AssessmentsPage: React.FC = () => {
             </div>
           ) : (
             filteredAssessments.map((assessment) => {
-            const colorKey = (assessment.color || 'primary') as AssessmentColor;
-            return (
-              <div key={assessment.id} className="bg-gradient-to-br from-white via-primary-50 to-accent-50 rounded-2xl shadow-2xl overflow-hidden transform transition duration-300 hover:-translate-y-1 hover:shadow-2xl border-2 border-accent-100 animate-fade-in">
-                <div className="p-6">
-                  <div className="flex items-center gap-6">
-                    <div className={`flex-shrink-0 p-4 rounded-full bg-gradient-to-br ${colorMap[colorKey].gradient} ${colorMap[colorKey].text} shadow-lg`}>
-                      <ClipboardCheck className="h-10 w-10" />
-                    </div>
-                    <div className="flex-grow">
-                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div className="flex-grow">
-                          <h3 className={`text-2xl font-bold mb-2 ${colorMap[colorKey].text}`}>{assessment.title}</h3>
-                          <p className="text-gray-600 mb-4 font-medium text-lg leading-relaxed">{assessment.description}</p>
-                          <div className="flex flex-wrap items-center gap-4 mb-4">
-                            <div className="flex flex-wrap gap-2">
-                              <span className="text-sm font-semibold text-gray-700">Đề xuất cho:</span>
-                              <span
-                                className={`text-sm px-3 py-1 rounded-full font-bold shadow ${colorMap[colorKey].badge}`}
-                              >
-                                mọi người
-                              </span>
+              const colorKey = (assessment.color || 'primary') as AssessmentColor;
+              return (
+                <div key={assessment.id} className="bg-gradient-to-br from-white via-primary-50 to-accent-50 rounded-2xl shadow-2xl overflow-hidden transform transition duration-300 hover:-translate-y-1 hover:shadow-2xl border-2 border-accent-100 animate-fade-in">
+                  <div className="p-6">
+                    <div className="flex items-center gap-6">
+                      <div className={`flex-shrink-0 p-4 rounded-full bg-gradient-to-br ${colorMap[colorKey].gradient} ${colorMap[colorKey].text} shadow-lg`}>
+                        <ClipboardCheck className="h-10 w-10" />
+                      </div>
+                      <div className="flex-grow">
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                          <div className="flex-grow">
+                            <h3 className={`text-2xl font-bold mb-2 ${colorMap[colorKey].text}`}>{assessment.title}</h3>
+                            <p className="text-gray-600 mb-4 font-medium text-lg leading-relaxed">{assessment.description}</p>
+                            <div className="flex flex-wrap items-center gap-4 mb-4">
+                              <div className="flex flex-wrap gap-2">
+                                <span className="text-sm font-semibold text-gray-700">Đề xuất cho:</span>
+                                {assessment.audiences.map((audience, index) => (
+                                  <button
+                                    key={audience}
+                                    onClick={() => setSelectedAudience(audience)}
+                                    className={`text-sm px-3 py-1 rounded-full font-bold shadow transition-all hover:shadow-md cursor-pointer ${selectedAudience === audience
+                                        ? `${colorMap[colorKey].badge} ring-2 ring-offset-1 ring-blue-400`
+                                        : `${colorMap[colorKey].badge} hover:bg-opacity-80`
+                                      }`}
+                                  >
+                                    {audience}
+                                  </button>
+                                ))}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <div className="flex-shrink-0">
-                          <Link
-                            to={`/assessments/${assessment.id}`}
-                            className={`inline-block bg-gradient-to-r ${colorMap[colorKey].button} text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl text-lg`}
-                          >
-                            Bắt đầu đánh giá
-                          </Link>
+                          <div className="flex-shrink-0">
+                            <Link
+                              to={`/assessments/${assessment.id}`}
+                              className={`inline-block bg-gradient-to-r ${colorMap[colorKey].button} text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl text-lg`}
+                            >
+                              Bắt đầu đánh giá
+                            </Link>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
               );
             })
           )}
         </div>
 
+        {/* Emergency Section - keep as is */}
         <div className="max-w-4xl mx-auto mt-12 p-6 bg-warning-50 border border-warning-200 rounded-lg">
           <div className="flex gap-4">
             <div className="flex-shrink-0">

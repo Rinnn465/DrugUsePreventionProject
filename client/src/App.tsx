@@ -24,6 +24,7 @@ import ProgramManagementPage from './pages/management/ProgramManagementPage';
 import EmployeeManagmentPage from './pages/management/EmployeeManagementPage';
 import MemberManagmentPage from './pages/management/MemberManagementPage';
 import ForgotPasswordPage from './pages/authen/ForgotPasswordPage';
+import ResetPasswordPage from './pages/authen/ResetPasswordPage';
 import { UserProvider } from './context/UserContext';
 import ArticlePage from './pages/article/ArticlePage';
 import ArticleDetailsPage from './pages/article/ArticleDetailsPage';
@@ -31,6 +32,7 @@ import CommunityProgramPage from './pages/program/CommunityProgramPage';
 import CommunityProgramDetails from './pages/program/CommunityProgramDetailsPage';
 import AdminPage from './pages/management/AdminPage';
 import ConsultantPage from './pages/management/ConsultantPage';
+import VideoCallPage from '@/components/video/VideoCallPage';
 
 function App() {
   return (
@@ -71,11 +73,13 @@ function App() {
             <Route path="*" element={<NotFoundPage />} />
           </Route>
 
+          <Route path='/video-call' element={<VideoCallPage />} />
           {/* different layout with no header and footer included */}
           <Route path="" element={<AuthLayout />}>
             <Route path="login" element={<LoginPage />} />
             <Route path="signup" element={<SignUpPage />} />
             <Route path="forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="reset-password" element={<ResetPasswordPage />} />
           </Route>
         </Routes>
         <ToastContainer

@@ -311,7 +311,7 @@ export const assessmentData: Assessment[] = [
           { id: "c", text: "Không đồng ý hoặc không rõ", value: 2 },
         ]
       }
-    ]
+    ],
 
-  }
+   }
 ];

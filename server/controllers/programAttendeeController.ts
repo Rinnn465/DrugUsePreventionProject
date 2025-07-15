@@ -1,10 +1,17 @@
 import e, { Request, Response } from 'express';
 import { sql, poolPromise } from '../config/database';
 
-// Get all Program Attendees
+/**
+ * Lấy danh sách tất cả người tham gia các chương trình
+ * @route GET /api/program-attendee
+ * @access Chỉ Admin, Staff, Manager
+ * @param {Request} req - Đối tượng request của Express
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với danh sách người tham gia
+ */
 export async function getAllProgramAttendees(req: Request, res: Response): Promise<void> {
     try {
-        const pool = await poolPromise;
+        const pool = await poolPromise; // Kết nối tới database
         const result = await pool.request().query(`
             SELECT 
                 cpa.*,
@@ -16,15 +23,22 @@ export async function getAllProgramAttendees(req: Request, res: Response): Promi
             INNER JOIN Account a ON cpa.AccountID = a.AccountID
             ORDER BY cpa.RegistrationDate DESC
         `);
-        res.json(result.recordset);
+        res.json(result.recordset); // Trả về danh sách người tham gia
     } catch (err) {
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Server error" }); // Lỗi server
     }
 }
 
-// Get Total Attendees by ProgramID
+/**
+ * Lấy tổng số người tham gia theo ProgramID
+ * @route GET /api/program-attendee/total/:programId
+ * @access Chỉ Admin, Staff, Manager
+ * @param {Request} req - Đối tượng request của Express
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với tổng số người tham gia
+ */
 export async function getTotalAttendeesByProgramId(req: Request, res: Response): Promise<void> {
-    const programId = Number(req.params.programId);
+    const programId = Number(req.params.programId); // Ép kiểu tham số
     try {
         const pool = await poolPromise;
         const result = await pool.request()
@@ -34,12 +48,20 @@ export async function getTotalAttendeesByProgramId(req: Request, res: Response):
                 FROM CommunityProgramAttendee
                 WHERE ProgramID = @ProgramID
             `);
-        res.json({ total: result.recordset[0].total });
+        res.json({ total: result.recordset[0].total }); // Trả về tổng số
     } catch (err) {
         res.status(500).json({ message: "Server error" });
     }
 }
 
+/**
+ * Lấy thông tin người tham gia theo ProgramID và AccountID
+ * @route GET /api/program-attendee/:programId/:accountId
+ * @access Chỉ Admin, Staff, Manager
+ * @param {Request} req - Đối tượng request của Express
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với thông tin người tham gia
+ */
 export async function getAttendeeById(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
     const accountId = Number(req.params.accountId);
@@ -61,21 +83,29 @@ export async function getAttendeeById(req: Request, res: Response): Promise<void
             `);
         const attendee = result.recordset[0];
         if (!attendee) {
-            res.status(404).json({ message: "Attendee not found" });
+            res.status(404).json({ message: "Attendee not found" }); // Không tìm thấy
             return;
         }
-        res.json(attendee);
+        res.json(attendee); // Trả về thông tin người tham gia
     } catch (err) {
         res.status(500).json({ message: "Server error" });
     }
 }
 
+/**
+ * Kiểm tra trạng thái đăng ký chương trình của người dùng hiện tại
+ * @route GET /api/program-attendee/:programId/check-enrollment
+ * @access Member
+ * @param {Request} req - Đối tượng request của Express
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với trạng thái đăng ký
+ */
 export async function checkEnrollmentStatus(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
-    const accountId = (req as any).user?.user?.AccountID;
+    const accountId = (req as any).user?.user?.AccountID; // Lấy AccountID từ token
 
     if (!accountId) {
-        res.status(401).json({ message: "Authentication required" });
+        res.status(401).json({ message: "Authentication required" }); // Chưa đăng nhập
         return;
     }
 
@@ -115,6 +145,14 @@ export async function checkEnrollmentStatus(req: Request, res: Response): Promis
     }
 }
 
+/**
+ * Đăng ký tham gia chương trình cho người dùng hiện tại
+ * @route POST /api/program-attendee/:programId/enroll
+ * @access Member
+ * @param {Request} req - Đối tượng request của Express
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với kết quả đăng ký
+ */
 export async function enrollInProgram(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
     const accountId = (req as any).user?.user?.AccountID;
@@ -127,7 +165,7 @@ export async function enrollInProgram(req: Request, res: Response): Promise<void
     try {
         const pool = await poolPromise;
 
-        // Check if program exists and is active
+        // Kiểm tra chương trình tồn tại và đang hoạt động
         const programCheck = await pool.request()
             .input('ProgramID', sql.Int, programId)
             .query(`
@@ -140,7 +178,7 @@ export async function enrollInProgram(req: Request, res: Response): Promise<void
             return;
         }
 
-        // Check if program status allows enrollment (only upcoming and ongoing programs)
+        // Chỉ cho phép đăng ký nếu chương trình chưa hoàn thành
         const program = programCheck.recordset[0];
         if (program.Status === 'completed') {
             res.status(400).json({
@@ -150,7 +188,7 @@ export async function enrollInProgram(req: Request, res: Response): Promise<void
             return;
         }
 
-        // Check if user is already enrolled
+        // Kiểm tra đã đăng ký chưa
         const existingEnrollment = await pool.request()
             .input('ProgramID', sql.Int, programId)
             .input('AccountID', sql.Int, accountId)
@@ -167,7 +205,7 @@ export async function enrollInProgram(req: Request, res: Response): Promise<void
             return;
         }
 
-        // Create new enrollment
+        // Tạo mới bản ghi đăng ký
         await pool.request()
             .input('ProgramID', sql.Int, programId)
             .input('AccountID', sql.Int, accountId)
@@ -192,11 +230,19 @@ export async function enrollInProgram(req: Request, res: Response): Promise<void
             SurveyAfterCompleted: false
         });
     } catch (err: any) {
-        console.log("Enrollment error:", err);
+        console.log("Enrollment error:", err); // Log lỗi
         res.status(500).json({ message: "Server error during enrollment" + err, error: err });
     }
 }
 
+/**
+ * Hủy đăng ký chương trình cho người dùng hiện tại
+ * @route DELETE /api/program-attendee/:programId/unenroll
+ * @access Member
+ * @param {Request} req - Đối tượng request của Express
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với kết quả hủy đăng ký
+ */
 export async function unenrollFromProgram(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
     const accountId = (req as any).user?.user?.AccountID;
@@ -209,7 +255,7 @@ export async function unenrollFromProgram(req: Request, res: Response): Promise<
     try {
         const pool = await poolPromise;
 
-        // Check if program exists and get its status
+        // Kiểm tra chương trình tồn tại và trạng thái
         const programCheck = await pool.request()
             .input('ProgramID', sql.Int, programId)
             .query(`
@@ -222,7 +268,7 @@ export async function unenrollFromProgram(req: Request, res: Response): Promise<
             return;
         }
 
-        // Check if program status allows unenrollment (only upcoming and ongoing programs)
+        // Chỉ cho phép hủy nếu chương trình chưa hoàn thành
         const program = programCheck.recordset[0];
         if (program.Status === 'completed') {
             res.status(400).json({
@@ -241,7 +287,7 @@ export async function unenrollFromProgram(req: Request, res: Response): Promise<
             `);
 
         if (result.rowsAffected[0] === 0) {
-            res.status(404).json({ message: "Enrollment not found" });
+            res.status(404).json({ message: "Enrollment not found" }); // Không tìm thấy bản ghi
             return;
         }
 
@@ -260,6 +306,14 @@ export async function unenrollFromProgram(req: Request, res: Response): Promise<
     }
 }
 
+/**
+ * Lấy danh sách chương trình mà người dùng hiện tại đã đăng ký
+ * @route GET /api/program-attendee/my-programs
+ * @access Member
+ * @param {Request} req - Đối tượng request của Express
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với danh sách chương trình đã đăng ký
+ */
 export async function getMyEnrolledPrograms(req: Request, res: Response): Promise<void> {
     const accountId = (req as any).user?.user?.AccountID;
 
@@ -300,5 +354,43 @@ export async function getMyEnrolledPrograms(req: Request, res: Response): Promis
     } catch (err) {
         console.error("Get enrolled programs error:", err);
         res.status(500).json({ message: "Server error" });
+    }
+}
+
+/**
+ * Thống kê số người tham gia từng chương trình
+ * @route GET /api/program-attendee/statistics/enroll
+ * @access Chỉ Admin
+ * @param {Request} req - Đối tượng request của Express
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với danh sách chương trình và số người tham gia
+ * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
+ */
+export async function getProgramEnrollmentStatistics(req: Request, res: Response): Promise<void> {
+    try {
+        const pool = await poolPromise; // Kết nối tới pool của database
+        // Truy vấn lấy số lượng người đăng ký từng chương trình
+        const result = await pool.request().query(`
+            SELECT 
+                cp.ProgramID,
+                cp.ProgramName,
+                COUNT(cpa.AccountID) AS EnrollCount
+            FROM CommunityProgram cp
+            LEFT JOIN CommunityProgramAttendee cpa ON cp.ProgramID = cpa.ProgramID
+            GROUP BY cp.ProgramID, cp.ProgramName
+            ORDER BY EnrollCount DESC
+        `);
+        // Trả về kết quả thống kê
+        res.status(200).json({
+            message: 'Thống kê số người tham gia từng chương trình thành công',
+            data: result.recordset
+        });
+    } catch (err: any) {
+        // Nếu có lỗi, trả về lỗi 500
+        console.error('Lỗi trong getProgramEnrollmentStatistics:', err);
+        res.status(500).json({
+            message: 'Lỗi khi thống kê số người tham gia chương trình',
+            error: err.message
+        });
     }
 }

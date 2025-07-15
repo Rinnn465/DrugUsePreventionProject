@@ -1,5 +1,6 @@
 import express from 'express';
 import * as articleController from '../controllers/articleController';
+import authorizeRoles from '../middleware/authenMiddleware';
 
 const router = express.Router();
 
@@ -20,22 +21,22 @@ router.get('/:id', articleController.getArticleById);
 /**
  * @route POST /api/articles
  * @desc Tạo mới bài viết
- * @access Công khai hoặc Quản trị viên
+ * @access Chỉ Admin, Staff
  */
-router.post('/', articleController.createArticle);
+router.post('/', authorizeRoles(['Admin', 'Staff']), articleController.createArticle);
 
 /**
  * @route PUT /api/articles/:id
  * @desc Cập nhật bài viết theo ID
- * @access Công khai hoặc Quản trị viên
+ * @access Chỉ Admin, Staff
  */
-router.put('/:id', articleController.updateArticle);
+router.put('/:id', authorizeRoles(['Admin', 'Staff']), articleController.updateArticle);
 
 /**
  * @route DELETE /api/articles/:id
  * @desc Xóa bài viết theo ID
- * @access Công khai hoặc Quản trị viên
+ * @access Chỉ Admin, Staff
  */
-router.delete('/:id', articleController.deleteArticle);
+router.delete('/:id', authorizeRoles(['Admin', 'Staff']), articleController.deleteArticle);
 
 export default router;

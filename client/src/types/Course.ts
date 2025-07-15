@@ -24,4 +24,15 @@ export interface Enrollment {
   CompletionDate?: Date;   // matches CompletionDate datetime, optional if not always present
 }
 
+export interface CourseFormData {
+    CourseName: string;
+    Risk: string;
+    Duration: number | null;
+    Description: string;
+    ImageUrl: string;
+    Status: string;
+    IsDisabled: boolean;
+    Categories: number[];
+}
+
 

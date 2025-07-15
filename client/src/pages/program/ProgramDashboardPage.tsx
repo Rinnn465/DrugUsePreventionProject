@@ -7,6 +7,7 @@ import {
     Users,
     BookOpen
 } from 'lucide-react';
+import AdminLayout from '../../components/AdminLayout';
 
 const ProgramDashboardPage: React.FC = () => {
     const { userId } = useParams();
@@ -21,27 +22,18 @@ const ProgramDashboardPage: React.FC = () => {
     };  
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
+        <AdminLayout title="Tổng quan Chương trình Cộng đồng" breadcrumb="Quản lý sự kiện">
+            {/* Page Header */}
             <div className="bg-white shadow-sm border-b">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                            <div className="p-3 bg-blue-100 rounded-xl">
-                                <Calendar className="h-8 w-8 text-blue-600" />
-                            </div>
-                            <div>
-                                <h1 className="text-3xl font-bold text-gray-900">Tổng quan Chương trình Cộng đồng</h1>
-                                <p className="text-gray-600 mt-1">Dashboard quản lý các chương trình phòng chống tệ nạn xã hội</p>
-                            </div>
+                    <div className="flex items-center space-x-4">
+                        <div className="p-3 bg-blue-100 rounded-xl">
+                            <Calendar className="h-8 w-8 text-blue-600" />
                         </div>
-                        <Link
-                            to="/roles/Admin/program-manage"
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-                        >
-                            <Settings className="h-5 w-5" />
-                            <span>Vào trang quản lý</span>
-                        </Link>
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900">Tổng quan Chương trình Cộng đồng</h1>
+                            <p className="text-gray-600 mt-1">Dashboard quản lý các chương trình phòng chống tệ nạn xã hội</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -60,7 +52,6 @@ const ProgramDashboardPage: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                         <div className="flex items-center justify-between">
                             <div>
@@ -72,7 +63,6 @@ const ProgramDashboardPage: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                         <div className="flex items-center justify-between">
                             <div>
@@ -84,7 +74,6 @@ const ProgramDashboardPage: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                         <div className="flex items-center justify-between">
                             <div>
@@ -136,7 +125,7 @@ const ProgramDashboardPage: React.FC = () => {
                     </Link>
                 </div>
             </div>
-        </div>
+        </AdminLayout>
     );
 };
 

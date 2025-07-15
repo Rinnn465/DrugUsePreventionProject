@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Newspaper, Filter, X } from 'lucide-react';
+import { Newspaper, Search } from 'lucide-react';
 import BlogPostCard from '../../components/blog/BlogPostCard';
 import { Article } from '../../types/Article';
 
@@ -18,6 +18,7 @@ const ArticlePage: React.FC = () => {
 
   // Filter states
   const [selectedDateRange, setSelectedDateRange] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchArticles()
@@ -34,34 +35,20 @@ const ArticlePage: React.FC = () => {
   // Filter logic
   const filteredPosts = useMemo(() => {
     return blogPosts?.filter(post => {
-      // Filter by date range
-      if (selectedDateRange !== 'all') {
-        const postDate = new Date(post.PublishedDate);
-        const now = new Date();
-        const daysDiff = Math.floor((now.getTime() - postDate.getTime()) / (1000 * 60 * 60 * 24));
-
-        switch (selectedDateRange) {
-          case 'week':
-            if (daysDiff > 7) return false;
-            break;
-          case 'month':
-            if (daysDiff > 30) return false;
-            break;
-          case 'quarter':
-            if (daysDiff > 90) return false;
-            break;
-        }
-      }
-
-      return true;
+      if (!searchTerm) return true;
+      return (
+        post.ArticleTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        post.Description?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }) || [];
-  }, [blogPosts, selectedDateRange]);
+  }, [blogPosts, searchTerm]);
 
   const clearFilters = () => {
     setSelectedDateRange('all');
+    setSearchTerm('');
   };
 
-  const hasActiveFilters = selectedDateRange !== 'all';
+  const hasActiveFilters = selectedDateRange !== 'all' || !!searchTerm;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-primary-50">
@@ -93,42 +80,19 @@ const ArticlePage: React.FC = () => {
         {/* Filter Section */}
         <div className="mb-12">
           <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
-            <div className="flex items-center gap-3 mb-6">
-              <Filter className="h-5 w-5 text-blue-600" />
-              <h2 className="text-xl font-bold text-gray-800">Lọc bài viết</h2>
-              {hasActiveFilters && (
-                <button
-                  onClick={clearFilters}
-                  className="ml-auto flex items-center gap-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                  Xóa bộ lọc
-                </button>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 gap-6">
-              {/* Date Range Filter */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Thời gian đăng
-                </label>
-                <select
-                  value={selectedDateRange}
-                  onChange={(e) => setSelectedDateRange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                >
-                  <option value="all">Tất cả thời gian</option>
-                  <option value="week">Tuần này</option>
-                  <option value="month">Tháng này</option>
-                  <option value="quarter">3 tháng qua</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Results Count */}
-            <div className="mt-4 text-sm text-gray-600">
-              Hiển thị <span className="font-semibold text-blue-600">{filteredPosts.length}</span> / {blogPosts.length} bài viết
+            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <Search className="h-5 w-5 text-blue-600" />
+              Tìm kiếm bài viết
+            </h2>
+            <div className="relative w-full md:w-96">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Nhập từ khóa..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
+              />
             </div>
           </div>
         </div>
