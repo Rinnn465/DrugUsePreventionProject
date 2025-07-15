@@ -132,4 +132,18 @@ router.get("/statistics/enroll", authorizeRoles(["Admin"]), courseController.get
  */
 router.get("/statistics/completion-rate", authorizeRoles(["Admin"]), courseController.getCourseCompletionRateStatistics);
 
+/**
+ * @route GET /api/course/statistics/total-enrollment
+ * @desc Thống kê tổng số lượt đăng ký khóa học
+ * @access Chỉ Admin
+ */
+router.get("/statistics/total-enrollment", authorizeRoles(["Admin"]), courseController.getAllCourseEnrollmentStatistic);
+
+/**
+ * @route GET /api/course/statistics/total-completion-rate
+ * @desc Thống kê tỷ lệ hoàn thành toàn bộ khóa học
+ * @access Chỉ Admin
+ */
+router.get("/statistics/total-completion-rate", authorizeRoles(["Admin"]), courseController.getTotalCompletionRateStatistic);
+
 export default router;

@@ -653,3 +653,62 @@ export async function getCourseCompletionRateStatistics(req: Request, res: Respo
         });
     }
 }
+
+/**
+ * Thống kê tổng số người đã đăng ký tất cả các khóa học
+ *
+ * @route GET /api/course/statistics/total-enrollment
+ * @access Chỉ Admin
+ * @returns {Promise<void>} Phản hồi JSON với tổng số lượt đăng ký khóa học
+ */
+export async function getAllCourseEnrollmentStatistic(req: Request, res: Response): Promise<void> {
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request().query(`
+            SELECT COUNT(*) AS TotalEnrollment FROM Enrollment
+        `);
+        res.status(200).json({
+            message: 'Thống kê tổng số lượt đăng ký khóa học thành công',
+            totalEnrollment: result.recordset[0]?.TotalEnrollment || 0
+        });
+    } catch (err: any) {
+        console.error('Lỗi trong getAllCourseEnrollmentStatistic:', err);
+        res.status(500).json({
+            message: 'Lỗi khi thống kê tổng số lượt đăng ký khóa học',
+            error: err.message
+        });
+    }
+}
+
+/**
+ * Thống kê tỷ lệ hoàn thành trên tổng số lượt đăng ký của tất cả các khóa học
+ *
+ * @route GET /api/course/statistics/total-completion-rate
+ * @access Chỉ Admin
+ * @returns {Promise<void>} Phản hồi JSON với tổng số lượt đăng ký, số lượt hoàn thành và tỷ lệ hoàn thành
+ */
+export async function getTotalCompletionRateStatistic(req: Request, res: Response): Promise<void> {
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request().query(`
+            SELECT 
+                COUNT(*) AS TotalEnrollment,
+                SUM(CASE WHEN Status = 'Completed' THEN 1 ELSE 0 END) AS TotalCompleted,
+                CASE WHEN COUNT(*) = 0 THEN 0 
+                     ELSE CAST(SUM(CASE WHEN Status = 'Completed' THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) END AS CompletionRate
+            FROM Enrollment
+        `);
+        res.status(200).json({
+            message: 'Thống kê tỷ lệ hoàn thành toàn bộ khóa học thành công',
+            totalEnrollment: result.recordset[0]?.TotalEnrollment || 0,
+            totalCompleted: result.recordset[0]?.TotalCompleted || 0,
+            completionRate: result.recordset[0]?.CompletionRate || 0
+        });
+    } catch (err: any) {
+        console.error('Lỗi trong getTotalCompletionRateStatistic:', err);
+        res.status(500).json({
+            message: 'Lỗi khi thống kê tỷ lệ hoàn thành toàn bộ khóa học',
+            error: err.message
+        });
+    }
+}
