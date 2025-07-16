@@ -115,10 +115,31 @@ const ProgramManagementPage: React.FC = () => {
         fetchPrograms();
     }, []);
 
+    // Validate date is not in the past
+    const validateDate = (dateString: string): boolean => {
+        if (!dateString) return false;
+        
+        // Date picker returns YYYY-MM-DD format
+        const selectedDate = new Date(dateString);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        selectedDate.setHours(0, 0, 0, 0);
+        
+        return selectedDate >= today;
+    };
+
     // Create program
     const handleCreateProgram = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Validate date
+        if (!validateDate(formData.date)) {
+            toast.error('Không thể tạo chương trình với ngày trong quá khứ. Vui lòng chọn ngày từ hôm nay trở đi.');
+            return;
+        }
+        
         try {
+            // Form data already in YYYY-MM-DD format from date picker
             const token = localStorage.getItem('token');
             const response = await fetch('http://localhost:5000/api/program', {
                 method: 'POST',
@@ -135,7 +156,8 @@ const ProgramManagementPage: React.FC = () => {
                 fetchPrograms();
                 toast.success('Tạo chương trình thành công!');
             } else {
-                toast.error('Có lỗi xảy ra khi tạo chương trình');
+                const errorData = await response.json();
+                toast.error(errorData.message || 'Có lỗi xảy ra khi tạo chương trình');
             }
         } catch (error) {
             console.error('Error creating program:', error);
@@ -147,6 +169,12 @@ const ProgramManagementPage: React.FC = () => {
     const handleUpdateProgram = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedProgram) return;
+
+        // Validate date
+        if (!validateDate(formData.date)) {
+            toast.error('Không thể cập nhật chương trình với ngày trong quá khứ. Vui lòng chọn ngày từ hôm nay trở đi.');
+            return;
+        }
 
         try {
             const token = localStorage.getItem('token');
@@ -166,7 +194,8 @@ const ProgramManagementPage: React.FC = () => {
                 fetchPrograms();
                 toast.success('Cập nhật chương trình thành công!');
             } else {
-                toast.error('Có lỗi xảy ra khi cập nhật chương trình');
+                const errorData = await response.json();
+                toast.error(errorData.message || 'Có lỗi xảy ra khi cập nhật chương trình');
             }
         } catch (error) {
             console.error('Error updating program:', error);
@@ -530,6 +559,7 @@ const ProgramManagementPage: React.FC = () => {
                                         id="date"
                                         type="date"
                                         required
+                                        min={new Date().toISOString().split('T')[0]} // Không cho chọn ngày quá khứ
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                         value={formData.date}
                                         onChange={(e) => setFormData({...formData, date: e.target.value})}
@@ -673,6 +703,7 @@ const ProgramManagementPage: React.FC = () => {
                                         id="editDate"
                                         type="date"
                                         required
+                                        min={new Date().toISOString().split('T')[0]} // Không cho chọn ngày quá khứ
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                         value={formData.date}
                                         onChange={(e) => setFormData({...formData, date: e.target.value})}

@@ -67,16 +67,42 @@ export const getProgramById = async (
 };
 
 export async function createProgram(req: Request, res: Response): Promise<void> {
-  const { ProgramName, Date, Description, Content, Organizer, ImageUrl, Status, IsDisabled } = req.body;
+  const { ProgramName, date, Description, Content, Organizer, ImageUrl, Status, IsDisabled } = req.body;
   try {
     const pool = await poolPromise;
+
+    // Convert date from dd/mm/yyyy to proper format for SQL Server
+    let formattedDate;
+    if (date && date.includes('/')) {
+      const [day, month, year] = date.split('/');
+      formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    } else {
+      formattedDate = date;
+    }
+
+    // Validate date is not in the past
+    const programDate = new Date(formattedDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to beginning of day for comparison
+    
+    if (programDate < today) {
+      res.status(400).json({ 
+        message: "Không thể tạo chương trình với ngày trong quá khứ. Vui lòng chọn ngày từ hôm nay trở đi." 
+      });
+      return;
+    }
+
+    console.log('Original Date:', date);
+    console.log('Formatted Date for SQL:', formattedDate);
+    console.log('Program Date:', programDate);
+    console.log('Today:', today);
 
     // Tạo cuộc họp Zoom
     const program: CommunityProgram = {
       ProgramID: 0,
       ProgramName,
       Type: 'online',
-      Date,
+      Date: formattedDate, // Use formatted date for Zoom API
       Description: Description || null,
       Content: Content || null,
       Organizer: Organizer || null,
@@ -91,7 +117,7 @@ export async function createProgram(req: Request, res: Response): Promise<void> 
     const insertResult = await pool.request()
       .input('ProgramName', sql.NVarChar, ProgramName)
       .input('Type', sql.NVarChar, 'online')
-      .input('Date', sql.DateTime, Date)
+      .input('Date', sql.DateTime, formattedDate)
       .input('Description', sql.NVarChar, Description || null)
       .input('Content', sql.NVarChar, Content || null)
       .input('Organizer', sql.NVarChar, Organizer || null)
@@ -120,37 +146,45 @@ export async function createProgram(req: Request, res: Response): Promise<void> 
 
 export async function updateProgram(req: Request, res: Response): Promise<void> {
   const { id } = req.params;
-  const { ProgramName, Date, Description, Content, Organizer, ImageUrl, Status, IsDisabled } = req.body;
+  const { ProgramName, date, Description, Content, Organizer, ImageUrl, Status, IsDisabled } = req.body;
   try {
     const pool = await poolPromise;
 
-    // Tạo lại cuộc họp Zoom
-    const program: CommunityProgram = {
-      ProgramID: Number(id),
-      ProgramName,
-      Type: 'online',
-      Date,
-      Description: Description || null,
-      Content: Content || null,
-      Organizer: Organizer || null,
-      Url: '',
-      ImageUrl: ImageUrl || null,
-      IsDisabled: IsDisabled || false,
-      Status: Status || 'upcoming'
-    };
-    const zoomMeeting = await createZoomMeeting(program);
+    // Convert date from dd/mm/yyyy to proper format for SQL Server
+    let formattedDate;
+    if (date && date.includes('/')) {
+      const [day, month, year] = date.split('/');
+      formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    } else {
+      formattedDate = date;
+    }
 
-    // Cập nhật chương trình
+    // Validate date is not in the past
+    const programDate = new Date(formattedDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to beginning of day for comparison
+    
+    if (programDate < today) {
+      res.status(400).json({ 
+        message: "Không thể cập nhật chương trình với ngày trong quá khứ. Vui lòng chọn ngày từ hôm nay trở đi." 
+      });
+      return;
+    }
+
+    console.log('Original Date:', date);
+    console.log('Formatted Date for SQL:', formattedDate);
+    console.log('Program Date:', programDate);
+    console.log('Today:', today);
+
+    // Cập nhật chương trình (không tạo lại Zoom meeting)
     const updateResult = await pool.request()
       .input('Id', sql.Int, id)
       .input('ProgramName', sql.NVarChar, ProgramName)
       .input('Type', sql.NVarChar, 'online')
-      .input('Date', sql.DateTime, Date)
+      .input('Date', sql.DateTime, formattedDate)
       .input('Description', sql.NVarChar, Description || null)
       .input('Content', sql.NVarChar, Content || null)
       .input('Organizer', sql.NVarChar, Organizer || null)
-      .input('Url', sql.NVarChar, zoomMeeting.join_url)
-      .input('MeetingRoomName', sql.NVarChar, zoomMeeting.meeting_id)
       .input('ImageUrl', sql.NVarChar, ImageUrl || null)
       .input('Status', sql.NVarChar, Status || 'upcoming')
       .input('IsDisabled', sql.Bit, IsDisabled || false)
@@ -162,8 +196,6 @@ export async function updateProgram(req: Request, res: Response): Promise<void> 
                     Description = @Description,
                     Content = @Content,
                     Organizer = @Organizer,
-                    Url = @Url,
-                    MeetingRoomName = @MeetingRoomName,
                     ImageUrl = @ImageUrl,
                     Status = @Status,
                     IsDisabled = @IsDisabled
@@ -194,23 +226,52 @@ export async function deleteProgram(req: Request, res: Response): Promise<void> 
       .input('Id', sql.Int, id)
       .query('SELECT MeetingRoomName FROM CommunityProgram WHERE ProgramID = @Id');
     
-    if (programResult.recordset.length > 0) {
-      const meetingId = programResult.recordset[0].MeetingRoomName;
-      if (meetingId) {
-        await deleteZoomMeeting(meetingId);
-      }
-    }
-
-    // Xóa chương trình
-    const deleteResult = await pool.request()
-      .input('Id', sql.Int, id)
-      .query('DELETE FROM CommunityProgram WHERE ProgramID = @Id');
-    
-    if (deleteResult.rowsAffected[0] === 0) {
+    if (programResult.recordset.length === 0) {
       res.status(404).json({ message: "Program not found" });
       return;
     }
-    res.status(204).send();
+
+    const meetingId = programResult.recordset[0].MeetingRoomName;
+
+    // Bắt đầu transaction để đảm bảo tính nhất quán
+    const transaction = pool.transaction();
+    await transaction.begin();
+
+    try {
+      // 1. Xóa tất cả attendees của chương trình
+      await transaction.request()
+        .input('ProgramId', sql.Int, id)
+        .query('DELETE FROM CommunityProgramAttendee WHERE ProgramID = @ProgramId');
+
+      // 2. Xóa tất cả surveys liên quan đến chương trình (nếu có)
+      await transaction.request()
+        .input('ProgramId', sql.Int, id)
+        .query('DELETE FROM CommunityProgramSurvey WHERE ProgramID = @ProgramId');
+
+      // 3. Xóa chương trình
+      await transaction.request()
+        .input('Id', sql.Int, id)
+        .query('DELETE FROM CommunityProgram WHERE ProgramID = @Id');
+
+      // Commit transaction
+      await transaction.commit();
+
+      // 4. Xóa Zoom meeting (sau khi đã commit database)
+      if (meetingId) {
+        try {
+          await deleteZoomMeeting(meetingId);
+        } catch (zoomError) {
+          console.warn('Could not delete Zoom meeting:', zoomError);
+          // Không fail toàn bộ operation nếu Zoom API lỗi
+        }
+      }
+
+      res.status(204).send();
+    } catch (transactionError) {
+      // Rollback transaction nếu có lỗi
+      await transaction.rollback();
+      throw transactionError;
+    }
   } catch (err: any) {
     console.error('Có lỗi xảy ra khi xóa chương trình:', err.message);
     res.status(500).json({ message: "Server error" });
