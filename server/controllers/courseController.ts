@@ -633,3 +633,140 @@ export async function deleteCourse(req: Request, res: Response): Promise<void> {
         res.status(500).json({ message: 'Lỗi khi xoá khóa học', error: err.message });
     }
 }
+
+/**
+ * Thống kê số người tham gia từng khóa học
+ *
+ * @route GET /api/course/statistics/enroll
+ * @access Chỉ Admin
+ * @param {Request} req - Đối tượng request của Express
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với danh sách khóa học và số người tham gia
+ * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
+ */
+export async function getCourseEnrollmentStatistics(req: Request, res: Response): Promise<void> {
+    try {
+        const pool = await poolPromise; // Kết nối tới pool của database
+        // Truy vấn lấy số lượng người đăng ký từng khóa học
+        const result = await pool.request().query(`
+            SELECT 
+                c.CourseID,
+                c.CourseName,
+                COUNT(e.EnrollmentID) AS EnrollCount
+            FROM Course c
+            LEFT JOIN Enrollment e ON c.CourseID = e.CourseID
+            GROUP BY c.CourseID, c.CourseName
+            ORDER BY EnrollCount DESC
+        `);
+        // Trả về kết quả thống kê
+        res.status(200).json({
+            message: 'Thống kê số người tham gia từng khóa học thành công',
+            data: result.recordset
+        });
+    } catch (err: any) {
+        // Nếu có lỗi, trả về lỗi 500
+        console.error('Lỗi trong getCourseEnrollmentStatistics:', err);
+        res.status(500).json({
+            message: 'Lỗi khi thống kê số người tham gia khóa học',
+            error: err.message
+        });
+    }
+}
+
+/**
+ * Thống kê tỷ lệ số người hoàn thành trên tổng số người tham gia từng khóa học
+ *
+ * @route GET /api/course/statistics/completion-rate
+ * @access Chỉ Admin
+ * @returns {Promise<void>} Phản hồi JSON với danh sách khóa học, số người tham gia, số người hoàn thành và tỷ lệ hoàn thành
+ */
+export async function getCourseCompletionRateStatistics(req: Request, res: Response): Promise<void> {
+    try {
+        const pool = await poolPromise; // Kết nối tới pool của database
+        // Truy vấn lấy số lượng người đăng ký và số lượng người hoàn thành từng khóa học
+        const result = await pool.request().query(`
+            SELECT 
+                c.CourseID,
+                c.CourseName,
+                COUNT(e.EnrollmentID) AS TotalEnroll,
+                SUM(CASE WHEN e.Status = 'Completed' THEN 1 ELSE 0 END) AS CompletedCount,
+                CASE WHEN COUNT(e.EnrollmentID) = 0 THEN 0 
+                     ELSE CAST(SUM(CASE WHEN e.Status = 'Completed' THEN 1 ELSE 0 END) AS FLOAT) / COUNT(e.EnrollmentID) END AS CompletionRate
+            FROM Course c
+            LEFT JOIN Enrollment e ON c.CourseID = e.CourseID
+            GROUP BY c.CourseID, c.CourseName
+            ORDER BY CompletionRate DESC
+        `);
+        // Trả về kết quả thống kê
+        res.status(200).json({
+            message: 'Thống kê tỷ lệ hoàn thành khóa học thành công',
+            data: result.recordset
+        });
+    } catch (err: any) {
+        // Nếu có lỗi, trả về lỗi 500
+        console.error('Lỗi trong getCourseCompletionRateStatistics:', err);
+        res.status(500).json({
+            message: 'Lỗi khi thống kê tỷ lệ hoàn thành khóa học',
+            error: err.message
+        });
+    }
+}
+
+/**
+ * Thống kê tổng số người đã đăng ký tất cả các khóa học
+ *
+ * @route GET /api/course/statistics/total-enrollment
+ * @access Chỉ Admin
+ * @returns {Promise<void>} Phản hồi JSON với tổng số lượt đăng ký khóa học
+ */
+export async function getAllCourseEnrollmentStatistic(req: Request, res: Response): Promise<void> {
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request().query(`
+            SELECT COUNT(*) AS TotalEnrollment FROM Enrollment
+        `);
+        res.status(200).json({
+            message: 'Thống kê tổng số lượt đăng ký khóa học thành công',
+            totalEnrollment: result.recordset[0]?.TotalEnrollment || 0
+        });
+    } catch (err: any) {
+        console.error('Lỗi trong getAllCourseEnrollmentStatistic:', err);
+        res.status(500).json({
+            message: 'Lỗi khi thống kê tổng số lượt đăng ký khóa học',
+            error: err.message
+        });
+    }
+}
+
+/**
+ * Thống kê tỷ lệ hoàn thành trên tổng số lượt đăng ký của tất cả các khóa học
+ *
+ * @route GET /api/course/statistics/total-completion-rate
+ * @access Chỉ Admin
+ * @returns {Promise<void>} Phản hồi JSON với tổng số lượt đăng ký, số lượt hoàn thành và tỷ lệ hoàn thành
+ */
+export async function getTotalCompletionRateStatistic(req: Request, res: Response): Promise<void> {
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request().query(`
+            SELECT 
+                COUNT(*) AS TotalEnrollment,
+                SUM(CASE WHEN Status = 'Completed' THEN 1 ELSE 0 END) AS TotalCompleted,
+                CASE WHEN COUNT(*) = 0 THEN 0 
+                     ELSE CAST(SUM(CASE WHEN Status = 'Completed' THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) END AS CompletionRate
+            FROM Enrollment
+        `);
+        res.status(200).json({
+            message: 'Thống kê tỷ lệ hoàn thành toàn bộ khóa học thành công',
+            totalEnrollment: result.recordset[0]?.TotalEnrollment || 0,
+            totalCompleted: result.recordset[0]?.TotalCompleted || 0,
+            completionRate: result.recordset[0]?.CompletionRate || 0
+        });
+    } catch (err: any) {
+        console.error('Lỗi trong getTotalCompletionRateStatistic:', err);
+        res.status(500).json({
+            message: 'Lỗi khi thống kê tỷ lệ hoàn thành toàn bộ khóa học',
+            error: err.message
+        });
+    }
+}

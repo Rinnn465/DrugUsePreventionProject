@@ -15,6 +15,7 @@ import { updateProgramStatus } from "./controllers/scheduledProgram";
 import agoraRoutes from "./routes/agoraRoutes";
 import courseExamRoutes from "./routes/courseExamRoutes";
 import apiLessonRoutes from "./routes/lessonRoutes";
+import assessmentResultRoutes from './routes/assessmentResultRoutes';
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
@@ -98,6 +99,8 @@ app.use("/api/survey/admin", authorizeRoles(["Admin"]), apiSurveyRoutes);
 
 // Start scheduled program status updates
 updateProgramStatus();
+
+app.use('/api/assessment', assessmentResultRoutes);
 
 // Start the server
 app.listen(PORT, () => {
