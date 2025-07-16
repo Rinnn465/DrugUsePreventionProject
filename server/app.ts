@@ -14,7 +14,6 @@ import apiProgramSurveyRoutes from "./routes/programSurveyRoutes";
 import { updateProgramStatus } from "./controllers/scheduledProgram";
 import agoraRoutes from "./routes/agoraRoutes";
 import courseExamRoutes from "./routes/courseExamRoutes";
-
 import apiLessonRoutes from "./routes/lessonRoutes";
 
 const app: Application = express();
@@ -27,90 +26,79 @@ app.use(
     origin: "http://localhost:5173",
     credentials: true,
   })
-); // Enable CORS with credentials
+);
 
-// Public Routes (accessible to all including guests)
+// Public Routes
 app.use(
   "/api/article",
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   apiArticleRoutes
 );
 app.use("/api/auth", apiAuthenRoutes);
-
 app.use(
   "/api/course",
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   courseRoutes
 );
-
-// Program routes - Guest có thể xem, nhưng enrollment chỉ cho Member/Consultant/Admin
 app.use(
   "/api/program",
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   apiProgramRoutes
 );
-
-// Program attendee routes - Phân quyền cụ thể trong từng route
 app.use(
   "/api/program-attendee",
-  apiProgramAttendeeRoutes // Không apply middleware ở đây, để route tự xử lý
+  apiProgramAttendeeRoutes
 );
-
 app.use(
   "/api/consultant",
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   consultantRoutes
 );
-
 app.use(
   "/api/survey",
   authorizeRoles(["Member", "Consultant", "Admin"]),
   apiSurveyRoutes
 );
-
-// Program survey routes
 app.use(
   "/api/program-survey",
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   apiProgramSurveyRoutes
 );
-
 app.use(
   "/api/lesson",
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   apiLessonRoutes
 );
-
 app.use(
   "/api/exam",
   authorizeRoles(["Member", "Consultant", "Admin"]),
   courseExamRoutes
 );
+app.use(
+  '/api/agora',
+  authorizeRoles(['Member', 'Consultant', 'Admin']),
+  agoraRoutes
+);
 
-
-// Protected Routes - Member/Consultant can update profiles (excluding role changes)
+// Protected Routes
 app.use(
   "/api/account",
   authorizeRoles(["Member", "Consultant", "Admin"]),
   apiAccountRoutes
 );
-
 app.use(
   "/api/appointment",
   authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
   appointmentRoutes
 );
 
-app.use('/api/agora',
-  authorizeRoles(['Member', 'Consultant', 'Admin']),
-  agoraRoutes);
-
-// Admin-only Routes - Full account management including role changes
+// Admin-only Routes
 app.use("/api/account/admin", authorizeRoles(["Admin"]), apiAccountRoutes);
-// Admin-only Routes - Full survey management
 app.use("/api/survey/admin", authorizeRoles(["Admin"]), apiSurveyRoutes);
+
 // Start scheduled program status updates
 updateProgramStatus();
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);

@@ -106,18 +106,20 @@ export type Article = {
   IsDisabled: boolean;
 };
 export interface CommunityProgram {
-  ProgramID: number;
-  ProgramName: string;
-  Type?: string; // 'online'
-  Date: string; // ISO date string
-  Description?: string | null;
-  Content?: string | null;
-  Organizer?: string | null;
-  Url: string;
-  ImageUrl?: string | null;
-  IsDisabled: boolean;
-  Status: string; // 'upcoming' | 'ongoing' | 'completed'
-};
+    ProgramID: number;
+    ProgramName: string;
+    Type?: string;
+    Date: string;
+    Description?: string | null;
+    Content?: string | null;
+    Organizer?: string | null;
+    Url: string;
+    ImageUrl?: string | null;
+    IsDisabled: boolean;
+    Status: string;
+    MeetingRoomName?: string | null;
+    Platform?: string | null;
+}
 export type CommunityProgramAttendee = {
   ProgramID: number;
   AccountID: number;

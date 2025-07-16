@@ -37,6 +37,12 @@ router.get("/",
     programAttendeeController.getAllProgramAttendees
 );
 
+// Get attendees for a specific program (Admin only)
+router.get("/program/:programId", 
+    authorizeRoles(["Admin"]), 
+    programAttendeeController.getAttendeesByProgramId
+);
+
 router.get("/:programId/:accountId", 
     authorizeRoles(["Admin"]), 
     programAttendeeController.getAttendeeById

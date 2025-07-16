@@ -6,10 +6,12 @@ import {
     Calendar,
     Search,
     ChevronDown,
-    ArrowLeft
+    ArrowLeft,
+    Users
 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { CommunityProgram } from '../../types/CommunityProgram';
+import { toast } from 'react-toastify';
 
 const ProgramManagementPage: React.FC = () => {
     const { userId } = useParams();
@@ -19,8 +21,10 @@ const ProgramManagementPage: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState('all');
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [selectedProgram, setSelectedProgram] = useState<CommunityProgram | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showAttendeesModal, setShowAttendeesModal] = useState(false);
+    const [selectedProgram, setSelectedProgram] = useState<CommunityProgram | null>(null);
+    const [attendees, setAttendees] = useState<any[]>([]);
 
     // Form data state
     const [formData, setFormData] = useState({
@@ -30,7 +34,6 @@ const ProgramManagementPage: React.FC = () => {
         Description: '',
         Content: '',
         Organizer: '',
-        Url: '',
         ImageUrl: '',
         Status: 'upcoming',
         IsDisabled: false
@@ -52,12 +55,59 @@ const ProgramManagementPage: React.FC = () => {
                 const result = await response.json();
                 setPrograms(result.data ?? []);
             } else {
-                console.error('Failed to fetch programs');
+                toast.error('Không thể tải danh sách chương trình');
             }
         } catch (error) {
             console.error('Error fetching programs:', error);
+            toast.error('Có lỗi xảy ra khi tải chương trình');
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Fetch attendees for a program
+    const fetchAttendees = async (programId: number) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/program-attendee/program/${programId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                setAttendees(result);
+            } else {
+                toast.error('Không thể tải danh sách người tham gia');
+            }
+        } catch (error) {
+            console.error('Error fetching attendees:', error);
+            toast.error('Có lỗi xảy ra khi tải danh sách người tham gia');
+        }
+    };
+
+    // Send Zoom invite to all attendees
+    const sendZoomInvite = async (program: CommunityProgram) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/program-attendee/send-invite/${program.ProgramID}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                toast.success('Gửi lời mời Zoom thành công!');
+            } else {
+                toast.error('Không thể gửi lời mời Zoom');
+            }
+        } catch (error) {
+            console.error('Error sending Zoom invite:', error);
+            toast.error('Có lỗi xảy ra khi gửi lời mời Zoom');
         }
     };
 
@@ -83,13 +133,13 @@ const ProgramManagementPage: React.FC = () => {
                 setShowCreateModal(false);
                 resetForm();
                 fetchPrograms();
-                alert('Tạo chương trình thành công!');
+                toast.success('Tạo chương trình thành công!');
             } else {
-                alert('Có lỗi xảy ra khi tạo chương trình');
+                toast.error('Có lỗi xảy ra khi tạo chương trình');
             }
         } catch (error) {
             console.error('Error creating program:', error);
-            alert('Có lỗi xảy ra khi tạo chương trình');
+            toast.error('Có lỗi xảy ra khi tạo chương trình');
         }
     };
 
@@ -114,13 +164,13 @@ const ProgramManagementPage: React.FC = () => {
                 setSelectedProgram(null);
                 resetForm();
                 fetchPrograms();
-                alert('Cập nhật chương trình thành công!');
+                toast.success('Cập nhật chương trình thành công!');
             } else {
-                alert('Có lỗi xảy ra khi cập nhật chương trình');
+                toast.error('Có lỗi xảy ra khi cập nhật chương trình');
             }
         } catch (error) {
             console.error('Error updating program:', error);
-            alert('Có lỗi xảy ra khi cập nhật chương trình');
+            toast.error('Có lỗi xảy ra khi cập nhật chương trình');
         }
     };
 
@@ -142,15 +192,13 @@ const ProgramManagementPage: React.FC = () => {
                 setShowDeleteModal(false);
                 setSelectedProgram(null);
                 fetchPrograms();
-                alert('Xóa chương trình thành công!');
+                toast.success('Xóa chương trình thành công!');
             } else {
-                const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-                console.error('Delete failed:', response.status, errorData);
-                alert(`Có lỗi xảy ra khi xóa chương trình: ${errorData.message ?? 'Unknown error'}`);
+                toast.error(`Có lỗi xảy ra khi xóa chương trình`);
             }
         } catch (error) {
             console.error('Error deleting program:', error);
-            alert('Có lỗi xảy ra khi xóa chương trình');
+            toast.error('Có lỗi xảy ra khi xóa chương trình');
         }
     };
 
@@ -163,7 +211,6 @@ const ProgramManagementPage: React.FC = () => {
             Description: '',
             Content: '',
             Organizer: '',
-            Url: '',
             ImageUrl: '',
             Status: 'upcoming',
             IsDisabled: false
@@ -173,19 +220,31 @@ const ProgramManagementPage: React.FC = () => {
     // Open edit modal
     const openEditModal = (program: CommunityProgram) => {
         setSelectedProgram(program);
+        // Format date for input type="date" (YYYY-MM-DD format)
+        const programDate = new Date(program.Date);
+        const formattedDate = programDate.toLocaleDateString('en-CA', {
+            timeZone: 'Asia/Ho_Chi_Minh'
+        }); // en-CA gives YYYY-MM-DD format
+        
         setFormData({
             ProgramName: program.ProgramName,
             Type: program.Type ?? 'online',
-            date: program.Date.split('T')[0], // Format date for input
+            date: formattedDate,
             Description: program.Description ?? '',
             Content: program.Content ?? '',
             Organizer: program.Organizer ?? '',
-            Url: program.Url,
             ImageUrl: program.ImageUrl ?? '',
             Status: program.Status,
             IsDisabled: program.IsDisabled
         });
         setShowEditModal(true);
+    };
+
+    // Open attendees modal
+    const openAttendeesModal = (program: CommunityProgram) => {
+        setSelectedProgram(program);
+        fetchAttendees(program.ProgramID);
+        setShowAttendeesModal(true);
     };
 
     // Filter programs
@@ -199,7 +258,14 @@ const ProgramManagementPage: React.FC = () => {
 
     // Format date
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('vi-VN');
+        const date = new Date(dateString);
+        // Format theo múi giờ Việt Nam với định dạng dd/mm/yyyy
+        return date.toLocaleDateString('en-GB', {
+            timeZone: 'Asia/Ho_Chi_Minh',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
     };
 
     // Get type display text
@@ -308,6 +374,7 @@ const ProgramManagementPage: React.FC = () => {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày diễn ra</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Người tổ chức</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Zoom Link</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
                                 </tr>
                             </thead>
@@ -345,8 +412,19 @@ const ProgramManagementPage: React.FC = () => {
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {program.Organizer ?? 'Không rõ'}
                                         </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                                            <a href={program.Url} target="_blank" rel="noopener noreferrer">
+                                                Zoom Link
+                                            </a>
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex items-center space-x-2">
+                                                <button
+                                                    onClick={() => openAttendeesModal(program)}
+                                                    className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                                                >
+                                                    <Users className="h-4 w-4" />
+                                                </button>
                                                 <button
                                                     onClick={() => openEditModal(program)}
                                                     className="text-indigo-600 hover:text-indigo-900 p-1 rounded"
@@ -433,16 +511,14 @@ const ProgramManagementPage: React.FC = () => {
                                         <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
                                             Trạng thái
                                         </label>
-                                        <select
+                                        <input
                                             id="status"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                            value={formData.Status}
-                                            onChange={(e) => setFormData({...formData, Status: e.target.value})}
-                                        >
-                                            <option value="upcoming">Sắp diễn ra</option>
-                                            <option value="ongoing">Đang diễn ra</option>
-                                            <option value="completed">Đã kết thúc</option>
-                                        </select>
+                                            type="text"
+                                            disabled
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 cursor-not-allowed"
+                                            value="Sắp diễn ra"
+                                            readOnly
+                                        />
                                     </div>
                                 </div>
 
@@ -470,20 +546,6 @@ const ProgramManagementPage: React.FC = () => {
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                         value={formData.Organizer}
                                         onChange={(e) => setFormData({...formData, Organizer: e.target.value})}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="url" className="block text-sm font-medium text-gray-700 mb-1">
-                                        URL/Link *
-                                    </label>
-                                    <input
-                                        id="url"
-                                        type="url"
-                                        required
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        value={formData.Url}
-                                        onChange={(e) => setFormData({...formData, Url: e.target.value})}
                                     />
                                 </div>
 
@@ -598,7 +660,7 @@ const ProgramManagementPage: React.FC = () => {
                                         >
                                             <option value="upcoming">Sắp diễn ra</option>
                                             <option value="ongoing">Đang diễn ra</option>
-                                            <option value="completed">Đã hoàn thành</option>
+                                            <option value="completed">Đã kết thúc</option>
                                         </select>
                                     </div>
                                 </div>
@@ -627,20 +689,6 @@ const ProgramManagementPage: React.FC = () => {
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                         value={formData.Organizer}
                                         onChange={(e) => setFormData({...formData, Organizer: e.target.value})}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="editUrl" className="block text-sm font-medium text-gray-700 mb-1">
-                                        URL/Link *
-                                    </label>
-                                    <input
-                                        id="editUrl"
-                                        type="url"
-                                        required
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        value={formData.Url}
-                                        onChange={(e) => setFormData({...formData, Url: e.target.value})}
                                     />
                                 </div>
 
@@ -738,6 +786,61 @@ const ProgramManagementPage: React.FC = () => {
                                     className="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md hover:bg-red-700"
                                 >
                                     Xóa
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Attendees Modal */}
+            {showAttendeesModal && selectedProgram && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+                        <div className="mt-3">
+                            <h3 className="text-lg font-medium text-gray-900 mb-4">
+                                Danh sách người tham gia: {selectedProgram.ProgramName}
+                            </h3>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày đăng ký</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {attendees.map((attendee) => (
+                                            <tr key={`${attendee.ProgramID}-${attendee.AccountID}`}>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{attendee.FullName}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{attendee.Username}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {formatDate(attendee.RegistrationDate)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{attendee.Status}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div className="flex justify-end space-x-3 pt-4">
+                                <button
+                                    onClick={() => {
+                                        setShowAttendeesModal(false);
+                                        setSelectedProgram(null);
+                                        setAttendees([]);
+                                    }}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                                >
+                                    Đóng
+                                </button>
+                                <button
+                                    onClick={() => sendZoomInvite(selectedProgram)}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
+                                >
+                                    Gửi lại lời mời Zoom
                                 </button>
                             </div>
                         </div>

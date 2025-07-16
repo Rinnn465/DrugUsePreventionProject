@@ -1,4 +1,4 @@
-import e, { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { sql, poolPromise } from '../config/database';
 
 // Get all Program Attendees
@@ -18,6 +18,33 @@ export async function getAllProgramAttendees(req: Request, res: Response): Promi
         `);
         res.json(result.recordset);
     } catch (err) {
+        console.error('Error fetching all program attendees:', err);
+        res.status(500).json({ message: "Server error" });
+    }
+}
+
+// Get attendees by specific ProgramID
+export async function getAttendeesByProgramId(req: Request, res: Response): Promise<void> {
+    const programId = Number(req.params.programId);
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('ProgramID', sql.Int, programId)
+            .query(`
+                SELECT 
+                    cpa.*,
+                    cp.ProgramName,
+                    a.Username,
+                    a.FullName
+                FROM CommunityProgramAttendee cpa
+                INNER JOIN CommunityProgram cp ON cpa.ProgramID = cp.ProgramID
+                INNER JOIN Account a ON cpa.AccountID = a.AccountID
+                WHERE cpa.ProgramID = @ProgramID
+                ORDER BY cpa.RegistrationDate DESC
+            `);
+        res.json(result.recordset);
+    } catch (err) {
+        console.error('Error fetching attendees by program ID:', err);
         res.status(500).json({ message: "Server error" });
     }
 }
@@ -36,6 +63,7 @@ export async function getTotalAttendeesByProgramId(req: Request, res: Response):
             `);
         res.json({ total: result.recordset[0].total });
     } catch (err) {
+        console.error('Error fetching total attendees by program ID:', err);
         res.status(500).json({ message: "Server error" });
     }
 }
@@ -66,6 +94,7 @@ export async function getAttendeeById(req: Request, res: Response): Promise<void
         }
         res.json(attendee);
     } catch (err) {
+        console.error('Error fetching attendee by ID:', err);
         res.status(500).json({ message: "Server error" });
     }
 }
