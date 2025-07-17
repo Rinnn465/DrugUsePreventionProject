@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { sql, poolPromise } from '../config/database';
-
+import { autoCreateSurveyMapping } from '../controllers/programController'
 // Get all surveys for a specific program
 export async function getAllProgramSurveys(req: Request, res: Response): Promise<void> {
     try {
@@ -40,12 +40,33 @@ export async function getProgramSurveyById(req: Request, res: Response): Promise
     }
 }
 
-// Get surveys by ProgramID
+// Get surveys by ProgramID - Now uses auto survey mapping
 export async function getSurveysByProgramId(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
 
     try {
         const pool = await poolPromise;
+        
+        // Kiểm tra xem chương trình có survey mapping chưa
+        const existingMapping = await pool.request()
+            .input('ProgramID', sql.Int, programId)
+            .query(`
+                SELECT COUNT(*) as count 
+                FROM CommunityProgramSurvey 
+                WHERE ProgramID = @ProgramID
+            `);
+
+        // Nếu chưa có mapping, tự động tạo
+        if (existingMapping.recordset[0].count === 0) {
+            console.log(`No survey mapping found for program ${programId}, auto-creating...`);
+            const success = await autoCreateSurveyMapping(programId);
+            
+            if (!success) {
+                console.warn(`Failed to auto-create survey mapping for program ${programId}`);
+            }
+        }
+
+        // Lấy survey mapping
         const result = await pool.request()
             .input('ProgramID', sql.Int, programId)
             .query(`
@@ -60,6 +81,7 @@ export async function getSurveysByProgramId(req: Request, res: Response): Promis
                 INNER JOIN CommunityProgramSurvey cps ON s.SurveyID = cps.SurveyID
                 LEFT JOIN SurveyCategory sc ON s.SurveyCategoryID = sc.SurveyCategoryID
                 WHERE cps.ProgramID = @ProgramID
+                ORDER BY cps.SurveyType
             `);
 
         console.log('Program surveys result:', result.recordset);

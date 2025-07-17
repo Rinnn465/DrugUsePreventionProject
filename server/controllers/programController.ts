@@ -3,6 +3,80 @@ import { sql, poolPromise } from "../config/database";
 import { createZoomMeeting, deleteZoomMeeting } from "./zoomController";
 import { CommunityProgram } from "../types/type";
 
+/**
+ * Tự động tạo survey mapping cho chương trình mới
+ * @param programId - ID của chương trình  
+ * @returns Promise<boolean> - true nếu thành công
+ */
+export async function autoCreateSurveyMapping(programId: number): Promise<boolean> {
+  try {
+    const pool = await poolPromise;
+    
+    // Lấy danh sách survey mặc định (before/after)
+    const surveyResult = await pool.request()
+      .query(`
+        SELECT SurveyID, Description 
+        FROM Survey 
+        WHERE SurveyCategoryID = 1 
+        ORDER BY SurveyID
+      `);
+
+    const surveys = surveyResult.recordset;
+    
+    if (surveys.length < 2) {
+      console.error('Not enough default surveys found. Expected at least 2, found:', surveys.length);
+      return false;
+    }
+
+    // Survey đầu tiên là "before", survey thứ hai là "after"
+    const beforeSurvey = surveys[0];
+    const afterSurvey = surveys[1];
+
+    // Kiểm tra xem đã có mapping chưa
+    const existingMapping = await pool.request()
+      .input('ProgramID', sql.Int, programId)
+      .query(`
+        SELECT COUNT(*) as count 
+        FROM CommunityProgramSurvey 
+        WHERE ProgramID = @ProgramID
+      `);
+
+    if (existingMapping.recordset[0].count > 0) {
+      console.log(`Survey mapping already exists for program ${programId}`);
+      return true;
+    }
+
+    // Tạo mapping cho before survey
+    await pool.request()
+      .input('SurveyID', sql.Int, beforeSurvey.SurveyID)
+      .input('ProgramID', sql.Int, programId)
+      .input('Type', sql.NVarChar, 'content')
+      .input('SurveyType', sql.NVarChar, 'before')
+      .query(`
+        INSERT INTO CommunityProgramSurvey (SurveyID, ProgramID, Type, SurveyType)
+        VALUES (@SurveyID, @ProgramID, @Type, @SurveyType)
+      `);
+
+    // Tạo mapping cho after survey
+    await pool.request()
+      .input('SurveyID', sql.Int, afterSurvey.SurveyID)
+      .input('ProgramID', sql.Int, programId)
+      .input('Type', sql.NVarChar, 'content')
+      .input('SurveyType', sql.NVarChar, 'after')
+      .query(`
+        INSERT INTO CommunityProgramSurvey (SurveyID, ProgramID, Type, SurveyType)
+        VALUES (@SurveyID, @ProgramID, @Type, @SurveyType)
+      `);
+
+    console.log(`Auto-created survey mappings for program ${programId}: before (${beforeSurvey.SurveyID}) and after (${afterSurvey.SurveyID})`);
+    return true;
+
+  } catch (error) {
+    console.error('Error in autoCreateSurveyMapping:', error);
+    return false;
+  }
+}
+
 export const getAllPrograms = async (
   req: Request,
   res: Response
@@ -134,6 +208,22 @@ export async function createProgram(req: Request, res: Response): Promise<void> 
             `);
     
     const newProgramId = insertResult.recordset[0].ProgramID;
+
+    // Tự động tạo survey mapping cho chương trình mới
+    console.log(`Auto-creating survey mappings for program ${newProgramId}...`);
+    
+    try {
+      const success = await autoCreateSurveyMapping(newProgramId);
+      if (success) {
+        console.log(`Survey mapping created successfully for program ${newProgramId}`);
+      } else {
+        console.warn(`Failed to create survey mapping for program ${newProgramId}`);
+      }
+    } catch (surveyError) {
+      console.error('Error creating survey mappings:', surveyError);
+      // Không fail việc tạo chương trình nếu survey mapping lỗi
+    }
+
     const result = await pool.request()
       .input('Id', sql.Int, newProgramId)
       .query('SELECT * FROM CommunityProgram WHERE ProgramID = @Id');
@@ -275,5 +365,60 @@ export async function deleteProgram(req: Request, res: Response): Promise<void> 
   } catch (err: any) {
     console.error('Có lỗi xảy ra khi xóa chương trình:', err.message);
     res.status(500).json({ message: "Server error" });
+  }
+}
+
+/**
+ * Tự động tạo survey mapping cho tất cả chương trình chưa có mapping (Admin only)
+ * @route POST /api/program/backfill-surveys
+ * @access Admin
+ */
+export async function backfillSurveyMappings(req: Request, res: Response): Promise<void> {
+  try {
+    const pool = await poolPromise;
+    
+    // Tìm các chương trình chưa có survey mapping
+    const programsWithoutSurvey = await pool.request()
+      .query(`
+        SELECT cp.ProgramID, cp.ProgramName
+        FROM CommunityProgram cp
+        LEFT JOIN CommunityProgramSurvey cps ON cp.ProgramID = cps.ProgramID
+        WHERE cps.ProgramID IS NULL AND cp.IsDisabled = 0
+      `);
+
+    const programs = programsWithoutSurvey.recordset;
+    console.log(`📝 Found ${programs.length} programs without survey mappings`);
+
+    let successCount = 0;
+    for (const program of programs) {
+      const success = await autoCreateSurveyMapping(program.ProgramID);
+      if (success) {
+        successCount++;
+        console.log(`Created survey mapping for program: ${program.ProgramName} (ID: ${program.ProgramID})`);
+      } else {
+        console.error(`Failed to create survey mapping for program: ${program.ProgramName} (ID: ${program.ProgramID})`);
+      }
+    }
+
+    console.log(`Backfill completed: ${successCount}/${programs.length} programs processed successfully`);
+    
+    res.status(200).json({
+      success: true,
+      message: `Successfully created survey mappings for ${successCount} programs`,
+      total: programs.length,
+      backfilledCount: successCount,
+      details: programs.map(p => ({ 
+        programId: p.ProgramID, 
+        programName: p.ProgramName 
+      }))
+    });
+
+  } catch (error) {
+    console.error('Error in backfillSurveyMappings:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to backfill survey mappings',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 }

@@ -13,5 +13,8 @@ router.post("/", authorizeRoles(["Admin"]), programController.createProgram);
 router.put("/:id", authorizeRoles(["Admin"]), programController.updateProgram);
 router.delete("/:id", authorizeRoles(["Admin"]), programController.deleteProgram);
 
+// Admin utility routes
+router.post("/backfill-surveys", authorizeRoles(["Admin"]), programController.backfillSurveyMappings);
+
 
 export default router;
