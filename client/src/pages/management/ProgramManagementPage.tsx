@@ -25,6 +25,7 @@ const ProgramManagementPage: React.FC = () => {
     const [showAttendeesModal, setShowAttendeesModal] = useState(false);
     const [selectedProgram, setSelectedProgram] = useState<CommunityProgram | null>(null);
     const [attendees, setAttendees] = useState<any[]>([]);
+    const [sendingInvite, setSendingInvite] = useState(false);
 
     // Form data state
     const [formData, setFormData] = useState({
@@ -91,6 +92,7 @@ const ProgramManagementPage: React.FC = () => {
     // Send Zoom invite to all attendees
     const sendZoomInvite = async (program: CommunityProgram) => {
         try {
+            setSendingInvite(true);
             const token = localStorage.getItem('token');
             const response = await fetch(`http://localhost:5000/api/program-attendee/send-invite/${program.ProgramID}`, {
                 method: 'POST',
@@ -100,14 +102,30 @@ const ProgramManagementPage: React.FC = () => {
                 }
             });
 
+            const result = await response.json();
+
             if (response.ok) {
-                toast.success('Gửi lời mời Zoom thành công!');
+                const { summary } = result;
+                if (summary.failed > 0) {
+                    toast.success(`Đã gửi lời mời cho ${summary.success}/${summary.total} người tham gia. ${summary.failed} email gửi thất bại.`, {
+                        autoClose: 5000
+                    });
+                } else {
+                    toast.success(`Gửi lời mời thành công cho tất cả ${summary.success} người tham gia!`);
+                }
+                
+                // Refresh attendees list
+                if (selectedProgram) {
+                    fetchAttendees(selectedProgram.ProgramID);
+                }
             } else {
-                toast.error('Không thể gửi lời mời Zoom');
+                toast.error(result.message || 'Không thể gửi lời mời Zoom');
             }
         } catch (error) {
             console.error('Error sending Zoom invite:', error);
             toast.error('Có lỗi xảy ra khi gửi lời mời Zoom');
+        } finally {
+            setSendingInvite(false);
         }
     };
 
@@ -838,6 +856,7 @@ const ProgramManagementPage: React.FC = () => {
                                         <tr>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày đăng ký</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
                                         </tr>
@@ -847,6 +866,13 @@ const ProgramManagementPage: React.FC = () => {
                                             <tr key={`${attendee.ProgramID}-${attendee.AccountID}`}>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{attendee.FullName}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{attendee.Username}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {attendee.Email ? (
+                                                        <span className="text-green-600">{attendee.Email}</span>
+                                                    ) : (
+                                                        <span className="text-red-500">Chưa có email</span>
+                                                    )}
+                                                </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                     {formatDate(attendee.RegistrationDate)}
                                                 </td>
@@ -869,9 +895,24 @@ const ProgramManagementPage: React.FC = () => {
                                 </button>
                                 <button
                                     onClick={() => sendZoomInvite(selectedProgram)}
-                                    className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
+                                    disabled={sendingInvite}
+                                    className={`px-4 py-2 text-sm font-medium text-white rounded-md ${
+                                        sendingInvite 
+                                            ? 'bg-gray-400 cursor-not-allowed' 
+                                            : 'bg-green-600 hover:bg-green-700'
+                                    }`}
                                 >
-                                    Gửi lại lời mời Zoom
+                                    {sendingInvite ? (
+                                        <div className="flex items-center">
+                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Đang gửi...
+                                        </div>
+                                    ) : (
+                                        'Gửi lại lời mời Zoom'
+                                    )}
                                 </button>
                             </div>
                         </div>
