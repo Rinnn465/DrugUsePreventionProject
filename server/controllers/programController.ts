@@ -92,8 +92,8 @@ export const getAllPrograms = async (
                 Description,
                 Content,
                 Organizer,
-                Url,
                 MeetingRoomName,
+                ZoomLink,
                 ImageUrl,
                 IsDisabled,
                 Status
@@ -120,7 +120,7 @@ export const getProgramById = async (
 
     const pool = await poolPromise;
     const result = await pool.request().input("id", id).query(`
-                SELECT ProgramID, ProgramName, Type, Date, Description, Content, Organizer, Url, MeetingRoomName, ImageUrl, IsDisabled, Status
+                SELECT ProgramID, ProgramName, Type, Date, Description, Content, Organizer, MeetingRoomName, ZoomLink, ImageUrl, IsDisabled, Status
                 FROM CommunityProgram
                 WHERE ProgramID = @id AND IsDisabled = 0
             `);
@@ -180,7 +180,6 @@ export async function createProgram(req: Request, res: Response): Promise<void> 
       Description: Description || null,
       Content: Content || null,
       Organizer: Organizer || null,
-      Url: '',
       ImageUrl: ImageUrl || null,
       IsDisabled: IsDisabled || false,
       Status: Status || 'upcoming'
@@ -195,16 +194,16 @@ export async function createProgram(req: Request, res: Response): Promise<void> 
       .input('Description', sql.NVarChar, Description || null)
       .input('Content', sql.NVarChar, Content || null)
       .input('Organizer', sql.NVarChar, Organizer || null)
-      .input('Url', sql.NVarChar, zoomMeeting.join_url)
       .input('MeetingRoomName', sql.NVarChar, zoomMeeting.meeting_id)
+      .input('ZoomLink', sql.NVarChar, zoomMeeting.join_url)
       .input('ImageUrl', sql.NVarChar, ImageUrl || null)
       .input('Status', sql.NVarChar, Status || 'upcoming')
       .input('IsDisabled', sql.Bit, IsDisabled || false)
       .query(`
                 INSERT INTO CommunityProgram 
-                (ProgramName, Type, Date, Description, Content, Organizer, Url, MeetingRoomName, ImageUrl, Status, IsDisabled)
+                (ProgramName, Type, Date, Description, Content, Organizer, MeetingRoomName, ZoomLink, ImageUrl, Status, IsDisabled)
                 OUTPUT INSERTED.ProgramID
-                VALUES (@ProgramName, @Type, @Date, @Description, @Content, @Organizer, @Url, @MeetingRoomName, @ImageUrl, @Status, @IsDisabled)
+                VALUES (@ProgramName, @Type, @Date, @Description, @Content, @Organizer, @MeetingRoomName, @ZoomLink, @ImageUrl, @Status, @IsDisabled)
             `);
     
     const newProgramId = insertResult.recordset[0].ProgramID;
@@ -328,17 +327,22 @@ export async function deleteProgram(req: Request, res: Response): Promise<void> 
     await transaction.begin();
 
     try {
-      // 1. Xóa tất cả attendees của chương trình
+      // 1. Xóa tất cả survey responses liên quan đến chương trình
+      await transaction.request()
+        .input('ProgramId', sql.Int, id)
+        .query('DELETE FROM SurveyResponse WHERE ProgramID = @ProgramId');
+
+      // 2. Xóa tất cả attendees của chương trình
       await transaction.request()
         .input('ProgramId', sql.Int, id)
         .query('DELETE FROM CommunityProgramAttendee WHERE ProgramID = @ProgramId');
 
-      // 2. Xóa tất cả surveys liên quan đến chương trình (nếu có)
+      // 3. Xóa tất cả surveys liên quan đến chương trình (nếu có)
       await transaction.request()
         .input('ProgramId', sql.Int, id)
         .query('DELETE FROM CommunityProgramSurvey WHERE ProgramID = @ProgramId');
 
-      // 3. Xóa chương trình
+      // 4. Xóa chương trình
       await transaction.request()
         .input('Id', sql.Int, id)
         .query('DELETE FROM CommunityProgram WHERE ProgramID = @Id');
@@ -346,7 +350,7 @@ export async function deleteProgram(req: Request, res: Response): Promise<void> 
       // Commit transaction
       await transaction.commit();
 
-      // 4. Xóa Zoom meeting (sau khi đã commit database)
+      // 5. Xóa Zoom meeting (sau khi đã commit database)
       if (meetingId) {
         try {
           await deleteZoomMeeting(meetingId);
@@ -419,6 +423,97 @@ export async function backfillSurveyMappings(req: Request, res: Response): Promi
       success: false,
       message: 'Failed to backfill survey mappings',
       error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+}
+
+/**
+ * Tạo lại link Zoom mới cho chương trình (Admin only)
+ * @route POST /api/program/:id/regenerate-zoom
+ * @access Admin
+ */
+export async function regenerateZoomLink(req: Request, res: Response): Promise<void> {
+  const { id } = req.params;
+  
+  try {
+    const pool = await poolPromise;
+    
+    // Lấy thông tin chương trình hiện tại
+    const programResult = await pool.request()
+      .input('ProgramID', sql.Int, id)
+      .query(`
+        SELECT ProgramID, ProgramName, Date, Description, MeetingRoomName
+        FROM CommunityProgram 
+        WHERE ProgramID = @ProgramID AND IsDisabled = 0
+      `);
+
+    if (programResult.recordset.length === 0) {
+      res.status(404).json({ 
+        success: false, 
+        message: 'Không tìm thấy chương trình' 
+      });
+      return;
+    }
+
+    const program = programResult.recordset[0];
+    
+    // Xóa meeting Zoom cũ nếu có
+    if (program.MeetingRoomName) {
+      try {
+        await deleteZoomMeeting(program.MeetingRoomName);
+        console.log(`Deleted old Zoom meeting: ${program.MeetingRoomName}`);
+      } catch (error) {
+        console.warn('Failed to delete old Zoom meeting:', error);
+        // Tiếp tục tạo meeting mới dù xóa meeting cũ thất bại
+      }
+    }
+
+    // Tạo meeting Zoom mới
+    // Convert Date object to string format that createZoomMeeting expects
+    let dateString: string;
+    if (program.Date instanceof Date) {
+      // Format as YYYY-MM-DD for createZoomMeeting
+      dateString = program.Date.toISOString().split('T')[0];
+    } else {
+      dateString = program.Date;
+    }
+    
+    const programData = {
+      ProgramID: program.ProgramID,
+      ProgramName: program.ProgramName,
+      Date: dateString,
+      Description: program.Description
+    };
+
+    const { join_url, meeting_id } = await createZoomMeeting(programData as CommunityProgram);
+
+    // Cập nhật thông tin Zoom mới vào database
+    await pool.request()
+      .input('ProgramID', sql.Int, id)
+      .input('MeetingRoomName', sql.NVarChar, meeting_id)
+      .input('ZoomLink', sql.NVarChar, join_url)
+      .query(`
+        UPDATE CommunityProgram 
+        SET MeetingRoomName = @MeetingRoomName, ZoomLink = @ZoomLink
+        WHERE ProgramID = @ProgramID
+      `);
+
+    console.log(`Generated new Zoom link for program ${id}: ${join_url}`);
+
+    res.status(200).json({
+      success: true,
+      message: 'Tạo link Zoom mới thành công',
+      data: {
+        meetingId: meeting_id,
+        joinUrl: join_url
+      }
+    });
+
+  } catch (error) {
+    console.error('Error regenerating Zoom link:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Có lỗi xảy ra khi tạo link Zoom mới'
     });
   }
 }

@@ -113,12 +113,11 @@ export interface CommunityProgram {
     Description?: string | null;
     Content?: string | null;
     Organizer?: string | null;
-    Url: string;
     ImageUrl?: string | null;
     IsDisabled: boolean;
     Status: string;
     MeetingRoomName?: string | null;
-    Platform?: string | null;
+    ZoomLink?: string | null;
 }
 export type CommunityProgramAttendee = {
   ProgramID: number;

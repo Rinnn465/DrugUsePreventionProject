@@ -33,12 +33,15 @@ export async function createZoomMeeting(program: CommunityProgram): Promise<{ jo
         // Format date properly for Zoom API (ISO 8601 format)
         let programDate: Date;
         
+        // Assume program.Date is always string (converted in caller)
+        const dateString = program.Date;
+        
         // Check if date is in dd/mm/yyyy format and convert to ISO
-        if (program.Date.includes('/')) {
-            const [day, month, year] = program.Date.split('/');
+        if (dateString.includes('/')) {
+            const [day, month, year] = dateString.split('/');
             programDate = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
         } else {
-            programDate = new Date(program.Date);
+            programDate = new Date(dateString);
         }
         
         // Validate the date

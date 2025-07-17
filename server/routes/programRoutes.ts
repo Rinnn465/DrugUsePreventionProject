@@ -15,6 +15,7 @@ router.delete("/:id", authorizeRoles(["Admin", "Staff"]), programController.dele
 
 // Admin utility routes
 router.post("/backfill-surveys", authorizeRoles(["Admin"]), programController.backfillSurveyMappings);
+router.post("/:id/regenerate-zoom", authorizeRoles(["Admin"]), programController.regenerateZoomLink);
 
 
 export default router;

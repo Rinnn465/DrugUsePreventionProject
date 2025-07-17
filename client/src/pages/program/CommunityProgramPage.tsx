@@ -31,6 +31,15 @@ const CommunityProgramPage: React.FC = () => {
   // Filter logic
   const filteredEvents = useMemo(() => {
     return events.filter(event => {
+      // Hide completed programs for non-enrolled users
+      if (event.Status === 'completed') {
+        const enrollmentStatus = enrollmentStatuses[event.ProgramID];
+        // If user is not enrolled, hide completed programs
+        if (!enrollmentStatus?.isEnrolled) {
+          return false;
+        }
+      }
+
       // Filter by status
       if (selectedStatus !== 'all' && event.Status !== selectedStatus) {
         return false;

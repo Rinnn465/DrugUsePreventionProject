@@ -7,7 +7,8 @@ import {
     Search,
     ChevronDown,
     ArrowLeft,
-    Users
+    Users,
+    RefreshCw
 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { CommunityProgram } from '../../types/CommunityProgram';
@@ -26,6 +27,7 @@ const ProgramManagementPage: React.FC = () => {
     const [selectedProgram, setSelectedProgram] = useState<CommunityProgram | null>(null);
     const [attendees, setAttendees] = useState<any[]>([]);
     const [sendingInvite, setSendingInvite] = useState(false);
+    const [regeneratingZoom, setRegeneratingZoom] = useState(false);
 
     // Form data state
     const [formData, setFormData] = useState({
@@ -126,6 +128,50 @@ const ProgramManagementPage: React.FC = () => {
             toast.error('Có lỗi xảy ra khi gửi lời mời Zoom');
         } finally {
             setSendingInvite(false);
+        }
+    };
+
+    // Regenerate Zoom link for a program
+    const regenerateZoomLink = async (program: CommunityProgram) => {
+        try {
+            setRegeneratingZoom(true);
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/program/${program.ProgramID}/regenerate-zoom`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                toast.success('Tạo link Zoom mới thành công!');
+                
+                // Refresh programs list to get updated Zoom info
+                fetchPrograms();
+                
+                // Fetch fresh program data and update selectedProgram
+                const freshResponse = await fetch(`http://localhost:5000/api/program/${program.ProgramID}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (freshResponse.ok) {
+                    const freshResult = await freshResponse.json();
+                    setSelectedProgram(freshResult.data);
+                }
+            } else {
+                toast.error(result.message || 'Không thể tạo link Zoom mới');
+            }
+        } catch (error) {
+            console.error('Error regenerating Zoom link:', error);
+            toast.error('Có lỗi xảy ra khi tạo link Zoom mới');
+        } finally {
+            setRegeneratingZoom(false);
         }
     };
 
@@ -265,25 +311,82 @@ const ProgramManagementPage: React.FC = () => {
     };
 
     // Open edit modal
-    const openEditModal = (program: CommunityProgram) => {
-        setSelectedProgram(program);
-        // Format date for input type="date" (YYYY-MM-DD format)
-        const programDate = new Date(program.Date);
-        const formattedDate = programDate.toLocaleDateString('en-CA', {
-            timeZone: 'Asia/Ho_Chi_Minh'
-        }); // en-CA gives YYYY-MM-DD format
+    const openEditModal = async (program: CommunityProgram) => {
+        try {
+            // Fetch fresh program data to get latest ZoomLink
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/program/${program.ProgramID}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                const freshProgram = result.data;
+                
+                setSelectedProgram(freshProgram);
+                
+                // Format date for input type="date" (YYYY-MM-DD format)
+                const programDate = new Date(freshProgram.Date);
+                const formattedDate = programDate.toLocaleDateString('en-CA', {
+                    timeZone: 'Asia/Ho_Chi_Minh'
+                }); // en-CA gives YYYY-MM-DD format
+                
+                setFormData({
+                    ProgramName: freshProgram.ProgramName,
+                    Type: freshProgram.Type ?? 'online',
+                    date: formattedDate,
+                    Description: freshProgram.Description ?? '',
+                    Content: freshProgram.Content ?? '',
+                    Organizer: freshProgram.Organizer ?? '',
+                    ImageUrl: freshProgram.ImageUrl ?? '',
+                    Status: freshProgram.Status,
+                    IsDisabled: freshProgram.IsDisabled
+                });
+            } else {
+                // Fallback to original program data if fetch fails
+                setSelectedProgram(program);
+                const programDate = new Date(program.Date);
+                const formattedDate = programDate.toLocaleDateString('en-CA', {
+                    timeZone: 'Asia/Ho_Chi_Minh'
+                });
+                
+                setFormData({
+                    ProgramName: program.ProgramName,
+                    Type: program.Type ?? 'online',
+                    date: formattedDate,
+                    Description: program.Description ?? '',
+                    Content: program.Content ?? '',
+                    Organizer: program.Organizer ?? '',
+                    ImageUrl: program.ImageUrl ?? '',
+                    Status: program.Status,
+                    IsDisabled: program.IsDisabled
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching fresh program data:', error);
+            // Fallback to original program data
+            setSelectedProgram(program);
+            const programDate = new Date(program.Date);
+            const formattedDate = programDate.toLocaleDateString('en-CA', {
+                timeZone: 'Asia/Ho_Chi_Minh'
+            });
+            
+            setFormData({
+                ProgramName: program.ProgramName,
+                Type: program.Type ?? 'online',
+                date: formattedDate,
+                Description: program.Description ?? '',
+                Content: program.Content ?? '',
+                Organizer: program.Organizer ?? '',
+                ImageUrl: program.ImageUrl ?? '',
+                Status: program.Status,
+                IsDisabled: program.IsDisabled
+            });
+        }
         
-        setFormData({
-            ProgramName: program.ProgramName,
-            Type: program.Type ?? 'online',
-            date: formattedDate,
-            Description: program.Description ?? '',
-            Content: program.Content ?? '',
-            Organizer: program.Organizer ?? '',
-            ImageUrl: program.ImageUrl ?? '',
-            Status: program.Status,
-            IsDisabled: program.IsDisabled
-        });
         setShowEditModal(true);
     };
 
@@ -330,7 +433,7 @@ const ProgramManagementPage: React.FC = () => {
         const statusMap = {
             'upcoming': { text: 'Sắp diễn ra', color: 'bg-blue-100 text-blue-800' },
             'ongoing': { text: 'Đang diễn ra', color: 'bg-green-100 text-green-800' },
-            'completed': { text: 'Đã hoàn thành', color: 'bg-gray-100 text-gray-800' }
+            'completed': { text: 'Đã kết thúc', color: 'bg-gray-100 text-gray-800' }
         };
         const statusInfo = statusMap[status as keyof typeof statusMap] || { text: status, color: 'bg-gray-100 text-gray-800' };
         return (
@@ -403,7 +506,7 @@ const ProgramManagementPage: React.FC = () => {
                                 <option value="all">Tất cả trạng thái</option>
                                 <option value="upcoming">Sắp diễn ra</option>
                                 <option value="ongoing">Đang diễn ra</option>
-                                <option value="completed">Đã hoàn thành</option>
+                                <option value="completed">Đã kết thúc</option>
                             </select>
                             <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                         </div>
@@ -458,12 +561,15 @@ const ProgramManagementPage: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {program.Organizer ?? 'Không rõ'}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
-                                            <a href={program.Url} target="_blank" rel="noopener noreferrer">
-                                                Zoom Link
-                                            </a>
-                                        </td>
+                                        </td>                        <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                            {program.ZoomLink ? (
+                                <a href={program.ZoomLink} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                                    Zoom Link
+                                </a>
+                            ) : (
+                                <span className="text-gray-400">Chưa có link</span>
+                            )}
+                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex items-center space-x-2">
                                                 <button
@@ -739,6 +845,50 @@ const ProgramManagementPage: React.FC = () => {
                                         value={formData.Organizer}
                                         onChange={(e) => setFormData({...formData, Organizer: e.target.value})}
                                     />
+                                </div>
+
+                                {/* Zoom Link Section */}
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <label className="block text-sm font-medium text-blue-800">
+                                            Liên kết Zoom Meeting
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => selectedProgram && regenerateZoomLink(selectedProgram)}
+                                            disabled={regeneratingZoom}
+                                            className={`px-3 py-1.5 text-xs font-medium text-white rounded-md transition-colors ${
+                                                regeneratingZoom 
+                                                    ? 'bg-gray-400 cursor-not-allowed' 
+                                                    : 'bg-blue-600 hover:bg-blue-700'
+                                            }`}
+                                        >
+                                            <div className="flex items-center space-x-1">
+                                                <RefreshCw className={`h-3 w-3 ${regeneratingZoom ? 'animate-spin' : ''}`} />
+                                                <span>{regeneratingZoom ? 'Đang tạo...' : 'Tạo link mới'}</span>
+                                            </div>
+                                        </button>
+                                    </div>
+                                    
+                                    <div className="text-xs text-blue-700 bg-blue-100 p-2 rounded">
+                                        <p className="font-medium">Meeting ID: {selectedProgram?.MeetingRoomName || 'Chưa có'}</p>
+                                        <p className="mt-1 break-all">
+                                            Link: {selectedProgram?.ZoomLink ? (
+                                                <a 
+                                                    href={selectedProgram.ZoomLink} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer" 
+                                                    className="text-blue-600 hover:underline"
+                                                >
+                                                    {selectedProgram.ZoomLink}
+                                                </a>
+                                            ) : 'Chưa có'}
+                                        </p>
+                                    </div>
+                                    
+                                    <p className="text-xs text-blue-600 mt-2">
+                                        Nhấn "Tạo link mới" để tạo một meeting Zoom hoàn toàn mới cho chương trình này
+                                    </p>
                                 </div>
 
                                 <div>
