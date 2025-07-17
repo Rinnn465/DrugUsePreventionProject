@@ -101,4 +101,14 @@ router.get("/:programId/:accountId",
     programAttendeeController.getAttendeeById
 );
 
+/**
+ * @route POST /api/program-attendee/send-invite/:programId
+ * @desc Gửi lời mời Zoom cho tất cả người tham gia chương trình
+ * @access Chỉ Admin
+ */
+router.post("/send-invite/:programId", 
+    authorizeRoles(["Admin"]), 
+    programAttendeeController.sendProgramInvitation
+);
+
 export default router;

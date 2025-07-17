@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { sql, poolPromise } from '../config/database';
+import { sendEmail } from './mailController';
+import { programInvitationTemplate } from '../templates/programInvitation';
 
 /**
  * Lấy danh sách tất cả người tham gia các chương trình
@@ -42,7 +44,8 @@ export async function getAttendeesByProgramId(req: Request, res: Response): Prom
                     cpa.*,
                     cp.ProgramName,
                     a.Username,
-                    a.FullName
+                    a.FullName,
+                    a.Email
                 FROM CommunityProgramAttendee cpa
                 INNER JOIN CommunityProgram cp ON cpa.ProgramID = cp.ProgramID
                 INNER JOIN Account a ON cpa.AccountID = a.AccountID
@@ -249,7 +252,6 @@ export async function enrollInProgram(req: Request, res: Response): Promise<void
             `);
 
         res.status(201).json({
-            message: "Successfully enrolled in program",
             programId: programId,
             programName: programCheck.recordset[0].ProgramName,
             status: 'registered',
@@ -321,7 +323,6 @@ export async function unenrollFromProgram(req: Request, res: Response): Promise<
         }
 
         res.status(200).json({
-            message: "Successfully unenrolled from program",
             programId: programId,
             isEnrolled: false,
             status: null,
@@ -423,3 +424,156 @@ export async function getProgramEnrollmentStatistics(req: Request, res: Response
         });
     }
 }
+
+/**
+ * Gửi lời mời Zoom cho tất cả người tham gia một chương trình
+ * @route POST /api/program-attendee/send-invite/:programId
+ * @access Chỉ Admin
+ * @param {Request} req - Request object chứa programId
+ * @param {Response} res - Response object
+ * @returns {Promise<void>} Phản hồi JSON với kết quả gửi email
+ */
+export async function sendProgramInvitation(req: Request, res: Response): Promise<void> {
+    const programId = Number(req.params.programId);
+    
+    try {
+        const pool = await poolPromise;
+        
+        // Lấy thông tin chương trình
+        const programResult = await pool.request()
+            .input('ProgramID', sql.Int, programId)
+            .query(`
+                SELECT 
+                    ProgramName,
+                    [Date] as ProgramDate,
+                    Organizer,
+                    MeetingRoomName,
+                    Status
+                FROM CommunityProgram 
+                WHERE ProgramID = @ProgramID AND IsDisabled = 0
+            `);
+
+        if (programResult.recordset.length === 0) {
+            res.status(404).json({ message: "Không tìm thấy chương trình hoặc chương trình đã bị vô hiệu hóa" });
+            return;
+        }
+
+        const program = programResult.recordset[0];
+
+        // Kiểm tra chương trình đã có Zoom meeting chưa
+        if (!program.MeetingRoomName) {
+            res.status(400).json({ 
+                message: "Chương trình chưa có thông tin Zoom meeting. Vui lòng tạo Zoom meeting trước khi gửi lời mời." 
+            });
+            return;
+        }
+
+        // Lấy danh sách người tham gia với email
+        const attendeesResult = await pool.request()
+            .input('ProgramID', sql.Int, programId)
+            .query(`
+                SELECT 
+                    cpa.AccountID,
+                    a.FullName,
+                    a.Username,
+                    a.Email,
+                    cpa.RegistrationDate
+                FROM CommunityProgramAttendee cpa
+                INNER JOIN Account a ON cpa.AccountID = a.AccountID
+                WHERE cpa.ProgramID = @ProgramID
+                    AND a.Email IS NOT NULL 
+                    AND a.Email != ''
+                    AND a.IsDisabled = 0
+            `);
+
+        const attendees = attendeesResult.recordset;
+
+        if (attendees.length === 0) {
+            res.status(404).json({ 
+                message: "Không tìm thấy người tham gia nào có email hợp lệ cho chương trình này" 
+            });
+            return;
+        }
+
+        // Format ngày giờ
+        const programDate = new Date(program.ProgramDate);
+        const formattedDate = programDate.toLocaleDateString('vi-VN', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        const formattedTime = programDate.toLocaleTimeString('vi-VN', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        // Gửi email cho từng người tham gia
+        const emailPromises = attendees.map(async (attendee) => {
+            try {
+                // Tạo Zoom join URL từ meeting ID
+                const zoomJoinUrl = `https://zoom.us/j/${program.MeetingRoomName}`;
+                
+                const emailData = {
+                    recipientName: attendee.FullName || attendee.Username,
+                    programName: program.ProgramName,
+                    programDate: formattedDate,
+                    programTime: formattedTime,
+                    zoomLink: zoomJoinUrl,
+                    zoomMeetingId: program.MeetingRoomName || 'Chưa có ID',
+                    zoomPasscode: 'Không yêu cầu mật khẩu',
+                    organizerName: program.Organizer || 'Ban tổ chức'
+                };
+
+                const emailContent = programInvitationTemplate(emailData);
+                
+                await sendEmail(
+                    attendee.Email,
+                    `🎯 Lời mời tham gia: ${program.ProgramName}`,
+                    emailContent
+                );
+
+                return { 
+                    success: true, 
+                    email: attendee.Email, 
+                    name: attendee.FullName || attendee.Username
+                };
+            } catch (error) {
+                console.error(`Lỗi gửi email cho ${attendee.Email}:`, error);
+                return { 
+                    success: false, 
+                    email: attendee.Email, 
+                    name: attendee.FullName || attendee.Username,
+                    error: error instanceof Error ? error.message : 'Lỗi không xác định'
+                };
+            }
+        });
+
+        // Chờ tất cả email được gửi
+        const results = await Promise.all(emailPromises);
+        
+        const successCount = results.filter(r => r.success).length;
+        const failCount = results.filter(r => !r.success).length;
+        const failedEmails = results.filter(r => !r.success);
+        
+        res.status(200).json({
+            message: `Đã gửi lời mời thành công cho ${successCount}/${attendees.length} người tham gia`,
+            summary: {
+                total: attendees.length,
+                success: successCount,
+                failed: failCount,
+                programName: program.ProgramName,
+                programStatus: program.Status
+            },
+            failedEmails: failedEmails.length > 0 ? failedEmails : undefined
+        });
+
+    } catch (err) {
+        console.error('Lỗi trong sendProgramInvitation:', err);
+        res.status(500).json({ 
+            message: "Lỗi server khi gửi lời mời",
+            error: err instanceof Error ? err.message : 'Lỗi không xác định'
+        });
+    }
+}
+
