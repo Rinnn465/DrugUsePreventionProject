@@ -25,4 +25,7 @@ router.get("/:id", authorizeRoles(["Member", "Consultant", "Admin"]), accountCon
 // Delete account (Admin only)
 router.delete("/:id", authorizeRoles(["Admin"]), accountController.deleteAccount);
 
+// Thống kê tổng số tài khoản (Admin only)
+router.get("/statistics/count", authorizeRoles(["Admin"]), accountController.getAccountCountStatistic);
+
 export default router;

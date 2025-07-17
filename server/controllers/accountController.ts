@@ -1,3 +1,14 @@
+// Thống kê tổng số tài khoản
+export const getAccountCountStatistic = async (req: Request, res: Response) => {
+  try {
+    const pool = await poolPromise;
+    const result = await pool.request().query("SELECT COUNT(*) as total FROM Account");
+    res.json({ total: result.recordset[0].total });
+  } catch (err: any) {
+    console.error("Lỗi khi thống kê tổng số tài khoản:", err.message);
+    res.status(500).json({ error: "Lỗi server" });
+  }
+};
 import { NextFunction, Request, Response } from "express";
 import { poolPromise, sql } from "../config/database";
 import { Account } from "../types/type";

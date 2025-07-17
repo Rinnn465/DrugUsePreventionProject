@@ -9,9 +9,9 @@ router.get("/", programController.getAllPrograms);
 router.get("/:id", programController.getProgramById);
 
 // Admin routes - Quản lý chương trình
-router.post("/", authorizeRoles(["Admin"]), programController.createProgram);
-router.put("/:id", authorizeRoles(["Admin"]), programController.updateProgram);
-router.delete("/:id", authorizeRoles(["Admin"]), programController.deleteProgram);
+router.post("/", authorizeRoles(["Admin", "Staff"]), programController.createProgram);
+router.put("/:id", authorizeRoles(["Admin", "Staff"]), programController.updateProgram);
+router.delete("/:id", authorizeRoles(["Admin", "Staff"]), programController.deleteProgram);
 
 // Admin utility routes
 router.post("/backfill-surveys", authorizeRoles(["Admin"]), programController.backfillSurveyMappings);
