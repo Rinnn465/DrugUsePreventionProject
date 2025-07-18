@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUser } from "../../context/UserContext";
 import { 
@@ -43,37 +43,93 @@ const AdminPage: React.FC = () => {
         }
     ];
 
-    // Stats thực tế với ý nghĩa
-    const statsData = [
+
+    
+    // Stats thực tế với ý nghĩa (dữ liệu động từ API)
+    const [statsData, setStatsData] = useState([
         {
-            title: "Tổng người dùng", 
-            value: "1,234",
-            change: "+12%",
+            title: "Tổng người dùng",
+            value: "-",
+            change: "",
             icon: Users,
             color: "bg-blue-500"
         },
         {
-            title: "Khóa học hoạt động",
-            value: "45", 
-            change: "+8%",
+            title: "Tổng lượt đăng ký khóa học",
+            value: "-",
+            change: "",
             icon: BookOpen,
             color: "bg-green-500"
         },
         {
-            title: "Sự kiện tháng này",
-            value: "23",
-            change: "+15%", 
+            title: "Tổng lượt tham gia chương trình",
+            value: "-",
+            change: "",
             icon: Calendar,
             color: "bg-purple-500"
         },
         {
-            title: "Tỷ lệ hoàn thành",
-            value: "87%",
-            change: "+3%",
-            icon: TrendingUp, 
+            title: "Tỷ lệ hoàn thành khóa học",
+            value: "-",
+            change: "",
+            icon: TrendingUp,
             color: "bg-orange-500"
         }
-    ];
+    ]);
+
+    useEffect(() => {
+        async function fetchStats() {
+            try {
+                const token = localStorage.getItem("token");
+                const headers: Record<string, string> = token ? { "Authorization": `Bearer ${token}` } : {};
+                // Gọi các API thống kê
+                const [userRes, courseEnrollRes, programEnrollRes, courseCompletionRes] = await Promise.all([
+                    fetch("http://localhost:5000/api/account/statistics/count", { headers }),
+                    fetch("http://localhost:5000/api/course/statistics/total-enrollment", { headers }),
+                    fetch("http://localhost:5000/api/program-attendee/statistics/enroll", { headers }),
+                    fetch("http://localhost:5000/api/course/statistics/total-completion-rate", { headers })
+                ]);
+                const userData = await userRes.json();
+                const courseEnrollData = await courseEnrollRes.json();
+                const programEnrollData = await programEnrollRes.json();
+                const courseCompletionData = await courseCompletionRes.json();
+
+                setStatsData([
+                    {
+                        title: "Tổng người dùng",
+                        value: userData.total || "-",
+                        change: "+0%",
+                        icon: Users,
+                        color: "bg-blue-500"
+                    },
+                    {
+                        title: "Tổng lượt đăng ký khóa học",
+                        value: courseEnrollData.totalEnrollment || "-",
+                        change: "+0%",
+                        icon: BookOpen,
+                        color: "bg-green-500"
+                    },
+                    {
+                        title: "Tổng lượt tham gia chương trình",
+                        value: programEnrollData.data ? programEnrollData.data.reduce((sum: number, p: any) => sum + (p.EnrollCount || 0), 0) : "-",
+                        change: "+0%",
+                        icon: Calendar,
+                        color: "bg-purple-500"
+                    },
+                    {
+                        title: "Tỷ lệ hoàn thành khóa học",
+                        value: courseCompletionData.completionRate ? `${(courseCompletionData.completionRate * 100).toFixed(2)}%` : "-",
+                        change: "+0%",
+                        icon: TrendingUp,
+                        color: "bg-orange-500"
+                    }
+                ]);
+            } catch (error) {
+                // Nếu lỗi, giữ nguyên stats mặc định
+            }
+        }
+        fetchStats();
+    }, []);
 
     const handleLogout = () => {
         fetch('http://localhost:5000/api/auth/logout', {
@@ -256,4 +312,4 @@ const AdminPage: React.FC = () => {
     );
 };
 
-export default AdminPage; 
+export default AdminPage;

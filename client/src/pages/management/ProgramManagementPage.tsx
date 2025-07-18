@@ -6,10 +6,13 @@ import {
     Calendar,
     Search,
     ChevronDown,
-    ArrowLeft
+    ArrowLeft,
+    Users,
+    RefreshCw
 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { CommunityProgram } from '../../types/CommunityProgram';
+import { toast } from 'react-toastify';
 
 const ProgramManagementPage: React.FC = () => {
     const { userId } = useParams();
@@ -19,8 +22,12 @@ const ProgramManagementPage: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState('all');
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [selectedProgram, setSelectedProgram] = useState<CommunityProgram | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showAttendeesModal, setShowAttendeesModal] = useState(false);
+    const [selectedProgram, setSelectedProgram] = useState<CommunityProgram | null>(null);
+    const [attendees, setAttendees] = useState<any[]>([]);
+    const [sendingInvite, setSendingInvite] = useState(false);
+    const [regeneratingZoom, setRegeneratingZoom] = useState(false);
 
     // Form data state
     const [formData, setFormData] = useState({
@@ -30,7 +37,6 @@ const ProgramManagementPage: React.FC = () => {
         Description: '',
         Content: '',
         Organizer: '',
-        Url: '',
         ImageUrl: '',
         Status: 'upcoming',
         IsDisabled: false
@@ -52,12 +58,120 @@ const ProgramManagementPage: React.FC = () => {
                 const result = await response.json();
                 setPrograms(result.data ?? []);
             } else {
-                console.error('Failed to fetch programs');
+                toast.error('Không thể tải danh sách chương trình');
             }
         } catch (error) {
             console.error('Error fetching programs:', error);
+            toast.error('Có lỗi xảy ra khi tải chương trình');
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Fetch attendees for a program
+    const fetchAttendees = async (programId: number) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/program-attendee/program/${programId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                setAttendees(result);
+            } else {
+                toast.error('Không thể tải danh sách người tham gia');
+            }
+        } catch (error) {
+            console.error('Error fetching attendees:', error);
+            toast.error('Có lỗi xảy ra khi tải danh sách người tham gia');
+        }
+    };
+
+    // Send Zoom invite to all attendees
+    const sendZoomInvite = async (program: CommunityProgram) => {
+        try {
+            setSendingInvite(true);
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/program-attendee/send-invite/${program.ProgramID}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                const { summary } = result;
+                if (summary.failed > 0) {
+                    toast.success(`Đã gửi lời mời cho ${summary.success}/${summary.total} người tham gia. ${summary.failed} email gửi thất bại.`, {
+                        autoClose: 5000
+                    });
+                } else {
+                    toast.success(`Gửi lời mời thành công cho tất cả ${summary.success} người tham gia!`);
+                }
+                
+                // Refresh attendees list
+                if (selectedProgram) {
+                    fetchAttendees(selectedProgram.ProgramID);
+                }
+            } else {
+                toast.error(result.message || 'Không thể gửi lời mời Zoom');
+            }
+        } catch (error) {
+            console.error('Error sending Zoom invite:', error);
+            toast.error('Có lỗi xảy ra khi gửi lời mời Zoom');
+        } finally {
+            setSendingInvite(false);
+        }
+    };
+
+    // Regenerate Zoom link for a program
+    const regenerateZoomLink = async (program: CommunityProgram) => {
+        try {
+            setRegeneratingZoom(true);
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/program/${program.ProgramID}/regenerate-zoom`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                toast.success('Tạo link Zoom mới thành công!');
+                
+                // Refresh programs list to get updated Zoom info
+                fetchPrograms();
+                
+                // Fetch fresh program data and update selectedProgram
+                const freshResponse = await fetch(`http://localhost:5000/api/program/${program.ProgramID}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (freshResponse.ok) {
+                    const freshResult = await freshResponse.json();
+                    setSelectedProgram(freshResult.data);
+                }
+            } else {
+                toast.error(result.message || 'Không thể tạo link Zoom mới');
+            }
+        } catch (error) {
+            console.error('Error regenerating Zoom link:', error);
+            toast.error('Có lỗi xảy ra khi tạo link Zoom mới');
+        } finally {
+            setRegeneratingZoom(false);
         }
     };
 
@@ -65,10 +179,31 @@ const ProgramManagementPage: React.FC = () => {
         fetchPrograms();
     }, []);
 
+    // Validate date is not in the past
+    const validateDate = (dateString: string): boolean => {
+        if (!dateString) return false;
+        
+        // Date picker returns YYYY-MM-DD format
+        const selectedDate = new Date(dateString);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        selectedDate.setHours(0, 0, 0, 0);
+        
+        return selectedDate >= today;
+    };
+
     // Create program
     const handleCreateProgram = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Validate date
+        if (!validateDate(formData.date)) {
+            toast.error('Không thể tạo chương trình với ngày trong quá khứ. Vui lòng chọn ngày từ hôm nay trở đi.');
+            return;
+        }
+        
         try {
+            // Form data already in YYYY-MM-DD format from date picker
             const token = localStorage.getItem('token');
             const response = await fetch('http://localhost:5000/api/program', {
                 method: 'POST',
@@ -83,13 +218,14 @@ const ProgramManagementPage: React.FC = () => {
                 setShowCreateModal(false);
                 resetForm();
                 fetchPrograms();
-                alert('Tạo chương trình thành công!');
+                toast.success('Tạo chương trình thành công!');
             } else {
-                alert('Có lỗi xảy ra khi tạo chương trình');
+                const errorData = await response.json();
+                toast.error(errorData.message || 'Có lỗi xảy ra khi tạo chương trình');
             }
         } catch (error) {
             console.error('Error creating program:', error);
-            alert('Có lỗi xảy ra khi tạo chương trình');
+            toast.error('Có lỗi xảy ra khi tạo chương trình');
         }
     };
 
@@ -97,6 +233,12 @@ const ProgramManagementPage: React.FC = () => {
     const handleUpdateProgram = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedProgram) return;
+
+        // Validate date
+        if (!validateDate(formData.date)) {
+            toast.error('Không thể cập nhật chương trình với ngày trong quá khứ. Vui lòng chọn ngày từ hôm nay trở đi.');
+            return;
+        }
 
         try {
             const token = localStorage.getItem('token');
@@ -114,13 +256,14 @@ const ProgramManagementPage: React.FC = () => {
                 setSelectedProgram(null);
                 resetForm();
                 fetchPrograms();
-                alert('Cập nhật chương trình thành công!');
+                toast.success('Cập nhật chương trình thành công!');
             } else {
-                alert('Có lỗi xảy ra khi cập nhật chương trình');
+                const errorData = await response.json();
+                toast.error(errorData.message || 'Có lỗi xảy ra khi cập nhật chương trình');
             }
         } catch (error) {
             console.error('Error updating program:', error);
-            alert('Có lỗi xảy ra khi cập nhật chương trình');
+            toast.error('Có lỗi xảy ra khi cập nhật chương trình');
         }
     };
 
@@ -142,15 +285,13 @@ const ProgramManagementPage: React.FC = () => {
                 setShowDeleteModal(false);
                 setSelectedProgram(null);
                 fetchPrograms();
-                alert('Xóa chương trình thành công!');
+                toast.success('Xóa chương trình thành công!');
             } else {
-                const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-                console.error('Delete failed:', response.status, errorData);
-                alert(`Có lỗi xảy ra khi xóa chương trình: ${errorData.message ?? 'Unknown error'}`);
+                toast.error(`Có lỗi xảy ra khi xóa chương trình`);
             }
         } catch (error) {
             console.error('Error deleting program:', error);
-            alert('Có lỗi xảy ra khi xóa chương trình');
+            toast.error('Có lỗi xảy ra khi xóa chương trình');
         }
     };
 
@@ -163,7 +304,6 @@ const ProgramManagementPage: React.FC = () => {
             Description: '',
             Content: '',
             Organizer: '',
-            Url: '',
             ImageUrl: '',
             Status: 'upcoming',
             IsDisabled: false
@@ -171,21 +311,90 @@ const ProgramManagementPage: React.FC = () => {
     };
 
     // Open edit modal
-    const openEditModal = (program: CommunityProgram) => {
-        setSelectedProgram(program);
-        setFormData({
-            ProgramName: program.ProgramName,
-            Type: program.Type ?? 'online',
-            date: program.Date.split('T')[0], // Format date for input
-            Description: program.Description ?? '',
-            Content: program.Content ?? '',
-            Organizer: program.Organizer ?? '',
-            Url: program.Url,
-            ImageUrl: program.ImageUrl ?? '',
-            Status: program.Status,
-            IsDisabled: program.IsDisabled
-        });
+    const openEditModal = async (program: CommunityProgram) => {
+        try {
+            // Fetch fresh program data to get latest ZoomLink
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/program/${program.ProgramID}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                const freshProgram = result.data;
+                
+                setSelectedProgram(freshProgram);
+                
+                // Format date for input type="date" (YYYY-MM-DD format)
+                const programDate = new Date(freshProgram.Date);
+                const formattedDate = programDate.toLocaleDateString('en-CA', {
+                    timeZone: 'Asia/Ho_Chi_Minh'
+                }); // en-CA gives YYYY-MM-DD format
+                
+                setFormData({
+                    ProgramName: freshProgram.ProgramName,
+                    Type: freshProgram.Type ?? 'online',
+                    date: formattedDate,
+                    Description: freshProgram.Description ?? '',
+                    Content: freshProgram.Content ?? '',
+                    Organizer: freshProgram.Organizer ?? '',
+                    ImageUrl: freshProgram.ImageUrl ?? '',
+                    Status: freshProgram.Status,
+                    IsDisabled: freshProgram.IsDisabled
+                });
+            } else {
+                // Fallback to original program data if fetch fails
+                setSelectedProgram(program);
+                const programDate = new Date(program.Date);
+                const formattedDate = programDate.toLocaleDateString('en-CA', {
+                    timeZone: 'Asia/Ho_Chi_Minh'
+                });
+                
+                setFormData({
+                    ProgramName: program.ProgramName,
+                    Type: program.Type ?? 'online',
+                    date: formattedDate,
+                    Description: program.Description ?? '',
+                    Content: program.Content ?? '',
+                    Organizer: program.Organizer ?? '',
+                    ImageUrl: program.ImageUrl ?? '',
+                    Status: program.Status,
+                    IsDisabled: program.IsDisabled
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching fresh program data:', error);
+            // Fallback to original program data
+            setSelectedProgram(program);
+            const programDate = new Date(program.Date);
+            const formattedDate = programDate.toLocaleDateString('en-CA', {
+                timeZone: 'Asia/Ho_Chi_Minh'
+            });
+            
+            setFormData({
+                ProgramName: program.ProgramName,
+                Type: program.Type ?? 'online',
+                date: formattedDate,
+                Description: program.Description ?? '',
+                Content: program.Content ?? '',
+                Organizer: program.Organizer ?? '',
+                ImageUrl: program.ImageUrl ?? '',
+                Status: program.Status,
+                IsDisabled: program.IsDisabled
+            });
+        }
+        
         setShowEditModal(true);
+    };
+
+    // Open attendees modal
+    const openAttendeesModal = (program: CommunityProgram) => {
+        setSelectedProgram(program);
+        fetchAttendees(program.ProgramID);
+        setShowAttendeesModal(true);
     };
 
     // Filter programs
@@ -199,7 +408,14 @@ const ProgramManagementPage: React.FC = () => {
 
     // Format date
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('vi-VN');
+        const date = new Date(dateString);
+        // Format theo múi giờ Việt Nam với định dạng dd/mm/yyyy
+        return date.toLocaleDateString('en-GB', {
+            timeZone: 'Asia/Ho_Chi_Minh',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
     };
 
     // Get type display text
@@ -217,7 +433,7 @@ const ProgramManagementPage: React.FC = () => {
         const statusMap = {
             'upcoming': { text: 'Sắp diễn ra', color: 'bg-blue-100 text-blue-800' },
             'ongoing': { text: 'Đang diễn ra', color: 'bg-green-100 text-green-800' },
-            'completed': { text: 'Đã hoàn thành', color: 'bg-gray-100 text-gray-800' }
+            'completed': { text: 'Đã kết thúc', color: 'bg-gray-100 text-gray-800' }
         };
         const statusInfo = statusMap[status as keyof typeof statusMap] || { text: status, color: 'bg-gray-100 text-gray-800' };
         return (
@@ -290,7 +506,7 @@ const ProgramManagementPage: React.FC = () => {
                                 <option value="all">Tất cả trạng thái</option>
                                 <option value="upcoming">Sắp diễn ra</option>
                                 <option value="ongoing">Đang diễn ra</option>
-                                <option value="completed">Đã hoàn thành</option>
+                                <option value="completed">Đã kết thúc</option>
                             </select>
                             <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                         </div>
@@ -308,6 +524,7 @@ const ProgramManagementPage: React.FC = () => {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày diễn ra</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Người tổ chức</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Zoom Link</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
                                 </tr>
                             </thead>
@@ -344,9 +561,23 @@ const ProgramManagementPage: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {program.Organizer ?? 'Không rõ'}
-                                        </td>
+                                        </td>                        <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                            {program.ZoomLink ? (
+                                <a href={program.ZoomLink} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                                    Zoom Link
+                                </a>
+                            ) : (
+                                <span className="text-gray-400">Chưa có link</span>
+                            )}
+                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex items-center space-x-2">
+                                                <button
+                                                    onClick={() => openAttendeesModal(program)}
+                                                    className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                                                >
+                                                    <Users className="h-4 w-4" />
+                                                </button>
                                                 <button
                                                     onClick={() => openEditModal(program)}
                                                     className="text-indigo-600 hover:text-indigo-900 p-1 rounded"
@@ -433,16 +664,14 @@ const ProgramManagementPage: React.FC = () => {
                                         <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
                                             Trạng thái
                                         </label>
-                                        <select
+                                        <input
                                             id="status"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                            value={formData.Status}
-                                            onChange={(e) => setFormData({...formData, Status: e.target.value})}
-                                        >
-                                            <option value="upcoming">Sắp diễn ra</option>
-                                            <option value="ongoing">Đang diễn ra</option>
-                                            <option value="completed">Đã kết thúc</option>
-                                        </select>
+                                            type="text"
+                                            disabled
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 cursor-not-allowed"
+                                            value="Sắp diễn ra"
+                                            readOnly
+                                        />
                                     </div>
                                 </div>
 
@@ -454,6 +683,7 @@ const ProgramManagementPage: React.FC = () => {
                                         id="date"
                                         type="date"
                                         required
+                                        min={new Date().toISOString().split('T')[0]} // Không cho chọn ngày quá khứ
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                         value={formData.date}
                                         onChange={(e) => setFormData({...formData, date: e.target.value})}
@@ -470,20 +700,6 @@ const ProgramManagementPage: React.FC = () => {
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                         value={formData.Organizer}
                                         onChange={(e) => setFormData({...formData, Organizer: e.target.value})}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="url" className="block text-sm font-medium text-gray-700 mb-1">
-                                        URL/Link *
-                                    </label>
-                                    <input
-                                        id="url"
-                                        type="url"
-                                        required
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        value={formData.Url}
-                                        onChange={(e) => setFormData({...formData, Url: e.target.value})}
                                     />
                                 </div>
 
@@ -598,7 +814,7 @@ const ProgramManagementPage: React.FC = () => {
                                         >
                                             <option value="upcoming">Sắp diễn ra</option>
                                             <option value="ongoing">Đang diễn ra</option>
-                                            <option value="completed">Đã hoàn thành</option>
+                                            <option value="completed">Đã kết thúc</option>
                                         </select>
                                     </div>
                                 </div>
@@ -611,6 +827,7 @@ const ProgramManagementPage: React.FC = () => {
                                         id="editDate"
                                         type="date"
                                         required
+                                        min={new Date().toISOString().split('T')[0]} // Không cho chọn ngày quá khứ
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                         value={formData.date}
                                         onChange={(e) => setFormData({...formData, date: e.target.value})}
@@ -630,18 +847,48 @@ const ProgramManagementPage: React.FC = () => {
                                     />
                                 </div>
 
-                                <div>
-                                    <label htmlFor="editUrl" className="block text-sm font-medium text-gray-700 mb-1">
-                                        URL/Link *
-                                    </label>
-                                    <input
-                                        id="editUrl"
-                                        type="url"
-                                        required
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        value={formData.Url}
-                                        onChange={(e) => setFormData({...formData, Url: e.target.value})}
-                                    />
+                                {/* Zoom Link Section */}
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <label className="block text-sm font-medium text-blue-800">
+                                            Liên kết Zoom Meeting
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => selectedProgram && regenerateZoomLink(selectedProgram)}
+                                            disabled={regeneratingZoom}
+                                            className={`px-3 py-1.5 text-xs font-medium text-white rounded-md transition-colors ${
+                                                regeneratingZoom 
+                                                    ? 'bg-gray-400 cursor-not-allowed' 
+                                                    : 'bg-blue-600 hover:bg-blue-700'
+                                            }`}
+                                        >
+                                            <div className="flex items-center space-x-1">
+                                                <RefreshCw className={`h-3 w-3 ${regeneratingZoom ? 'animate-spin' : ''}`} />
+                                                <span>{regeneratingZoom ? 'Đang tạo...' : 'Tạo link mới'}</span>
+                                            </div>
+                                        </button>
+                                    </div>
+                                    
+                                    <div className="text-xs text-blue-700 bg-blue-100 p-2 rounded">
+                                        <p className="font-medium">Meeting ID: {selectedProgram?.MeetingRoomName || 'Chưa có'}</p>
+                                        <p className="mt-1 break-all">
+                                            Link: {selectedProgram?.ZoomLink ? (
+                                                <a 
+                                                    href={selectedProgram.ZoomLink} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer" 
+                                                    className="text-blue-600 hover:underline"
+                                                >
+                                                    {selectedProgram.ZoomLink}
+                                                </a>
+                                            ) : 'Chưa có'}
+                                        </p>
+                                    </div>
+                                    
+                                    <p className="text-xs text-blue-600 mt-2">
+                                        Nhấn "Tạo link mới" để tạo một meeting Zoom hoàn toàn mới cho chương trình này
+                                    </p>
                                 </div>
 
                                 <div>
@@ -738,6 +985,84 @@ const ProgramManagementPage: React.FC = () => {
                                     className="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md hover:bg-red-700"
                                 >
                                     Xóa
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Attendees Modal */}
+            {showAttendeesModal && selectedProgram && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+                        <div className="mt-3">
+                            <h3 className="text-lg font-medium text-gray-900 mb-4">
+                                Danh sách người tham gia: {selectedProgram.ProgramName}
+                            </h3>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày đăng ký</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {attendees.map((attendee) => (
+                                            <tr key={`${attendee.ProgramID}-${attendee.AccountID}`}>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{attendee.FullName}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{attendee.Username}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {attendee.Email ? (
+                                                        <span className="text-green-600">{attendee.Email}</span>
+                                                    ) : (
+                                                        <span className="text-red-500">Chưa có email</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {formatDate(attendee.RegistrationDate)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{attendee.Status}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div className="flex justify-end space-x-3 pt-4">
+                                <button
+                                    onClick={() => {
+                                        setShowAttendeesModal(false);
+                                        setSelectedProgram(null);
+                                        setAttendees([]);
+                                    }}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                                >
+                                    Đóng
+                                </button>
+                                <button
+                                    onClick={() => sendZoomInvite(selectedProgram)}
+                                    disabled={sendingInvite}
+                                    className={`px-4 py-2 text-sm font-medium text-white rounded-md ${
+                                        sendingInvite 
+                                            ? 'bg-gray-400 cursor-not-allowed' 
+                                            : 'bg-green-600 hover:bg-green-700'
+                                    }`}
+                                >
+                                    {sendingInvite ? (
+                                        <div className="flex items-center">
+                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Đang gửi...
+                                        </div>
+                                    ) : (
+                                        'Gửi lại lời mời Zoom'
+                                    )}
                                 </button>
                             </div>
                         </div>

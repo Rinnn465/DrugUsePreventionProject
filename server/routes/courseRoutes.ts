@@ -123,4 +123,32 @@ router.get("/:courseId/lessons/:lessonId/enrollment-status/:accountId", lessonCo
 router.post("/lesson/:lessonId/enroll/:accountId", authorizeRoles(["Member", "Consultant", "Admin", "Staff", "Manager"]), lessonController.lessonEnroll);
 
 
+/**
+ * @route GET /api/course/statistics/enroll
+ * @desc Thống kê số người tham gia từng khóa học
+ * @access Chỉ Admin, Staff, Manager
+ */
+router.get("/statistics/enroll", authorizeRoles(["Admin"]), courseController.getCourseEnrollmentStatistics);
+
+/**
+ * @route GET /api/course/statistics/completion-rate
+ * @desc Thống kê tỷ lệ số người hoàn thành trên tổng số người tham gia từng khóa học
+ * @access Chỉ Admin
+ */
+router.get("/statistics/completion-rate", authorizeRoles(["Admin"]), courseController.getCourseCompletionRateStatistics);
+
+/**
+ * @route GET /api/course/statistics/total-enrollment
+ * @desc Thống kê tổng số lượt đăng ký khóa học
+ * @access Chỉ Admin
+ */
+router.get("/statistics/total-enrollment", authorizeRoles(["Admin"]), courseController.getAllCourseEnrollmentStatistic);
+
+/**
+ * @route GET /api/course/statistics/total-completion-rate
+ * @desc Thống kê tỷ lệ hoàn thành toàn bộ khóa học
+ * @access Chỉ Admin
+ */
+router.get("/statistics/total-completion-rate", authorizeRoles(["Admin"]), courseController.getTotalCompletionRateStatistic);
+
 export default router;

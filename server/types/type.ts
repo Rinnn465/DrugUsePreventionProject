@@ -106,18 +106,19 @@ export type Article = {
   IsDisabled: boolean;
 };
 export interface CommunityProgram {
-  ProgramID: number;
-  ProgramName: string;
-  Type?: string; // 'online'
-  Date: string; // ISO date string
-  Description?: string | null;
-  Content?: string | null;
-  Organizer?: string | null;
-  Url: string;
-  ImageUrl?: string | null;
-  IsDisabled: boolean;
-  Status: string; // 'upcoming' | 'ongoing' | 'completed'
-};
+    ProgramID: number;
+    ProgramName: string;
+    Type?: string;
+    Date: string;
+    Description?: string | null;
+    Content?: string | null;
+    Organizer?: string | null;
+    ImageUrl?: string | null;
+    IsDisabled: boolean;
+    Status: string;
+    MeetingRoomName?: string | null;
+    ZoomLink?: string | null;
+}
 export type CommunityProgramAttendee = {
   ProgramID: number;
   AccountID: number;
@@ -157,4 +158,12 @@ export type MailOptions = {
   to: string;       // Recipient email address
   subject: string;  // Email subject line
   html: string;     // HTML content of the email
+};
+export type AssessmentResults = {
+  ResultID: number;
+  AccountID: number;
+  AssessmentID: number;
+  Score: number;
+  RiskLevel: string;
+  CreatedAt: Date; // ISO datetime string
 };

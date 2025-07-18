@@ -84,10 +84,18 @@ const Header: React.FC<HeaderProps> = () => {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo - Góc trái */}
         <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-          <span className="inline-block h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
-            <Heart className="h-5 w-5 text-primary-600" />
+          <img src="https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTLFPT58fX7sVohy3WtSqNYrSG_5zRW40un3P3F8wTG2Hio010z" alt="Logo" className="h-12 w-12 rounded-full bg-white object-contain" />
+          <span
+            className="font-bold text-2xl tracking-wider"
+            style={{
+              fontFamily: "'Montserrat', sans-serif",
+              letterSpacing: '0.08em',
+              textShadow: '0 2px 8px rgba(59,130,246,0.10)',
+              color: '#2563eb'
+            }}
+          >
+            Klean Life
           </span>
-          <span className="font-bold text-2xl text-primary-700 tracking-wide">DrugPrevention</span>
         </Link>
 
         {/* Menu điều hướng - Giữa */}

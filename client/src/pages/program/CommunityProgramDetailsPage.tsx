@@ -338,7 +338,7 @@ const CommunityProgramDetails: React.FC = () => {
         };
       case 'completed':
         return {
-          text: 'Đã hoàn thành',
+          text: 'Đã kết thúc',
           bgColor: 'bg-gray-100',
           textColor: 'text-gray-800',
           icon: CheckCircle
@@ -487,7 +487,7 @@ const CommunityProgramDetails: React.FC = () => {
                   {programData.Status === 'completed' ? (
                     <div className="text-center p-6 bg-gray-50 rounded-xl">
                       <CheckCircle className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                      <p className="text-gray-600 font-medium">Chương trình đã hoàn thành</p>
+                      <p className="text-gray-600 font-medium">Chương trình đã kết thúc</p>
                     </div>
                   ) : !enrollmentStatus?.isEnrolled ? (
                     <button

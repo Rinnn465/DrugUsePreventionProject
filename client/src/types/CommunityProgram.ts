@@ -6,10 +6,11 @@ export interface CommunityProgram {
     Description?: string | null;
     Content ?: string | null;
     Organizer?: string | null;
-    Url: string;
     ImageUrl?: string | null;
     IsDisabled: boolean;
     Status: string; // 'upcoming' | 'ongoing' | 'completed'
+    MeetingRoomName?: string | null; // Zoom Meeting ID
+    ZoomLink?: string | null; // Zoom Join URL
 };
 
 export interface EnrollmentStatus {
