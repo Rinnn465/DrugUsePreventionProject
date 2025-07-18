@@ -1,60 +1,63 @@
 <body>
 
 <h1>Drug Use Prevention Platform</h1>
-<h2>Phần mềm hỗ trợ phòng ngừa sử dụng ma túy</h2>
 
-<h2>Mô tả</h2>
+<div>
+  <h2>Table of contents</h3>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+  </ul>
+  <ul>
+    <li><a href="#feature">Features</a></li>
+  </ul>
+  <ul>
+    <li><a href="#cong-nghe-su-dung">System architecture</a></li>
+  </ul>
+  <ul>
+    <li><a href="#cong-nghe-su-dung">Setup and installation</a></li>
+  </ul>
+  <ul>
+    <li><a href="#cong-nghe-su-dung">Running application</a></li>
+  </ul>
+  <ul>
+    <li><a href="#cong-nghe-su-dung">Frontend details</a></li>
+  </ul>
+  <ul>
+    <li><a href="#cong-nghe-su-dung">Backend details</a></li>
+  </ul>
+  <ul>
+    <li><a href="#cong-nghe-su-dung">License</a></li>
+  </ul>
+</div>
 
-<p>
-  Trước hiện trạng độ tuổi sử dụng ma túy đang bắt đầu trẻ hóa một cách nhanh chóng, chúng em quyết định tạo nên một nền tảng web nơi 
-  mọi người có thể tìm hiểu thêm về tác hại của ma túy, đồng thời thực hiện các bài trắc nghiệm nhằm đánh giá nguy cơ sử dụng ma túy của một cá nhân. 
-  Bên cạnh đó, nền tảng của chúng em còn cung cấp cho người dùng các khóa học miễn phí về ngăn ngừa sử dụng ma túy, cơ hội gặp gỡ và trò chuyện 
-  với các chuyên gia nhằm giải đáp các vấn đề xoay quanh việc sử dụng ma túy.
-</p>
 
-<h3>Mục lục</h3>
+<div>
 
-<ul>
-  <li><a href="#cong-nghe-su-dung">Công nghệ sử dụng</a></li>
-</ul>
+  <h2 id="overview">Overview</h3>
+  <p>
+    With the current situation of the age of drug use starting to get younger rapidly, we decided to create a web platform where
+    people can learn more about the harmful effects of drugs, and take quizzes to assess an individual's risk of drug use.
+    In addition, our platform also provides users with free courses on drug use prevention, opportunities to meet and chat
+    with experts to answer questions surrounding drug use.
+  </p>
 
-<!-- Filler content for testing scroll -->
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
-<div>gsggs</div>
+  <h1></h1>
+  
+  <h2 id="feature">Features</h3>
+  <div>
+      <b>Educational courses:</b> 
+      <span>Members partcipating in the system's courses may gain access to comprehensive lessons as well as final exams at the end of every course.</span>
+      <div></div>
+      <b>Online consultation:</b>
+      <span>Our system offers online meetings with professional consultants in drug use prevention field.</span>
+      <div></div>
+      <b>Community programs:</b>
+      <span>By hosting and organizing community programs for every members of the system, we desired to raise people awareness about the danger of using drugs and their consequences. </span>
+  </div>
+  
+  <h1></h1>
 
-<h2 id="cong-nghe-su-dung">Công nghệ sử dụng</h2>
-<ul>
-  <li><strong>Front end</strong>: React, Vite, Tailwind, react-router-dom, Formik, Yup</li>
-  <li><strong>Backend</strong>: Node.js, TypeScript, Express</li>
-</ul>
+</div>
 
 </body>
 </html>
