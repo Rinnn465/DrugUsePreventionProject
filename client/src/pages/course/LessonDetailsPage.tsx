@@ -1112,6 +1112,12 @@ const LessonDetailsPage: React.FC = () => {
                                         <Link
                                             to={`/courses/${id}/exam`}
                                             className="inline-flex items-center gap-2 bg-orange-600 text-white px-8 py-3 rounded-lg hover:bg-orange-700 transition-colors font-semibold"
+                                            state={
+                                                {
+                                                    courseId: id,
+                                                    lessons: lesson
+                                                }
+                                            }
                                         >
                                             <Target className="w-5 h-5" />
                                             Bắt đầu làm bài

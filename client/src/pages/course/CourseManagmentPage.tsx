@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    Plus, 
-    Edit, 
-    Trash2, 
+import {
+    Plus,
+    Edit,
+    Trash2,
     BookOpen,
     Search,
     ChevronDown,
@@ -98,9 +98,9 @@ const CourseManagmentPage: React.FC = () => {
                 ...formDataWithoutCategories,
                 EnrollCount: 0 // Initialize enrollment count to 0 for new courses
             };
-            
+
             console.log('Creating course with data:', createData);
-            
+
             const response = await fetch('http://localhost:5000/api/course', {
                 method: 'POST',
                 headers: {
@@ -138,9 +138,9 @@ const CourseManagmentPage: React.FC = () => {
                 ...formDataWithoutCategories,
                 EnrollCount: selectedCourse.EnrollCount || 0 // Keep existing enrollment count
             };
-            
+
             console.log('Updating course with data:', updateData);
-            
+
             const response = await fetch(`http://localhost:5000/api/course/${selectedCourse.CourseID}`, {
                 method: 'PUT',
                 headers: {
@@ -229,10 +229,10 @@ const CourseManagmentPage: React.FC = () => {
     // Filter courses
     const filteredCourses = courses.filter(course => {
         const matchesSearch = course.CourseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            course.Description?.toLowerCase().includes(searchTerm.toLowerCase());
+            course.Description?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === 'all' || course.Status === statusFilter;
         const matchesRisk = riskFilter === 'all' || course.Risk === riskFilter;
-        
+
         return matchesSearch && matchesStatus && matchesRisk;
     });
 
@@ -355,9 +355,9 @@ const CourseManagmentPage: React.FC = () => {
                                             <div className="flex items-center">
                                                 <div className="flex-shrink-0 h-10 w-10">
                                                     {course.ImageUrl ? (
-                                                        <img 
-                                                            className="h-10 w-10 rounded-lg object-cover" 
-                                                            src={course.ImageUrl} 
+                                                        <img
+                                                            className="h-10 w-10 rounded-lg object-cover"
+                                                            src={course.ImageUrl}
                                                             alt={course.CourseName}
                                                         />
                                                     ) : (
@@ -412,14 +412,14 @@ const CourseManagmentPage: React.FC = () => {
                             </tbody>
                         </table>
                     </div>
-                    
+
                     {filteredCourses.length === 0 && (
                         <div className="text-center py-12">
                             <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
                             <h3 className="mt-2 text-sm font-medium text-gray-900">Không có khóa học nào</h3>
                             <p className="mt-1 text-sm text-gray-500">
-                                {searchTerm || statusFilter !== 'all' || riskFilter !== 'all' 
-                                    ? 'Không tìm thấy khóa học phù hợp với bộ lọc.' 
+                                {searchTerm || statusFilter !== 'all' || riskFilter !== 'all'
+                                    ? 'Không tìm thấy khóa học phù hợp với bộ lọc.'
                                     : 'Bắt đầu bằng cách tạo khóa học đầu tiên.'}
                             </p>
                             <div className="mt-6">
@@ -453,7 +453,7 @@ const CourseManagmentPage: React.FC = () => {
                                         required
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                         value={formData.CourseName}
-                                        onChange={(e) => setFormData({...formData, CourseName: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, CourseName: e.target.value })}
                                     />
                                 </div>
 
@@ -466,7 +466,7 @@ const CourseManagmentPage: React.FC = () => {
                                             id="risk"
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                             value={formData.Risk}
-                                            onChange={(e) => setFormData({...formData, Risk: e.target.value})}
+                                            onChange={(e) => setFormData({ ...formData, Risk: e.target.value })}
                                         >
                                             <option value="thấp">Thấp</option>
                                             <option value="trung bình">Trung bình</option>
@@ -484,7 +484,7 @@ const CourseManagmentPage: React.FC = () => {
                                             min="1"
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                             value={formData.Duration ?? ''}
-                                            onChange={(e) => setFormData({...formData, Duration: e.target.value ? parseInt(e.target.value) : null})}
+                                            onChange={(e) => setFormData({ ...formData, Duration: e.target.value ? parseInt(e.target.value) : null })}
                                         />
                                     </div>
                                 </div>
@@ -497,7 +497,7 @@ const CourseManagmentPage: React.FC = () => {
                                         id="status"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                         value={formData.Status}
-                                        onChange={(e) => setFormData({...formData, Status: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, Status: e.target.value })}
                                     >
                                         <option value="active">Hoạt động</option>
                                         <option value="inactive">Không hoạt động</option>
@@ -514,7 +514,7 @@ const CourseManagmentPage: React.FC = () => {
                                         type="url"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                         value={formData.ImageUrl}
-                                        onChange={(e) => setFormData({...formData, ImageUrl: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, ImageUrl: e.target.value })}
                                     />
                                 </div>
 
@@ -527,7 +527,7 @@ const CourseManagmentPage: React.FC = () => {
                                         rows={3}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                         value={formData.Description}
-                                        onChange={(e) => setFormData({...formData, Description: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, Description: e.target.value })}
                                     />
                                 </div>
 
@@ -572,7 +572,7 @@ const CourseManagmentPage: React.FC = () => {
                                         required
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                         value={formData.CourseName}
-                                        onChange={(e) => setFormData({...formData, CourseName: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, CourseName: e.target.value })}
                                     />
                                 </div>
 
@@ -585,7 +585,7 @@ const CourseManagmentPage: React.FC = () => {
                                             id="editRisk"
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                             value={formData.Risk}
-                                            onChange={(e) => setFormData({...formData, Risk: e.target.value})}
+                                            onChange={(e) => setFormData({ ...formData, Risk: e.target.value })}
                                         >
                                             <option value="thấp">Thấp</option>
                                             <option value="trung bình">Trung bình</option>
@@ -603,7 +603,7 @@ const CourseManagmentPage: React.FC = () => {
                                             min="1"
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                             value={formData.Duration ?? ''}
-                                            onChange={(e) => setFormData({...formData, Duration: e.target.value ? parseInt(e.target.value) : null})}
+                                            onChange={(e) => setFormData({ ...formData, Duration: e.target.value ? parseInt(e.target.value) : null })}
                                         />
                                     </div>
                                 </div>
@@ -616,7 +616,7 @@ const CourseManagmentPage: React.FC = () => {
                                         id="editStatus"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                         value={formData.Status}
-                                        onChange={(e) => setFormData({...formData, Status: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, Status: e.target.value })}
                                     >
                                         <option value="active">Hoạt động</option>
                                         <option value="inactive">Không hoạt động</option>
@@ -633,7 +633,7 @@ const CourseManagmentPage: React.FC = () => {
                                         type="url"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                         value={formData.ImageUrl}
-                                        onChange={(e) => setFormData({...formData, ImageUrl: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, ImageUrl: e.target.value })}
                                     />
                                 </div>
 
@@ -646,7 +646,7 @@ const CourseManagmentPage: React.FC = () => {
                                         rows={3}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                         value={formData.Description}
-                                        onChange={(e) => setFormData({...formData, Description: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, Description: e.target.value })}
                                     />
                                 </div>
 
@@ -686,7 +686,7 @@ const CourseManagmentPage: React.FC = () => {
                             <h3 className="text-lg font-medium text-gray-900 mt-4">Xóa khóa học</h3>
                             <div className="mt-2 px-7 py-3">
                                 <p className="text-sm text-gray-500">
-                                    Bạn có chắc chắn muốn xóa khóa học "{selectedCourse.CourseName}"? 
+                                    Bạn có chắc chắn muốn xóa khóa học "{selectedCourse.CourseName}"?
                                     Hành động này không thể hoàn tác.
                                 </p>
                             </div>
