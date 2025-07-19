@@ -313,34 +313,60 @@ const CommunityProgramPage: React.FC = () => {
           Thông tin chương trình
         </Link>
 
-        {isProgramCompleted ? (
+        {/* Chương trình đã kết thúc */}
+        {isProgramCompleted && (
           <div className="text-center text-gray-600 font-medium text-sm bg-gray-100 py-3 rounded-lg">
             Chương trình đã kết thúc
           </div>
-        ) : isAuthenticated ? (
-          enrollmentStatus?.isEnrolled ? (
-            <div className="space-y-2">
-              <div className="text-center text-green-600 font-medium text-sm bg-green-50 py-2 rounded-lg">
-                ✓ Đã đăng ký tham gia
+        )}
+
+        {/* User đã đăng nhập và chương trình chưa kết thúc */}
+        {!isProgramCompleted && isAuthenticated && (
+          <>
+            {/* User đã đăng ký */}
+            {enrollmentStatus?.isEnrolled && (
+              <div className="space-y-2">
+                <div className="text-center text-green-600 font-medium text-sm bg-green-50 py-2 rounded-lg">
+                  ✓ Đã đăng ký tham gia
+                </div>
+                
+                {/* Hiển thị nút tham gia meeting khi chương trình đang diễn ra */}
+                {event.Status === 'ongoing' && event.ZoomLink && (
+                  <a
+                    href={event.ZoomLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block w-full text-center px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                  >
+                    🎥 Tham gia Meeting
+                  </a>
+                )}
+                
+                <button
+                  onClick={() => handleUnenroll(event.ProgramID)}
+                  disabled={isLoading}
+                  className="w-full px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? 'Đang hủy...' : 'Hủy đăng ký'}
+                </button>
               </div>
+            )}
+
+            {/* User chưa đăng ký */}
+            {!enrollmentStatus?.isEnrolled && (
               <button
-                onClick={() => handleUnenroll(event.ProgramID)}
+                onClick={() => handleEnroll(event.ProgramID)}
                 disabled={isLoading}
-                className="w-full px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? 'Đang hủy...' : 'Hủy đăng ký'}
+                {isLoading ? 'Đang đăng ký...' : 'Tham gia'}
               </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => handleEnroll(event.ProgramID)}
-              disabled={isLoading}
-              className="w-full px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? 'Đang đăng ký...' : 'Tham gia'}
-            </button>
-          )
-        ) : (
+            )}
+          </>
+        )}
+
+        {/* User chưa đăng nhập và chương trình chưa kết thúc */}
+        {!isProgramCompleted && !isAuthenticated && (
           <button
             onClick={() => toast.info('Vui lòng đăng nhập để tham gia chương trình')}
             className="w-full px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors duration-200"
@@ -428,10 +454,11 @@ const CommunityProgramPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Status Filter */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label htmlFor="status-filter" className="block text-sm font-semibold text-gray-700 mb-2">
                   Trạng thái
                 </label>
                 <select
+                  id="status-filter"
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
@@ -446,10 +473,11 @@ const CommunityProgramPage: React.FC = () => {
               {/* Registration Status Filter */}
               {user && (
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label htmlFor="registration-status-filter" className="block text-sm font-semibold text-gray-700 mb-2">
                     Trạng thái đăng ký
                   </label>
                   <select
+                    id="registration-status-filter"
                     value={selectedRegistrationStatus}
                     onChange={(e) => setSelectedRegistrationStatus(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
@@ -500,9 +528,22 @@ const CommunityProgramPage: React.FC = () => {
                 {/* Event Title and Status */}
                 <div className="mb-4">
                   <h3 className="text-2xl font-bold text-gray-900 mb-3 line-clamp-2">{event.ProgramName}</h3>
-                  <span className={`inline-block px-3 py-1 text-sm rounded-full text-white font-medium ${event.Status === 'upcoming' ? 'bg-blue-500' : event.Status === 'ongoing' ? 'bg-yellow-500' : 'bg-green-500'}`}>
-                    {event.Status === 'upcoming' ? 'Sắp diễn ra' : event.Status === 'ongoing' ? 'Đang diễn ra' : 'Đã kết thúc'}
-                  </span>
+                  {/* Status Badge */}
+                  {event.Status === 'upcoming' && (
+                    <span className="inline-block px-3 py-1 text-sm rounded-full text-white font-medium bg-blue-500">
+                      Sắp diễn ra
+                    </span>
+                  )}
+                  {event.Status === 'ongoing' && (
+                    <span className="inline-block px-3 py-1 text-sm rounded-full text-white font-medium bg-yellow-500">
+                      Đang diễn ra
+                    </span>
+                  )}
+                  {event.Status === 'completed' && (
+                    <span className="inline-block px-3 py-1 text-sm rounded-full text-white font-medium bg-green-500">
+                      Đã kết thúc
+                    </span>
+                  )}
                 </div>
 
                 {/* Event Details */}

@@ -26,8 +26,89 @@ export async function getZoomAccessToken(): Promise<string> {
     }
 }
 
+// Cải tiến: Cập nhật account settings để tắt password requirements
+export async function updateZoomAccountSettings(): Promise<void> {
+    try {
+        const accessToken = await getZoomAccessToken();
+        
+        const accountSettings = {
+            security: {
+                require_password_for_all_meetings: false,
+                require_password_for_instant_meetings: false,
+                require_password_for_pmi_meetings: "none",
+                require_password_for_scheduling_new_meetings: false,
+                waiting_room: false,
+                meeting_authentication: false,
+                enforce_login: false
+            },
+            schedule_meeting: {
+                join_before_host: true,
+                require_password_for_scheduling_new_meetings: false,
+                require_password_for_instant_meetings: false
+            }
+        };
+
+        await axios.patch(
+            'https://api.zoom.us/v2/accounts/me/settings',
+            accountSettings,
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+        console.log('Account settings updated for free access');
+    } catch (error: any) {
+        console.error('Error updating account settings:', error.response?.data || error.message);
+    }
+}
+
+// Cải tiến: Cập nhật user settings để cho phép tham gia không cần host
+export async function updateZoomUserSettings(): Promise<void> {
+    try {
+        const accessToken = await getZoomAccessToken();
+        
+        const userSettings = {
+            feature: {
+                require_password_for_all_meetings: false,
+                require_password_for_instant_meetings: false,
+                require_password_for_pmi_meetings: "none",
+                join_before_host: true
+            },
+            in_meeting: {
+                waiting_room: false,
+                meeting_authentication: false,
+                enforce_login: false
+            },
+            scheduled_meeting: {
+                join_before_host: true,
+                require_password_for_scheduling_new_meetings: false
+            }
+        };
+
+        await axios.patch(
+            'https://api.zoom.us/v2/users/me/settings',
+            userSettings,
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+        console.log('User settings updated for free access');
+    } catch (error: any) {
+        console.error('Error updating user settings:', error.response?.data || error.message);
+    }
+}
+
 export async function createZoomMeeting(program: CommunityProgram): Promise<{ join_url: string; meeting_id: string }> {
     try {
+        // Cập nhật settings trước khi tạo meeting
+        await updateZoomAccountSettings();
+        await updateZoomUserSettings();
+        
         const accessToken = await getZoomAccessToken();
         
         // Format date properly for Zoom API (ISO 8601 format)
@@ -56,24 +137,36 @@ export async function createZoomMeeting(program: CommunityProgram): Promise<{ jo
         console.log('Parsed Date:', programDate);
         console.log('Start Time for Zoom:', startTime);
         
+        console.log('Creating free-access Zoom meeting...');
+        
+        const meetingSettings = {
+            topic: program.ProgramName,
+            type: 2, // Scheduled meeting
+            start_time: startTime,
+            duration: 90,
+            timezone: 'Asia/Ho_Chi_Minh',
+            agenda: program.Description || 'Hội thảo cộng đồng',
+            password: "",
+            settings: {
+                host_video: false,
+                participant_video: true,
+                join_before_host: true, // Cho phép tham gia trước host
+                mute_upon_entry: false,
+                audio: 'voip',
+                auto_recording: 'none',
+                waiting_room: false, // Tắt phòng chờ
+                password: "",
+                use_pmi: false,
+                approval_type: 0, // Tự động approve
+                enforce_login: false, // Không bắt buộc đăng nhập
+                meeting_authentication: false,
+                embed_password_in_join_link: false
+            }
+        };
+        
         const response = await axios.post(
             'https://api.zoom.us/v2/users/me/meetings',
-            {
-                topic: program.ProgramName,
-                type: 2, // Scheduled meeting
-                start_time: startTime,
-                duration: 60, // 60 phút
-                timezone: 'Asia/Ho_Chi_Minh',
-                agenda: program.Description || 'Hội thảo cộng đồng',
-                settings: {
-                    host_video: true,
-                    participant_video: true,
-                    join_before_host: true,
-                    mute_upon_entry: false,
-                    audio: 'voip',
-                    auto_recording: 'none'
-                }
-            },
+            meetingSettings,
             {
                 headers: {
                     Authorization: `Bearer ${accessToken}`,
@@ -81,9 +174,23 @@ export async function createZoomMeeting(program: CommunityProgram): Promise<{ jo
                 }
             }
         );
+        
+        const meetingId = response.data.id.toString();
+        const joinUrl = response.data.join_url;
+        
+        console.log('Meeting created:', meetingId);
+        
+        // Verify meeting settings
+        const isPasswordFree = await verifyMeetingSettings(meetingId);
+        
+        if (!isPasswordFree) {
+            console.log('Applying force fix...');
+            await forceRemovePassword(meetingId);
+        }
+        
         return {
-            join_url: response.data.join_url,
-            meeting_id: response.data.id.toString()
+            join_url: joinUrl,
+            meeting_id: meetingId
         };
     } catch (error: any) {
         console.error('Error creating Zoom meeting:', error.response?.data || error.message);
@@ -117,6 +224,58 @@ export async function getMeetingDetails(meetingId: string): Promise<any> {
     } catch (error: any) {
         console.error('Error fetching Zoom meeting details:', error.response?.data || error.message);
         throw new Error('Failed to fetch Zoom meeting details');
+    }
+}
+
+// Cải tiến: Verify meeting settings
+export async function verifyMeetingSettings(meetingId: string): Promise<boolean> {
+    try {
+        const meetingDetails = await getMeetingDetails(meetingId);
+        
+        const isPasswordFree = (
+            !meetingDetails.password && 
+            meetingDetails.settings?.join_before_host === true &&
+            meetingDetails.settings?.waiting_room === false &&
+            meetingDetails.settings?.meeting_authentication === false
+        );
+        
+        return isPasswordFree;
+    } catch (error: any) {
+        console.error('Error verifying meeting settings:', error.response?.data || error.message);
+        return false;
+    }
+}
+
+// Cải tiến: Force remove password nếu cần
+export async function forceRemovePassword(meetingId: string): Promise<void> {
+    try {
+        const accessToken = await getZoomAccessToken();
+        
+        await axios.patch(
+            `https://api.zoom.us/v2/meetings/${meetingId}`,
+            {
+                password: "",
+                settings: {
+                    password: "",
+                    waiting_room: false,
+                    join_before_host: true,
+                    meeting_authentication: false,
+                    enforce_login: false,
+                    approval_type: 0,
+                    embed_password_in_join_link: false
+                }
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+        
+        console.log('Force fix applied to meeting:', meetingId);
+    } catch (error: any) {
+        console.error('Error applying force fix:', error.response?.data || error.message);
     }
 }
 

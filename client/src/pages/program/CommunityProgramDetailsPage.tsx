@@ -484,12 +484,16 @@ const CommunityProgramDetails: React.FC = () => {
                 <h3 className="text-xl font-bold text-gray-900 mb-6">Hành động</h3>
 
                 <div className="space-y-4">
-                  {programData.Status === 'completed' ? (
+                  {/* Chương trình đã kết thúc */}
+                  {programData.Status === 'completed' && (
                     <div className="text-center p-6 bg-gray-50 rounded-xl">
                       <CheckCircle className="h-12 w-12 text-gray-400 mx-auto mb-3" />
                       <p className="text-gray-600 font-medium">Chương trình đã kết thúc</p>
                     </div>
-                  ) : !enrollmentStatus?.isEnrolled ? (
+                  )}
+
+                  {/* Chưa đăng ký */}
+                  {programData.Status !== 'completed' && !enrollmentStatus?.isEnrolled && (
                     <button
                       onClick={handleEnroll}
                       className="w-full inline-flex items-center justify-center px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
@@ -497,12 +501,29 @@ const CommunityProgramDetails: React.FC = () => {
                       <Users className="h-5 w-5 mr-2" />
                       Tham gia sự kiện
                     </button>
-                  ) : (
+                  )}
+
+                  {/* Đã đăng ký */}
+                  {programData.Status !== 'completed' && enrollmentStatus?.isEnrolled && (
                     <div className="space-y-3">
                       <div className="flex items-center justify-center p-4 bg-green-50 rounded-xl">
                         <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
                         <span className="text-green-800 font-medium">Đã đăng ký tham gia</span>
                       </div>
+                      
+                      {/* Hiển thị nút tham gia meeting khi chương trình đang diễn ra */}
+                      {programData.Status === 'ongoing' && programData.ZoomLink && (
+                        <a
+                          href={programData.ZoomLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full inline-flex items-center justify-center px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                        >
+                          <ExternalLink className="h-5 w-5 mr-2" />
+                          Tham gia Meeting ngay
+                        </a>
+                      )}
+                      
                       <button
                         onClick={handleUnenroll}
                         className="w-full inline-flex items-center justify-center px-6 py-3 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 transition-colors duration-200"
