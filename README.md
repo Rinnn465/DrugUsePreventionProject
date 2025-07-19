@@ -11,22 +11,22 @@
     <li><a href="#feature">Features</a></li>
   </ul>
   <ul>
-    <li><a href="#cong-nghe-su-dung">System architecture</a></li>
+    <li><a href="#folder-structure">Folder structure</a></li>
   </ul>
   <ul>
-    <li><a href="#cong-nghe-su-dung">Setup and installation</a></li>
+    <li><a href="#set-up">Setup and installation</a></li>
   </ul>
   <ul>
-    <li><a href="#cong-nghe-su-dung">Running application</a></li>
+    <li><a href="#running">Running application</a></li>
   </ul>
   <ul>
-    <li><a href="#cong-nghe-su-dung">Frontend details</a></li>
+    <li><a href="#front-details">Frontend details</a></li>
   </ul>
   <ul>
-    <li><a href="#cong-nghe-su-dung">Backend details</a></li>
+    <li><a href="#back-details">Backend details</a></li>
   </ul>
   <ul>
-    <li><a href="#cong-nghe-su-dung">License</a></li>
+    <li><a href="#license">License</a></li>
   </ul>
 </div>
 
@@ -56,6 +56,34 @@
   </div>
   
   <h1></h1>
+
+  <h2 id="folder-structure">Folder structure</h2>
+
+  ```bash
+├─ · client/
+│    └──   assets/
+│    └──   components/
+│    └──   context/
+│    └──   config/
+│    └──   data/
+│    └──   hooks/
+│    └──   pages/
+│    └──   types/
+│    └──   utils/
+│    └──   App.tsx
+│    └──   ...
+├─   server/
+│    └──   config/
+│    └──   controllers/
+│    └──   middleware/
+│    └──   routes/
+│    └──   templates/
+│    └──   types/
+│    └──   app.ts
+│    └──   ...
+
+  ```
+
 
 </div>
 
