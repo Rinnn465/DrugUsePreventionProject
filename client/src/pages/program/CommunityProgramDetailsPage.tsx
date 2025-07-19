@@ -263,7 +263,7 @@ const CommunityProgramDetails: React.FC = () => {
         <Link to={beforeSurveyUrl}>
           <button className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
             <Star className="h-5 w-5 mr-2" />
-            Khảo sát trước sự kiện
+            Khảo sát trước chương trình
           </button>
         </Link>
       );
@@ -273,7 +273,7 @@ const CommunityProgramDetails: React.FC = () => {
         <Link to={afterSurveyUrl}>
           <button className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
             <Star className="h-5 w-5 mr-2" />
-            Khảo sát sau sự kiện
+            Khảo sát sau chương trình
           </button>
         </Link>
       );
@@ -523,14 +523,17 @@ const CommunityProgramDetails: React.FC = () => {
                           Tham gia Meeting ngay
                         </a>
                       )}
-                      
-                      <button
-                        onClick={handleUnenroll}
-                        className="w-full inline-flex items-center justify-center px-6 py-3 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 transition-colors duration-200"
-                      >
-                        <XCircle className="h-5 w-5 mr-2" />
-                        Hủy tham gia
-                      </button>
+                                  
+                      {/* Nút hủy đăng ký - chỉ hiển thị khi chương trình chưa bắt đầu */}
+                      {programData.Status === 'upcoming' && (
+                        <button
+                          onClick={handleUnenroll}
+                          className="w-full inline-flex items-center justify-center px-6 py-3 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 transition-colors duration-200"
+                        >
+                          <XCircle className="h-5 w-5 mr-2" />
+                          Hủy đăng ký
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>

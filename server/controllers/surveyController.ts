@@ -63,19 +63,19 @@ export const submitSurveyResponse = async (req: Request, res: Response): Promise
 
     // Kiểm tra user có tồn tại không
     if (!accountId) {
-      console.log('❌ No AccountID found in user token');
+      console.log('No AccountID found in user token');
       res.status(401).json({ message: 'Không tìm thấy thông tin người dùng' });
       return;
     }
 
     // Kiểm tra dữ liệu đầu vào
     if (!programId || !surveyType || !surveyData) {
-      console.log('❌ Missing required fields');
+      console.log('Missing required fields');
       res.status(400).json({ message: 'Thiếu thông tin bắt buộc' });
       return;
     }
 
-    console.log('✅ Checking for existing response...');
+    console.log('Checking for existing response...');
 
     // Kiểm tra xem user đã làm khảo sát này chưa
     const existingResponse = await pool.request()
@@ -90,12 +90,12 @@ export const submitSurveyResponse = async (req: Request, res: Response): Promise
     console.log('Existing response check result:', existingResponse.recordset);
 
     if (existingResponse.recordset.length > 0) {
-      console.log('❌ Survey already completed');
+      console.log('Survey already completed');
       res.status(400).json({ message: 'Bạn đã hoàn thành khảo sát này rồi' });
       return;
     }
 
-    console.log('✅ Inserting new survey response...');
+    console.log('Inserting new survey response...');
 
     // Lưu response mới với JSON data
     const insertResult = await pool.request()
@@ -108,9 +108,9 @@ export const submitSurveyResponse = async (req: Request, res: Response): Promise
                 VALUES (@AccountID, @ProgramID, @SurveyType, @ResponseData)
             `);
 
-    console.log('✅ Survey response inserted successfully');
+    console.log('Survey response inserted successfully');
 
-    console.log('✅ Updating attendee status...');
+    console.log('Updating attendee status...');
 
     // Cập nhật trạng thái khảo sát trong CommunityProgramAttendee
     const updateField = surveyType === 'before' ? 'SurveyBeforeCompleted' : 'SurveyAfterCompleted';
@@ -124,14 +124,14 @@ export const submitSurveyResponse = async (req: Request, res: Response): Promise
             `);
 
     console.log('Update result:', updateResult.rowsAffected);
-    console.log('✅ Survey submission completed successfully');
+    console.log('Survey submission completed successfully');
 
     res.status(201).json({
       message: 'Lưu khảo sát thành công'
     });
 
   } catch (error: any) {
-    console.error('❌ Error submitting survey response:', error);
+    console.error('Error submitting survey response:', error);
     console.error('Error details:', {
       message: error.message,
       stack: error.stack,
