@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import AdminLayout from '../../components/AdminLayout';
+import ImageCropModal from '../../components/modal/ImageCropModal';
+import Avatar from '../../components/common/Avatar';
 import { 
     User, 
     Edit2, 
@@ -14,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Account } from '../../types/Account';
 import { useUser } from '../../context/UserContext';
+import { validateImageFile } from '../../utils/imageUtils';
 
 const AdminProfilePage: React.FC = () => {
     const { user, setUser } = useUser();
@@ -21,6 +24,8 @@ const AdminProfilePage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [uploadingImage, setUploadingImage] = useState(false);
+    const [showCropModal, setShowCropModal] = useState(false);
+    const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
     const [editForm, setEditForm] = useState({
         FullName: '',
         Email: '',
@@ -113,22 +118,33 @@ const AdminProfilePage: React.FC = () => {
         const file = event.target.files?.[0];
         if (!file) return;
 
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-            toast.error('Vui lòng chọn file ảnh hợp lệ');
+        // Validate file using utility function
+        const validation = validateImageFile(file);
+        if (!validation.valid) {
+            toast.error(validation.error);
             return;
         }
 
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            toast.error('Kích thước file không được vượt quá 5MB');
-            return;
-        }
+        // Show crop modal
+        setSelectedImageFile(file);
+        setShowCropModal(true);
 
+        // Clear the input
+        event.target.value = '';
+    };
+
+    const handleCropComplete = async (croppedImageBlob: Blob) => {
         try {
             setUploadingImage(true);
             const formData = new FormData();
-            formData.append('profilePicture', file);
+            
+            // Create a file from the blob with proper name and type
+            const croppedFile = new File([croppedImageBlob], 'avatar.jpg', {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+            });
+            
+            formData.append('profilePicture', croppedFile);
 
             const token = localStorage.getItem('token');
             const response = await fetch(`http://localhost:5000/api/account/${user?.AccountID}/upload-avatar`, {
@@ -288,25 +304,21 @@ const AdminProfilePage: React.FC = () => {
                             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                                 <div className="flex items-center space-x-4">
                                     <span className="text-sm font-medium text-gray-600 w-20">Avatar</span>
-                                    <span className="text-sm text-gray-500">150x150px JPEG, PNG Image (max 5MB)</span>
+                                    <span className="text-sm text-gray-500">150x150px JPEG, PNG Image (max 10MB)</span>
                                 </div>
                                 <div className="flex items-center space-x-4">
                                     <div className="relative">
-                                        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center overflow-hidden">
-                                            {profile?.ProfilePicture ? (
-                                                <img 
-                                                    src={profile.ProfilePicture} 
-                                                    alt={`Avatar của ${profile.FullName || 'Admin'}`}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            ) : (
-                                                <User className="h-8 w-8 text-blue-600" />
-                                            )}
-                                        </div>
+                                        <Avatar
+                                            src={profile?.ProfilePicture}
+                                            name={profile?.FullName}
+                                            size="xl"
+                                            className="border-2 border-gray-200 shadow-sm"
+                                        />
                                         <button
                                             onClick={() => document.getElementById('avatar-upload')?.click()}
                                             disabled={uploadingImage}
-                                            className="absolute -bottom-1 -right-1 p-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors disabled:opacity-50"
+                                            className="absolute -bottom-1 -right-1 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-lg"
+                                            title="Thay đổi ảnh đại diện"
                                         >
                                             {uploadingImage ? (
                                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -329,9 +341,9 @@ const AdminProfilePage: React.FC = () => {
                                                     handleRemoveAvatar();
                                                 }
                                             }}
-                                            className="text-red-600 hover:text-red-700 text-sm"
+                                            className="px-3 py-1 text-sm text-red-600 hover:text-red-700 border border-red-300 rounded-md hover:bg-red-50 transition-colors"
                                         >
-                                            Xóa
+                                            Xóa ảnh
                                         </button>
                                     )}
                                 </div>
@@ -460,6 +472,17 @@ const AdminProfilePage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Image Crop Modal */}
+            <ImageCropModal
+                isOpen={showCropModal}
+                onClose={() => {
+                    setShowCropModal(false);
+                    setSelectedImageFile(null);
+                }}
+                onCropComplete={handleCropComplete}
+                imageFile={selectedImageFile}
+            />
         </AdminLayout>
     );
 };

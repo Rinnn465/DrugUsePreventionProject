@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useUser } from "../context/UserContext";
+import Avatar from "./common/Avatar";
 import { 
     Home,
     BookOpen, 
@@ -12,7 +13,6 @@ import {
     X,
     Users,
     FileText,
-    User,
     Settings,
     KeyRound,
     ChevronDown
@@ -124,17 +124,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                                 onClick={() => setDropdownOpen(!dropdownOpen)}
                                 className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors"
                             >
-                                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center overflow-hidden">
-                                    {user?.ProfilePicture ? (
-                                        <img 
-                                            src={user.ProfilePicture} 
-                                            alt={`Avatar của ${user.FullName || 'Admin'}`}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        <User className="h-6 w-6 text-blue-600" />
-                                    )}
-                                </div>
+                                <Avatar
+                                    src={user?.ProfilePicture}
+                                    name={user?.FullName}
+                                    size="md"
+                                />
                                 <div className="flex-1 text-left">
                                     <div className="text-white font-medium text-sm">{user?.FullName || 'Admin'}</div>
                                 </div>

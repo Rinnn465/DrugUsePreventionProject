@@ -21,7 +21,16 @@ export const getAccounts = async (req: Request, res: Response) => {
   try {
     const pool = await poolPromise;
     const result = await pool.request().query("SELECT Account.*, Role.RoleName FROM Account JOIN Role ON Account.RoleID = Role.RoleID ORDER BY Account.CreatedAt DESC");
-    res.json(result.recordset as Account[]);
+    
+    // Convert relative ProfilePicture paths to full URLs
+    const accounts = result.recordset.map((account: any) => {
+      if (account.ProfilePicture) {
+        account.ProfilePicture = `http://localhost:5000${account.ProfilePicture}`;
+      }
+      return account;
+    });
+    
+    res.json(accounts as Account[]);
   } catch (err: any) {
     console.error("Lỗi khi lấy danh sách tài khoản:", err.message);
     res.status(500).json({ error: "Lỗi máy chủ" });
@@ -58,9 +67,16 @@ export const getAccountById = async (
       return;
     }
 
-    res.json(result.recordset[0]);
+    const account = result.recordset[0];
+    
+    // Convert relative ProfilePicture path to full URL if exists
+    if (account.ProfilePicture) {
+      account.ProfilePicture = `http://localhost:5000${account.ProfilePicture}`;
+    }
+
+    res.json(account);
   } catch (err: any) {
-    console.error(`Lỗi khi lấy tài khoản ID ${req.params.id}:`, err.message);
+    console.error(`Lỗi khi lấy ID tài khoản ${req.params.id}:`, err.message);
     res.status(500).json({ error: "Lỗi máy chủ" });
   }
 };
@@ -381,9 +397,16 @@ export const updateAccountProfile = async (
       .input("AccountID", sql.Int, accountId)
       .query("SELECT Account.*, Role.RoleName FROM Account JOIN Role ON Account.RoleID = Role.RoleID WHERE AccountID = @AccountID");
 
+    const userData = updatedUser.recordset[0];
+    
+    // Convert relative ProfilePicture path to full URL if exists
+    if (userData.ProfilePicture) {
+      userData.ProfilePicture = `http://localhost:5000${userData.ProfilePicture}`;
+    }
+
     res.json({
       message: "Hồ sơ đã được cập nhật",
-      user: updatedUser.recordset[0]
+      user: userData
     });
   } catch (err: any) {
     console.error(`Lỗi khi cập nhật hồ sơ cho AccountID ${accountId}:`, err.message);

@@ -19,6 +19,7 @@
     "formik": "^2.4.6",
     "lucide-react": "^0.344.0",
     "nodemon": "^3.1.10",
+    "react-image-crop": "^11.0.10",
     "react-router-dom": "^6.21.2",
     "react-toastify": "^11.0.5",
     "yup": "^1.6.1"
