@@ -592,6 +592,14 @@ export async function sendInviteToAttendee(req: Request, res: Response): Promise
 
         const program = programResult.recordset[0];
 
+        // Kiểm tra trạng thái chương trình - không cho phép gửi lời mời khi đã kết thúc
+        if (program.Status === 'completed') {
+            res.status(400).json({ 
+                message: "Không thể gửi lời mời tham gia vì chương trình đã kết thúc." 
+            });
+            return;
+        }
+
         // Kiểm tra chương trình đã có Zoom meeting chưa
         if (!program.MeetingRoomName) {
             res.status(400).json({ 

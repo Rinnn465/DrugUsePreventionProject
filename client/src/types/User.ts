@@ -11,4 +11,5 @@ export interface User {
     IsDisabled: boolean; // true if the account is disabled
     ResetToken: string | null; // Token for password reset, if applicable
     ResetTokenExpiry: Date | null; // Expiry date for the reset token
+    ProfilePicture?: string | null; // URL to profile picture
 }

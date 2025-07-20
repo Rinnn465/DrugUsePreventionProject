@@ -20,10 +20,22 @@ const isValidUsername = (username: string): boolean => {
 export const getAccounts = async (req: Request, res: Response) => {
   try {
     const pool = await poolPromise;
-    const result = await pool.request().query("SELECT Account.*, Role.RoleName FROM Account JOIN Role ON Account.RoleID = Role.RoleID");
+    const result = await pool.request().query("SELECT Account.*, Role.RoleName FROM Account JOIN Role ON Account.RoleID = Role.RoleID ORDER BY Account.CreatedAt DESC");
     res.json(result.recordset as Account[]);
   } catch (err: any) {
     console.error("Lỗi khi lấy danh sách tài khoản:", err.message);
+    res.status(500).json({ error: "Lỗi máy chủ" });
+  }
+};
+
+// Get all roles  
+export const getRoles = async (req: Request, res: Response) => {
+  try {
+    const pool = await poolPromise;
+    const result = await pool.request().query("SELECT RoleID, RoleName FROM Role ORDER BY RoleID");
+    res.json(result.recordset);
+  } catch (err: any) {
+    console.error("Lỗi khi lấy danh sách vai trò:", err.message);
     res.status(500).json({ error: "Lỗi máy chủ" });
   }
 };
@@ -55,33 +67,83 @@ export const getAccountById = async (
 
 // Create new account
 export const createAccount = async (req: Request, res: Response) => {
-  const { username, email, password, fullName, dateOfBirth, roleName } = req.body;
+  const { Username, Email, Password, FullName, DateOfBirth, RoleID } = req.body;
+  
   try {
     const pool = await poolPromise;
 
-    // Get RoleID from RoleName
+    // Validation input
+    if (!Username || !Email || !Password || !FullName) {
+      res.status(400).json({ message: "Tất cả các trường bắt buộc phải được điền" });
+      return;
+    }
+
+    if (!isValidEmail(Email)) {
+      res.status(400).json({ message: "Email không hợp lệ" });
+      return;
+    }
+
+    if (!isValidUsername(Username)) {
+      res.status(400).json({ message: "Tên người dùng chỉ được chứa chữ cái và số" });
+      return;
+    }
+
+    if (Password.length < 8) {
+      res.status(400).json({ message: "Mật khẩu phải có ít nhất 8 ký tự" });
+      return;
+    }
+
+    // Validate RoleID exists
     const roleResult = await pool
       .request()
-      .input("roleName", sql.NVarChar, roleName || "Member")
-      .query("SELECT RoleID FROM Role WHERE RoleName = @roleName");
-    const role = roleResult.recordset[0];
-    if (!role) {
+      .input("RoleID", sql.Int, RoleID || 3) // Default to Member role (RoleID = 3)
+      .query("SELECT RoleID, RoleName FROM Role WHERE RoleID = @RoleID");
+    
+    if (roleResult.recordset.length === 0) {
       res.status(400).json({ message: "Vai trò không hợp lệ" });
       return;
     }
 
+    // Check if Username already exists
+    const usernameCheck = await pool
+      .request()
+      .input("Username", sql.NVarChar, Username)
+      .query("SELECT AccountID FROM Account WHERE Username = @Username");
+    
+    if (usernameCheck.recordset.length > 0) {
+      res.status(400).json({ message: "Tên người dùng đã tồn tại" });
+      return;
+    }
+
+    // Check if Email already exists
+    const emailCheck = await pool
+      .request()
+      .input("Email", sql.NVarChar, Email)
+      .query("SELECT AccountID FROM Account WHERE Email = @Email");
+    
+    if (emailCheck.recordset.length > 0) {
+      res.status(400).json({ message: "Email đã tồn tại" });
+      return;
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(Password, 10);
+
+    // Insert new account
     await pool
       .request()
-      .input("Username", sql.NVarChar, username)
-      .input("Email", sql.NVarChar, email)
-      .input("Password", sql.NVarChar, password)
-      .input("FullName", sql.NVarChar, fullName)
-      .input("DateOfBirth", sql.Date, dateOfBirth)
-      .input("RoleID", sql.Int, role.RoleID)
-      .input("CreatedAt", sql.DateTime2, new Date()).query(`INSERT INTO Account 
-        (Username, Email, Password, FullName, DateOfBirth, RoleID, CreatedAt) 
-        VALUES (@Username, @Email, @Password, @FullName, @DateOfBirth, @RoleID, @CreatedAt)`);
-    res.status(201).json({ message: "Tài khoản đã được tạo" });
+      .input("Username", sql.NVarChar, Username)
+      .input("Email", sql.NVarChar, Email)
+      .input("Password", sql.NVarChar, hashedPassword)
+      .input("FullName", sql.NVarChar, FullName)
+      .input("DateOfBirth", sql.Date, DateOfBirth || null)
+      .input("RoleID", sql.Int, RoleID || 3)
+      .input("CreatedAt", sql.DateTime2, new Date())
+      .query(`INSERT INTO Account 
+        (Username, Email, Password, FullName, DateOfBirth, RoleID, CreatedAt, IsDisabled) 
+        VALUES (@Username, @Email, @Password, @FullName, @DateOfBirth, @RoleID, @CreatedAt, 0)`);
+    
+    res.status(201).json({ message: "Tài khoản đã được tạo thành công" });
   } catch (err: any) {
     console.error("Lỗi khi tạo tài khoản:", err.message);
     res.status(500).json({ error: "Lỗi máy chủ" });
@@ -93,44 +155,138 @@ export const updateAccount = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { username, email, password, fullName, dateOfBirth, roleName, isDisabled } =
-    req.body;
+  const { Username, Email, FullName, DateOfBirth, RoleID, IsDisabled } = req.body;
+  const accountId = parseInt(req.params.id, 10);
+  const currentUser = (req as any).user?.user; // From JWT middleware
+
   try {
     const pool = await poolPromise;
 
-    // Get RoleID from RoleName
-    const roleResult = await pool
+    // Get current account info
+    const currentAccountResult = await pool
       .request()
-      .input("roleName", sql.NVarChar, roleName)
-      .query("SELECT RoleID FROM Role WHERE RoleName = @roleName");
-    const role = roleResult.recordset[0];
-    if (!role) {
-      res.status(400).json({ message: "Vai trò không hợp lệ" });
+      .input("AccountID", sql.Int, accountId)
+      .query("SELECT AccountID, RoleID FROM Account WHERE AccountID = @AccountID");
+    
+    if (currentAccountResult.recordset.length === 0) {
+      res.status(404).json({ message: "Tài khoản không tồn tại" });
       return;
     }
 
-    const result = await pool
-      .request()
-      .input("AccountID", sql.Int, parseInt(req.params.id, 10))
-      .input("Username", sql.NVarChar, username)
-      .input("Email", sql.NVarChar, email)
-      .input("Password", sql.NVarChar, password)
-      .input("FullName", sql.NVarChar, fullName)
-      .input("DateOfBirth", sql.Date, dateOfBirth)
-      .input("RoleID", sql.Int, role.RoleID)
-      .input("IsDisabled", sql.Bit, isDisabled).query(`UPDATE Account SET 
-        Username=@Username, 
-        Email=@Email, 
-        Password=@Password, 
-        FullName=@FullName, 
-        DateOfBirth=@DateOfBirth, 
-        RoleID=@RoleID, 
-        IsDisabled=@IsDisabled
-        WHERE AccountID=@AccountID`);
+    const targetAccount = currentAccountResult.recordset[0];
+
+    // Validation: Admin không thể thay đổi role của chính mình
+    if (currentUser?.AccountID === accountId && RoleID !== undefined) {
+      res.status(403).json({ message: "Không thể thay đổi vai trò của chính mình" });
+      return;
+    }
+
+    // Validation: Không cho phép thay đổi role của Admin khác (chỉ có Super Admin mới được)
+    if (targetAccount.RoleID === 1 && RoleID !== undefined && RoleID !== 1) {
+      res.status(403).json({ message: "Không thể thay đổi vai trò của Admin" });
+      return;
+    }
+
+    // Validation: Không cho phép tạo thêm Admin
+    if (RoleID === 1 && targetAccount.RoleID !== 1) {
+      res.status(403).json({ message: "Không thể nâng cấp tài khoản lên Admin" });
+      return;
+    }
+
+    // Validate RoleID if provided
+    if (RoleID !== undefined) {
+      const roleResult = await pool
+        .request()
+        .input("RoleID", sql.Int, RoleID)
+        .query("SELECT RoleID, RoleName FROM Role WHERE RoleID = @RoleID");
+      
+      if (roleResult.recordset.length === 0) {
+        res.status(400).json({ message: "Vai trò không hợp lệ" });
+        return;
+      }
+    }
+
+    // Check if Username already exists (excluding current account)
+    if (Username) {
+      if (!isValidUsername(Username)) {
+        res.status(400).json({ message: "Tên người dùng chỉ được chứa chữ cái và số" });
+        return;
+      }
+
+      const usernameCheck = await pool
+        .request()
+        .input("Username", sql.NVarChar, Username)
+        .input("AccountID", sql.Int, accountId)
+        .query("SELECT AccountID FROM Account WHERE Username = @Username AND AccountID != @AccountID");
+      
+      if (usernameCheck.recordset.length > 0) {
+        res.status(400).json({ message: "Tên người dùng đã tồn tại" });
+        return;
+      }
+    }
+
+    // Check if Email already exists (excluding current account)
+    if (Email) {
+      if (!isValidEmail(Email)) {
+        res.status(400).json({ message: "Email không hợp lệ" });
+        return;
+      }
+
+      const emailCheck = await pool
+        .request()
+        .input("Email", sql.NVarChar, Email)
+        .input("AccountID", sql.Int, accountId)
+        .query("SELECT AccountID FROM Account WHERE Email = @Email AND AccountID != @AccountID");
+      
+      if (emailCheck.recordset.length > 0) {
+        res.status(400).json({ message: "Email đã tồn tại" });
+        return;
+      }
+    }
+
+    // Build dynamic update query
+    const updates: string[] = [];
+    const request = pool.request();
+    request.input("AccountID", sql.Int, accountId);
+
+    if (Username !== undefined) {
+      request.input("Username", sql.NVarChar, Username);
+      updates.push("Username = @Username");
+    }
+    if (Email !== undefined) {
+      request.input("Email", sql.NVarChar, Email);
+      updates.push("Email = @Email");
+    }
+    if (FullName !== undefined) {
+      request.input("FullName", sql.NVarChar, FullName);
+      updates.push("FullName = @FullName");
+    }
+    if (DateOfBirth !== undefined) {
+      request.input("DateOfBirth", sql.Date, DateOfBirth);
+      updates.push("DateOfBirth = @DateOfBirth");
+    }
+    if (RoleID !== undefined) {
+      request.input("RoleID", sql.Int, RoleID);
+      updates.push("RoleID = @RoleID");
+    }
+    if (IsDisabled !== undefined) {
+      request.input("IsDisabled", sql.Bit, IsDisabled);
+      updates.push("IsDisabled = @IsDisabled");
+    }
+
+    if (updates.length === 0) {
+      res.status(400).json({ message: "Không có dữ liệu để cập nhật" });
+      return;
+    }
+
+    const result = await request.query(`UPDATE Account SET ${updates.join(', ')} WHERE AccountID = @AccountID`);
+    
     if (result.rowsAffected[0] === 0) {
       res.status(404).json({ message: "Tài khoản không tồn tại" });
+      return;
     }
-    res.json({ message: "Tài khoản đã được cập nhật" });
+
+    res.json({ message: "Tài khoản đã được cập nhật thành công" });
   } catch (err: any) {
     console.error(`Lỗi khi cập nhật tài khoản ID ${req.params.id}:`, err.message);
     res.status(500).json({ error: "Lỗi máy chủ" });
@@ -439,5 +595,114 @@ export const getTotalAccountCountStatistic = async (req: Request, res: Response)
       message: 'Lỗi khi thống kê tổng số người dùng',
       error: err.message
     });
+  }
+};
+
+// Upload avatar
+export const uploadAvatar = async (req: Request, res: Response) => {
+  const accountId = parseInt(req.params.id, 10);
+  const user = (req as any).user; // From JWT middleware
+
+  try {
+    // Check if user is updating their own avatar
+    if (user.user.AccountID !== accountId) {
+      res.status(403).json({ message: "Không có quyền cập nhật avatar này" });
+      return;
+    }
+
+    // Check if file was uploaded
+    if (!req.file) {
+      res.status(400).json({ message: "Vui lòng chọn file ảnh" });
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(req.file.mimetype)) {
+      res.status(400).json({ message: "Chỉ chấp nhận file ảnh (JPEG, JPG, PNG, GIF)" });
+      return;
+    }
+
+    // Generate file path (relative to public folder)
+    const fileName = `avatar_${accountId}_${Date.now()}.${req.file.originalname.split('.').pop()}`;
+    const filePath = `/uploads/avatars/${fileName}`;
+    const fullPath = `./public${filePath}`;
+
+    // Create directory if it doesn't exist
+    const fs = require('fs');
+    const path = require('path');
+    const uploadsDir = path.dirname(fullPath);
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    // Move file to uploads directory
+    fs.writeFileSync(fullPath, req.file.buffer);
+
+    // Update database
+    const pool = await poolPromise;
+    await pool
+      .request()
+      .input("AccountID", sql.Int, accountId)
+      .input("ProfilePicture", sql.NVarChar, filePath)
+      .query("UPDATE Account SET ProfilePicture = @ProfilePicture WHERE AccountID = @AccountID");
+
+    res.json({ 
+      message: "Upload avatar thành công",
+      profilePicture: `http://localhost:5000${filePath}`
+    });
+  } catch (err: any) {
+    console.error(`Lỗi khi upload avatar cho AccountID ${accountId}:`, err.message);
+    res.status(500).json({ error: "Lỗi máy chủ" });
+  }
+};
+
+// Remove avatar
+export const removeAvatar = async (req: Request, res: Response) => {
+  const accountId = parseInt(req.params.id, 10);
+  const user = (req as any).user; // From JWT middleware
+
+  try {
+    // Check if user is removing their own avatar
+    if (user.user.AccountID !== accountId) {
+      res.status(403).json({ message: "Không có quyền xóa avatar này" });
+      return;
+    }
+
+    // Get current avatar path from database
+    const pool = await poolPromise;
+    const currentResult = await pool
+      .request()
+      .input("AccountID", sql.Int, accountId)
+      .query("SELECT ProfilePicture FROM Account WHERE AccountID = @AccountID");
+
+    if (currentResult.recordset.length === 0) {
+      res.status(404).json({ message: "Tài khoản không tồn tại" });
+      return;
+    }
+
+    const currentProfilePicture = currentResult.recordset[0].ProfilePicture;
+
+    // Remove file from filesystem if exists
+    if (currentProfilePicture) {
+      const fs = require('fs');
+      const fullPath = `./public${currentProfilePicture}`;
+      if (fs.existsSync(fullPath)) {
+        fs.unlinkSync(fullPath);
+      }
+    }
+
+    // Update database to remove profile picture
+    await pool
+      .request()
+      .input("AccountID", sql.Int, accountId)
+      .query("UPDATE Account SET ProfilePicture = NULL WHERE AccountID = @AccountID");
+
+    res.json({ 
+      message: "Xóa avatar thành công"
+    });
+  } catch (err: any) {
+    console.error(`Lỗi khi xóa avatar cho AccountID ${accountId}:`, err.message);
+    res.status(500).json({ error: "Lỗi máy chủ" });
   }
 };

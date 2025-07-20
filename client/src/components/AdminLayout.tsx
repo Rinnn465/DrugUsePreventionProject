@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 import { 
@@ -11,7 +11,11 @@ import {
     Menu,
     X,
     Users,
-    FileText
+    FileText,
+    User,
+    Settings,
+    KeyRound,
+    ChevronDown
 } from "lucide-react";
 
 interface AdminLayoutProps {
@@ -23,6 +27,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
     
     // Sidebar navigation items
     const navigationItems = [
@@ -77,6 +82,21 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             });
     };
 
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Element;
+            if (!target.closest('.profile-dropdown')) {
+                setDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     return (
         <div className="flex h-screen bg-gray-100">
             {/* Sidebar */}
@@ -97,6 +117,54 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
                 {/* Navigation */}
                 <nav className="mt-8 px-4">
+                    {/* Profile Section */}
+                    <div className="mb-6 profile-dropdown">
+                        <div className="relative">
+                            <button
+                                onClick={() => setDropdownOpen(!dropdownOpen)}
+                                className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors"
+                            >
+                                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center overflow-hidden">
+                                    {user?.ProfilePicture ? (
+                                        <img 
+                                            src={user.ProfilePicture} 
+                                            alt={`Avatar của ${user.FullName || 'Admin'}`}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <User className="h-6 w-6 text-blue-600" />
+                                    )}
+                                </div>
+                                <div className="flex-1 text-left">
+                                    <div className="text-white font-medium text-sm">{user?.FullName || 'Admin'}</div>
+                                </div>
+                                <ChevronDown className={`h-4 w-4 text-gray-400 transform transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+                            </button>
+                            
+                            {/* Dropdown Menu */}
+                            {dropdownOpen && (
+                                <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 rounded-lg shadow-lg border border-slate-700 z-50">
+                                    <Link
+                                        to={`/roles/${user?.RoleID}/admin-profile`}
+                                        className="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:bg-slate-700 hover:text-white transition-colors"
+                                        onClick={() => setDropdownOpen(false)}
+                                    >
+                                        <Settings className="h-4 w-4" />
+                                        <span className="text-sm">Chỉnh sửa profile</span>
+                                    </Link>
+                                    <Link
+                                        to={`/roles/${user?.RoleID}/change-password`}
+                                        className="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:bg-slate-700 hover:text-white transition-colors"
+                                        onClick={() => setDropdownOpen(false)}
+                                    >
+                                        <KeyRound className="h-4 w-4" />
+                                        <span className="text-sm">Chỉnh sửa tài khoản</span>
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                     <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
                         Điều hướng
                     </div>

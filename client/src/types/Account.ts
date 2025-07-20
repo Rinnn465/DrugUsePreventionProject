@@ -11,6 +11,7 @@ export interface Account {
     IsDisabled: boolean;
     ResetToken?: string | null;
     ResetTokenExpiry: Date | null;
+    ProfilePicture?: string | null;
 }
 
 export interface AccountRole {

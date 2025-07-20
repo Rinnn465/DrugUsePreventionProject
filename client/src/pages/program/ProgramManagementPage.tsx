@@ -103,6 +103,12 @@ const ProgramManagementPage: React.FC = () => {
 
     // Send Zoom invite to all attendees
     const sendZoomInvite = async (program: CommunityProgram) => {
+        // Validation: Không cho phép gửi lời mời khi chương trình đã kết thúc
+        if (program.Status === 'completed') {
+            toast.error('Không thể gửi lời mời cho chương trình đã kết thúc.');
+            return;
+        }
+
         try {
             setSendingInvite(true);
             const token = localStorage.getItem('token');
@@ -1008,8 +1014,8 @@ const ProgramManagementPage: React.FC = () => {
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50">
                                         <tr>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Họ Tên</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên người dùng</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày đăng ký</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
@@ -1097,12 +1103,13 @@ const ProgramManagementPage: React.FC = () => {
                                 </button>
                                 <button
                                     onClick={() => sendZoomInvite(selectedProgram)}
-                                    disabled={sendingInvite}
+                                    disabled={sendingInvite || selectedProgram?.Status === 'completed'}
                                     className={`px-4 py-2 text-sm font-medium text-white rounded-md ${
-                                        sendingInvite 
+                                        sendingInvite || selectedProgram?.Status === 'completed'
                                             ? 'bg-gray-400 cursor-not-allowed' 
                                             : 'bg-green-600 hover:bg-green-700'
                                     }`}
+                                    title={selectedProgram?.Status === 'completed' ? 'Không thể gửi lời mời cho chương trình đã kết thúc' : ''}
                                 >
                                     {sendingInvite ? (
                                         <div className="flex items-center">
@@ -1112,6 +1119,8 @@ const ProgramManagementPage: React.FC = () => {
                                             </svg>
                                             Đang gửi...
                                         </div>
+                                    ) : selectedProgram?.Status === 'completed' ? (
+                                        'Chương trình đã kết thúc'
                                     ) : (
                                         'Gửi lời mời Zoom'
                                     )}

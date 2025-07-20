@@ -85,7 +85,27 @@ const AccountManagementPage: React.FC = () => {
 
     const fetchRoles = async () => {
         try {
-            // Assuming there's an endpoint for roles, or we can extract from accounts
+            // Thử gọi API /roles trước
+            const response = await fetch('http://localhost:5000/api/account/roles', {
+                headers: getAuthHeaders()
+            });
+
+            if (response.ok) {
+                const rolesData = await response.json();
+                setRoles(rolesData);
+            } else {
+                // Fallback: extract từ accounts nếu API fail
+                const uniqueRoles = accounts.reduce((acc, account) => {
+                    if (!acc.find(role => role.RoleID === account.RoleID)) {
+                        acc.push({ RoleID: account.RoleID, RoleName: account.RoleName });
+                    }
+                    return acc;
+                }, [] as AccountRole[]);
+                setRoles(uniqueRoles);
+            }
+        } catch (error) {
+            console.error('Error fetching roles:', error);
+            // Fallback: extract từ accounts
             const uniqueRoles = accounts.reduce((acc, account) => {
                 if (!acc.find(role => role.RoleID === account.RoleID)) {
                     acc.push({ RoleID: account.RoleID, RoleName: account.RoleName });
@@ -93,8 +113,6 @@ const AccountManagementPage: React.FC = () => {
                 return acc;
             }, [] as AccountRole[]);
             setRoles(uniqueRoles);
-        } catch (error) {
-            console.error('Error extracting roles:', error);
         }
     };
 
@@ -253,13 +271,9 @@ const AccountManagementPage: React.FC = () => {
 
     useEffect(() => {
         fetchAccounts();
+        fetchRoles();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    useEffect(() => {
-        if (accounts.length > 0) {
-            fetchRoles();
-        }
-    }, [accounts]);
 
     return (
         <AdminLayout>

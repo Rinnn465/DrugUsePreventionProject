@@ -22,6 +22,10 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware to parse JSON
 app.use(express.json());
+
+// Serve static files from public directory
+app.use(express.static('public'));
+
 app.use(
   cors({
     origin: "http://localhost:5173",
