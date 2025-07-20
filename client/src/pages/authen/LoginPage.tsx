@@ -138,7 +138,7 @@ const LoginPage: React.FC = () => {
         >
             <h2 className="text-2xl font-bold text-center mb-6">Đăng nhập</h2>
 
-            {/* Display server errors */}
+            {/* Display Lỗi máy chủs */}
             {serverError && renderError(serverError)}
 
             <div className="flex flex-col space-y-4">

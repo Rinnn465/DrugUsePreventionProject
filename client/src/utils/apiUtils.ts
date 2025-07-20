@@ -68,7 +68,7 @@ const createAxiosInstance = (): AxiosInstance => {
                 // Forbidden
                 console.error('Access forbidden');
             } else if (error.response?.status === 500) {
-                console.error('Server error');
+                console.error('Lỗi máy chủ');
             }
             return Promise.reject(error);
         }

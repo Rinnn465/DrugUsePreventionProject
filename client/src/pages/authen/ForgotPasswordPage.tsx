@@ -147,7 +147,7 @@ const ForgotPasswordPage: React.FC = () => {
                             placeholder="Nhập email của bạn"
                             onChange={(e) => {
                                 formik.handleChange(e);
-                                if (serverResponse) setServerResponse(null); // Clear server error on input change
+                                if (serverResponse) setServerResponse(null); // Clear Lỗi máy chủ on input change
                             }}
                             onBlur={formik.handleBlur}
                             value={formik.values.email}

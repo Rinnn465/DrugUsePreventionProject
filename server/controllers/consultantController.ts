@@ -34,7 +34,7 @@ export async function getConsultants(
         });
     } catch (err: any) {
         console.error(err);
-        res.status(500).json({ message: "Server error", error: err.message });
+        res.status(500).json({ message: "Lỗi máy chủ", error: err.message });
     }
 }
 
@@ -122,7 +122,7 @@ export async function getConsultantWithCategory(
         });
     } catch (err: any) {
         console.error('Error in getConsultants:', err);
-        res.status(500).json({ message: "Server error", error: err.message });
+        res.status(500).json({ message: "Lỗi máy chủ", error: err.message });
     }
 }
 
@@ -181,7 +181,7 @@ export async function getConsultantById(
         });
     } catch (err: any) {
         console.error(err);
-        res.status(500).json({ message: "Server error", error: err.message });
+        res.status(500).json({ message: "Lỗi máy chủ", error: err.message });
     }
 }
 
@@ -216,7 +216,7 @@ export async function getQualifications(
         return;
     } catch (err: any) {
         console.error(err);
-        throw new Error("Server error");
+        throw new Error("Lỗi máy chủ");
     }
 }
 
@@ -250,7 +250,7 @@ export async function getSpecialties(
         return;
     } catch (err: any) {
         console.error(err);
-        throw new Error("Server error");
+        throw new Error("Lỗi máy chủ");
     }
 }
 

@@ -107,7 +107,7 @@ export const getAllPrograms = async (
     });
   } catch (error) {
     console.error("Error fetching programs:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi máy chủ" });
   }
 };
 
@@ -229,7 +229,7 @@ export async function createProgram(req: Request, res: Response): Promise<void> 
     res.status(201).json(result.recordset[0]);
   } catch (err: any) {
     console.error('Có lỗi xảy ra khi thêm chương trình:', err.message);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi máy chủ" });
   }
 }
 
@@ -301,7 +301,7 @@ export async function updateProgram(req: Request, res: Response): Promise<void> 
     res.json(result.recordset[0]);
   } catch (err: any) {
     console.error('Có lỗi xảy ra khi cập nhật chương trình:', err.message);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi máy chủ" });
   }
 }
 
@@ -368,7 +368,7 @@ export async function deleteProgram(req: Request, res: Response): Promise<void> 
     }
   } catch (err: any) {
     console.error('Có lỗi xảy ra khi xóa chương trình:', err.message);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi máy chủ" });
   }
 }
 

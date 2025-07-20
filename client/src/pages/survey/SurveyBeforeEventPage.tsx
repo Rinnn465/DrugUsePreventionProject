@@ -170,7 +170,7 @@ const SurveyBeforeEventPage = () => {
                         <option value="parent">Phụ huynh</option>
                         <option value="healthcare_worker">Nhân viên y tế</option>
                         <option value="government_officer">Cán bộ nhà nước</option>
-                        <option value="ngo_volunteer">Tình nguyện viên
+                        <option value="ngo_volunteer">Tình nguyện viên</option>
                         <option value="other">Khác</option>
                     </select>
                 </div>

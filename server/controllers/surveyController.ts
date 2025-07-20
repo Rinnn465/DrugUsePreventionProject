@@ -75,6 +75,47 @@ export const submitSurveyResponse = async (req: Request, res: Response): Promise
       return;
     }
 
+    // Kiểm tra người dùng đã đăng ký tham gia chương trình chưa
+    const enrollmentCheck = await pool.request()
+      .input('AccountID', sql.Int, accountId)
+      .input('ProgramID', sql.Int, programId)
+      .query(`
+        SELECT Status FROM CommunityProgramAttendee 
+        WHERE AccountID = @AccountID AND ProgramID = @ProgramID
+      `);
+
+    if (enrollmentCheck.recordset.length === 0) {
+      console.log('User not enrolled in program');
+      res.status(403).json({ message: 'Bạn chưa đăng ký tham gia chương trình này' });
+      return;
+    }
+
+    // Nếu là khảo sát sau chương trình, kiểm tra chương trình đã kết thúc chưa
+    if (surveyType === 'after') {
+      const programStatusCheck = await pool.request()
+        .input('ProgramID', sql.Int, programId)
+        .query(`
+          SELECT Status FROM CommunityProgram 
+          WHERE ProgramID = @ProgramID
+        `);
+
+      if (programStatusCheck.recordset.length === 0) {
+        console.log('Program not found');
+        res.status(404).json({ message: 'Không tìm thấy chương trình' });
+        return;
+      }
+
+      const programStatus = programStatusCheck.recordset[0].Status;
+      if (programStatus !== 'completed') {
+        console.log('Program not completed yet, status:', programStatus);
+        res.status(403).json({ 
+          message: 'Chỉ có thể làm khảo sát sau chương trình khi chương trình đã kết thúc',
+          programStatus: programStatus
+        });
+        return;
+      }
+    }
+
     console.log('Checking for existing response...');
 
     // Kiểm tra xem user đã làm khảo sát này chưa
@@ -98,7 +139,7 @@ export const submitSurveyResponse = async (req: Request, res: Response): Promise
     console.log('Inserting new survey response...');
 
     // Lưu response mới với JSON data
-    const insertResult = await pool.request()
+    await pool.request()
       .input('AccountID', sql.Int, accountId)
       .input('ProgramID', sql.Int, programId)
       .input('SurveyType', sql.NVarChar, surveyType)

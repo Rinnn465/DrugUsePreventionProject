@@ -12,7 +12,7 @@ export async function getAllProgramSurveys(req: Request, res: Response): Promise
         `);
         res.json(result.recordset);
     } catch (err) {
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Lỗi máy chủ" });
     }
 }
 
@@ -36,7 +36,7 @@ export async function getProgramSurveyById(req: Request, res: Response): Promise
         }
         res.json(survey);
     } catch (err) {
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Lỗi máy chủ" });
     }
 }
 
@@ -66,7 +66,7 @@ export async function getSurveysByProgramId(req: Request, res: Response): Promis
             }
         }
 
-        // Lấy survey mapping
+        // Lấy survey mapping kèm thông tin chương trình
         const result = await pool.request()
             .input('ProgramID', sql.Int, programId)
             .query(`
@@ -76,11 +76,19 @@ export async function getSurveysByProgramId(req: Request, res: Response): Promis
                     s.Type as SurveyCategory,
                     s.SurveyCategoryID,
                     sc.SurveyCategoryName,
-                    cps.SurveyType as Type
+                    cps.SurveyType as Type,
+                    cp.Status as ProgramStatus,
+                    cp.ProgramName,
+                    CAST(1 AS BIT) as CanTakeSurvey
                 FROM Survey s
                 INNER JOIN CommunityProgramSurvey cps ON s.SurveyID = cps.SurveyID
+                INNER JOIN CommunityProgram cp ON cps.ProgramID = cp.ProgramID
                 LEFT JOIN SurveyCategory sc ON s.SurveyCategoryID = sc.SurveyCategoryID
                 WHERE cps.ProgramID = @ProgramID
+                AND (
+                    cps.SurveyType = 'before' 
+                    OR (cps.SurveyType = 'after' AND cp.Status = 'completed')
+                )
                 ORDER BY cps.SurveyType
             `);
 
@@ -88,7 +96,7 @@ export async function getSurveysByProgramId(req: Request, res: Response): Promis
         res.status(200).json(result.recordset);
     } catch (err) {
         console.error('Error fetching program surveys:', err);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Lỗi máy chủ' });
     }
 }
 
@@ -117,7 +125,7 @@ export async function createProgramSurvey(req: Request, res: Response): Promise<
             `);
         res.status(201).json(result.recordset[0]);
     } catch (err) {
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Lỗi máy chủ" });
     }
 }
 
@@ -151,7 +159,7 @@ export async function updateProgramSurvey(req: Request, res: Response): Promise<
             `);
         res.json(result.recordset[0]);
     } catch (err) {
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Lỗi máy chủ" });
     }
 }
 
@@ -169,7 +177,7 @@ export async function deleteProgramSurvey(req: Request, res: Response): Promise<
         }
         res.status(204).send();
     } catch (err) {
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Lỗi máy chủ" });
     }
 }
 
@@ -188,6 +196,6 @@ export async function getProgramSurveyByCategoryId(req: Request, res: Response):
             `);
         res.json(result.recordset);
     } catch (err) {
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Lỗi máy chủ" });
     }
 }

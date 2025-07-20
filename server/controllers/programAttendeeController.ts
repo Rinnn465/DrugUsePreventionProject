@@ -1,7 +1,5 @@
 import { Request, Response } from 'express';
 import { sql, poolPromise } from '../config/database';
-import { sendEmail } from './mailController';
-import { programInvitationTemplate } from '../templates/programInvitation';
 
 /**
  * Lấy danh sách tất cả người tham gia các chương trình
@@ -28,7 +26,7 @@ export async function getAllProgramAttendees(req: Request, res: Response): Promi
         res.json(result.recordset); // Trả về danh sách người tham gia
     } catch (err) {
         console.error('Error fetching all program attendees:', err);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Lỗi máy chủ" });
     }
 }
 
@@ -55,7 +53,7 @@ export async function getAttendeesByProgramId(req: Request, res: Response): Prom
         res.json(result.recordset);
     } catch (err) {
         console.error('Error fetching attendees by program ID:', err);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Lỗi máy chủ" });
     }
 }
 
@@ -81,7 +79,7 @@ export async function getTotalAttendeesByProgramId(req: Request, res: Response):
         res.json({ total: result.recordset[0].total }); // Trả về tổng số
     } catch (err) {
         console.error('Error fetching total attendees by program ID:', err);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Lỗi máy chủ" });
     }
 }
 
@@ -120,7 +118,7 @@ export async function getAttendeeById(req: Request, res: Response): Promise<void
         res.json(attendee); // Trả về thông tin người tham gia
     } catch (err) {
         console.error('Error fetching attendee by ID:', err);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Lỗi máy chủ" });
     }
 }
 
@@ -173,7 +171,7 @@ export async function checkEnrollmentStatus(req: Request, res: Response): Promis
         });
     } catch (err) {
         console.error("Check enrollment status error:", err);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Lỗi máy chủ" });
     }
 }
 
@@ -262,7 +260,7 @@ export async function enrollInProgram(req: Request, res: Response): Promise<void
         });
     } catch (err: any) {
         console.log("Enrollment error:", err); // Log lỗi
-        res.status(500).json({ message: "Server error during enrollment" + err, error: err });
+        res.status(500).json({ message: "Lỗi máy chủ" + err, error: err });
     }
 }
 
@@ -309,21 +307,54 @@ export async function unenrollFromProgram(req: Request, res: Response): Promise<
             return;
         }
 
-        const result = await pool.request()
+        // Kiểm tra đăng ký tồn tại trước khi xóa
+        const enrollmentCheck = await pool.request()
             .input('ProgramID', sql.Int, programId)
             .input('AccountID', sql.Int, accountId)
             .query(`
-                DELETE FROM CommunityProgramAttendee 
+                SELECT * FROM CommunityProgramAttendee 
                 WHERE ProgramID = @ProgramID AND AccountID = @AccountID
             `);
 
-        if (result.rowsAffected[0] === 0) {
-            res.status(404).json({ message: "Enrollment not found" }); // Không tìm thấy bản ghi
+        if (enrollmentCheck.recordset.length === 0) {
+            res.status(404).json({ message: "Enrollment not found" });
             return;
         }
 
+        // Bắt đầu transaction để đảm bảo tính nhất quán dữ liệu
+        const transaction = pool.transaction();
+        await transaction.begin();
+
+        try {
+            // Xóa tất cả khảo sát đã làm cho chương trình này
+            await transaction.request()
+                .input('ProgramID', sql.Int, programId)
+                .input('AccountID', sql.Int, accountId)
+                .query(`
+                    DELETE FROM SurveyResponse 
+                    WHERE ProgramID = @ProgramID AND AccountID = @AccountID
+                `);
+
+            // Xóa bản ghi đăng ký
+            await transaction.request()
+                .input('ProgramID', sql.Int, programId)
+                .input('AccountID', sql.Int, accountId)
+                .query(`
+                    DELETE FROM CommunityProgramAttendee 
+                    WHERE ProgramID = @ProgramID AND AccountID = @AccountID
+                `);
+
+            // Commit transaction
+            await transaction.commit();
+
+            console.log(`Unenrolled user ${accountId} from program ${programId} and deleted survey responses`);
+        } catch (transactionError) {
+            // Rollback nếu có lỗi
+            await transaction.rollback();
+            throw transactionError;
+        }
+
         res.status(200).json({
-            message: "Successfully unenrolled from program",
             programId: programId,
             isEnrolled: false,
             status: null,
@@ -384,7 +415,7 @@ export async function getMyEnrolledPrograms(req: Request, res: Response): Promis
         });
     } catch (err) {
         console.error("Get enrolled programs error:", err);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Lỗi máy chủ" });
     }
 }
 
@@ -489,7 +520,7 @@ export async function compareProgramEnrollmentStatistics(req: Request, res: Resp
         const prevCount = prevResult.recordset[0]?.PrevEnrollCount || 0;
         const currCount = currResult.recordset[0]?.CurrEnrollCount || 0;
         // Tính phần trăm thay đổi
-        let percentChange = 0;
+        let percentChange: number;
         if (prevCount === 0 && currCount > 0) {
             percentChange = 100;
         } else if (prevCount === 0 && currCount === 0) {
