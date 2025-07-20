@@ -571,7 +571,7 @@ export async function sendProgramInvitation(req: Request, res: Response): Promis
     } catch (err) {
         console.error('Lỗi trong sendProgramInvitation:', err);
         res.status(500).json({ 
-            message: "Lỗi server khi gửi lời mời",
+            message: "Lỗi máy chủ khi gửi lời mời",
             error: err instanceof Error ? err.message : 'Lỗi không xác định'
         });
     }

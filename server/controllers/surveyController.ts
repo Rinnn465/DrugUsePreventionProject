@@ -15,7 +15,7 @@ export async function getAllSurveys(
         `);
     res.json(result.recordset);
   } catch (err) {
-    res.status(500).json({ message: "Lỗi Server" });
+    res.status(500).json({ message: "Lỗi máy chủ" });
   }
 }
 
@@ -40,7 +40,7 @@ export async function getSurveyById(
     }
     res.json(survey);
   } catch (err) {
-    res.status(500).json({ message: "Lỗi Server" });
+    res.status(500).json({ message: "Lỗi máy chủ" });
   }
 }
 
@@ -137,7 +137,7 @@ export const submitSurveyResponse = async (req: Request, res: Response): Promise
       stack: error.stack,
       sql: error.originalError || 'No SQL error'
     });
-    res.status(500).json({ message: 'Lỗi server khi lưu khảo sát', error: error.message });
+    res.status(500).json({ message: 'Lỗi máy chủ khi lưu khảo sát', error: error.message });
   }
 };
 
@@ -169,7 +169,7 @@ export async function createSurvey(req: Request, res: Response): Promise<void> {
             `);
     res.status(201).json(result.recordset[0]);
   } catch (err) {
-    res.status(500).json({ message: "Lỗi Server" });
+    res.status(500).json({ message: "Lỗi máy chủ" });
   }
 }
 
@@ -206,7 +206,7 @@ export async function updateSurvey(req: Request, res: Response): Promise<void> {
             `);
     res.json(result.recordset[0]);
   } catch (err) {
-    res.status(500).json({ message: "Lỗi Server" });
+    res.status(500).json({ message: "Lỗi máy chủ" });
   }
 }
 
@@ -225,7 +225,7 @@ export async function deleteSurvey(req: Request, res: Response): Promise<void> {
     }
     res.status(204).send();
   } catch (err) {
-    res.status(500).json({ message: "Lỗi Server" });
+    res.status(500).json({ message: "Lỗi máy chủ" });
   }
 }
 
@@ -246,6 +246,6 @@ export async function getSurveyByCategoryId(
             `);
     res.json(result.recordset);
   } catch (err) {
-    res.status(500).json({ message: "Lỗi Server" });
+    res.status(500).json({ message: "Lỗi máy chủ" });
   }
 }

@@ -8,7 +8,7 @@ export async function getAppointments(req: Request, res: Response, next: NextFun
         res.status(200).json({ message: "Lấy danh sách lịch hẹn thành công!", data: result.recordset });
     } catch (error) {
         console.error("Error fetching appointments:", error);
-        res.status(500).json({ message: "Lỗi server!" });
+        res.status(500).json({ message: "Lỗi máy chủ" });
     }
 };
 
@@ -21,14 +21,14 @@ export async function getAppointmentById(req: Request, res: Response, next: Next
             .query("SELECT * FROM Appointments WHERE AppointmentID = @id");
 
         if (result.recordset.length === 0) {
-            res.status(404).json({ message: "Không tìm thấy lịch hẹn!" });
+            res.status(404).json({ message: "Không tìm thấy lịch hẹn" });
             return;
         }
 
         res.status(200).json(result.recordset[0]);
     } catch (error) {
         console.error("Error fetching appointment:", error);
-        res.status(500).json({ message: "Lỗi server!" });
+        res.status(500).json({ message: "Lỗi máy chủ" });
     }
 };
 
@@ -43,14 +43,14 @@ export async function getAppointmentByMemberId(req: Request, res: Response, next
             .query(`SELECT * FROM Appointment WHERE AccountID = @userId`);
 
         if (result.recordset.length === 0) {
-            res.status(404).json({ message: "Không tìm thấy lịch hẹn cho người dùng này!", data: [] });
+            res.status(404).json({ message: "Không tìm thấy lịch hẹn cho người dùng này", data: [] });
             return;
         }
 
         res.status(200).json({ message: "Tìm lịch hẹn thành công", data: result.recordset });
     } catch (error) {
         console.log("Error fetching appointment by user ID: ", error);
-        res.status(500).json({ message: "Lỗi server!" });
+        res.status(500).json({ message: "Lỗi máy chủ" });
     }
 };
 
@@ -70,19 +70,19 @@ export async function getAppointmentByConsultantId(req: Request, res: Response, 
                 `);
 
         if (!result.recordset) {
-            res.status(404).json({ message: "Không tìm thấy lịch hẹn cho chuyên gia này!", data: [] });
+            res.status(404).json({ message: "Không tìm thấy lịch hẹn cho chuyên gia này", data: [] });
             return;
         }
 
         if (result.recordset.length === 0) {
-            res.status(404).json({ message: "Không tìm thấy lịch hẹn cho chuyên gia này!", data: [] });
+            res.status(404).json({ message: "Không tìm thấy lịch hẹn cho chuyên gia này", data: [] });
             return;
         }
 
         res.status(200).json({ message: "Tìm lịch hẹn thành công", data: result.recordset });
     } catch (error) {
         console.log("Error fetching appointment by consultant ID: ", error);
-        res.status(500).json({ message: "Lỗi server!" });
+        res.status(500).json({ message: "Lỗi máy chủ" });
     }
 }
 
@@ -106,11 +106,11 @@ export async function bookAppointment(req: Request, res: Response, next: NextFun
                 VALUES (@consultantId, @accountId, CAST(@time as Time), @date, @meetingUrl, @status, @description, @duration);
             `);
 
-        res.status(201).json({ message: "Đặt lịch hẹn thành công!" });
+        res.status(201).json({ message: "Đặt lịch hẹn thành công" });
 
     } catch (error) {
         console.error("Error booking appointment:", error);
-        res.status(500).json({ message: "Lỗi server!" });
+        res.status(500).json({ message: "Lỗi máy chủ" });
     }
 };
 
@@ -140,7 +140,7 @@ export async function approveAppointment(req: Request, res: Response, next: Next
         });
     } catch (error) {
         console.error('Error approving appointment:', error);
-        res.status(500).json({ message: 'Lỗi server khi phê duyệt cuộc hẹn' });
+        res.status(500).json({ message: 'Lỗi máy chủ khi phê duyệt cuộc hẹn' });
     }
 }
 
@@ -171,7 +171,7 @@ export async function rejectAppointment(req: Request, res: Response, next: NextF
         res.status(200).json({ message: 'Từ chối cuộc hẹn thành công', stats: '', reject: rejectionReason });
     } catch (error) {
         console.error('Error rejecting appointment:', error);
-        res.status(500).json({ message: 'Lỗi server khi từ chối cuộc hẹn' });
+        res.status(500).json({ message: 'Lỗi máy chủ khi từ chối cuộc hẹn' });
     }
 }
 
@@ -196,7 +196,7 @@ export async function cancelAppointment(req: Request, res: Response, next: NextF
         res.status(200).json({ message: 'Hủy cuộc hẹn thành công' });
     } catch (error) {
         console.error('Error cancelling appointment:', error);
-        res.status(500).json({ message: 'Lỗi server khi hủy cuộc hẹn' });
+        res.status(500).json({ message: 'Lỗi máy chủ khi hủy cuộc hẹn' });
     }
 }
 
@@ -229,7 +229,7 @@ export async function rateAppointment(req: Request, res: Response, next: NextFun
         res.status(200).json({ message: 'Đánh giá cuộc hẹn thành công' });
     } catch (error) {
         console.error('Error rating appointment:', error);
-        res.status(500).json({ message: 'Lỗi server khi đánh giá cuộc hẹn' });
+        res.status(500).json({ message: 'Lỗi máy chủ khi đánh giá cuộc hẹn' });
     }
 }
 
@@ -253,7 +253,7 @@ export async function completeAppointment(req: Request, res: Response, next: Nex
         res.status(200).json({ message: 'Hoàn thành cuộc hẹn thành công' });
     } catch (error) {
         console.error('Error completing appointment:', error);
-        res.status(500).json({ message: 'Lỗi server khi hoàn thành cuộc hẹn' });
+        res.status(500).json({ message: 'Lỗi máy chủ khi hoàn thành cuộc hẹn' });
     }
 }
 
@@ -270,9 +270,9 @@ export async function getAppointmentsByFilter(req: Request, res: Response, next:
                 WHERE ConsultantID = @consultantId AND CAST(Date AS DATE) = CAST(@date AS DATE);
             `);
 
-        res.status(200).json({ message: "Lấy lịch hẹn thành công!", data: result.recordset });
+        res.status(200).json({ message: "Lấy lịch hẹn thành công", data: result.recordset });
     } catch (error) {
         console.error("Error fetching appointments by filter:", error);
-        res.status(500).json({ message: "Lỗi server!" });
+        res.status(500).json({ message: "Lỗi máy chủ" });
     }
 }

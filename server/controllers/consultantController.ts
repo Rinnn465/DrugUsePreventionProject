@@ -329,7 +329,7 @@ export async function updateConsultantSchedule(req: Request, res: Response, next
         res.status(200).json({ message: 'Cập nhật lịch làm việc thành công' });
     } catch (error) {
         console.error('Error updating consultant schedule:', error);
-        res.status(500).json({ message: 'Lỗi server khi cập nhật lịch làm việc' });
+        res.status(500).json({ message: 'Lỗi máy chủ khi cập nhật lịch làm việc' });
     }
 }
 
@@ -351,7 +351,7 @@ export async function deleteConsultantSchedule(req: Request, res: Response, next
         res.status(200).json({ message: 'Xóa lịch làm việc thành công' });
     } catch (error) {
         console.error('Error deleting consultant schedule:', error);
-        res.status(500).json({ message: 'Lỗi server khi xóa lịch làm việc' });
+        res.status(500).json({ message: 'Lỗi máy chủ khi xóa lịch làm việc' });
     }
 }
 
@@ -377,7 +377,7 @@ export async function addConsultantSchedule(req: Request, res: Response, next: N
         res.status(201).json({ message: 'Thêm lịch làm việc thành công' });
     } catch (error) {
         console.error('Error adding consultant schedule:', error);
-        res.status(500).json({ message: 'Lỗi server khi thêm lịch làm việc' });
+        res.status(500).json({ message: 'Lỗi máy chủ khi thêm lịch làm việc' });
     }
 }
 
@@ -424,7 +424,7 @@ export async function getPendingAppointments(req: Request, res: Response, next: 
         });
     } catch (error) {
         console.error('Error fetching pending appointments:', error);
-        res.status(500).json({ message: 'Lỗi server khi lấy danh sách cuộc hẹn' });
+        res.status(500).json({ message: 'Lỗi máy chủ khi lấy danh sách cuộc hẹn' });
     }
 }
 
@@ -500,7 +500,7 @@ export async function getTodayAppointments(req: Request, res: Response, next: Ne
         });
     } catch (error) {
         console.error('Error fetching today appointments:', error);
-        res.status(500).json({ message: 'Lỗi server khi lấy danh sách cuộc hẹn hôm nay' });
+        res.status(500).json({ message: 'Lỗi máy chủ khi lấy danh sách cuộc hẹn hôm nay' });
     }
 }
 
@@ -553,7 +553,7 @@ export async function getWeekAppointments(req: Request, res: Response, next: Nex
         });
     } catch (error) {
         console.error('Error fetching this month appointments:', error);
-        res.status(500).json({ message: 'Lỗi server khi lấy danh sách cuộc hẹn trong tuần' });
+        res.status(500).json({ message: 'Lỗi máy chủ khi lấy danh sách cuộc hẹn trong tuần' });
     }
 }
 
@@ -592,7 +592,7 @@ export async function compareAppointments(req: Request, res: Response, next: Nex
         });
     } catch (error) {
         console.error('Error comparing appointments:', error);
-        res.status(500).json({ message: 'Lỗi server khi so sánh cuộc hẹn' });
+        res.status(500).json({ message: 'Lỗi máy chủ khi so sánh cuộc hẹn' });
     }
 }
 
@@ -624,7 +624,7 @@ export async function getAverageRating(req: Request, res: Response, next: NextFu
         });
     } catch (error) {
         console.error('Error getting average rating:', error);
-        res.status(500).json({ message: 'Lỗi server khi lấy đánh giá trung bình' });
+        res.status(500).json({ message: 'Lỗi máy chủ khi lấy đánh giá trung bình' });
     }
 
 }

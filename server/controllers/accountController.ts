@@ -6,7 +6,7 @@ export const getAccountCountStatistic = async (req: Request, res: Response) => {
     res.json({ total: result.recordset[0].total });
   } catch (err: any) {
     console.error("Lỗi khi thống kê tổng số tài khoản:", err.message);
-    res.status(500).json({ error: "Lỗi server" });
+    res.status(500).json({ error: "Lỗi máy chủ" });
   }
 };
 import { NextFunction, Request, Response } from "express";
@@ -34,7 +34,7 @@ export const getAccounts = async (req: Request, res: Response) => {
     res.json(result.recordset as Account[]);
   } catch (err: any) {
     console.error("Lỗi khi lấy danh sách tài khoản:", err.message);
-    res.status(500).json({ error: "Lỗi server" });
+    res.status(500).json({ error: "Lỗi máy chủ" });
   }
 };
 
@@ -59,7 +59,7 @@ export const getAccountById = async (
     res.json(result.recordset[0]);
   } catch (err: any) {
     console.error(`Lỗi khi lấy tài khoản ID ${req.params.id}:`, err.message);
-    res.status(500).json({ error: "Lỗi server" });
+    res.status(500).json({ error: "Lỗi máy chủ" });
   }
 };
 
@@ -94,7 +94,7 @@ export const createAccount = async (req: Request, res: Response) => {
     res.status(201).json({ message: "Tài khoản đã được tạo" });
   } catch (err: any) {
     console.error("Lỗi khi tạo tài khoản:", err.message);
-    res.status(500).json({ error: "Lỗi server" });
+    res.status(500).json({ error: "Lỗi máy chủ" });
   }
 };
 
@@ -143,7 +143,7 @@ export const updateAccount = async (
     res.json({ message: "Tài khoản đã được cập nhật" });
   } catch (err: any) {
     console.error(`Lỗi khi cập nhật tài khoản ID ${req.params.id}:`, err.message);
-    res.status(500).json({ error: "Lỗi server" });
+    res.status(500).json({ error: "Lỗi máy chủ" });
   }
 };
 
@@ -241,7 +241,7 @@ export const updateAccountProfile = async (
     });
   } catch (err: any) {
     console.error(`Lỗi khi cập nhật hồ sơ cho AccountID ${accountId}:`, err.message);
-    res.status(500).json({ error: "Lỗi server" });
+    res.status(500).json({ error: "Lỗi máy chủ" });
   }
 };
 
@@ -321,7 +321,7 @@ export const updatePassword = async (
     res.json({ message: "Mật khẩu đã được cập nhật" });
   } catch (err: any) {
     console.error(`Lỗi khi cập nhật mật khẩu cho AccountID ${accountId}:`, err.message);
-    res.status(500).json({ error: "Lỗi server" });
+    res.status(500).json({ error: "Lỗi máy chủ" });
   }
 };
 
@@ -342,6 +342,6 @@ export const deleteAccount = async (
     res.json({ message: "Tài khoản đã được xóa" });
   } catch (err: any) {
     console.error(`Lỗi khi xóa tài khoản ID ${req.params.id}:`, err.message);
-    res.status(500).json({ error: "Lỗi server" });
+    res.status(500).json({ error: "Lỗi máy chủ" });
   }
 };

@@ -34,7 +34,7 @@ export async function login(
 
     // Validate input
     if (!email || !password) {
-      res.status(400).json({ message: "Email and password are required" });
+      res.status(400).json({ message: "Email và mật khẩu là bắt buộc" });
       return;
     }
 
@@ -57,14 +57,14 @@ export async function login(
 
     // Validate user exists
     if (!user) {
-      res.status(400).json({ message: "User not found" });
+      res.status(400).json({ message: "Không tìm thấy người dùng" });
       return;
     }
 
     // Verify password
     const isMatch = await bcrypt.compare(password, user.Password);
     if (!isMatch) {
-      res.status(401).json({ message: "Invalid password" });
+      res.status(401).json({ message: "Mật khẩu không hợp lệ" });
       return;
     }
 
@@ -86,7 +86,7 @@ export async function login(
     // Verify JWT_SECRET
     if (!process.env.JWT_SECRET) {
       console.error("JWT_SECRET is not set");
-      res.status(500).json({ message: "Server configuration error" });
+      res.status(500).json({ message: "Lỗi cấu hình máy chủ" });
       return;
     }
     console.log("JWT_SECRET length:", process.env.JWT_SECRET.length);
@@ -123,7 +123,7 @@ export async function login(
 
     // Prepare and log response
     const response = {
-      message: "Login successful",
+      message: "Đăng nhập thành công",
       token,
       user: userData,
     };
@@ -132,7 +132,7 @@ export async function login(
     res.status(200).json(response);
   } catch (err: any) {
     console.error("Login error:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi máy chủ" });
   }
 }
 
@@ -154,7 +154,7 @@ export async function logout(
     res.status(200).json({ message: "Logout successful" });
   } catch (err: any) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi máy chủ" });
   }
 }
 
@@ -184,7 +184,7 @@ export async function register(
       .input("username", sql.NVarChar, username)
       .query("SELECT * FROM Account WHERE Username = @username");
     if (checkUser.recordset.length > 0) {
-      res.status(400).json({ message: "Username already exists" });
+      res.status(400).json({ message: "Tên người dùng đã tồn tại" });
       return;
     }
 
@@ -194,7 +194,7 @@ export async function register(
       .input("email", sql.NVarChar, email)
       .query("SELECT * FROM Account WHERE Email = @email");
     if (checkEmail.recordset.length > 0) {
-      res.status(400).json({ message: "Email already exists" });
+      res.status(400).json({ message: "Email đã tồn tại" });
       return;
     }
 
@@ -239,10 +239,10 @@ export async function register(
       console.warn("Email sending failed:", emailErr); // Non-critical error
     }
 
-    res.status(201).json({ message: "User registered successfully" });
+    res.status(201).json({ message: "Đăng ký thành công" });
   } catch (err: any) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi máy chủ" });
   }
 }
 
@@ -270,7 +270,7 @@ export async function forgotPassword(req: Request, res: Response, next: NextFunc
     const user = result.recordset[0];
 
     if (!user) {
-      res.status(404).json({ message: "Email not found" });
+      res.status(404).json({ message: "Không tìm thấy email" });
       return;
     }
 
@@ -293,10 +293,10 @@ export async function forgotPassword(req: Request, res: Response, next: NextFunc
       passwordReset(user.FullName, resetLink)
     );
 
-    res.json({ message: "Password reset email sent" });
+    res.json({ message: "Email đặt lại mật khẩu đã được gửi" });
   } catch (err: any) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi máy chủ" });
   }
 }
 
@@ -323,18 +323,18 @@ export async function postVerifyResetToken(req: Request, res: Response): Promise
     const user = result.recordset[0];
 
     if (!user) {
-      res.json({ valid: false, message: "Invalid or expired token" });
+      res.json({ valid: false, message: "Token không hợp lệ hoặc đã hết hạn" });
       return;
     }
 
     if (!user.ResetTokenExpiry || new Date(user.ResetTokenExpiry) < new Date()) {
-      res.json({ valid: false, message: "Token has expired" });
+      res.json({ valid: false, message: "Token đã hết hạn" });
       return;
     }
 
     res.json({ valid: true });
   } catch (err) {
-    res.json({ valid: false, message: "Server error" });
+    res.json({ valid: false, message: "Lỗi máy chủ" });
   }
 }
 
@@ -355,7 +355,7 @@ export async function resetPassword(req: Request, res: Response): Promise<void> 
   }
 
   if (newPassword !== confirmPassword) {
-    res.status(400).json({ message: "Passwords do not match" });
+    res.status(400).json({ message: "Mật khẩu không khớp" });
     return;
   }
 
@@ -369,13 +369,13 @@ export async function resetPassword(req: Request, res: Response): Promise<void> 
     const user = result.recordset[0];
 
     if (!user) {
-      res.status(400).json({ message: "Invalid or expired token" });
+      res.status(400).json({ message: "Token không hợp lệ hoặc đã hết hạn" });
       return;
     }
 
     // Check if token is expired
     if (!user.ResetTokenExpiry || new Date(user.ResetTokenExpiry) < new Date()) {
-      res.status(400).json({ message: "Token has expired" });
+      res.status(400).json({ message: "Token đã hết hạn" });
       return;
     }
 
@@ -388,8 +388,8 @@ export async function resetPassword(req: Request, res: Response): Promise<void> 
       .input('password', sql.VarChar, hashedPassword)
       .query('UPDATE Account SET Password = @password, ResetToken = NULL, ResetTokenExpiry = NULL WHERE AccountID = @userId');
 
-    res.json({ message: "Password has been reset successfully" });
+    res.json({ message: "Mật khẩu đã được đặt lại thành công" });
   } catch (err) {
-    res.status(400).json({ message: "Invalid or expired token" });
+    res.status(400).json({ message: "Token không hợp lệ hoặc đã hết hạn" });
   }
 }
