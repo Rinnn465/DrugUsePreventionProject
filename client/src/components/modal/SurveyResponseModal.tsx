@@ -71,6 +71,22 @@ const SurveyResponseModal: React.FC<SurveyResponseModalProps> = ({
     }
   }, [isOpen, programId, accountId, fetchSurveyResponses]);
 
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscKey);
+      return () => {
+        document.removeEventListener('keydown', handleEscKey);
+      };
+    }
+  }, [isOpen, onClose]);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('vi-VN', {
       year: 'numeric',
@@ -173,11 +189,24 @@ const SurveyResponseModal: React.FC<SurveyResponseModalProps> = ({
     }
   };
 
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Chỉ đóng modal khi click vào overlay, không phải vào nội dung modal
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      onClick={handleOverlayClick}
+    >
+      <div 
+        className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="bg-gray-50 px-6 py-4 border-b flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -193,13 +222,13 @@ const SurveyResponseModal: React.FC<SurveyResponseModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors hover:bg-gray-100 rounded-full p-1"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
-        <div className="flex h-[calc(90vh-120px)]">
+        <div className="flex h-[calc(90vh-100px)]">
           {/* Sidebar - Danh sách khảo sát */}
           <div className="w-1/3 bg-gray-50 border-r overflow-y-auto">
             <div className="p-4">
@@ -279,18 +308,6 @@ const SurveyResponseModal: React.FC<SurveyResponseModalProps> = ({
                 </div>
               )}
             </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="bg-gray-50 px-6 py-3 border-t">
-          <div className="flex justify-end">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              Đóng
-            </button>
           </div>
         </div>
       </div>

@@ -33,6 +33,14 @@ const ProgramManagementPage: React.FC = () => {
     const [sendingInvite, setSendingInvite] = useState(false);
     const [regeneratingZoom, setRegeneratingZoom] = useState(false);
 
+    // Helper function to format status text
+    const formatStatus = (status: string): string => {
+        const statusMap: { [key: string]: string } = {
+            'registered': 'Đã đăng ký'
+        };
+        return statusMap[status?.toLowerCase()] || 'Đã đăng ký';
+    };
+
     // Form data state
     const [formData, setFormData] = useState({
         ProgramName: '',
@@ -1038,7 +1046,7 @@ const ProgramManagementPage: React.FC = () => {
                                                             ? 'bg-green-100 text-green-800' 
                                                             : 'bg-gray-100 text-gray-800'
                                                     }`}>
-                                                        {attendee.Status}
+                                                        {formatStatus(attendee.Status)}
                                                     </span>
                                                 </td>
                                                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">

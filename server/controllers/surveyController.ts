@@ -138,15 +138,19 @@ export const submitSurveyResponse = async (req: Request, res: Response): Promise
 
     console.log('Inserting new survey response...');
 
+    // Sử dụng thời gian hiện tại của hệ thống (đã ở timezone chính xác)
+    const currentTime = new Date();
+
     // Lưu response mới với JSON data
     await pool.request()
       .input('AccountID', sql.Int, accountId)
       .input('ProgramID', sql.Int, programId)
       .input('SurveyType', sql.NVarChar, surveyType)
       .input('ResponseData', sql.NVarChar, JSON.stringify(surveyData))
+      .input('CreatedAt', sql.DateTime2, currentTime)
       .query(`
-                INSERT INTO SurveyResponse (AccountID, ProgramID, SurveyType, ResponseData)
-                VALUES (@AccountID, @ProgramID, @SurveyType, @ResponseData)
+                INSERT INTO SurveyResponse (AccountID, ProgramID, SurveyType, ResponseData, CreatedAt)
+                VALUES (@AccountID, @ProgramID, @SurveyType, @ResponseData, @CreatedAt)
             `);
 
     console.log('Survey response inserted successfully');
@@ -390,6 +394,16 @@ export async function getSurveyResponsesByUser(
               'yes': 'Có',
               'no': 'Không',
               'maybe': 'Có thể',
+              
+              // Occupation mappings
+              'student': 'Học sinh',
+              'university_student': 'Sinh viên',
+              'teacher': 'Giáo viên/Giảng viên',
+              'parent': 'Phụ huynh',
+              'healthcare_worker': 'Nhân viên y tế',
+              'government_officer': 'Cán bộ nhà nước',
+              'ngo_volunteer': 'Tình nguyện viên',
+              'other': 'Khác',
               
               // Other common values
               'hehe': 'Hehe',
