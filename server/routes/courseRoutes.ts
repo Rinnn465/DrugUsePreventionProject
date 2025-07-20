@@ -1,3 +1,4 @@
+
 import express, { Router } from "express";
 import * as courseController from "../controllers/courseController";
 import * as lessonController from "../controllers/lessonController";
@@ -151,4 +152,17 @@ router.get("/statistics/total-enrollment", authorizeRoles(["Admin"]), courseCont
  */
 router.get("/statistics/total-completion-rate", authorizeRoles(["Admin"]), courseController.getTotalCompletionRateStatistic);
 
+/**
+ * @route GET /api/course/statistics/compare-enroll
+ * @desc So sánh số lượng đăng ký khóa học giữa tháng hiện tại và tháng trước
+ * @access Chỉ Admin
+ */
+router.get("/statistics/compare-enroll", authorizeRoles(["Admin"]), courseController.compareCourseEnrollmentStatistics);
+
+/**
+ * @route GET /api/course/statistics/compare-completion-rate
+ * @desc So sánh tỷ lệ hoàn thành khóa học giữa tháng hiện tại và tháng trước
+ * @access Chỉ Admin
+ */
+router.get("/statistics/compare-completion-rate", authorizeRoles(["Admin"]), courseController.compareCourseCompletionRateStatistics);
 export default router;

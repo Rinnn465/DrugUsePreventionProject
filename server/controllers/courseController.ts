@@ -1,3 +1,4 @@
+
 import dotenv from 'dotenv';
 import { sql, poolPromise } from "../config/database";
 import { Request, Response } from 'express';
@@ -770,3 +771,141 @@ export async function getTotalCompletionRateStatistic(req: Request, res: Respons
         });
     }
 }
+
+/**
+ * So sánh số lượng đăng ký khóa học giữa tháng hiện tại và tháng trước
+ * @route GET /api/course/statistics/compare-enroll
+ * @access Chỉ Admin
+ * @returns {Promise<void>} Phản hồi JSON với số lượng đăng ký tháng trước, tháng hiện tại và phần trăm thay đổi
+ */
+export async function compareCourseEnrollmentStatistics(req: Request, res: Response): Promise<void> {
+    try {
+        const pool = await poolPromise;
+        // Lấy tháng và năm hiện tại
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+        // Tính tháng và năm trước
+        let prevMonth = currentMonth - 1;
+        let prevYear = currentYear;
+        if (prevMonth === 0) {
+            prevMonth = 12;
+            prevYear -= 1;
+        }
+        // Truy vấn số lượng đăng ký tháng trước
+        const prevResult = await pool.request()
+            .input('prevMonth', sql.Int, prevMonth)
+            .input('prevYear', sql.Int, prevYear)
+            .query(`
+                SELECT COUNT(*) AS PrevEnrollCount
+                FROM Enrollment
+                WHERE MONTH(EnrollmentDate) = @prevMonth AND YEAR(EnrollmentDate) = @prevYear
+            `);
+        // Truy vấn số lượng đăng ký tháng hiện tại
+        const currResult = await pool.request()
+            .input('currMonth', sql.Int, currentMonth)
+            .input('currYear', sql.Int, currentYear)
+            .query(`
+                SELECT COUNT(*) AS CurrEnrollCount
+                FROM Enrollment
+                WHERE MONTH(EnrollmentDate) = @currMonth AND YEAR(EnrollmentDate) = @currYear
+            `);
+        const prevCount = prevResult.recordset[0]?.PrevEnrollCount || 0;
+        const currCount = currResult.recordset[0]?.CurrEnrollCount || 0;
+        // Tính phần trăm thay đổi
+        let percentChange = 0;
+        if (prevCount === 0 && currCount > 0) {
+            percentChange = 100;
+        } else if (prevCount === 0 && currCount === 0) {
+            percentChange = 0;
+        } else {
+            percentChange = ((currCount - prevCount) / prevCount) * 100;
+        }
+        res.status(200).json({
+            message: 'So sánh số lượng đăng ký khóa học giữa tháng hiện tại và tháng trước thành công',
+            previousMonth: { year: prevYear, month: prevMonth, enrollCount: prevCount },
+            currentMonth: { year: currentYear, month: currentMonth, enrollCount: currCount },
+            percentChange
+        });
+    } catch (err: any) {
+        console.error('Lỗi trong compareCourseEnrollmentStatistics:', err);
+        res.status(500).json({
+            message: 'Lỗi khi so sánh số lượng đăng ký khóa học',
+            error: err.message
+        });
+    }
+}
+
+/**
+ * So sánh tỷ lệ hoàn thành khóa học giữa tháng hiện tại và tháng trước
+ * @route GET /api/course/statistics/compare-completion-rate
+ * @access Chỉ Admin
+ * @returns {Promise<void>} Phản hồi JSON với tỷ lệ hoàn thành tháng trước, tháng hiện tại và phần trăm thay đổi
+ */
+export async function compareCourseCompletionRateStatistics(req: Request, res: Response): Promise<void> {
+    try {
+        const pool = await poolPromise;
+        // Lấy tháng và năm hiện tại
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+        // Tính tháng và năm trước
+        let prevMonth = currentMonth - 1;
+        let prevYear = currentYear;
+        if (prevMonth === 0) {
+            prevMonth = 12;
+            prevYear -= 1;
+        }
+        // Truy vấn tỷ lệ hoàn thành tháng trước
+        const prevResult = await pool.request()
+            .input('prevMonth', sql.Int, prevMonth)
+            .input('prevYear', sql.Int, prevYear)
+            .query(`
+                SELECT 
+                    COUNT(*) AS PrevEnrollCount,
+                    SUM(CASE WHEN Status = 'Completed' THEN 1 ELSE 0 END) AS PrevCompletedCount
+                FROM Enrollment
+                WHERE MONTH(EnrollmentDate) = @prevMonth AND YEAR(EnrollmentDate) = @prevYear
+            `);
+        // Truy vấn tỷ lệ hoàn thành tháng hiện tại
+        const currResult = await pool.request()
+            .input('currMonth', sql.Int, currentMonth)
+            .input('currYear', sql.Int, currentYear)
+            .query(`
+                SELECT 
+                    COUNT(*) AS CurrEnrollCount,
+                    SUM(CASE WHEN Status = 'Completed' THEN 1 ELSE 0 END) AS CurrCompletedCount
+                FROM Enrollment
+                WHERE MONTH(EnrollmentDate) = @currMonth AND YEAR(EnrollmentDate) = @currYear
+            `);
+        const prevEnroll = prevResult.recordset[0]?.PrevEnrollCount || 0;
+        const prevCompleted = prevResult.recordset[0]?.PrevCompletedCount || 0;
+        const currEnroll = currResult.recordset[0]?.CurrEnrollCount || 0;
+        const currCompleted = currResult.recordset[0]?.CurrCompletedCount || 0;
+        // Tính tỷ lệ hoàn thành
+        const prevRate = prevEnroll === 0 ? 0 : prevCompleted / prevEnroll;
+        const currRate = currEnroll === 0 ? 0 : currCompleted / currEnroll;
+        // Tính phần trăm thay đổi
+        let percentChange = 0;
+        if (prevRate === 0 && currRate > 0) {
+            percentChange = 100;
+        } else if (prevRate === 0 && currRate === 0) {
+            percentChange = 0;
+        } else {
+            percentChange = ((currRate - prevRate) / prevRate) * 100;
+        }
+        res.status(200).json({
+            message: 'So sánh tỷ lệ hoàn thành khóa học giữa tháng hiện tại và tháng trước thành công',
+            previousMonth: { year: prevYear, month: prevMonth, completionRate: prevRate },
+            currentMonth: { year: currentYear, month: currentMonth, completionRate: currRate },
+            percentChange
+        });
+    } catch (err: any) {
+        console.error('Lỗi trong compareCourseCompletionRateStatistics:', err);
+        res.status(500).json({
+            message: 'Lỗi khi so sánh tỷ lệ hoàn thành khóa học',
+            error: err.message
+        });
+    }
+}
+
