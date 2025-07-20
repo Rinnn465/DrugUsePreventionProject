@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, BookOpen, Calendar, Users, Lock } from "lucide-react";
+import { Home, BookOpen, Calendar, Users, Lock, User } from "lucide-react";
 import { useUser } from "@/context/UserContext";
+import Avatar from "../common/Avatar";
 
 const Sidebar = () => {
   const location = useLocation();
@@ -65,6 +66,29 @@ const Sidebar = () => {
       {/* Header */}
       <div className="p-6 border-b border-gray-200">
         <h2 className="text-xl font-bold text-gray-800">Hồ sơ</h2>
+      </div>
+
+      {/* User Profile Section */}
+      <div className="p-4 border-b border-gray-200">
+        <div className="flex items-center space-x-3">
+          <Avatar
+            src={user?.ProfilePicture}
+            name={user?.FullName}
+            size="md"
+            className="flex-shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-gray-900 truncate">
+              {user?.FullName || user?.Username}
+            </p>
+            <p className="text-xs text-gray-500 truncate">
+              {user?.Email}
+            </p>
+            <p className="text-xs text-indigo-600 font-medium">
+              {user?.RoleName}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Navigation */}

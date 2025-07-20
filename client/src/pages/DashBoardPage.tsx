@@ -2,11 +2,14 @@ import { useEffect, useState, ChangeEvent, FormEvent, useCallback } from "react"
 import { Link, useParams, useLocation } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 import Sidebar from "../components/sidebar/Sidebar";
+import Avatar from "../components/common/Avatar";
+import ImageCropModal from "../components/modal/ImageCropModal";
 import { parseDate } from "../utils/parseDateUtils";
-import { User, BookOpen, Calendar, Clock, Users, Mail, Edit, CheckCircle, XCircle, Edit2 } from "lucide-react";
+import { User, BookOpen, Calendar, Clock, Users, Mail, Edit, CheckCircle, XCircle, Edit2, Camera } from "lucide-react";
 import { Appointment } from "../types/Appointment";
 import AppointmentDetailModal from "../components/modal/AppointmentDetailModal";
 import { toast } from 'react-toastify';
+import { validateImageFile } from "../utils/imageUtils";
 import apiUtils from "@/utils/apiUtils";
 import useModal from "@/hooks/useModal";
 import Modal from "@/components/modal/ModalNotification";
@@ -103,6 +106,11 @@ const DashBoardPage: React.FC = () => {
     newPassword: "",
     confirmPassword: "",
   });
+
+  // Avatar states
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
 
   // Security states for profile editing
   const [showProfileEditModal, setShowProfileEditModal] = useState(false);
@@ -415,6 +423,109 @@ const DashBoardPage: React.FC = () => {
     setConsultantDetails(null);
   };
 
+  // Avatar functions
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    };
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file using utility function
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      toast.error(validation.error);
+      return;
+    }
+
+    // Show crop modal
+    setSelectedImageFile(file);
+    setShowCropModal(true);
+
+    // Clear the input
+    event.target.value = '';
+  };
+
+  const handleCropComplete = async (croppedImageBlob: Blob) => {
+    try {
+      setUploadingAvatar(true);
+      const formData = new FormData();
+      
+      // Create a file from the blob with proper name and type
+      const croppedFile = new File([croppedImageBlob], 'avatar.jpg', {
+        type: 'image/jpeg',
+        lastModified: Date.now(),
+      });
+      
+      formData.append('profilePicture', croppedFile);
+
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/account/${user?.AccountID}/upload-avatar`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Update user context
+        if (user && setUser) {
+          const updatedUser = { ...user, ProfilePicture: data.profilePicture };
+          setUser(updatedUser);
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+        toast.success('Cập nhật ảnh đại diện thành công!');
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || 'Không thể upload ảnh');
+      }
+    } catch (error: unknown) {
+      console.error('Lỗi khi upload ảnh:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Lỗi khi upload ảnh';
+      toast.error(errorMessage);
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    try {
+      if (!user?.AccountID) return;
+
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/account/${user.AccountID}/remove-avatar`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        // Update user context
+        if (user && setUser) {
+          const updatedUser = { ...user, ProfilePicture: null };
+          setUser(updatedUser);
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+        toast.success('Xóa ảnh đại diện thành công!');
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || 'Không thể xóa ảnh');
+      }
+    } catch (error: unknown) {
+      console.error('Lỗi khi xóa ảnh:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Lỗi khi xóa ảnh';
+      toast.error(errorMessage);
+    }
+  };
+
 
   // Main Dashboard Page (modified to include consultant sections)
   if (!isCoursesPage && !isEventsPage && !isAppointmentsPage && !isSecurityPage) {
@@ -442,14 +553,53 @@ const DashBoardPage: React.FC = () => {
 
             {/* Profile Information Section */}
             <div className="bg-gradient-to-br from-slate-50 to-white rounded-2xl p-8 border border-slate-200">
-              <div className="flex items-center mb-6">
-                <div className="h-16 w-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mr-4">
-                  <User className="h-8 w-8 text-white" />
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center">
+                  <div className="relative mr-4">
+                    <Avatar
+                      src={user?.ProfilePicture}
+                      name={user?.FullName}
+                      size="lg"
+                      className="border-2 border-gray-200 shadow-sm"
+                    />
+                    <button
+                      onClick={() => document.getElementById('member-avatar-upload')?.click()}
+                      disabled={uploadingAvatar}
+                      className="absolute -bottom-1 -right-1 p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors disabled:opacity-50 shadow-lg"
+                      title="Thay đổi ảnh đại diện"
+                    >
+                      {uploadingAvatar ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <Camera className="h-4 w-4" />
+                      )}
+                    </button>
+                    <input
+                      id="member-avatar-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                    />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Thông tin cá nhân</h2>
+                    <p className="text-gray-600">Xem thông tin tài khoản của bạn</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Thông tin cá nhân</h2>
-                  <p className="text-gray-600">Xem thông tin tài khoản của bạn</p>
-                </div>
+                
+                {user?.ProfilePicture && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Bạn có chắc muốn xóa ảnh đại diện?')) {
+                        handleRemoveAvatar();
+                      }
+                    }}
+                    className="px-3 py-1 text-sm text-red-600 hover:text-red-700 border border-red-300 rounded-md hover:bg-red-50 transition-colors"
+                  >
+                    Xóa ảnh
+                  </button>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -603,6 +753,17 @@ const DashBoardPage: React.FC = () => {
             </div>
           </div>
         )}
+        
+        {/* Image Crop Modal */}
+        <ImageCropModal
+          isOpen={showCropModal}
+          onClose={() => {
+            setShowCropModal(false);
+            setSelectedImageFile(null);
+          }}
+          onCropComplete={handleCropComplete}
+          imageFile={selectedImageFile}
+        />
       </div>
     );
   }
@@ -1295,6 +1456,17 @@ const DashBoardPage: React.FC = () => {
             </div>
           )}
         </main>
+
+        {/* Image Crop Modal */}
+        <ImageCropModal
+          isOpen={showCropModal}
+          onClose={() => {
+            setShowCropModal(false);
+            setSelectedImageFile(null);
+          }}
+          onCropComplete={handleCropComplete}
+          imageFile={selectedImageFile}
+        />
       </div>
     );
   }
@@ -1308,6 +1480,17 @@ const DashBoardPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-800 mb-6">Trang không tìm thấy</h1>
           <p className="text-gray-600">Trang bạn đang tìm kiếm không tồn tại.</p>
         </div>
+        
+        {/* Image Crop Modal for fallback */}
+        <ImageCropModal
+          isOpen={showCropModal}
+          onClose={() => {
+            setShowCropModal(false);
+            setSelectedImageFile(null);
+          }}
+          onCropComplete={handleCropComplete}
+          imageFile={selectedImageFile}
+        />
       </main>
     </div>
   );

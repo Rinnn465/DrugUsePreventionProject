@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import Tippy from '@tippyjs/react/headless';
 import { useUser } from '../context/UserContext';
+import Avatar from './common/Avatar';
 import tippy from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
 import {
@@ -125,6 +126,20 @@ const Header: React.FC<HeaderProps> = () => {
               render={(attrs) => (
                 <div className='bg-white shadow-lg rounded-md p-4' tabIndex={-1} {...attrs}>
                   <div className="flex flex-col gap-2">
+                    {/* User Info Section */}
+                    <div className="flex items-center gap-3 pb-3 border-b border-gray-200 mb-2">
+                      <Avatar 
+                        src={user.ProfilePicture}
+                        alt={user.FullName || user.Username}
+                        size="md"
+                        name={user.FullName || user.Username}
+                      />
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-gray-900">{user.FullName || user.Username}</span>
+                        <span className="text-xs text-gray-500">{user.RoleName}</span>
+                      </div>
+                    </div>
+                    
                     <Link to={`/dashboard/${user?.AccountID}`} className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
                       <User className="h-5 w-5" />
                       <span>Hồ sơ</span>
@@ -164,7 +179,12 @@ const Header: React.FC<HeaderProps> = () => {
               )}
             >
               <div className='flex gap-2 items-center cursor-pointer'>
-                <User className="h-8 w-8 text-primary-600" />
+                <Avatar 
+                  src={user.ProfilePicture}
+                  alt={user.FullName || user.Username}
+                  size="sm"
+                  name={user.FullName || user.Username}
+                />
                 <span className='select-none text-gray-700 font-semibold text-base'>{user.Username}</span>
               </div>
             </Tippy>
