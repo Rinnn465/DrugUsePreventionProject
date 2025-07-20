@@ -539,10 +539,10 @@ export async function createCourse(req: Request, res: Response): Promise<void> {
                     OUTPUT INSERTED.*
                     VALUES (@CourseName, @Risk, @Duration, @Description, @EnrollCount, @ImageUrl, @Status, @IsDisabled)`); // Truy vấn thêm mới khóa học
         // Trả về khóa học vừa tạo
-        res.status(201).json({ message: 'Tạo khóa học thành công', data: result.recordset[0] });
+        res.status(201).json({ message: 'Thêm khóa học thành công', data: result.recordset[0] });
     } catch (err: any) {
         // Nếu có lỗi, trả về lỗi 500
-        res.status(500).json({ message: 'Lỗi khi tạo khóa học', error: err.message });
+        res.status(500).json({ message: 'Lỗi khi thêm khóa học', error: err.message });
     }
 }
 

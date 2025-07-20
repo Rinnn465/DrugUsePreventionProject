@@ -23,20 +23,20 @@ router.get('/:id', articleController.getArticleById);
  * @desc Tạo mới bài viết
  * @access Chỉ Admin, Staff
  */
-router.post('/', authorizeRoles(['Admin', 'Staff']), articleController.createArticle);
+router.post('/', authorizeRoles(['Admin', 'Staff', 'Manager']), articleController.createArticle);
 
 /**
  * @route PUT /api/articles/:id
  * @desc Cập nhật bài viết theo ID
  * @access Chỉ Admin, Staff
  */
-router.put('/:id', authorizeRoles(['Admin', 'Staff']), articleController.updateArticle);
+router.put('/:id', authorizeRoles(['Admin', 'Staff', 'Manager']), articleController.updateArticle);
 
 /**
  * @route DELETE /api/articles/:id
  * @desc Xóa bài viết theo ID
  * @access Chỉ Admin, Staff
  */
-router.delete('/:id', authorizeRoles(['Admin', 'Staff']), articleController.deleteArticle);
+router.delete('/:id', authorizeRoles(['Admin', 'Staff', 'Manager']), articleController.deleteArticle);
 
 export default router;

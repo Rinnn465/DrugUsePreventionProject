@@ -21,6 +21,8 @@ import SurveyCompletePage from './pages/survey/SurveyCompletePage';
 import SurveyAfterEventPage from './pages/survey/SurveyAfterEventPage';
 import CourseManagmentPage from './pages/course/CourseManagmentPage';
 import ProgramManagementPage from './pages/program/ProgramManagementPage';
+import AccountManagementPage from './pages/management/AccountManagementPage';
+import ArticleManagementPage from './pages/management/ArticleManagementPage';
 import EmployeeManagmentPage from './pages/management/EmployeeManagementPage';
 import MemberManagmentPage from './pages/management/MemberManagementPage';
 import ForgotPasswordPage from './pages/authen/ForgotPasswordPage';
@@ -70,6 +72,8 @@ function App() {
             <Route path="consultant/schedule" element={<ConsultantSchedule />} />
             <Route path="roles/:userId/course-manage" element={<CourseManagmentPage />} />
             <Route path="roles/:userId/program-manage" element={<ProgramManagementPage />} />
+            <Route path="roles/:userId/account-manage" element={<AccountManagementPage />} />
+            <Route path="roles/:userId/article-manage" element={<ArticleManagementPage />} />
             <Route path="roles/:userId/employee-manage" element={<EmployeeManagmentPage />} />
             <Route path="roles/:userId/member-manage" element={<MemberManagmentPage />} />
             <Route path="*" element={<NotFoundPage />} />

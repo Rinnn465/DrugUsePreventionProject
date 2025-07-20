@@ -208,7 +208,7 @@ const ProgramManagementPage: React.FC = () => {
         
         // Validate date
         if (!validateDate(formData.date)) {
-            toast.error('Không thể tạo chương trình với ngày trong quá khứ. Vui lòng chọn ngày từ hôm nay trở đi.');
+            toast.error('Không thể thêm chương trình với ngày trong quá khứ. Vui lòng chọn ngày từ hôm nay trở đi.');
             return;
         }
         
@@ -228,14 +228,14 @@ const ProgramManagementPage: React.FC = () => {
                 setShowCreateModal(false);
                 resetForm();
                 fetchPrograms();
-                toast.success('Tạo chương trình thành công!');
+                toast.success('Thêm chương trình thành công!');
             } else {
                 const errorData = await response.json();
-                toast.error(errorData.message || 'Có lỗi xảy ra khi tạo chương trình');
+                toast.error(errorData.message || 'Có lỗi xảy ra khi thêm chương trình');
             }
         } catch (error) {
             console.error('Error creating program:', error);
-            toast.error('Có lỗi xảy ra khi tạo chương trình');
+            toast.error('Có lỗi xảy ra khi thêm chương trình');
         }
     };
 
@@ -473,7 +473,7 @@ const ProgramManagementPage: React.FC = () => {
                             </div>
                             <div>
                                 <h1 className="text-3xl font-bold text-gray-900">Quản lý Chương trình Cộng đồng</h1>
-                                <p className="text-gray-600 mt-1">Tạo, chỉnh sửa và xóa các chương trình phòng chống tệ nạn xã hội</p>
+                                <p className="text-gray-600 mt-1">Thêm, chỉnh sửa và xóa các chương trình phòng chống tệ nạn xã hội</p>
                             </div>
                         </div>
                         <button
@@ -481,7 +481,7 @@ const ProgramManagementPage: React.FC = () => {
                             className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
                         >
                             <Plus className="h-5 w-5" />
-                            <span>Tạo chương trình</span>
+                            <span>Thêm chương trình</span>
                         </button>
                     </div>
                 </div>
@@ -612,7 +612,7 @@ const ProgramManagementPage: React.FC = () => {
                             <p className="mt-1 text-sm text-gray-500">
                                 {searchTerm || statusFilter !== 'all' 
                                     ? 'Không tìm thấy chương trình phù hợp với bộ lọc.' 
-                                    : 'Bắt đầu bằng cách tạo chương trình đầu tiên.'}
+                                    : 'Bắt đầu bằng cách thêm chương trình đầu tiên.'}
                             </p>
                             <div className="mt-6">
                                 <button
@@ -620,7 +620,7 @@ const ProgramManagementPage: React.FC = () => {
                                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
                                 >
                                     <Plus className="h-4 w-4 mr-2" />
-                                    Tạo chương trình mới
+                                    Thêm chương trình mới
                                 </button>
                             </div>
                         </div>
@@ -633,7 +633,7 @@ const ProgramManagementPage: React.FC = () => {
                 <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
                     <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
                         <div className="mt-3">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Tạo chương trình mới</h3>
+                            <h3 className="text-lg font-medium text-gray-900 mb-4">Thêm chương trình mới</h3>
                             <form onSubmit={handleCreateProgram} className="space-y-4">
                                 <div>
                                     <label htmlFor="programName" className="block text-sm font-medium text-gray-700 mb-1">
@@ -761,7 +761,7 @@ const ProgramManagementPage: React.FC = () => {
                                         type="submit"
                                         className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700"
                                     >
-                                        Tạo chương trình
+                                        Thêm chương trình
                                     </button>
                                 </div>
                             </form>

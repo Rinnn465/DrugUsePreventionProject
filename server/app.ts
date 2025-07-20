@@ -84,7 +84,6 @@ app.use(
 // Protected Routes
 app.use(
   "/api/account",
-  authorizeRoles(["Member", "Consultant", "Admin"]),
   apiAccountRoutes
 );
 app.use(
@@ -93,8 +92,8 @@ app.use(
   appointmentRoutes
 );
 
-// Admin-only Routes
-app.use("/api/account/admin", authorizeRoles(["Admin"]), apiAccountRoutes);
+// Admin-only Routes (remove duplicate)
+// app.use("/api/account/admin", authorizeRoles(["Admin"]), apiAccountRoutes);
 app.use("/api/survey/admin", authorizeRoles(["Admin"]), apiSurveyRoutes);
 
 // Start scheduled program status updates

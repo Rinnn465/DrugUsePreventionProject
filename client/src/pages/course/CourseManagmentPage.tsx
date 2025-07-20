@@ -309,14 +309,14 @@ const CourseManagmentPage: React.FC = () => {
                 setShowCreateModal(false);
                 resetForm();
                 fetchCourses();
-                toast.success('Tạo khóa học thành công!');
+                toast.success('Thêm khoá học thành công!');
             } else {
                 const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-                toast.error(`Có lỗi xảy ra khi tạo khóa học: ${errorData.message ?? 'Unknown error'}`);
+                toast.error(`Có lỗi xảy ra khi thêm khoá học: ${errorData.message ?? 'Unknown error'}`);
             }
         } catch (error) {
             console.error('Error creating course:', error);
-            toast.error('Có lỗi xảy ra khi tạo khóa học');
+            toast.error('Có lỗi xảy ra khi thêm khoá học');
         }
     };
 
@@ -472,7 +472,7 @@ const CourseManagmentPage: React.FC = () => {
                             </div>
                             <div>
                                 <h1 className="text-3xl font-bold text-gray-900">Quản lý Khóa học</h1>
-                                <p className="text-gray-600 mt-1">Tạo, chỉnh sửa và xóa các khóa học phòng chống tệ nạn xã hội</p>
+                                <p className="text-gray-600 mt-1">Thêm, chỉnh sửa và xóa các khóa học phòng chống tệ nạn xã hội</p>
                             </div>
                         </div>
                         <button
@@ -480,7 +480,7 @@ const CourseManagmentPage: React.FC = () => {
                             className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
                         >
                             <Plus className="h-5 w-5" />
-                            <span>Tạo khóa học</span>
+                            <span>Thêm khóa học</span>
                         </button>
                     </div>
                 </div>
@@ -620,7 +620,7 @@ const CourseManagmentPage: React.FC = () => {
                             <p className="mt-1 text-sm text-gray-500">
                                 {searchTerm || statusFilter !== 'all' || riskFilter !== 'all'
                                     ? 'Không tìm thấy khóa học phù hợp với bộ lọc.'
-                                    : 'Bắt đầu bằng cách tạo khóa học đầu tiên.'}
+                                    : 'Bắt đầu bằng cách thêm khóa học đầu tiên.'}
                             </p>
                             <div className="mt-6">
                                 <button
@@ -628,7 +628,7 @@ const CourseManagmentPage: React.FC = () => {
                                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
                                 >
                                     <Plus className="h-4 w-4 mr-2" />
-                                    Tạo khóa học mới
+                                    Thêm khóa học mới
                                 </button>
                             </div>
                         </div>
@@ -641,7 +641,7 @@ const CourseManagmentPage: React.FC = () => {
                 <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
                     <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
                         <div className="mt-3">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Tạo khóa học mới</h3>
+                            <h3 className="text-lg font-medium text-gray-900 mb-4">Thêm khóa học mới</h3>
                             <form onSubmit={handleCreateCourse} className="space-y-4">
                                 <div>
                                     <label htmlFor="courseName" className="block text-sm font-medium text-gray-700 mb-1">
@@ -745,7 +745,7 @@ const CourseManagmentPage: React.FC = () => {
                                         type="submit"
                                         className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700"
                                     >
-                                        Tạo khóa học
+                                        Thêm khóa học
                                     </button>
                                 </div>
                             </form>

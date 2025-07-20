@@ -11,4 +11,17 @@ export interface Article {
     IsDisabled: boolean;
 }
 
+export interface CreateArticleData {
+    Title: string;
+    Content: string;
+    Author?: string;
+}
+
+export interface UpdateArticleData {
+    Title?: string;
+    Content?: string;
+    Author?: string;
+    IsDisabled?: boolean;
+}
+
 

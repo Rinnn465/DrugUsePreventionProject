@@ -161,7 +161,7 @@ export async function createProgram(req: Request, res: Response): Promise<void> 
     
     if (programDate < today) {
       res.status(400).json({ 
-        message: "Không thể tạo chương trình với ngày trong quá khứ. Vui lòng chọn ngày từ hôm nay trở đi." 
+        message: "Không thể thêm chương trình với ngày trong quá khứ. Vui lòng chọn ngày từ hôm nay trở đi." 
       });
       return;
     }
@@ -220,7 +220,7 @@ export async function createProgram(req: Request, res: Response): Promise<void> 
       }
     } catch (surveyError) {
       console.error('Error creating survey mappings:', surveyError);
-      // Không fail việc tạo chương trình nếu survey mapping lỗi
+      // Không fail việc thêm chương trình nếu survey mapping lỗi
     }
 
     const result = await pool.request()

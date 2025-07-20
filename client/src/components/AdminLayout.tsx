@@ -9,7 +9,9 @@ import {
     LogOut,
     ChevronRight,
     Menu,
-    X
+    X,
+    Users,
+    FileText
 } from "lucide-react";
 
 interface AdminLayoutProps {
@@ -41,6 +43,18 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             icon: Calendar,
             link: `/roles/${user?.RoleID}/program-manage`,
             isActive: location.pathname.includes('/program-manage')
+        },
+        {
+            label: "Quản lý tài khoản",
+            icon: Users,
+            link: `/roles/${user?.RoleID}/account-manage`,
+            isActive: location.pathname.includes('/account-manage')
+        },
+        {
+            label: "Quản lý bài viết",
+            icon: FileText,
+            link: `/roles/${user?.RoleID}/article-manage`,
+            isActive: location.pathname.includes('/article-manage')
         }
     ];
 
