@@ -3,28 +3,20 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 import { 
     Home,
-    Users, 
     BookOpen, 
     Calendar, 
-    BarChart3, 
     Shield,
-    TrendingUp,
-    FileText,
     LogOut,
     ChevronRight,
     Menu,
-    X,
-    Bell,
-    Search
+    X
 } from "lucide-react";
 
 interface AdminLayoutProps {
     children: React.ReactNode;
-    title?: string;
-    breadcrumb?: string;
 }
 
-const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = "Trang chủ", breadcrumb = "Trang chủ" }) => {
+const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     const { user, setUser } = useUser();
     const navigate = useNavigate();
     const location = useLocation();
@@ -47,8 +39,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = "Trang ch�
         {
             label: "Quản lý chương trình", 
             icon: Calendar,
-            link: `/roles/${user?.RoleID}/program-dashboard`,
-            isActive: location.pathname.includes('/program-dashboard')
+            link: `/roles/${user?.RoleID}/program-manage`,
+            isActive: location.pathname.includes('/program-manage')
         }
     ];
 
@@ -95,9 +87,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = "Trang ch�
                         Điều hướng
                     </div>
                     
-                    {navigationItems.map((item, index) => (
+                    {navigationItems.map((item) => (
                         <Link
-                            key={index}
+                            key={item.link}
                             to={item.link}
                             className={`flex items-center justify-between px-4 py-3 rounded-lg cursor-pointer transition-colors mb-2 ${
                                 item.isActive ? 'bg-slate-700 text-white' : 'text-gray-300 hover:bg-slate-700 hover:text-white'
@@ -148,9 +140,15 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = "Trang ch�
 
             {/* Mobile sidebar overlay */}
             {sidebarOpen && (
-                <div 
-                    className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+                <button 
+                    className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden border-0 p-0 cursor-pointer"
                     onClick={() => setSidebarOpen(false)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            setSidebarOpen(false);
+                        }
+                    }}
+                    aria-label="Đóng sidebar"
                 />
             )}
         </div>

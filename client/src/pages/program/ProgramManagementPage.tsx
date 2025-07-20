@@ -6,18 +6,16 @@ import {
     Calendar,
     Search,
     ChevronDown,
-    ArrowLeft,
     Users,
     RefreshCw,
     FileText
 } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
 import { CommunityProgram } from '../../types/CommunityProgram';
 import { toast } from 'react-toastify';
 import SurveyResponseModal from '../../components/modal/SurveyResponseModal';
+import AdminLayout from '../../components/AdminLayout';
 
 const ProgramManagementPage: React.FC = () => {
-    const { userId } = useParams();
     const [programs, setPrograms] = useState<CommunityProgram[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -464,18 +462,12 @@ const ProgramManagementPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <AdminLayout>
             {/* Header */}
             <div className="bg-white shadow-sm border-b">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
-                            <Link 
-                                to="/admin"
-                                className="p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
-                            >
-                                <ArrowLeft className="h-8 w-8 text-gray-600" />
-                            </Link>
                             <div className="p-3 bg-blue-100 rounded-xl">
                                 <Calendar className="h-8 w-8 text-blue-600" />
                             </div>
@@ -1068,18 +1060,24 @@ const ProgramManagementPage: React.FC = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {(attendee.HasBeforeSurvey || attendee.HasAfterSurvey) && (
-                                                        <button
-                                                            onClick={() => {
-                                                                setSelectedAttendee(attendee);
-                                                                setShowSurveyModal(true);
-                                                            }}
-                                                            className="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-blue-100 rounded-full hover:bg-blue-200 transition-colors"
-                                                        >
-                                                            <FileText className="w-3 h-3 mr-1" />
-                                                            Xem phản hồi
-                                                        </button>
-                                                    )}
+                                                    <div className="flex space-x-2">
+                                                        {(attendee.HasBeforeSurvey || attendee.HasAfterSurvey) ? (
+                                                            <button
+                                                                onClick={() => {
+                                                                    setSelectedAttendee(attendee);
+                                                                    setShowSurveyModal(true);
+                                                                }}
+                                                                className="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-blue-100 rounded-full hover:bg-blue-200 transition-colors"
+                                                            >
+                                                                <FileText className="w-3 h-3 mr-1" />
+                                                                Xem phản hồi
+                                                            </button>
+                                                        ) : (
+                                                            <span className="inline-flex items-center px-3 py-1 text-xs font-medium text-gray-500 bg-gray-100 rounded-full">
+                                                                Chưa có dữ liệu khảo sát
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
@@ -1137,7 +1135,7 @@ const ProgramManagementPage: React.FC = () => {
                     attendeeName={selectedAttendee.FullName}
                 />
             )}
-        </div>
+        </AdminLayout>
     );
 };
 

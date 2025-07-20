@@ -39,7 +39,7 @@ const AdminPage: React.FC = () => {
         {
             label: "Quản lý chương trình", 
             icon: Calendar,
-            link: `/roles/${user?.RoleID}/program-dashboard`
+            link: `/roles/${user?.RoleID}/program-manage`
         }
     ];
 
