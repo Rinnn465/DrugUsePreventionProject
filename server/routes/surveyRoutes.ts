@@ -10,6 +10,30 @@ router.post("/submit",
     surveyController.submitSurveyResponse
 );
 
+// Get survey responses by user and program (Admin only)
+router.get("/responses/:programId/:accountId", 
+    authorizeRoles(["Admin", "Staff"]), 
+    surveyController.getSurveyResponsesByUser
+);
+
+// Get all survey responses for a program (Admin only)
+router.get("/responses/program/:programId", 
+    authorizeRoles(["Admin", "Staff"]), 
+    surveyController.getSurveyResponsesByProgram
+);
+
+// Get survey response statistics for a program (Admin only)
+router.get("/responses/program/:programId/statistics", 
+    authorizeRoles(["Admin"]), 
+    surveyController.getSurveyResponseStatistics
+);
+
+// Get specific survey response by user and type (Admin only)
+router.get("/responses/:programId/:accountId/:surveyType", 
+    authorizeRoles(["Admin", "Staff", "Manager"]), 
+    surveyController.getSurveyResponseByUserAndType
+);
+
 // Get survey by category
 router.get("/category/:categoryId", 
     surveyController.getSurveyByCategoryId

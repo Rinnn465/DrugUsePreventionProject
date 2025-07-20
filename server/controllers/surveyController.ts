@@ -290,3 +290,375 @@ export async function getSurveyByCategoryId(
     res.status(500).json({ message: "Lỗi máy chủ" });
   }
 }
+
+/**
+ * Lấy phản hồi khảo sát của người dùng theo chương trình
+ * @route GET /api/survey/responses/:programId/:accountId
+ * @access Admin, Staff
+ */
+export async function getSurveyResponsesByUser(
+  req: Request,
+  res: Response
+): Promise<void> {
+  const programId = Number(req.params.programId);
+  const accountId = Number(req.params.accountId);
+
+  try {
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input('ProgramID', sql.Int, programId)
+      .input('AccountID', sql.Int, accountId)
+      .query(`
+        SELECT 
+          sr.ResponseID,
+          sr.SurveyType,
+          sr.ResponseData,
+          sr.CreatedAt,
+          a.FullName,
+          a.Email,
+          cp.ProgramName
+        FROM SurveyResponse sr
+        INNER JOIN Account a ON sr.AccountID = a.AccountID
+        INNER JOIN CommunityProgram cp ON sr.ProgramID = cp.ProgramID
+        WHERE sr.ProgramID = @ProgramID AND sr.AccountID = @AccountID
+        ORDER BY sr.SurveyType, sr.CreatedAt DESC
+      `);
+
+    // Xử lý dữ liệu để thêm ProcessedData
+    const processedResults = result.recordset.map(response => {
+      try {
+        const parsedData = JSON.parse(response.ResponseData);
+        
+        // Tạo mapping cho các giá trị để hiển thị text thay vì value
+        const processedData = Object.keys(parsedData).reduce((acc, key) => {
+          const value = parsedData[key];
+          
+          // Mapping cho các câu hỏi phổ biến
+          let displayValue = value;
+          
+          // Mapping cho scale questions (1-5, strongly-disagree to strongly-agree, etc.)
+          if (typeof value === 'string') {
+            // Special handling for overallSatisfaction field (star rating)
+            if (key === 'overallSatisfaction') {
+              const starMappings: { [key: string]: string } = {
+                '1': '1 sao - Rất kém',
+                '2': '2 sao - Kém', 
+                '3': '3 sao - Bình thường',
+                '4': '4 sao - Tốt',
+                '5': '5 sao - Xuất sắc'
+              };
+              displayValue = starMappings[value] || value;
+            } else {
+              // General mappings for other fields
+              const mappings: { [key: string]: string } = {
+                // Agreement scale
+                'strongly-disagree': 'Rất không đồng ý',
+                'disagree': 'Không đồng ý',
+                'neutral': 'Trung lập', 
+                'agree': 'Đồng ý',
+                'strongly-agree': 'Rất đồng ý',
+              
+              // Satisfaction scale
+              'very-poor': 'Rất kém',
+              'poor': 'Kém',
+              'fair': 'Trung bình',
+              'good': 'Tốt',
+              'excellent': 'Xuất sắc',
+              
+              // Likelihood scale
+              'very-unlikely': 'Rất không có khả năng',
+              'unlikely': 'Không có khả năng',
+              'neutral-likelihood': 'Trung lập',
+              'likely': 'Có khả năng',
+              'very-likely': 'Rất có khả năng',
+              
+              // Frequency scale
+              'never': 'Không bao giờ',
+              'rarely': 'Hiếm khi',
+              'sometimes': 'Thỉnh thoảng',
+              'often': 'Thường xuyên',
+              'always': 'Luôn luôn',
+              
+              // Improvement scale
+              'much-worse': 'Tệ hơn nhiều',
+              'worse': 'Tệ hơn',
+              'same': 'Như cũ',
+              'better': 'Tốt hơn',
+              'much-better': 'Tốt hơn nhiều',
+              
+              // Yes/No
+              'yes': 'Có',
+              'no': 'Không',
+              'maybe': 'Có thể',
+              
+              // Other common values
+              'hehe': 'Hehe',
+              'very-satisfied': 'Rất hài lòng',
+              'satisfied': 'Hài lòng',
+              'dissatisfied': 'Không hài lòng',
+              'very-dissatisfied': 'Rất không hài lòng'
+            };
+            
+            displayValue = mappings[value as keyof typeof mappings] || value;
+            }
+          }
+          
+          acc[key] = {
+            value: value,
+            displayText: displayValue
+          };
+          
+          return acc;
+        }, {} as any);
+        
+        return {
+          ...response,
+          ResponseData: parsedData, // Raw data
+          ProcessedData: processedData // Processed data with display text
+        };
+        
+      } catch (parseError: any) {
+        console.warn('Could not parse response data as JSON:', parseError.message);
+        return {
+          ...response,
+          ProcessedData: null
+        };
+      }
+    });
+
+    res.json(processedResults);
+  } catch (err) {
+    console.error('Error fetching survey responses:', err);
+    res.status(500).json({ message: "Lỗi máy chủ" });
+  }
+}
+
+/**
+ * Lấy tất cả phản hồi khảo sát của một chương trình
+ * @route GET /api/survey/responses/program/:programId
+ * @access Admin, Staff
+ */
+export async function getSurveyResponsesByProgram(
+  req: Request,
+  res: Response
+): Promise<void> {
+  const programId = Number(req.params.programId);
+
+  try {
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input('ProgramID', sql.Int, programId)
+      .query(`
+        SELECT 
+          sr.ResponseID,
+          sr.AccountID,
+          sr.SurveyType,
+          sr.ResponseData,
+          sr.CreatedAt,
+          a.FullName,
+          a.Email,
+          a.Username,
+          cp.ProgramName
+        FROM SurveyResponse sr
+        INNER JOIN Account a ON sr.AccountID = a.AccountID
+        INNER JOIN CommunityProgram cp ON sr.ProgramID = cp.ProgramID
+        WHERE sr.ProgramID = @ProgramID
+        ORDER BY a.FullName, sr.SurveyType, sr.CreatedAt DESC
+      `);
+
+    res.json(result.recordset);
+  } catch (err) {
+    console.error('Error fetching program survey responses:', err);
+    res.status(500).json({ message: "Lỗi máy chủ" });
+  }
+}
+
+/**
+ * Thống kê phản hồi khảo sát theo chương trình
+ * @route GET /api/survey/responses/program/:programId/statistics
+ * @access Admin, Staff
+ */
+export async function getSurveyResponseStatistics(
+  req: Request,
+  res: Response
+): Promise<void> {
+  const programId = Number(req.params.programId);
+
+  try {
+    const pool = await poolPromise;
+    
+    // Thống kê tổng số người tham gia và số người đã làm khảo sát
+    const statsResult = await pool.request()
+      .input('ProgramID', sql.Int, programId)
+      .query(`
+        SELECT 
+          COUNT(DISTINCT cpa.AccountID) as TotalAttendees,
+          COUNT(DISTINCT CASE WHEN sr_before.SurveyType = 'before' THEN sr_before.AccountID END) as BeforeSurveyCount,
+          COUNT(DISTINCT CASE WHEN sr_after.SurveyType = 'after' THEN sr_after.AccountID END) as AfterSurveyCount,
+          cp.ProgramName,
+          cp.Status as ProgramStatus
+        FROM CommunityProgramAttendee cpa
+        INNER JOIN CommunityProgram cp ON cpa.ProgramID = cp.ProgramID
+        LEFT JOIN SurveyResponse sr_before ON cpa.AccountID = sr_before.AccountID 
+          AND cpa.ProgramID = sr_before.ProgramID 
+          AND sr_before.SurveyType = 'before'
+        LEFT JOIN SurveyResponse sr_after ON cpa.AccountID = sr_after.AccountID 
+          AND cpa.ProgramID = sr_after.ProgramID 
+          AND sr_after.SurveyType = 'after'
+        WHERE cpa.ProgramID = @ProgramID
+        GROUP BY cp.ProgramName, cp.Status
+      `);
+
+    res.json(statsResult.recordset[0] || {
+      TotalAttendees: 0,
+      BeforeSurveyCount: 0,
+      AfterSurveyCount: 0,
+      ProgramName: '',
+      ProgramStatus: ''
+    });
+  } catch (err) {
+    console.error('Error fetching survey statistics:', err);
+    res.status(500).json({ message: "Lỗi máy chủ" });
+  }
+}
+
+/**
+ * Lấy phản hồi khảo sát cụ thể của một người dùng
+ * @route GET /api/survey/responses/:programId/:accountId/:surveyType
+ * @access Admin
+ */
+export async function getSurveyResponseByUserAndType(req: Request, res: Response): Promise<void> {
+  const programId = Number(req.params.programId);
+  const accountId = Number(req.params.accountId);
+  const surveyType = req.params.surveyType;
+
+  try {
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input('ProgramID', sql.Int, programId)
+      .input('AccountID', sql.Int, accountId)
+      .input('SurveyType', sql.NVarChar, surveyType)
+      .query(`
+        SELECT 
+          sr.ResponseID,
+          sr.ResponseData,
+          sr.CreatedAt,
+          a.FullName,
+          a.Username,
+          a.Email,
+          cp.ProgramName
+        FROM SurveyResponse sr
+        INNER JOIN Account a ON sr.AccountID = a.AccountID
+        INNER JOIN CommunityProgram cp ON sr.ProgramID = cp.ProgramID
+        WHERE sr.ProgramID = @ProgramID 
+          AND sr.AccountID = @AccountID 
+          AND sr.SurveyType = @SurveyType
+      `);
+
+    if (result.recordset.length === 0) {
+      res.status(404).json({ message: "Không tìm thấy phản hồi khảo sát" });
+      return;
+    }
+
+    const response = result.recordset[0];
+    
+    // Parse JSON response data
+    try {
+      const parsedData = JSON.parse(response.ResponseData);
+      
+      // Tạo mapping cho các giá trị để hiển thị text thay vì value
+      const processedData = Object.keys(parsedData).reduce((acc, key) => {
+        const value = parsedData[key];
+        
+        // Mapping cho các câu hỏi phổ biến
+        let displayValue = value;
+        
+        // Mapping cho scale questions (1-5, strongly-disagree to strongly-agree, etc.)
+        if (typeof value === 'string') {
+          // Special handling for overallSatisfaction field (star rating)
+          if (key === 'overallSatisfaction') {
+            const starMappings: { [key: string]: string } = {
+              '1': '1 sao - Rất kém',
+              '2': '2 sao - Kém', 
+              '3': '3 sao - Bình thường',
+              '4': '4 sao - Tốt',
+              '5': '5 sao - Xuất sắc'
+            };
+            displayValue = starMappings[value] || value;
+          } else {
+            // General mappings for other fields
+            const mappings: { [key: string]: string } = {
+              // Agreement scale
+              'strongly-disagree': 'Rất không đồng ý',
+              'disagree': 'Không đồng ý',
+              'neutral': 'Trung lập', 
+              'agree': 'Đồng ý',
+              'strongly-agree': 'Rất đồng ý',
+            
+            // Satisfaction scale
+            'very-poor': 'Rất kém',
+            'poor': 'Kém',
+            'fair': 'Trung bình',
+            'good': 'Tốt',
+            'excellent': 'Xuất sắc',
+            
+            // Likelihood scale
+            'very-unlikely': 'Rất không có khả năng',
+            'unlikely': 'Không có khả năng',
+            'neutral-likelihood': 'Trung lập',
+            'likely': 'Có khả năng',
+            'very-likely': 'Rất có khả năng',
+            
+            // Frequency scale
+            'never': 'Không bao giờ',
+            'rarely': 'Hiếm khi',
+            'sometimes': 'Thỉnh thoảng',
+            'often': 'Thường xuyên',
+            'always': 'Luôn luôn',
+            
+            // Improvement scale
+            'much-worse': 'Tệ hơn nhiều',
+            'worse': 'Tệ hơn',
+            'same': 'Như cũ',
+            'better': 'Tốt hơn',
+            'much-better': 'Tốt hơn nhiều',
+            
+            // Yes/No
+            'yes': 'Có',
+            'no': 'Không',
+            'maybe': 'Có thể',
+            
+            // Other common values
+            'hehe': 'Hehe',
+            'very-satisfied': 'Rất hài lòng',
+            'satisfied': 'Hài lòng',
+            'dissatisfied': 'Không hài lòng',
+            'very-dissatisfied': 'Rất không hài lòng'
+          };
+          
+          displayValue = mappings[value as keyof typeof mappings] || value;
+          }
+        }
+        
+        acc[key] = {
+          value: value,
+          displayText: displayValue
+        };
+        
+        return acc;
+      }, {} as any);
+      
+      response.ResponseData = parsedData; // Raw data
+      response.ProcessedData = processedData; // Processed data with display text
+      
+    } catch (parseError: any) {
+      console.warn('Could not parse response data as JSON:', parseError.message);
+      // Giữ nguyên dữ liệu gốc nếu không parse được
+    }
+
+    res.json(response);
+  } catch (err) {
+    console.error('Error fetching survey response:', err);
+    res.status(500).json({ message: "Lỗi máy chủ" });
+  }
+}

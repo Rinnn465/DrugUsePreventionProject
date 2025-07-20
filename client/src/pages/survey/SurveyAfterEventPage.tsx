@@ -51,6 +51,27 @@ const SurveyAfterEventPage: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate required fields
+    if (!formData.overallSatisfaction) {
+        toast.error('Vui lòng chọn số sao đánh giá');
+        return;
+    }
+    
+    if (!formData.knowledgeGained) {
+        toast.error('Vui lòng trả lời câu hỏi về kiến thức thu được');
+        return;
+    }
+    
+    if (!formData.behaviorChange) {
+        toast.error('Vui lòng trả lời câu hỏi về thay đổi hành vi');
+        return;
+    }
+    
+    if (!formData.recommendation) {
+        toast.error('Vui lòng trả lời câu hỏi về giới thiệu chương trình');
+        return;
+    }
+    
     try {
         const surveyType = window.location.pathname.includes('/after') ? 'after' : 'before';
 
@@ -92,23 +113,42 @@ const SurveyAfterEventPage: React.FC = () => {
             <form className="space-y-6" onSubmit={handleSubmit}>
                 {/* 1. Mức độ hài lòng tổng thể */}
                 <div>
-                    <label htmlFor="overallSatisfaction" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                         1. Bạn đánh giá chương trình này như thế nào?
                     </label>
-                    <select
-                        id="overallSatisfaction"
-                        name="overallSatisfaction"
-                        value={formData.overallSatisfaction}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                        <option value="">Chọn đánh giá</option>
-                        <option value="excellent">Xuất sắc</option>
-                        <option value="good">Tốt</option>
-                        <option value="average">Bình thường</option>
-                        <option value="poor">Kém</option>
-                    </select>
+                    <div className="flex items-center space-x-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                                key={star}
+                                type="button"
+                                onClick={() => setFormData({...formData, overallSatisfaction: star.toString()})}
+                                className={`text-3xl transition-colors duration-200 ${
+                                    parseInt(formData.overallSatisfaction) >= star
+                                        ? 'text-yellow-400 hover:text-yellow-500'
+                                        : 'text-gray-300 hover:text-yellow-300'
+                                }`}
+                            >
+                                ★
+                            </button>
+                        ))}
+                        <span className="ml-3 text-sm text-gray-600">
+                            {formData.overallSatisfaction && (
+                                <>({formData.overallSatisfaction} sao - {(() => {
+                                    switch (formData.overallSatisfaction) {
+                                        case '1': return 'Rất kém';
+                                        case '2': return 'Kém';
+                                        case '3': return 'Bình thường';
+                                        case '4': return 'Tốt';
+                                        case '5': return 'Xuất sắc';
+                                        default: return '';
+                                    }
+                                })()})</>
+                            )}
+                        </span>
+                    </div>
+                    {!formData.overallSatisfaction && (
+                        <p className="text-sm text-red-500 mt-1">Vui lòng chọn số sao đánh giá</p>
+                    )}
                 </div>
 
                 {/* 2. Kiến thức về phòng ngừa ma túy */}

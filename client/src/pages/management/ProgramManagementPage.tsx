@@ -8,11 +8,13 @@ import {
     ChevronDown,
     ArrowLeft,
     Users,
-    RefreshCw
+    RefreshCw,
+    FileText
 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { CommunityProgram } from '../../types/CommunityProgram';
 import { toast } from 'react-toastify';
+import SurveyResponseModal from '../../components/modal/SurveyResponseModal';
 
 const ProgramManagementPage: React.FC = () => {
     const { userId } = useParams();
@@ -24,7 +26,9 @@ const ProgramManagementPage: React.FC = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showAttendeesModal, setShowAttendeesModal] = useState(false);
+    const [showSurveyModal, setShowSurveyModal] = useState(false);
     const [selectedProgram, setSelectedProgram] = useState<CommunityProgram | null>(null);
+    const [selectedAttendee, setSelectedAttendee] = useState<any>(null);
     const [attendees, setAttendees] = useState<any[]>([]);
     const [sendingInvite, setSendingInvite] = useState(false);
     const [regeneratingZoom, setRegeneratingZoom] = useState(false);
@@ -995,7 +999,7 @@ const ProgramManagementPage: React.FC = () => {
             {/* Attendees Modal */}
             {showAttendeesModal && selectedProgram && (
                 <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-                    <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+                    <div className="relative top-10 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-4/5 shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
                         <div className="mt-3">
                             <h3 className="text-lg font-medium text-gray-900 mb-4">
                                 Danh sách người tham gia: {selectedProgram.ProgramName}
@@ -1004,29 +1008,71 @@ const ProgramManagementPage: React.FC = () => {
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50">
                                         <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày đăng ký</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày đăng ký</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Khảo sát</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
                                         {attendees.map((attendee) => (
                                             <tr key={`${attendee.ProgramID}-${attendee.AccountID}`}>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{attendee.FullName}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{attendee.Username}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{attendee.FullName}</td>
+                                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{attendee.Username}</td>
+                                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                                                     {attendee.Email ? (
                                                         <span className="text-green-600">{attendee.Email}</span>
                                                     ) : (
                                                         <span className="text-red-500">Chưa có email</span>
                                                     )}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                                                     {formatDate(attendee.RegistrationDate)}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{attendee.Status}</td>
+                                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    <span className={`px-2 py-1 text-xs rounded-full ${
+                                                        attendee.Status === 'registered' 
+                                                            ? 'bg-green-100 text-green-800' 
+                                                            : 'bg-gray-100 text-gray-800'
+                                                    }`}>
+                                                        {attendee.Status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    <div className="flex space-x-2">
+                                                        <span className={`px-2 py-1 text-xs rounded-full ${
+                                                            attendee.HasBeforeSurvey 
+                                                                ? 'bg-blue-100 text-blue-800' 
+                                                                : 'bg-gray-100 text-gray-500'
+                                                        }`}>
+                                                            Trước: {attendee.HasBeforeSurvey ? '✓' : '✗'}
+                                                        </span>
+                                                        <span className={`px-2 py-1 text-xs rounded-full ${
+                                                            attendee.HasAfterSurvey 
+                                                                ? 'bg-purple-100 text-purple-800' 
+                                                                : 'bg-gray-100 text-gray-500'
+                                                        }`}>
+                                                            Sau: {attendee.HasAfterSurvey ? '✓' : '✗'}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {(attendee.HasBeforeSurvey || attendee.HasAfterSurvey) && (
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedAttendee(attendee);
+                                                                setShowSurveyModal(true);
+                                                            }}
+                                                            className="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-blue-100 rounded-full hover:bg-blue-200 transition-colors"
+                                                        >
+                                                            <FileText className="w-3 h-3 mr-1" />
+                                                            Xem phản hồi
+                                                        </button>
+                                                    )}
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -1061,13 +1107,27 @@ const ProgramManagementPage: React.FC = () => {
                                             Đang gửi...
                                         </div>
                                     ) : (
-                                        'Gửi lại lời mời Zoom'
+                                        'Gửi lời mời Zoom'
                                     )}
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Survey Response Modal */}
+            {showSurveyModal && selectedAttendee && selectedProgram && (
+                <SurveyResponseModal
+                    isOpen={showSurveyModal}
+                    onClose={() => {
+                        setShowSurveyModal(false);
+                        setSelectedAttendee(null);
+                    }}
+                    programId={selectedProgram.ProgramID}
+                    accountId={selectedAttendee.AccountID}
+                    attendeeName={selectedAttendee.FullName}
+                />
             )}
         </div>
     );

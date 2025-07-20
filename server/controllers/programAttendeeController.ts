@@ -43,10 +43,22 @@ export async function getAttendeesByProgramId(req: Request, res: Response): Prom
                     cp.ProgramName,
                     a.Username,
                     a.FullName,
-                    a.Email
+                    a.Email,
+                    sr_before.ResponseData as BeforeSurveyData,
+                    sr_before.CreatedAt as BeforeSurveyDate,
+                    sr_after.ResponseData as AfterSurveyData,
+                    sr_after.CreatedAt as AfterSurveyDate,
+                    CASE WHEN sr_before.ResponseID IS NOT NULL THEN 1 ELSE 0 END as HasBeforeSurvey,
+                    CASE WHEN sr_after.ResponseID IS NOT NULL THEN 1 ELSE 0 END as HasAfterSurvey
                 FROM CommunityProgramAttendee cpa
                 INNER JOIN CommunityProgram cp ON cpa.ProgramID = cp.ProgramID
                 INNER JOIN Account a ON cpa.AccountID = a.AccountID
+                LEFT JOIN SurveyResponse sr_before ON cpa.AccountID = sr_before.AccountID 
+                    AND cpa.ProgramID = sr_before.ProgramID 
+                    AND sr_before.SurveyType = 'before'
+                LEFT JOIN SurveyResponse sr_after ON cpa.AccountID = sr_after.AccountID 
+                    AND cpa.ProgramID = sr_after.ProgramID 
+                    AND sr_after.SurveyType = 'after'
                 WHERE cpa.ProgramID = @ProgramID
                 ORDER BY cpa.RegistrationDate DESC
             `);
