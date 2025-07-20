@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { ConsultantWithSchedule } from '../../types/Consultant';
 import { useUser } from '../../context/UserContext';
+import Modal from '../modal/ModalNotification';
+import useModal from '@/hooks/useModal';
+
 
 interface AppointmentCalendarProps {
   consultantId: number;
@@ -30,6 +34,8 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
   const [note, setNote] = useState<string>('');
   const [bookedAppointments, setBookedAppointments] = useState<Appointment[]>([]);
 
+  const { isOpen, openModal, closeModal } = useModal();
+  const navigate = useNavigate();
   // Auto-navigate to earliest available month
   useEffect(() => {
     if (schedule && schedule.Schedule && schedule.Schedule.length > 0) {
@@ -244,6 +250,11 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
   };
 
   const handleConfirmBooking = () => {
+    if (localStorage.getItem('token') === null) {
+      openModal();
+      return;
+    }
+
     toast.success(
       `✅ Đặt lịch thành công! Bạn đã đặt lịch với chuyên viên vào ngày ${selectedDate?.toLocaleDateString(
         'vi-VN'
@@ -337,6 +348,16 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
 
   return (
     <div className="bg-gradient-to-br from-sky-50 via-white to-blue-50 rounded-2xl p-6 border-2 border-sky-100 shadow-2xl animate-fade-in">
+      <Modal
+        isOpen={isOpen}
+        onClose={closeModal}
+        title="Bạn cần đăng nhập"
+        description="Vui lòng đăng nhập để đặt lịch."
+        confirmMessage="Đăng nhập ngay"
+        confirmUrl={() => {
+          navigate('/login');
+        }}
+      />
       {bookingStep === 'date' && (
         <div>
           <div className="flex items-center justify-between mb-4">

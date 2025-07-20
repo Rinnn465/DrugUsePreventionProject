@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Users, Search, Calendar as CalendarIcon, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import CounselorCard from '../../components/counselors/CounselorCard';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { ConsultantWithSchedule, Qualification, Specialty } from '../../types/Consultant';
 import { useUser } from '@/context/UserContext';
 
@@ -154,6 +154,7 @@ const AppointmentsPage: React.FC = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
+
       {/* Hero Section */}
       <div className="relative bg-gradient-to-r from-primary-600 via-primary-700 to-blue-600 overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>
@@ -215,8 +216,8 @@ const AppointmentsPage: React.FC = () => {
                     )}
                   </span>
                 </div>
-                {showSpecialtyFilter ? 
-                  <ChevronUp className="h-5 w-5 text-gray-500" /> : 
+                {showSpecialtyFilter ?
+                  <ChevronUp className="h-5 w-5 text-gray-500" /> :
                   <ChevronDown className="h-5 w-5 text-gray-500" />
                 }
               </button>
@@ -226,13 +227,12 @@ const AppointmentsPage: React.FC = () => {
                 <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
                     {specialtyOptions.map((specialty, index) => (
-                      <label 
-                        key={index} 
-                        className={`flex items-center space-x-3 cursor-pointer p-3 rounded-lg border-2 transition-all duration-200 ${
-                          selectedSpecialties.includes(specialty)
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50'
-                        }`}
+                      <label
+                        key={index}
+                        className={`flex items-center space-x-3 cursor-pointer p-3 rounded-lg border-2 transition-all duration-200 ${selectedSpecialties.includes(specialty)
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50'
+                          }`}
                       >
                         <input
                           type="checkbox"
