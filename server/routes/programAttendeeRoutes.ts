@@ -31,7 +31,17 @@ router.get("/my-enrollments",
  */
 router.get("/statistics/enroll", 
     authorizeRoles(["Admin"]), 
-    programAttendeeController.getProgramEnrollmentStatistics
+    programAttendeeController.getMonthlyProgramEnrollmentStatistics
+);
+
+/**
+ * @route GET /api/program-attendee/statistics/compare-enroll
+ * @desc So sánh số lượng đăng ký chương trình giữa tháng hiện tại và tháng trước
+ * @access Chỉ Admin
+ */
+router.get("/statistics/compare-enroll", 
+    authorizeRoles(["Admin"]), 
+    programAttendeeController.compareProgramEnrollmentStatistics
 );
 
 /**
@@ -99,16 +109,6 @@ router.get("/program/:programId",
 router.get("/:programId/:accountId", 
     authorizeRoles(["Admin"]), 
     programAttendeeController.getAttendeeById
-);
-
-/**
- * @route POST /api/program-attendee/send-invite/:programId
- * @desc Gửi lời mời Zoom cho tất cả người tham gia chương trình
- * @access Chỉ Admin
- */
-router.post("/send-invite/:programId", 
-    authorizeRoles(["Admin"]), 
-    programAttendeeController.sendProgramInvitation
 );
 
 export default router;

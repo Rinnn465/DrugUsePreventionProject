@@ -1,14 +1,4 @@
-// Thống kê tổng số tài khoản
-export const getAccountCountStatistic = async (req: Request, res: Response) => {
-  try {
-    const pool = await poolPromise;
-    const result = await pool.request().query("SELECT COUNT(*) as total FROM Account");
-    res.json({ total: result.recordset[0].total });
-  } catch (err: any) {
-    console.error("Lỗi khi thống kê tổng số tài khoản:", err.message);
-    res.status(500).json({ error: "Lỗi máy chủ" });
-  }
-};
+
 import { NextFunction, Request, Response } from "express";
 import { poolPromise, sql } from "../config/database";
 import { Account } from "../types/type";
@@ -34,7 +24,7 @@ export const getAccounts = async (req: Request, res: Response) => {
     res.json(result.recordset as Account[]);
   } catch (err: any) {
     console.error("Lỗi khi lấy danh sách tài khoản:", err.message);
-    res.status(500).json({ error: "Lỗi máy chủ" });
+    res.status(500).json({ error: "Lỗi server" });
   }
 };
 
@@ -59,7 +49,7 @@ export const getAccountById = async (
     res.json(result.recordset[0]);
   } catch (err: any) {
     console.error(`Lỗi khi lấy tài khoản ID ${req.params.id}:`, err.message);
-    res.status(500).json({ error: "Lỗi máy chủ" });
+    res.status(500).json({ error: "Lỗi server" });
   }
 };
 
@@ -94,7 +84,7 @@ export const createAccount = async (req: Request, res: Response) => {
     res.status(201).json({ message: "Tài khoản đã được tạo" });
   } catch (err: any) {
     console.error("Lỗi khi tạo tài khoản:", err.message);
-    res.status(500).json({ error: "Lỗi máy chủ" });
+    res.status(500).json({ error: "Lỗi server" });
   }
 };
 
@@ -143,7 +133,7 @@ export const updateAccount = async (
     res.json({ message: "Tài khoản đã được cập nhật" });
   } catch (err: any) {
     console.error(`Lỗi khi cập nhật tài khoản ID ${req.params.id}:`, err.message);
-    res.status(500).json({ error: "Lỗi máy chủ" });
+    res.status(500).json({ error: "Lỗi server" });
   }
 };
 
@@ -241,7 +231,7 @@ export const updateAccountProfile = async (
     });
   } catch (err: any) {
     console.error(`Lỗi khi cập nhật hồ sơ cho AccountID ${accountId}:`, err.message);
-    res.status(500).json({ error: "Lỗi máy chủ" });
+    res.status(500).json({ error: "Lỗi server" });
   }
 };
 
@@ -321,7 +311,7 @@ export const updatePassword = async (
     res.json({ message: "Mật khẩu đã được cập nhật" });
   } catch (err: any) {
     console.error(`Lỗi khi cập nhật mật khẩu cho AccountID ${accountId}:`, err.message);
-    res.status(500).json({ error: "Lỗi máy chủ" });
+    res.status(500).json({ error: "Lỗi server" });
   }
 };
 
@@ -342,6 +332,112 @@ export const deleteAccount = async (
     res.json({ message: "Tài khoản đã được xóa" });
   } catch (err: any) {
     console.error(`Lỗi khi xóa tài khoản ID ${req.params.id}:`, err.message);
-    res.status(500).json({ error: "Lỗi máy chủ" });
+    res.status(500).json({ error: "Lỗi server" });
+  }
+};
+
+// Thống kê tổng số tài khoản theo từng tháng
+export const getMonthlyAccountCountStatistic = async (req: Request, res: Response) => {
+  try {
+    const pool = await poolPromise;
+    // Truy vấn lấy số lượng tài khoản được tạo theo từng tháng
+    const result = await pool.request().query(`
+      SELECT 
+        YEAR(CreatedAt) AS Year,
+        MONTH(CreatedAt) AS Month,
+        COUNT(*) as total
+      FROM Account
+      WHERE CreatedAt IS NOT NULL
+      GROUP BY YEAR(CreatedAt), MONTH(CreatedAt)
+      ORDER BY Year, Month
+    `);
+    res.json({ data: result.recordset });
+  } catch (err: any) {
+    console.error("Lỗi khi thống kê tổng số tài khoản theo tháng:", err.message);
+    res.status(500).json({ error: "Lỗi server" });
+  }
+};
+
+/**
+ * So sánh số lượng tài khoản được tạo giữa tháng hiện tại và tháng trước
+ * @route GET /api/account/statistics/compare-count
+ * @access Chỉ Admin
+ * @returns {Promise<void>} Phản hồi JSON với số lượng tài khoản tháng trước, tháng hiện tại và phần trăm thay đổi
+ */
+export const compareAccountCountStatistic = async (req: Request, res: Response) => {
+  try {
+    const pool = await poolPromise;
+    // Lấy tháng và năm hiện tại
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+    // Tính tháng và năm trước
+    let prevMonth = currentMonth - 1;
+    let prevYear = currentYear;
+    if (prevMonth === 0) {
+      prevMonth = 12;
+      prevYear -= 1;
+    }
+    // Truy vấn số lượng tài khoản tháng trước
+    const prevResult = await pool.request()
+      .input('prevMonth', sql.Int, prevMonth)
+      .input('prevYear', sql.Int, prevYear)
+      .query(`
+        SELECT COUNT(*) AS PrevCount
+        FROM Account
+        WHERE MONTH(CreatedAt) = @prevMonth AND YEAR(CreatedAt) = @prevYear
+      `);
+    // Truy vấn số lượng tài khoản tháng hiện tại
+    const currResult = await pool.request()
+      .input('currMonth', sql.Int, currentMonth)
+      .input('currYear', sql.Int, currentYear)
+      .query(`
+        SELECT COUNT(*) AS CurrCount
+        FROM Account
+        WHERE MONTH(CreatedAt) = @currMonth AND YEAR(CreatedAt) = @currYear
+      `);
+    const prevCount = prevResult.recordset[0]?.PrevCount || 0;
+    const currCount = currResult.recordset[0]?.CurrCount || 0;
+    // Tính phần trăm thay đổi
+    let percentChange = 0;
+    if (prevCount === 0 && currCount > 0) {
+      percentChange = 100;
+    } else if (prevCount === 0 && currCount === 0) {
+      percentChange = 0;
+    } else {
+      percentChange = ((currCount - prevCount) / prevCount) * 100;
+    }
+    res.status(200).json({
+      message: 'So sánh số lượng tài khoản được tạo giữa tháng hiện tại và tháng trước thành công',
+      previousMonth: { year: prevYear, month: prevMonth, count: prevCount },
+      currentMonth: { year: currentYear, month: currentMonth, count: currCount },
+      percentChange
+    });
+  } catch (err: any) {
+    console.error('Lỗi trong compareAccountCountStatistic:', err);
+    res.status(500).json({
+      message: 'Lỗi khi so sánh số lượng tài khoản được tạo',
+      error: err.message
+    });
+  }
+};
+
+// Thống kê tổng số người dùng (tài khoản)
+export const getTotalAccountCountStatistic = async (req: Request, res: Response) => {
+  try {
+    const pool = await poolPromise;
+    const result = await pool.request().query(`
+      SELECT COUNT(*) AS TotalAccount FROM Account
+    `);
+    res.status(200).json({
+      message: 'Thống kê tổng số người dùng thành công',
+      totalAccount: result.recordset[0]?.TotalAccount || 0
+    });
+  } catch (err: any) {
+    console.error('Lỗi khi thống kê tổng số người dùng:', err.message);
+    res.status(500).json({
+      message: 'Lỗi khi thống kê tổng số người dùng',
+      error: err.message
+    });
   }
 };

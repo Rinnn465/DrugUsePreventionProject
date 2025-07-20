@@ -26,6 +26,9 @@ router.get("/:id", authorizeRoles(["Member", "Consultant", "Admin"]), accountCon
 router.delete("/:id", authorizeRoles(["Admin"]), accountController.deleteAccount);
 
 // Thống kê tổng số tài khoản (Admin only)
-router.get("/statistics/count", authorizeRoles(["Admin"]), accountController.getAccountCountStatistic);
+router.get("/statistics/count", authorizeRoles(["Admin"]), accountController.getMonthlyAccountCountStatistic);
+
+// So sánh số lượng tài khoản được tạo giữa tháng hiện tại và tháng trước (Admin only)
+router.get("/statistics/compare-count", authorizeRoles(["Admin"]), accountController.compareAccountCountStatistic);
 
 export default router;
