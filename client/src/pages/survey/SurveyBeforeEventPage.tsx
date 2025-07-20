@@ -9,9 +9,26 @@ const SurveyBeforeEventPage = () => {
     const [formData, setFormData] = useState({
         fullName: '',
         age: '',
+        occupation: '',
         experience: '',
         expectation: ''
     });
+
+    // Hàm tính tuổi từ ngày sinh
+    const calculateAge = (dateOfBirth: Date | string | null): string => {
+        if (!dateOfBirth) return '';
+        
+        const birthDate = new Date(dateOfBirth);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        
+        return age.toString();
+    };
 
     const { user } = useUser();
 
@@ -44,12 +61,14 @@ const SurveyBeforeEventPage = () => {
         }
     }, [programId]);
 
-    // Set fullName from user context when user is available
+    // Set fullName and age from user context when user is available
     useEffect(() => {
-        if (user && user.FullName) {
+        if (user?.FullName) {
+            const calculatedAge = calculateAge(user.DateOfBirth);
             setFormData(prev => ({
                 ...prev,
-                fullName: user.FullName
+                fullName: user.FullName,
+                age: calculatedAge
             }));
         }
     }, [user]);
@@ -122,25 +141,42 @@ const SurveyBeforeEventPage = () => {
                     <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-1">
                         Độ tuổi
                     </label>
-                    <select
+                    <input
                         id="age"
                         name="age"
-                        value={formData.age}
+                        type="text"
+                        value={formData.age ? `${formData.age} tuổi` : 'Chưa có thông tin ngày sinh'}
+                        readOnly
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed focus:outline-none"
+                    />
+                </div>
+
+                <div>
+                    <label htmlFor="occupation" className="block text-sm font-medium text-gray-700 mb-1">
+                        Nghề nghiệp/Vai trò
+                    </label>
+                    <select
+                        id="occupation"
+                        name="occupation"
+                        value={formData.occupation}
                         onChange={handleChange}
                         required
                         className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
-                        <option value="">Chọn độ tuổi</option>
-                        <option value="under18">Dưới 18</option>
-                        <option value="18-25">18-25</option>
-                        <option value="26-35">26-35</option>
-                        <option value="36-50">36-50</option>
-                        <option value="over50">Trên 50</option>
+                        <option value="">Chọn nghề nghiệp/vai trò của bạn</option>
+                        <option value="student">Học sinh</option>
+                        <option value="university_student">Sinh viên</option>
+                        <option value="teacher">Giáo viên/Giảng viên</option>
+                        <option value="parent">Phụ huynh</option>
+                        <option value="healthcare_worker">Nhân viên y tế</option>
+                        <option value="government_officer">Cán bộ nhà nước</option>
+                        <option value="ngo_volunteer">Tình nguyện viên
+                        <option value="other">Khác</option>
                     </select>
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="experience" className="block text-sm font-medium text-gray-700 mb-1">
                         Bạn đã từng tham gia chương trình cộng đồng nào trước đây chưa?
                     </label>
                     <div className="flex items-center space-x-4">
