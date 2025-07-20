@@ -5,7 +5,7 @@ import Sidebar from "../components/sidebar/Sidebar";
 import Avatar from "../components/common/Avatar";
 import ImageCropModal from "../components/modal/ImageCropModal";
 import { parseDate } from "../utils/parseDateUtils";
-import { User, BookOpen, Calendar, Clock, Users, Mail, Edit, CheckCircle, XCircle, Edit2, Camera } from "lucide-react";
+import { User, BookOpen, Calendar, Clock, Users, Mail, CheckCircle, XCircle, Camera, Lock } from "lucide-react";
 import { Appointment } from "../types/Appointment";
 import AppointmentDetailModal from "../components/modal/AppointmentDetailModal";
 import { toast } from 'react-toastify';
@@ -67,7 +67,6 @@ const DashBoardPage: React.FC = () => {
   const location = useLocation();
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
@@ -112,14 +111,11 @@ const DashBoardPage: React.FC = () => {
   const [showCropModal, setShowCropModal] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
 
-  // Security states for profile editing
-  const [showProfileEditModal, setShowProfileEditModal] = useState(false);
-  const [profilePassword, setProfilePassword] = useState("");
-
   // Check current page type
   const isCoursesPage = location.pathname.includes('/courses');
   const isEventsPage = location.pathname.includes('/events');
   const isAppointmentsPage = location.pathname.includes('/appointments');
+  const isProfilePage = location.pathname.includes('/profile');
   const isSecurityPage = location.pathname.includes('/security');
 
   // Check if user is a consultant
@@ -342,12 +338,69 @@ const DashBoardPage: React.FC = () => {
       }
 
       setUser(result.user); // Update user context
-      setIsEditingProfile(false);
-      setShowProfileEditModal(false);
-      setProfilePassword("");
       setMessage({ type: "success", text: "Hồ sơ đã được cập nhật!" });
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Đã xảy ra lỗi khi cập nhật hồ sơ";
+      setMessage({ type: "error", text: errorMessage });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle password form submission
+  const handlePasswordSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setMessage(null);
+
+    // Validation
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      setMessage({ type: "error", text: "Vui lòng điền đầy đủ thông tin" });
+      setIsLoading(false);
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setMessage({ type: "error", text: "Mật khẩu mới và xác nhận mật khẩu không khớp" });
+      setIsLoading(false);
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      setMessage({ type: "error", text: "Mật khẩu mới phải có ít nhất 6 ký tự" });
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/account/password/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword,
+        }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || "Cập nhật mật khẩu thất bại");
+      }
+
+      // Reset form
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      
+      setMessage({ type: "success", text: "Mật khẩu đã được cập nhật thành công!" });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Đã xảy ra lỗi khi cập nhật mật khẩu";
       setMessage({ type: "error", text: errorMessage });
     } finally {
       setIsLoading(false);
@@ -424,14 +477,6 @@ const DashBoardPage: React.FC = () => {
   };
 
   // Avatar functions
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    return {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    };
-  };
-
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -528,7 +573,7 @@ const DashBoardPage: React.FC = () => {
 
 
   // Main Dashboard Page (modified to include consultant sections)
-  if (!isCoursesPage && !isEventsPage && !isAppointmentsPage && !isSecurityPage) {
+  if (!isCoursesPage && !isEventsPage && !isAppointmentsPage && !isProfilePage && !isSecurityPage) {
     return (
       <div className="flex min-h-screen bg-gray-50">
         <Sidebar />
@@ -1207,8 +1252,8 @@ const DashBoardPage: React.FC = () => {
     );
   }
 
-  // Security Page
-  if (isSecurityPage) {
+  // Profile Page
+  if (isProfilePage) {
     return (
       <div className="flex min-h-screen bg-gray-50">
         <Sidebar />
@@ -1217,12 +1262,12 @@ const DashBoardPage: React.FC = () => {
             {/* Header */}
             <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
               <div className="flex items-center mb-4">
-                <div className="h-12 w-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center mr-4">
-                  <Edit className="h-6 w-6 text-white" />
+                <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mr-4">
+                  <User className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Bảo mật </h1>
-                  <p className="text-gray-600">Quản lý thông tin cá nhân và bảo mật tài khoản</p>
+                  <h1 className="text-3xl font-bold text-gray-900">Hồ sơ cá nhân</h1>
+                  <p className="text-gray-600">Quản lý thông tin cá nhân của bạn</p>
                 </div>
               </div>
             </div>
@@ -1236,31 +1281,141 @@ const DashBoardPage: React.FC = () => {
 
             {/* Profile Edit Section */}
             <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center">
-                  <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                    <User className="h-5 w-5 text-blue-600" />
-                  </div>
+              <div className="flex items-center mb-6">
+                <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                  <User className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Chỉnh sửa thông tin cá nhân</h2>
+                  <p className="text-gray-600 text-sm">Cập nhật thông tin tài khoản của bạn</p>
+                </div>
+              </div>
+
+              {/* Direct Profile Edit Form */}
+              <form onSubmit={handleProfileSubmit} className="space-y-6">
+                <div className="space-y-6">
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">Chỉnh sửa thông tin cá nhân</h2>
-                    <p className="text-gray-600 text-sm">Cập nhật thông tin tài khoản của bạn</p>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Tên người dùng</label>
+                    <input
+                      type="text"
+                      name="username"
+                      value={profileForm.username}
+                      onChange={handleProfileChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={profileForm.email}
+                      disabled
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Họ và tên</label>
+                    <input
+                      type="text"
+                      name="fullName"
+                      value={profileForm.fullName}
+                      onChange={handleProfileChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Ngày sinh</label>
+                    <input
+                      type="date"
+                      name="dateOfBirth"
+                      value={profileForm.dateOfBirth}
+                      onChange={handleProfileChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    />
                   </div>
                 </div>
-                <button
-                  onClick={() => setShowProfileEditModal(true)}
-                  className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg"
-                >
-                  <Edit2 className="h-4 w-4" />
-                  <span>Chỉnh sửa thông tin</span>
-                </button>
+
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Reset form to original values
+                      setProfileForm({
+                        username: user?.Username || "",
+                        email: user?.Email || "",
+                        fullName: user?.FullName || "",
+                        dateOfBirth: user?.DateOfBirth ? new Date(user.DateOfBirth).toISOString().split('T')[0] : "",
+                      });
+                    }}
+                    className="px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                  >
+                    {isLoading ? "Đang cập nhật..." : "Cập nhật thông tin"}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Avatar Upload Modal */}
+            {showCropModal && selectedImageFile && (
+              <ImageCropModal
+                isOpen={showCropModal}
+                onClose={() => {
+                  setShowCropModal(false);
+                  setSelectedImageFile(null);
+                }}
+                onCropComplete={handleCropComplete}
+                imageFile={selectedImageFile}
+              />
+            )}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Security Page
+  if (isSecurityPage) {
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar />
+        <main className="flex-grow p-6 lg:p-8">
+          <div className="max-w-4xl mx-auto space-y-6">
+            {/* Header */}
+            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+              <div className="flex items-center mb-4">
+                <div className="h-12 w-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center mr-4">
+                  <Lock className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">Tài khoản</h1>
+                  <p className="text-gray-600">Quản lý bảo mật và mật khẩu tài khoản</p>
+                </div>
               </div>
             </div>
+
+            {message && (
+              <div className={`p-4 rounded-xl flex justify-between items-center ${message.type === "success" ? "bg-green-50 text-green-800 border border-green-200" : "bg-red-50 text-red-800 border border-red-200"}`}>
+                {message.text}
+                <button onClick={() => setMessage(null)} className="text-sm font-medium hover:underline">Đóng</button>
+              </div>
+            )}
 
             {/* Change Password Section */}
             <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
               <div className="flex items-center mb-6">
                 <div className="h-10 w-10 bg-red-100 rounded-lg flex items-center justify-center mr-3">
-                  <Edit className="h-5 w-5 text-red-600" />
+                  <Lock className="h-5 w-5 text-red-600" />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-gray-900">Đổi mật khẩu</h2>
@@ -1268,7 +1423,7 @@ const DashBoardPage: React.FC = () => {
                 </div>
               </div>
 
-              <form className="space-y-6">
+              <form onSubmit={handlePasswordSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-3">Mật khẩu hiện tại</label>
@@ -1312,161 +1467,14 @@ const DashBoardPage: React.FC = () => {
                     type="submit"
                     className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl hover:from-red-700 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg"
                   >
-                    <Edit className="h-4 w-4" />
+                    <Lock className="h-4 w-4" />
                     <span>Cập nhật mật khẩu</span>
                   </button>
                 </div>
               </form>
             </div>
           </div>
-
-          {/* Profile Edit Modal with Password Verification */}
-          {showProfileEditModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">Xác thực để chỉnh sửa thông tin</h2>
-                  <button
-                    onClick={() => {
-                      setShowProfileEditModal(false);
-                      setProfilePassword("");
-                      setIsEditingProfile(false);
-                    }}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <XCircle className="h-6 w-6" />
-                  </button>
-                </div>
-
-                {!isEditingProfile ? (
-                  <div className="space-y-6">
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                      <p className="text-yellow-800 text-sm flex items-center">
-                        <Edit className="h-4 w-4 mr-2" />
-                        Để bảo mật, vui lòng nhập mật khẩu của bạn để xác thực trước khi chỉnh sửa thông tin.
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-3">Mật khẩu tài khoản</label>
-                      <input
-                        type="password"
-                        value={profilePassword}
-                        onChange={(e) => setProfilePassword(e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        placeholder="Nhập mật khẩu của bạn"
-                      />
-                    </div>
-
-                    <div className="flex space-x-4">
-                      <button
-                        onClick={() => {
-                          setShowProfileEditModal(false);
-                          setProfilePassword("");
-                        }}
-                        className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors"
-                      >
-                        Hủy
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (profilePassword.trim() === user?.Password) {
-                            setIsEditingProfile(true);
-                          } else {
-                            setMessage({ type: "error", text: "Vui lòng nhập mật khẩu để xác thực" });
-                          }
-                        }}
-                        disabled={!profilePassword.trim()}
-                        className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all"
-                      >
-                        Xác thực
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <form onSubmit={handleProfileSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-3">Tên người dùng</label>
-                        <input
-                          type="text"
-                          name="username"
-                          value={profileForm.username}
-                          onChange={handleProfileChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-3">Email</label>
-                        <input
-                          type="email"
-                          name="email"
-                          value={profileForm.email}
-                          readOnly
-                          className="w-full px-4 py-3 border border-gray-300 bg-gray-50 rounded-xl text-gray-500 cursor-not-allowed"
-                          title="Email không thể thay đổi vì nó là duy nhất trong hệ thống"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-3">Họ và tên</label>
-                        <input
-                          type="text"
-                          name="fullName"
-                          value={profileForm.fullName}
-                          onChange={handleProfileChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-3">Ngày sinh</label>
-                        <input
-                          type="date"
-                          name="dateOfBirth"
-                          value={profileForm.dateOfBirth}
-                          onChange={handleProfileChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex space-x-4">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsEditingProfile(false);
-                          setShowProfileEditModal(false);
-                          setProfilePassword("");
-                          setMessage(null);
-                        }}
-                        className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors"
-                      >
-                        Hủy
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 disabled:bg-gray-300 transition-all"
-                      >
-                        {isLoading ? "Đang lưu..." : "Lưu thay đổi"}
-                      </button>
-                    </div>
-                  </form>
-                )}
-              </div>
-            </div>
-          )}
         </main>
-
-        {/* Image Crop Modal */}
-        <ImageCropModal
-          isOpen={showCropModal}
-          onClose={() => {
-            setShowCropModal(false);
-            setSelectedImageFile(null);
-          }}
-          onCropComplete={handleCropComplete}
-          imageFile={selectedImageFile}
-        />
       </div>
     );
   }

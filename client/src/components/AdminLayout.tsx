@@ -144,7 +144,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                                         onClick={() => setDropdownOpen(false)}
                                     >
                                         <Settings className="h-4 w-4" />
-                                        <span className="text-sm">Chỉnh sửa profile</span>
+                                        <span className="text-sm">Chỉnh sửa hồ sơ</span>
                                     </Link>
                                     <Link
                                         to={`/roles/${user?.RoleID}/change-password`}

@@ -258,7 +258,7 @@ const AdminProfilePage: React.FC = () => {
                                     <User className="h-8 w-8 text-blue-600" />
                                 </div>
                                 <div>
-                                    <h1 className="text-2xl font-bold text-gray-900">Admin Profile</h1>
+                                    <h1 className="text-2xl font-bold text-gray-900">Hồ sơ cá nhân</h1>
                                     <p className="text-gray-600">Trung tâm quản lý thông tin cá nhân</p>
                                 </div>
                             </div>
