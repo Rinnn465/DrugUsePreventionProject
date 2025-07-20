@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom';
 import React, { useEffect, useState, useMemo } from 'react';
 import { Users, Filter, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { CommunityProgram, EnrollmentStatus } from '../../types/CommunityProgram';
 import { parseDate } from '../../utils/parseDateUtils';
 import { User } from '../../types/User';
 import { toast } from 'react-toastify';
+import Modal from '@/components/modal/ModalNotification';
+import useModal from '@/hooks/useModal';
 
 const CommunityProgramPage: React.FC = () => {
   const [events, setEvents] = useState<CommunityProgram[]>([]);
@@ -13,10 +16,13 @@ const CommunityProgramPage: React.FC = () => {
   const [loadingEnrollments, setLoadingEnrollments] = useState<{ [key: number]: boolean }>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Filter states
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedRegistrationStatus, setSelectedRegistrationStatus] = useState<string>('all');
+
+  const { isOpen, openModal, closeModal } = useModal();
+  const navigate = useNavigate();
 
   const getAuthToken = () => localStorage.getItem('token');
 
@@ -166,7 +172,7 @@ const CommunityProgramPage: React.FC = () => {
     const token = getAuthToken();
 
     if (!token || !user) {
-      toast.error('Vui lòng đăng nhập để tham gia chương trình');
+      openModal();
       return;
     }
 
@@ -368,7 +374,7 @@ const CommunityProgramPage: React.FC = () => {
         {/* User chưa đăng nhập và chương trình chưa kết thúc */}
         {!isProgramCompleted && !isAuthenticated && (
           <button
-            onClick={() => toast.info('Vui lòng đăng nhập để tham gia chương trình')}
+            onClick={() => openModal()}
             className="w-full px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors duration-200"
           >
             Tham gia
@@ -435,6 +441,16 @@ const CommunityProgramPage: React.FC = () => {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Filter Section */}
+        <Modal
+          isOpen={isOpen}
+          onClose={closeModal}
+          title="Bạn cần đăng nhập"
+          description="Vui lòng đăng nhập để tham gia chương trình này."
+          confirmMessage="Đăng nhập ngay"
+          confirmUrl={() => {
+            navigate('/login');
+          }}
+        />
         <div className="mb-12">
           <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
             <div className="flex items-center gap-3 mb-6">
@@ -450,7 +466,7 @@ const CommunityProgramPage: React.FC = () => {
                 </button>
               )}
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Status Filter */}
               <div>
@@ -590,7 +606,7 @@ const CommunityProgramPage: React.FC = () => {
             </div>
           </div>
         )}
-        
+
         {/* No events at all */}
         {Array.isArray(events) && events.length === 0 && (
           <div className="text-center py-12">

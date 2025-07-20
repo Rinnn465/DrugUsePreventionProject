@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { CourseExam, ExamQuestion, ExamAnswer } from "../../types/Exam";
 import { toast } from "react-toastify";
 import { useUser } from "@/context/UserContext";
-import apiUtils, { courses } from "../../utils/apiUtils";
+import { courses } from "../../utils/apiUtils";
 import {
     CheckCircle,
     Clock,

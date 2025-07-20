@@ -11,7 +11,6 @@ import {
   ClipboardList,
   Calendar,
   Users,
-  Heart,
   User,
   LogOut,
   Settings
