@@ -8,6 +8,10 @@ import { welcomeTemplate } from "../templates/welcome";
 import { passwordReset } from "../templates/passwordReset";
 dotenv.config();
 
+// Rate limiting for password reset requests
+const resetRequestTimes = new Map<string, number>();
+const RESET_COOLDOWN_MS = 30 * 1000; // 30 seconds
+
 /**
  * Authenticates a user and generates a JWT token
  * 
@@ -78,6 +82,7 @@ export async function login(
       RoleName: user.RoleName,
       CreatedAt: user.CreatedAt,
       IsDisabled: user.IsDisabled,
+      ProfilePicture: user.ProfilePicture ? `http://localhost:5000${user.ProfilePicture}` : null,
     };
 
     // Log userData
@@ -178,6 +183,49 @@ export async function register(
   try {
     const pool = await poolPromise;
 
+    // Input validation
+    if (!username || !password || !email || !fullName) {
+      res.status(400).json({ message: "Tất cả các trường là bắt buộc" });
+      return;
+    }
+
+    // Username validation (only letters and numbers)
+    const usernameRegex = /^[a-zA-Z0-9]+$/;
+    if (!usernameRegex.test(username)) {
+      res.status(400).json({ message: "Tên đăng nhập chỉ được chứa chữ cái và số" });
+      return;
+    }
+
+    if (username.length < 3 || username.length > 50) {
+      res.status(400).json({ message: "Tên đăng nhập phải từ 3 đến 50 ký tự" });
+      return;
+    }
+
+    // Full name validation (only letters and spaces)
+    const fullNameRegex = /^[a-zA-ZÀ-ỹ\s]+$/;
+    if (!fullNameRegex.test(fullName)) {
+      res.status(400).json({ message: "Họ tên không được có số và ký tự đặc biệt" });
+      return;
+    }
+
+    if (fullName.length < 2 || fullName.length > 100) {
+      res.status(400).json({ message: "Họ tên phải từ 2 đến 100 ký tự" });
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      res.status(400).json({ message: "Email không hợp lệ" });
+      return;
+    }
+
+    // Password length validation
+    if (password.length < 8) {
+      res.status(400).json({ message: "Mật khẩu phải có ít nhất 8 ký tự" });
+      return;
+    }
+
     // Check for existing username
     const checkUser = await pool
       .request()
@@ -259,8 +307,23 @@ export async function register(
  */
 export async function forgotPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
   const { email } = req.body;
+  const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
+  const requestKey = `${email}-${clientIP}`;
 
   try {
+    // Check rate limiting
+    const lastRequestTime = resetRequestTimes.get(requestKey);
+    const now = Date.now();
+    
+    if (lastRequestTime && (now - lastRequestTime) < RESET_COOLDOWN_MS) {
+      const remainingTime = Math.ceil((RESET_COOLDOWN_MS - (now - lastRequestTime)) / 1000);
+      res.status(429).json({ 
+        message: `Vui lòng chờ ${remainingTime} giây trước khi gửi yêu cầu khác.`,
+        remainingTime 
+      });
+      return;
+    }
+
     const pool = await poolPromise;
     // Check if user exists
     const result = await pool
@@ -272,6 +335,16 @@ export async function forgotPassword(req: Request, res: Response, next: NextFunc
     if (!user) {
       res.status(404).json({ message: "Không tìm thấy email" });
       return;
+    }
+
+    // Update rate limiting record
+    resetRequestTimes.set(requestKey, now);
+    
+    // Clean up old entries (older than 5 minutes)
+    for (const [key, time] of resetRequestTimes.entries()) {
+      if (now - time > 5 * 60 * 1000) {
+        resetRequestTimes.delete(key);
+      }
     }
 
     // Generate secure random reset token

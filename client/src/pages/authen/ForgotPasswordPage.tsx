@@ -1,5 +1,5 @@
 import { useFormik } from 'formik';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import * as Yup from 'yup';
 
@@ -14,17 +14,77 @@ const ForgotPasswordPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [serverResponse, setServerResponse] = useState<ErrorResponse | null>(null);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [cooldownTime, setCooldownTime] = useState(0);
+
+    // Countdown timer effect
+    useEffect(() => {
+        let interval: number;
+        if (cooldownTime > 0) {
+            interval = window.setInterval(() => {
+                setCooldownTime((prev) => {
+                    if (prev <= 1) {
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        }
+        return () => {
+            if (interval) {
+                clearInterval(interval);
+            }
+        };
+    }, [cooldownTime]);
+
+    // Function to render button content
+    const renderButtonContent = () => {
+        if (isLoading) {
+            return (
+                <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Đang gửi...
+                </>
+            );
+        }
+        
+        if (cooldownTime > 0) {
+            return (
+                <>
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {`Vui lòng chờ ${cooldownTime}s`}
+                </>
+            );
+        }
+        
+        return 'Gửi liên kết để đặt lại mật khẩu';
+    };
 
     const formik = useFormik({
         initialValues: {
             email: ''
         },
+        validateOnChange: false, // Không validate khi đang nhập
+        validateOnBlur: true, // Chỉ validate khi nhập xong (blur)
         validationSchema: Yup.object({
             email: Yup.string()
                 .email('Email không hợp lệ')
                 .required('Không được để trống')
         }),
         onSubmit: async (values) => {
+            // Check if still in cooldown period
+            if (cooldownTime > 0) {
+                setServerResponse({
+                    message: `Vui lòng chờ ${cooldownTime} giây trước khi gửi yêu cầu khác.`,
+                    field: 'cooldown'
+                });
+                return;
+            }
+
             setIsLoading(true);
             setServerResponse(null);
 
@@ -44,6 +104,17 @@ const ForgotPasswordPage: React.FC = () => {
                     setServerResponse({
                         message: 'Liên kết đặt lại mật khẩu đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư đến.',
                         success: true
+                    });
+                    
+                    // Set cooldown timer after successful email send
+                    setCooldownTime(30);
+                } else if (response.status === 429) {
+                    // Handle rate limiting from server
+                    const remainingTime = data.remainingTime || 30;
+                    setCooldownTime(remainingTime);
+                    setServerResponse({
+                        message: data.message ?? `Vui lòng chờ ${remainingTime} giây trước khi gửi yêu cầu khác.`,
+                        field: 'cooldown'
                     });
                 } else {
                     setServerResponse({
@@ -161,24 +232,14 @@ const ForgotPasswordPage: React.FC = () => {
 
                     <button
                         type="submit"
-                        disabled={isLoading}
+                        disabled={isLoading || cooldownTime > 0}
                         className={`w-full py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center ${
-                            isLoading
+                            isLoading || cooldownTime > 0
                                 ? 'bg-gray-400 cursor-not-allowed'
                                 : 'bg-blue-500 hover:bg-blue-600 text-white'
                         }`}
                     >
-                        {isLoading ? (
-                            <>
-                                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Đang gửi...
-                            </>
-                        ) : (
-                            'Gửi liên kết để đặt lại mật khẩu'
-                        )}
+                        {renderButtonContent()}
                     </button>
                 </div>
             )}
@@ -200,11 +261,26 @@ const ForgotPasswordPage: React.FC = () => {
                             onClick={() => {
                                 setIsSuccess(false);
                                 setServerResponse(null);
+                                setCooldownTime(30); // Reset cooldown for new request
                                 formik.resetForm();
                             }}
-                            className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                            disabled={cooldownTime > 0}
+                            className={`${
+                                cooldownTime > 0 
+                                    ? 'text-gray-400 cursor-not-allowed' 
+                                    : 'text-blue-600 hover:text-blue-800'
+                            } font-medium text-sm flex items-center justify-center`}
                         >
-                            Gửi lại email khác
+                            {cooldownTime > 0 ? (
+                                <>
+                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    {`Chờ ${cooldownTime}s để gửi lại`}
+                                </>
+                            ) : (
+                                'Gửi lại email khác'
+                            )}
                         </button>
                     </div>
                 ) : (

@@ -16,19 +16,35 @@ const isValidUsername = (username: string): boolean => {
   return usernameRegex.test(username);
 };
 
+// Hàm kiểm tra FullName chỉ chứa chữ cái và khoảng trắng
+const isValidFullName = (fullName: string): boolean => {
+  const fullNameRegex = /^[a-zA-ZÀ-ỹ\s]+$/;
+  return fullNameRegex.test(fullName);
+};
+
 // Get all accounts
 export const getAccounts = async (req: Request, res: Response) => {
   try {
     const pool = await poolPromise;
     const result = await pool.request().query("SELECT Account.*, Role.RoleName FROM Account JOIN Role ON Account.RoleID = Role.RoleID ORDER BY Account.CreatedAt DESC");
     
-    // Convert relative ProfilePicture paths to full URLs
-    const accounts = result.recordset.map((account: any) => {
-      if (account.ProfilePicture) {
-        account.ProfilePicture = `http://localhost:5000${account.ProfilePicture}`;
-      }
-      return account;
-    });
+    // Get current user ID from JWT token to exclude from list
+    const currentUser = (req as any).user?.user;
+    const currentUserAccountID = currentUser?.AccountID;
+    
+    // Convert relative ProfilePicture paths to full URLs and filter out current admin
+    const accounts = result.recordset
+      .filter((account: any) => {
+        // Exclude current user's account from the list to prevent self-deletion/disabling
+        // Also exclude other Admin accounts to protect admin roles
+        return account.AccountID !== currentUserAccountID && account.RoleName !== 'Admin';
+      })
+      .map((account: any) => {
+        if (account.ProfilePicture) {
+          account.ProfilePicture = `http://localhost:5000${account.ProfilePicture}`;
+        }
+        return account;
+      });
     
     res.json(accounts as Account[]);
   } catch (err: any) {
@@ -101,6 +117,21 @@ export const createAccount = async (req: Request, res: Response) => {
 
     if (!isValidUsername(Username)) {
       res.status(400).json({ message: "Tên người dùng chỉ được chứa chữ cái và số" });
+      return;
+    }
+
+    if (Username.length < 3 || Username.length > 50) {
+      res.status(400).json({ message: "Tên người dùng phải từ 3 đến 50 ký tự" });
+      return;
+    }
+
+    if (!isValidFullName(FullName)) {
+      res.status(400).json({ message: "Họ tên không được có số và ký tự đặc biệt" });
+      return;
+    }
+
+    if (FullName.length < 2 || FullName.length > 100) {
+      res.status(400).json({ message: "Họ tên phải từ 2 đến 100 ký tự" });
       return;
     }
 
@@ -178,11 +209,11 @@ export const updateAccount = async (
   try {
     const pool = await poolPromise;
 
-    // Get current account info
+    // Get current account info with role name
     const currentAccountResult = await pool
       .request()
       .input("AccountID", sql.Int, accountId)
-      .query("SELECT AccountID, RoleID FROM Account WHERE AccountID = @AccountID");
+      .query("SELECT Account.*, Role.RoleName FROM Account JOIN Role ON Account.RoleID = Role.RoleID WHERE AccountID = @AccountID");
     
     if (currentAccountResult.recordset.length === 0) {
       res.status(404).json({ message: "Tài khoản không tồn tại" });
@@ -191,13 +222,19 @@ export const updateAccount = async (
 
     const targetAccount = currentAccountResult.recordset[0];
 
-    // Validation: Admin không thể thay đổi role của chính mình
-    if (currentUser?.AccountID === accountId && RoleID !== undefined) {
-      res.status(403).json({ message: "Không thể thay đổi vai trò của chính mình" });
+    // Prevent modification of current user's own account
+    if (currentUser?.AccountID === accountId) {
+      res.status(403).json({ message: "Không thể chỉnh sửa tài khoản của chính mình từ trang quản lý" });
       return;
     }
 
-    // Validation: Không cho phép thay đổi role của Admin khác (chỉ có Super Admin mới được)
+    // Prevent modification of any Admin account
+    if (targetAccount.RoleName === 'Admin') {
+      res.status(403).json({ message: "Không thể chỉnh sửa tài khoản Admin" });
+      return;
+    }
+
+    // Validation: Không cho phép thay đổi role của Admin khác
     if (targetAccount.RoleID === 1 && RoleID !== undefined && RoleID !== 1) {
       res.status(403).json({ message: "Không thể thay đổi vai trò của Admin" });
       return;
@@ -229,6 +266,11 @@ export const updateAccount = async (
         return;
       }
 
+      if (Username.length < 3 || Username.length > 50) {
+        res.status(400).json({ message: "Tên người dùng phải từ 3 đến 50 ký tự" });
+        return;
+      }
+
       const usernameCheck = await pool
         .request()
         .input("Username", sql.NVarChar, Username)
@@ -237,6 +279,19 @@ export const updateAccount = async (
       
       if (usernameCheck.recordset.length > 0) {
         res.status(400).json({ message: "Tên người dùng đã tồn tại" });
+        return;
+      }
+    }
+
+    // Check FullName validation
+    if (FullName) {
+      if (!isValidFullName(FullName)) {
+        res.status(400).json({ message: "Họ tên không được có số và ký tự đặc biệt" });
+        return;
+      }
+
+      if (FullName.length < 2 || FullName.length > 100) {
+        res.status(400).json({ message: "Họ tên phải từ 2 đến 100 ký tự" });
         return;
       }
     }
@@ -362,6 +417,10 @@ export const updateAccountProfile = async (
     if (fullName !== undefined) {
       if (!fullName || fullName.length < 2 || fullName.length > 100) {
         res.status(400).json({ message: "Họ tên phải từ 2 đến 100 ký tự" });
+        return;
+      }
+      if (!isValidFullName(fullName)) {
+        res.status(400).json({ message: "Họ tên không được có số và ký tự đặc biệt" });
         return;
       }
       request.input("FullName", sql.NVarChar, fullName);
@@ -501,12 +560,43 @@ export const deleteAccount = async (
 ): Promise<void> => {
   try {
     const pool = await poolPromise;
+    const accountId = parseInt(req.params.id, 10);
+    
+    // Get current user info from JWT token
+    const currentUser = (req as any).user?.user;
+    const currentUserAccountID = currentUser?.AccountID;
+    
+    // Prevent deletion of current user's own account
+    if (accountId === currentUserAccountID) {
+      res.status(403).json({ message: "Không thể xóa tài khoản của chính mình" });
+      return;
+    }
+    
+    // Check if target account is Admin to prevent deletion
+    const checkAccountResult = await pool
+      .request()
+      .input("AccountID", sql.Int, accountId)
+      .query("SELECT Account.*, Role.RoleName FROM Account JOIN Role ON Account.RoleID = Role.RoleID WHERE AccountID = @AccountID");
+    
+    if (checkAccountResult.recordset.length === 0) {
+      res.status(404).json({ message: "Tài khoản không tồn tại" });
+      return;
+    }
+    
+    const targetAccount = checkAccountResult.recordset[0];
+    if (targetAccount.RoleName === 'Admin') {
+      res.status(403).json({ message: "Không thể xóa tài khoản Admin" });
+      return;
+    }
+    
     const result = await pool
       .request()
-      .input("AccountID", sql.Int, parseInt(req.params.id, 10))
+      .input("AccountID", sql.Int, accountId)
       .query("DELETE FROM Account WHERE AccountID=@AccountID");
+      
     if (result.rowsAffected[0] === 0) {
       res.status(404).json({ message: "Tài khoản không tồn tại" });
+      return;
     }
     res.json({ message: "Tài khoản đã được xóa" });
   } catch (err: any) {

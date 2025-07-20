@@ -7,6 +7,7 @@ import { parseSqlDate } from "@/utils/parseSqlDateUtils";
 
 const SignUpPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
     const days = Array.from({ length: 31 }, (_, i) => i + 1);
     const months = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -32,6 +33,37 @@ const SignUpPage: React.FC = () => {
         }
     }
 
+    // Function to get password strength text color
+    const getPasswordStrengthTextColor = (level: number) => {
+        if (level === 1) return 'text-red-600';
+        if (level === 2) return 'text-yellow-600';
+        return 'text-green-600';
+    };
+
+    // Function to check password strength
+    const getPasswordStrength = (password: string) => {
+        if (!password) return { level: 0, text: '', color: '' };
+        
+        const criteria = {
+            length: password.length >= 8,
+            lowercase: /[a-z]/.test(password),
+            uppercase: /[A-Z]/.test(password),
+            number: /\d/.test(password)
+        };
+        
+        const metCriteria = Object.values(criteria).filter(Boolean).length;
+        
+        if (metCriteria <= 1) {
+            return { level: 1, text: 'Yếu', color: 'bg-red-500' };
+        } else if (metCriteria <= 2) {
+            return { level: 2, text: 'Trung bình', color: 'bg-yellow-500' };
+        } else if (metCriteria >= 3) {
+            return { level: 3, text: 'Mạnh', color: 'bg-green-500' };
+        }
+        
+        return { level: 0, text: '', color: '' };
+    };
+
     const formik = useFormik({
         initialValues: {
             email: '',
@@ -41,6 +73,9 @@ const SignUpPage: React.FC = () => {
             password: '',
             confirmPassword: ''
         },
+        validate: undefined, // Tắt validation onChange
+        validateOnChange: false, // Không validate khi đang nhập
+        validateOnBlur: true, // Chỉ validate khi nhập xong (blur)
         onSubmit: async (values) => {
             setIsLoading(true);
             console.log("Form values before transformation:", values);
@@ -71,14 +106,13 @@ const SignUpPage: React.FC = () => {
                 }
 
                 console.log("Form submitted with values:", transformedValues);
-            } catch (err: any) {
-                console.error('Error:', err.message);
+            } catch (err: unknown) {
+                console.error('Error:', err instanceof Error ? err.message : 'Unknown error');
                 toast.error('Có lỗi xảy ra khi đăng ký');
             } finally {
                 setIsLoading(false);
             }
         },
-
 
         validationSchema: Yup.object({
             email: Yup.string()
@@ -88,10 +122,14 @@ const SignUpPage: React.FC = () => {
             fullName: Yup.string()
                 .trim()
                 .min(2, 'Họ tên phải có ít nhất 2 ký tự')
+                .max(100, 'Họ tên không được vượt quá 100 ký tự')
+                .matches(/^[a-zA-ZÀ-ỹ\s]+$/, 'Họ tên không được có số và ký tự đặc biệt')
                 .required('Không được để trống'),
             username: Yup.string()
                 .trim()
-                .min(2, 'Tên đăng nhập phải có ít nhất 2 ký tự')
+                .min(3, 'Tên đăng nhập phải có ít nhất 3 ký tự')
+                .max(50, 'Tên đăng nhập không được vượt quá 50 ký tự')
+                .matches(/^[a-zA-Z0-9]+$/, 'Tên đăng nhập chỉ được chứa chữ cái và số')
                 .required('Không được để trống'),
             date: Yup.string()
                 .required('Không được để trống')
@@ -233,16 +271,60 @@ const SignUpPage: React.FC = () => {
                     <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                         Mật khẩu
                     </label>
-                    <input
-                        id="password"
-                        name="password"
-                        type="password"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Nhập mật khẩu của bạn"
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        value={formik.values.password}
-                    />
+                    <div className="relative">
+                        <input
+                            id="password"
+                            name="password"
+                            type={showPassword ? "text" : "password"}
+                            autoComplete="new-password"
+                            data-lpignore="true"
+                            style={{
+                                fontSize: '16px', // Tránh zoom trên mobile
+                            }}
+                            className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Nhập mật khẩu của bạn"
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            value={formik.values.password}
+                        />
+                        <button
+                            type="button"
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                            onClick={() => setShowPassword(!showPassword)}
+                        >
+                            {showPassword ? (
+                                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                                </svg>
+                            ) : (
+                                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            )}
+                        </button>
+                    </div>
+                    
+                    {/* Password Strength Indicator */}
+                    {formik.values.password && (
+                        <div className="mt-2">
+                            <div className="flex items-center justify-between mb-1">
+                                <span className="text-xs font-medium text-gray-700">Độ mạnh mật khẩu</span>
+                                <span className={`text-xs font-medium ${getPasswordStrengthTextColor(getPasswordStrength(formik.values.password).level)}`}>
+                                    {getPasswordStrength(formik.values.password).text}
+                                </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                    className={`h-2 rounded-full transition-all duration-300 ${getPasswordStrength(formik.values.password).color}`}
+                                    style={{ 
+                                        width: `${(getPasswordStrength(formik.values.password).level / 3) * 100}%` 
+                                    }}
+                                ></div>
+                            </div>
+                        </div>
+                    )}
+                    
                     {formik.touched.password && formik.errors.password ? <p className="text-red-600">
                         {formik.errors.password}
                     </p> : null}
