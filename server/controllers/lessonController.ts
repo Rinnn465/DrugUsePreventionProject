@@ -403,9 +403,9 @@ export async function updateLesson(req: Request, res: Response): Promise<void> {
     }
 
     // Lấy dữ liệu cập nhật từ body
-    const { CourseID, Title, BriefDescription, Content, Duration, VideoUrl, Status } = req.body;
+    const { CourseID, Title, BriefDescription, Content, Duration, VideoUrl, Status, IsDisabled } = req.body;
 
-    if (!Title && !Content && !CourseID && !BriefDescription && Duration === undefined && !VideoUrl && !Status) {
+    if (!Title && !Content && !CourseID && !BriefDescription && Duration === undefined && !VideoUrl && !Status && IsDisabled === undefined) {
         res.status(400).json({ message: 'Không có dữ liệu để cập nhật' });
         return;
     }
@@ -456,6 +456,10 @@ export async function updateLesson(req: Request, res: Response): Promise<void> {
         if (Status) {
             updateFields.push('Status = @Status');
             request.input('Status', sql.NVarChar, Status);
+        }
+        if (IsDisabled !== undefined) {
+            updateFields.push('IsDisabled = @IsDisabled');
+            request.input('IsDisabled', sql.Bit, IsDisabled);
         }
 
         // Thực thi truy vấn cập nhật

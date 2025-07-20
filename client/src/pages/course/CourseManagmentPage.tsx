@@ -6,16 +6,17 @@ import {
     BookOpen,
     Search,
     ChevronDown,
-    Clock
+    Clock,
+    FileText,
+    Video
 } from 'lucide-react';
-import { useParams } from 'react-router-dom';
-import { SqlCourse } from '../../types/Course';
-import { CourseFormData } from '../../types/Course';
+import { SqlCourse, CourseFormData } from '../../types/Course';
+import { sqlLesson } from '../../types/Lesson';
 import AdminLayout from '../../components/AdminLayout';
+import { toast } from 'react-toastify';
 
 
 const CourseManagmentPage: React.FC = () => {
-    const { userId } = useParams();
     const [courses, setCourses] = useState<SqlCourse[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -24,6 +25,23 @@ const CourseManagmentPage: React.FC = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedCourse, setSelectedCourse] = useState<SqlCourse | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+    // Lesson management states
+    const [showLessonsModal, setShowLessonsModal] = useState(false);
+    const [lessons, setLessons] = useState<sqlLesson[]>([]);
+    const [showCreateLessonModal, setShowCreateLessonModal] = useState(false);
+    const [showEditLessonModal, setShowEditLessonModal] = useState(false);
+    const [showDeleteLessonModal, setShowDeleteLessonModal] = useState(false);
+    const [selectedLesson, setSelectedLesson] = useState<sqlLesson | null>(null);
+    const [lessonFormData, setLessonFormData] = useState({
+        Title: '',
+        BriefDescription: '',
+        Content: '',
+        Duration: null as number | null,
+        VideoUrl: '',
+        Status: 'active',
+        IsDisabled: false
+    });
 
     // Form data state
     const [formData, setFormData] = useState<CourseFormData>({
@@ -53,9 +71,11 @@ const CourseManagmentPage: React.FC = () => {
                 setCourses(result.data ?? []);
             } else {
                 console.error('Failed to fetch courses');
+                toast.error('Không thể tải danh sách khóa học');
             }
         } catch (error) {
             console.error('Error fetching courses:', error);
+            toast.error('Có lỗi xảy ra khi tải khóa học');
         }
     };
 
@@ -76,10 +96,185 @@ const CourseManagmentPage: React.FC = () => {
                 console.log('Categories fetched:', result.data ?? []);
             } else {
                 console.error('Failed to fetch categories');
+                toast.error('Không thể tải danh mục khóa học');
             }
         } catch (error) {
             console.error('Error fetching categories:', error);
+            toast.error('Có lỗi xảy ra khi tải danh mục');
         }
+    };
+
+    // Fetch lessons for a course
+    const fetchLessons = async (courseId: number) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/lesson/course/${courseId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                setLessons(result.data ?? []);
+            } else {
+                toast.error('Không thể tải danh sách bài học');
+            }
+        } catch (error) {
+            console.error('Error fetching lessons:', error);
+            toast.error('Có lỗi xảy ra khi tải bài học');
+        }
+    };
+
+    // Create lesson
+    const handleCreateLesson = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedCourse) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/lesson', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ...lessonFormData,
+                    CourseID: selectedCourse.CourseID
+                })
+            });
+
+            if (response.ok) {
+                closeCreateLessonModal();
+                fetchLessons(selectedCourse.CourseID);
+                toast.success('Tạo bài học thành công!');
+            } else {
+                const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+                toast.error(`Có lỗi xảy ra khi tạo bài học: ${errorData.message ?? 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error('Error creating lesson:', error);
+            toast.error('Có lỗi xảy ra khi tạo bài học');
+        }
+    };
+
+    // Update lesson
+    const handleUpdateLesson = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedLesson) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/lesson/${selectedLesson.LessonID}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(lessonFormData)
+            });
+
+            if (response.ok) {
+                closeEditLessonModal();
+                if (selectedCourse) {
+                    fetchLessons(selectedCourse.CourseID);
+                }
+                toast.success('Cập nhật bài học thành công!');
+            } else {
+                const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+                toast.error(`Có lỗi xảy ra khi cập nhật bài học: ${errorData.message ?? 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error('Error updating lesson:', error);
+            toast.error('Có lỗi xảy ra khi cập nhật bài học');
+        }
+    };
+
+    // Delete lesson
+    const handleDeleteLesson = async () => {
+        if (!selectedLesson) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/lesson/${selectedLesson.LessonID}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                setShowDeleteLessonModal(false);
+                setSelectedLesson(null);
+                if (selectedCourse) {
+                    fetchLessons(selectedCourse.CourseID);
+                }
+                toast.success('Xóa bài học thành công!');
+            } else {
+                const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+                toast.error(`Có lỗi xảy ra khi xóa bài học: ${errorData.message ?? 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error('Error deleting lesson:', error);
+            toast.error('Có lỗi xảy ra khi xóa bài học');
+        }
+    };
+
+    // Reset lesson form
+    const resetLessonForm = () => {
+        setLessonFormData({
+            Title: '',
+            BriefDescription: '',
+            Content: '',
+            Duration: null,
+            VideoUrl: '',
+            Status: 'active',
+            IsDisabled: false
+        });
+    };
+
+    // Open lessons modal
+    const openLessonsModal = (course: SqlCourse) => {
+        setSelectedCourse(course);
+        setShowLessonsModal(true);
+        fetchLessons(course.CourseID);
+    };
+
+    // Open edit lesson modal
+    const openEditLessonModal = (lesson: sqlLesson) => {
+        setSelectedLesson(lesson);
+        setLessonFormData({
+            Title: lesson.Title,
+            BriefDescription: lesson.BriefDescription || '',
+            Content: lesson.Content || '',
+            Duration: lesson.Duration ?? null,
+            VideoUrl: lesson.VideoUrl || '',
+            Status: lesson.Status || 'active',
+            IsDisabled: lesson.IsDisabled || false
+        });
+        setShowEditLessonModal(true);
+    };
+
+    // Open create lesson modal
+    const openCreateLessonModal = () => {
+        resetLessonForm();
+        setShowCreateLessonModal(true);
+    };
+
+    // Close edit lesson modal and reset form
+    const closeEditLessonModal = () => {
+        setShowEditLessonModal(false);
+        setSelectedLesson(null);
+        resetLessonForm();
+    };
+
+    // Close create lesson modal and reset form
+    const closeCreateLessonModal = () => {
+        setShowCreateLessonModal(false);
+        resetLessonForm();
     };
 
     useEffect(() => {
@@ -114,14 +309,14 @@ const CourseManagmentPage: React.FC = () => {
                 setShowCreateModal(false);
                 resetForm();
                 fetchCourses();
-                alert('Tạo khóa học thành công!');
+                toast.success('Tạo khóa học thành công!');
             } else {
                 const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-                alert(`Có lỗi xảy ra khi tạo khóa học: ${errorData.message ?? 'Unknown error'}`);
+                toast.error(`Có lỗi xảy ra khi tạo khóa học: ${errorData.message ?? 'Unknown error'}`);
             }
         } catch (error) {
             console.error('Error creating course:', error);
-            alert('Có lỗi xảy ra khi tạo khóa học');
+            toast.error('Có lỗi xảy ra khi tạo khóa học');
         }
     };
 
@@ -155,14 +350,14 @@ const CourseManagmentPage: React.FC = () => {
                 setSelectedCourse(null);
                 resetForm();
                 fetchCourses();
-                alert('Cập nhật khóa học thành công!');
+                toast.success('Cập nhật khóa học thành công!');
             } else {
                 const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-                alert(`Có lỗi xảy ra khi cập nhật khóa học: ${errorData.message ?? 'Unknown error'}`);
+                toast.error(`Có lỗi xảy ra khi cập nhật khóa học: ${errorData.message ?? 'Unknown error'}`);
             }
         } catch (error) {
             console.error('Error updating course:', error);
-            alert('Có lỗi xảy ra khi cập nhật khóa học');
+            toast.error('Có lỗi xảy ra khi cập nhật khóa học');
         }
     };
 
@@ -184,15 +379,15 @@ const CourseManagmentPage: React.FC = () => {
                 setShowDeleteModal(false);
                 setSelectedCourse(null);
                 fetchCourses();
-                alert('Xóa khóa học thành công!');
+                toast.success('Xóa khóa học thành công');
             } else {
                 const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
                 console.error('Delete failed:', response.status, errorData);
-                alert(`Có lỗi xảy ra khi xóa khóa học: ${errorData.message ?? 'Unknown error'}`);
+                toast.error(`Có lỗi xảy ra khi xóa khóa học: ${errorData.message ?? 'Unknown error'}`);
             }
         } catch (error) {
             console.error('Error deleting course:', error);
-            alert('Có lỗi xảy ra khi xóa khóa học');
+            toast.error('Có lỗi xảy ra khi xóa khóa học');
         }
     };
 
@@ -241,7 +436,6 @@ const CourseManagmentPage: React.FC = () => {
         const statusConfig = {
             'active': { color: 'bg-green-100 text-green-800', text: 'Hoạt động' },
             'inactive': { color: 'bg-gray-100 text-gray-800', text: 'Không hoạt động' },
-            'draft': { color: 'bg-yellow-100 text-yellow-800', text: 'Bản nháp' },
         };
         const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.active;
         return (
@@ -267,7 +461,7 @@ const CourseManagmentPage: React.FC = () => {
     };
 
     return (
-        <AdminLayout title="Quản lý Khóa học" breadcrumb="Quản lý Khóa học">
+        <AdminLayout>
             {/* Page Header */}
             <div className="bg-white shadow-sm border-b">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -315,7 +509,6 @@ const CourseManagmentPage: React.FC = () => {
                                 <option value="all">Tất cả trạng thái</option>
                                 <option value="active">Hoạt động</option>
                                 <option value="inactive">Không hoạt động</option>
-                                <option value="draft">Bản nháp</option>
                             </select>
                             <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                         </div>
@@ -390,6 +583,13 @@ const CourseManagmentPage: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex items-center space-x-2">
+                                                <button
+                                                    onClick={() => openLessonsModal(course)}
+                                                    className="text-green-600 hover:text-green-900 p-1 rounded"
+                                                    title="Quản lý bài học"
+                                                >
+                                                    <FileText className="h-4 w-4" />
+                                                </button>
                                                 <button
                                                     onClick={() => openEditModal(course)}
                                                     className="text-indigo-600 hover:text-indigo-900 p-1 rounded"
@@ -501,7 +701,6 @@ const CourseManagmentPage: React.FC = () => {
                                     >
                                         <option value="active">Hoạt động</option>
                                         <option value="inactive">Không hoạt động</option>
-                                        <option value="draft">Bản nháp</option>
                                     </select>
                                 </div>
 
@@ -620,7 +819,6 @@ const CourseManagmentPage: React.FC = () => {
                                     >
                                         <option value="active">Hoạt động</option>
                                         <option value="inactive">Không hoạt động</option>
-                                        <option value="draft">Bản nháp</option>
                                     </select>
                                 </div>
 
@@ -703,6 +901,358 @@ const CourseManagmentPage: React.FC = () => {
                                 <button
                                     onClick={handleDeleteCourse}
                                     className="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md hover:bg-red-700"
+                                >
+                                    Xóa
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Lessons Modal */}
+            {showLessonsModal && selectedCourse && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between p-6 border-b">
+                            <h3 className="text-lg font-medium text-gray-900">
+                                Quản lý bài học - {selectedCourse.CourseName}
+                            </h3>
+                            <button
+                                onClick={() => setShowLessonsModal(false)}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <span className="sr-only">Đóng</span>✕
+                            </button>
+                        </div>
+
+                        <div className="p-6">
+                            {/* Add lesson button */}
+                            <div className="flex justify-between items-center mb-4">
+                                <h4 className="text-md font-medium text-gray-900">Danh sách bài học</h4>
+                                <button
+                                    onClick={openCreateLessonModal}
+                                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                    <span>Thêm bài học</span>
+                                </button>
+                            </div>
+
+                            {/* Lessons list */}
+                            <div className="border rounded-lg overflow-hidden">
+                                {lessons.length === 0 ? (
+                                    <div className="p-8 text-center text-gray-500">
+                                        <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                                        <p>Chưa có bài học nào</p>
+                                    </div>
+                                ) : (
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tiêu đề</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Thời lượng</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Video</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
+                                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {lessons.map((lesson) => (
+                                                <tr key={lesson.LessonID} className="hover:bg-gray-50">
+                                                    <td className="px-6 py-4">
+                                                        <div>
+                                                            <div className="text-sm font-medium text-gray-900">{lesson.Title}</div>
+                                                            <div className="text-sm text-gray-500">{lesson.BriefDescription}</div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm text-gray-500">
+                                                        {lesson.Duration ? `${lesson.Duration} phút` : 'Chưa xác định'}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm">
+                                                        {lesson.VideoUrl ? (
+                                                            <div className="flex items-center text-green-600">
+                                                                <Video className="h-4 w-4 mr-1" />
+                                                                <span>Có video</span>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-gray-400">Chưa có video</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                                            lesson.Status === 'active' 
+                                                                ? 'bg-green-100 text-green-800' 
+                                                                : 'bg-gray-100 text-gray-800'
+                                                        }`}>
+                                                            {lesson.Status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right text-sm font-medium">
+                                                        <div className="flex items-center justify-end space-x-2">
+                                                            <button
+                                                                onClick={() => openEditLessonModal(lesson)}
+                                                                className="text-indigo-600 hover:text-indigo-900 p-1 rounded"
+                                                            >
+                                                                <Edit className="h-4 w-4" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setSelectedLesson(lesson);
+                                                                    setShowDeleteLessonModal(true);
+                                                                }}
+                                                                className="text-red-600 hover:text-red-900 p-1 rounded"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Create Lesson Modal */}
+            {showCreateLessonModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between p-6 border-b">
+                            <h3 className="text-lg font-medium text-gray-900">Thêm bài học mới</h3>
+                            <button
+                                onClick={closeCreateLessonModal}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleCreateLesson} className="p-6 space-y-6">
+                            <div>
+                                <label htmlFor="create-lesson-title" className="block text-sm font-medium text-gray-700 mb-1">Tiêu đề bài học</label>
+                                <input
+                                    id="create-lesson-title"
+                                    type="text"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    value={lessonFormData.Title}
+                                    onChange={(e) => setLessonFormData({ ...lessonFormData, Title: e.target.value })}
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="create-lesson-description" className="block text-sm font-medium text-gray-700 mb-1">Mô tả ngắn</label>
+                                <input
+                                    id="create-lesson-description"
+                                    type="text"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    value={lessonFormData.BriefDescription}
+                                    onChange={(e) => setLessonFormData({ ...lessonFormData, BriefDescription: e.target.value })}
+                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="create-lesson-content" className="block text-sm font-medium text-gray-700 mb-1">Nội dung</label>
+                                <textarea
+                                    id="create-lesson-content"
+                                    rows={6}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    value={lessonFormData.Content}
+                                    onChange={(e) => setLessonFormData({ ...lessonFormData, Content: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label htmlFor="create-lesson-duration" className="block text-sm font-medium text-gray-700 mb-1">Thời lượng (phút)</label>
+                                    <input
+                                        id="create-lesson-duration"
+                                        type="number"
+                                        min="0"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value={lessonFormData.Duration || ''}
+                                        onChange={(e) => setLessonFormData({ ...lessonFormData, Duration: e.target.value ? parseInt(e.target.value) : null })}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label htmlFor="create-lesson-status" className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
+                                    <select
+                                        id="create-lesson-status"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value={lessonFormData.Status}
+                                        onChange={(e) => setLessonFormData({ ...lessonFormData, Status: e.target.value })}
+                                    >
+                                        <option value="active">Hoạt động</option>
+                                        <option value="inactive">Không hoạt động</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label htmlFor="create-lesson-video" className="block text-sm font-medium text-gray-700 mb-1">URL Video</label>
+                                <input
+                                    id="create-lesson-video"
+                                    type="url"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    value={lessonFormData.VideoUrl}
+                                    onChange={(e) => setLessonFormData({ ...lessonFormData, VideoUrl: e.target.value })}
+                                    placeholder="https://..."
+                                />
+                            </div>
+
+                            <div className="flex justify-end space-x-3 pt-6 border-t">
+                                <button
+                                    type="button"
+                                    onClick={closeCreateLessonModal}
+                                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                                >
+                                    Hủy
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                >
+                                    Tạo bài học
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Lesson Modal */}
+            {showEditLessonModal && selectedLesson && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between p-6 border-b">
+                            <h3 className="text-lg font-medium text-gray-900">Chỉnh sửa bài học</h3>
+                            <button
+                                onClick={closeEditLessonModal}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleUpdateLesson} className="p-6 space-y-6">
+                            <div>
+                                <label htmlFor="edit-lesson-title" className="block text-sm font-medium text-gray-700 mb-1">Tiêu đề bài học</label>
+                                <input
+                                    id="edit-lesson-title"
+                                    type="text"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    value={lessonFormData.Title}
+                                    onChange={(e) => setLessonFormData({ ...lessonFormData, Title: e.target.value })}
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="edit-lesson-description" className="block text-sm font-medium text-gray-700 mb-1">Mô tả ngắn</label>
+                                <input
+                                    id="edit-lesson-description"
+                                    type="text"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    value={lessonFormData.BriefDescription}
+                                    onChange={(e) => setLessonFormData({ ...lessonFormData, BriefDescription: e.target.value })}
+                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="edit-lesson-content" className="block text-sm font-medium text-gray-700 mb-1">Nội dung</label>
+                                <textarea
+                                    id="edit-lesson-content"
+                                    rows={6}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    value={lessonFormData.Content}
+                                    onChange={(e) => setLessonFormData({ ...lessonFormData, Content: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label htmlFor="edit-lesson-duration" className="block text-sm font-medium text-gray-700 mb-1">Thời lượng (phút)</label>
+                                    <input
+                                        id="edit-lesson-duration"
+                                        type="number"
+                                        min="0"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value={lessonFormData.Duration || ''}
+                                        onChange={(e) => setLessonFormData({ ...lessonFormData, Duration: e.target.value ? parseInt(e.target.value) : null })}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label htmlFor="edit-lesson-status" className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
+                                    <select
+                                        id="edit-lesson-status"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value={lessonFormData.Status}
+                                        onChange={(e) => setLessonFormData({ ...lessonFormData, Status: e.target.value })}
+                                    >
+                                        <option value="active">Hoạt động</option>
+                                        <option value="inactive">Không hoạt động</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label htmlFor="edit-lesson-video" className="block text-sm font-medium text-gray-700 mb-1">URL Video</label>
+                                <input
+                                    id="edit-lesson-video"
+                                    type="url"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    value={lessonFormData.VideoUrl}
+                                    onChange={(e) => setLessonFormData({ ...lessonFormData, VideoUrl: e.target.value })}
+                                    placeholder="https://..."
+                                />
+                            </div>
+
+                            <div className="flex justify-end space-x-3 pt-6 border-t">
+                                <button
+                                    type="button"
+                                    onClick={closeEditLessonModal}
+                                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                                >
+                                    Hủy
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                >
+                                    Cập nhật
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Lesson Modal */}
+            {showDeleteLessonModal && selectedLesson && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg max-w-md w-full mx-4">
+                        <div className="p-6">
+                            <h3 className="text-lg font-medium text-gray-900 mb-4">Xác nhận xóa bài học</h3>
+                            <p className="text-sm text-gray-500 mb-6">
+                                Bạn có chắc chắn muốn xóa bài học "{selectedLesson.Title}"? Hành động này không thể hoàn tác.
+                            </p>
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    onClick={() => setShowDeleteLessonModal(false)}
+                                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                                >
+                                    Hủy
+                                </button>
+                                <button
+                                    onClick={handleDeleteLesson}
+                                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
                                 >
                                     Xóa
                                 </button>

@@ -9,13 +9,13 @@ router.get("/", programController.getAllPrograms);
 router.get("/:id", programController.getProgramById);
 
 // Admin routes - Quản lý chương trình
-router.post("/", authorizeRoles(["Admin", "Staff"]), programController.createProgram);
-router.put("/:id", authorizeRoles(["Admin", "Staff"]), programController.updateProgram);
-router.delete("/:id", authorizeRoles(["Admin", "Staff"]), programController.deleteProgram);
+router.post("/", authorizeRoles(["Admin", "Staff", "Manager"]), programController.createProgram);
+router.put("/:id", authorizeRoles(["Admin", "Staff", "Manager"]), programController.updateProgram);
+router.delete("/:id", authorizeRoles(["Admin", "Staff", "Manager"]), programController.deleteProgram);
 
 // Admin utility routes
-router.post("/backfill-surveys", authorizeRoles(["Admin"]), programController.backfillSurveyMappings);
-router.post("/:id/regenerate-zoom", authorizeRoles(["Admin"]), programController.regenerateZoomLink);
+router.post("/backfill-surveys", authorizeRoles(["Admin", "Staff", "Manager"]), programController.backfillSurveyMappings);
+router.post("/:id/regenerate-zoom", authorizeRoles(["Admin", "Staff", "Manager"]), programController.regenerateZoomLink);
 
 
 export default router;

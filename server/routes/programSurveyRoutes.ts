@@ -9,7 +9,7 @@ router.get("/", ProgramSurveyController.getAllProgramSurveys);
 
 // Get surveys by program ID 
 router.get("/:programId", 
-    authorizeRoles(["Guest", "Member", "Consultant", "Admin"]), 
+    authorizeRoles(["Guest", "Member", "Consultant", "Admin", "Staff", "Manager"]), 
     ProgramSurveyController.getSurveysByProgramId
 );
 

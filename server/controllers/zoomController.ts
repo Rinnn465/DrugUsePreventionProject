@@ -26,7 +26,6 @@ export async function getZoomAccessToken(): Promise<string> {
     }
 }
 
-// Cải tiến: Cập nhật account settings để tắt password requirements
 export async function updateZoomAccountSettings(): Promise<void> {
     try {
         const accessToken = await getZoomAccessToken();
@@ -246,7 +245,7 @@ export async function verifyMeetingSettings(meetingId: string): Promise<boolean>
     }
 }
 
-// Cải tiến: Force remove password nếu cần
+//Force remove password nếu cần
 export async function forceRemovePassword(meetingId: string): Promise<void> {
     try {
         const accessToken = await getZoomAccessToken();

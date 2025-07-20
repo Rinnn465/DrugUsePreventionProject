@@ -10,7 +10,7 @@ const router: Router = express.Router();
  * @access Công khai
  */
 router.get("/total/:programId", 
-    authorizeRoles(["Guest", "Member", "Consultant", "Admin"]), 
+    authorizeRoles(["Guest", "Member", "Consultant", "Admin", "Staff", "Manager"]), 
     programAttendeeController.getTotalAttendeesByProgramId
 );
 
@@ -20,7 +20,7 @@ router.get("/total/:programId",
  * @access Member, Consultant, Admin
  */
 router.get("/my-enrollments", 
-    authorizeRoles(["Member", "Consultant", "Admin"]), 
+    authorizeRoles(["Member", "Consultant", "Admin", "Staff", "Manager"]), 
     programAttendeeController.getMyEnrolledPrograms
 );
 
@@ -50,7 +50,7 @@ router.get("/statistics/compare-enroll",
  * @access Chỉ Admin
  */
 router.get("/", 
-    authorizeRoles(["Admin"]), 
+    authorizeRoles(["Admin", "Staff", "Manager"]), 
     programAttendeeController.getAllProgramAttendees
 );
 
@@ -60,44 +60,44 @@ router.get("/",
  * @access Member, Consultant, Admin
  */
 router.get("/:programId/enrollment-status", 
-    authorizeRoles(["Member", "Consultant", "Admin"]), 
+    authorizeRoles(["Member", "Consultant", "Admin", "Staff", "Manager"]), 
     programAttendeeController.checkEnrollmentStatus
 );
 
 /**
  * @route POST /api/program-attendee/:programId/enroll
  * @desc Đăng ký tham gia chương trình
- * @access Member, Consultant, Admin
+ * @access Member, Consultant, Admin, Staff, Manager
  */
 router.post("/:programId/enroll", 
-    authorizeRoles(["Member", "Consultant", "Admin"]), 
+    authorizeRoles(["Member", "Consultant", "Admin", "Staff", "Manager"]), 
     programAttendeeController.enrollInProgram
 );
 
 /**
  * @route DELETE /api/program-attendee/:programId/unenroll
  * @desc Hủy đăng ký tham gia chương trình
- * @access Member, Consultant, Admin
+ * @access Member, Consultant, Admin, Staff, Manager
  */
 router.delete("/:programId/unenroll", 
-    authorizeRoles(["Member", "Consultant", "Admin"]), 
+    authorizeRoles(["Member", "Consultant", "Admin", "Staff", "Manager"]), 
     programAttendeeController.unenrollFromProgram
 );
 
 router.get("/my-enrollments", 
-    authorizeRoles(["Member", "Consultant", "Admin"]), 
+    authorizeRoles(["Member", "Consultant", "Admin", "Staff", "Manager"]), 
     programAttendeeController.getMyEnrolledPrograms
 );
 
 // Admin routes - Quản lý người tham gia (chỉ Admin)
 router.get("/", 
-    authorizeRoles(["Admin"]), 
+    authorizeRoles(["Admin", "Staff", "Manager"]), 
     programAttendeeController.getAllProgramAttendees
 );
 
 // Get attendees for a specific program (Admin only)
 router.get("/program/:programId", 
-    authorizeRoles(["Admin"]), 
+    authorizeRoles(["Admin", "Staff", "Manager"]), 
     programAttendeeController.getAttendeesByProgramId
 );
 
@@ -107,8 +107,18 @@ router.get("/program/:programId",
  * @access Chỉ Admin
  */
 router.get("/:programId/:accountId", 
-    authorizeRoles(["Admin"]), 
+    authorizeRoles(["Admin", "Staff", "Manager"]), 
     programAttendeeController.getAttendeeById
+);
+
+/**
+ * @route POST /api/program-attendee/send-invite/:programId
+ * @desc Gửi lời mời tham gia chương trình qua email
+ * @access Chỉ Admin
+ */
+router.post("/send-invite/:programId", 
+    authorizeRoles(["Admin", "Staff", "Manager"]), 
+    programAttendeeController.sendInviteToAttendee
 );
 
 export default router;

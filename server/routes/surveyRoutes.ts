@@ -12,13 +12,13 @@ router.post("/submit",
 
 // Get survey responses by user and program (Admin only)
 router.get("/responses/:programId/:accountId", 
-    authorizeRoles(["Admin", "Staff"]), 
+    authorizeRoles(["Admin", "Staff", "Manager"]), 
     surveyController.getSurveyResponsesByUser
 );
 
 // Get all survey responses for a program (Admin only)
 router.get("/responses/program/:programId", 
-    authorizeRoles(["Admin", "Staff"]), 
+    authorizeRoles(["Admin", "Staff", "Manager"]), 
     surveyController.getSurveyResponsesByProgram
 );
 
