@@ -44,8 +44,26 @@ const LoginPage: React.FC = () => {
                     localStorage.setItem('user', JSON.stringify(data.user));
                     localStorage.setItem('token', data.token);
 
-                    // Redirect based on user role - default to homepage for all users
-                    window.location.href = '/';
+                    // Redirect based on user role
+                    const userRole = data.user.RoleName;
+                    switch(userRole) {
+                        case 'Staff':
+                            window.location.href = '/staff';
+                            break;
+                        case 'Admin':
+                            window.location.href = '/admin';
+                            break;
+                        case 'Manager':
+                            window.location.href = `/roles/${data.user.RoleID}`;
+                            break;
+                        case 'Consultant':
+                            window.location.href = '/consultant';
+                            break;
+                        default:
+                            // Default to homepage for regular users
+                            window.location.href = '/';
+                            break;
+                    }
                 } else {
                     // Handle different types of errors
                     setServerError(data);

@@ -37,6 +37,7 @@ import ConsultantPage from './pages/management/ConsultantPage';
 import ConsultantSchedule from './pages/management/ConsultantSchedule';
 import AdminProfilePage from './pages/management/AdminProfilePage';
 import ChangePasswordPage from './pages/management/ChangePasswordPage';
+import RolePage from './pages/management/RolePage';
 import VideoCallPage from '@/components/video/VideoCallPage';
 
 function App() {
@@ -71,19 +72,21 @@ function App() {
             <Route path="dashboard/:userId/appointments" element={<DashBoardPage />} />
             <Route path="consultant" element={<ConsultantPage />} />
             <Route path="consultant/schedule" element={<ConsultantSchedule />} />
-            <Route path="roles/:userId/course-manage" element={<CourseManagmentPage />} />
-            <Route path="roles/:userId/program-manage" element={<ProgramManagementPage />} />
-            <Route path="roles/:userId/account-manage" element={<AccountManagementPage />} />
-            <Route path="roles/:userId/admin-profile" element={<AdminProfilePage />} />
-            <Route path="roles/:userId/change-password" element={<ChangePasswordPage />} />
-            <Route path="roles/:userId/article-manage" element={<ArticleManagementPage />} />
-            <Route path="roles/:userId/employee-manage" element={<EmployeeManagmentPage />} />
-            <Route path="roles/:userId/member-manage" element={<MemberManagmentPage />} />
+            <Route path="roles/:userId" element={<RolePage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
 
-          {/* Admin routes - no header/footer */}
+          {/* Admin/Staff routes - no header/footer */}
           <Route path="admin" element={<AdminPage />} />
+          <Route path="staff" element={<AdminPage />} />
+          <Route path="roles/:userId/course-manage" element={<CourseManagmentPage />} />
+          <Route path="roles/:userId/program-manage" element={<ProgramManagementPage />} />
+          <Route path="roles/:userId/account-manage" element={<AccountManagementPage />} />
+          <Route path="roles/:userId/admin-profile" element={<AdminProfilePage />} />
+          <Route path="roles/:userId/change-password" element={<ChangePasswordPage />} />
+          <Route path="roles/:userId/article-manage" element={<ArticleManagementPage />} />
+          <Route path="roles/:userId/employee-manage" element={<EmployeeManagmentPage />} />
+          <Route path="roles/:userId/member-manage" element={<MemberManagmentPage />} />
 
           <Route path='/video-call' element={<VideoCallPage />} />
           {/* different layout with no header and footer included */}

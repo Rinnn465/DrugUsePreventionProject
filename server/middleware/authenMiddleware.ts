@@ -40,10 +40,16 @@ const authorizeRoles =
           .query("SELECT RoleName FROM Role WHERE RoleID = @RoleID");
 
         const userRoleName = result.recordset[0]?.RoleName as string;
+        console.log(`🔐 Auth Debug: UserID=${decoded.user?.UserID}, RoleID=${userRoleID}, RoleName=${userRoleName}, AllowedRoles=${allowedRoles.join(',')}`);
+        
         if (!userRoleName || !allowedRoles.includes(userRoleName)) {
+          console.log(`❌ Auth Failed: RoleName="${userRoleName}" not in AllowedRoles=[${allowedRoles.join(',')}]`);
           res.status(403).json({ message: "Forbidden: Role not allowed" });
           return;
         }
+
+        console.log(`✅ Auth Success: User ${decoded.user?.UserID} with role ${userRoleName} authorized`);
+        
 
         next();
       } catch (err: any) {

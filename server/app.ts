@@ -36,18 +36,18 @@ app.use(
 // Public Routes
 app.use(
   "/api/article",
-  authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
+  authorizeRoles(["Guest", "Member", "Consultant", "Admin", "Staff"]),
   apiArticleRoutes
 );
 app.use("/api/auth", apiAuthenRoutes);
 app.use(
   "/api/course",
-  authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
+  authorizeRoles(["Guest", "Member", "Consultant", "Admin", "Staff"]),
   courseRoutes
 );
 app.use(
   "/api/program",
-  authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
+  authorizeRoles(["Guest", "Member", "Consultant", "Admin", "Staff"]),
   apiProgramRoutes
 );
 app.use(

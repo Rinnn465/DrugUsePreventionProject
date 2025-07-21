@@ -57,6 +57,22 @@ const ProgramManagementPage: React.FC = () => {
         try {
             setLoading(true);
             const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            console.log('🚀 Fetching programs with token:', token ? 'Has token' : 'No token');
+            console.log('👤 User info:', user);
+            
+            if (token) {
+                const tokenParts = token.split('.');
+                if (tokenParts.length === 3) {
+                    try {
+                        const payload = JSON.parse(atob(tokenParts[1]));
+                        console.log('🎫 Token payload:', payload);
+                    } catch (e) {
+                        console.log('⚠️ Could not decode token');
+                    }
+                }
+            }
+            
             const response = await fetch('http://localhost:5000/api/program', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -64,15 +80,21 @@ const ProgramManagementPage: React.FC = () => {
                 }
             });
 
+            console.log('📡 Response status:', response.status);
+            console.log('📡 Response headers:', response.headers);
+
             if (response.ok) {
                 const result = await response.json();
+                console.log('✅ Programs loaded successfully:', result);
                 setPrograms(result.data ?? []);
             } else {
-                toast.error('Không thể tải danh sách chương trình');
+                const errorText = await response.text();
+                console.error('❌ Failed to fetch programs:', response.status, errorText);
+                toast.error(`Không thể tải danh sách chương trình (Status: ${response.status})`);
             }
         } catch (error) {
-            console.error('Error fetching programs:', error);
-            toast.error('Có lỗi xảy ra khi tải chương trình');
+            console.error('💥 Network error fetching programs:', error);
+            toast.error('Có lỗi xảy ra khi tải chương trình - Kiểm tra server');
         } finally {
             setLoading(false);
         }

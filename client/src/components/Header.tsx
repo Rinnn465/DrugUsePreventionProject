@@ -157,7 +157,7 @@ const Header: React.FC<HeaderProps> = () => {
                       </Link>
                     )}
                     {user.RoleName === 'Staff' && (
-                      <Link to="/roles/staff" className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
+                      <Link to="/staff" className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors">
                         <Settings className="h-5 w-5" />
                         <span>Staff Panel</span>
                       </Link>

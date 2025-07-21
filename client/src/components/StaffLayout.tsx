@@ -4,82 +4,49 @@ import { useUser } from "../context/UserContext";
 import Avatar from "./common/Avatar";
 import { 
     Home,
-    BookOpen, 
-    Calendar, 
-    Shield,
+    Calendar,
     LogOut,
     ChevronRight,
     Menu,
     X,
-    Users,
     FileText,
     Settings,
     KeyRound,
-    ChevronDown
+    ChevronDown,
+    UserCheck
 } from "lucide-react";
 
-interface AdminLayoutProps {
+interface StaffLayoutProps {
     children: React.ReactNode;
 }
 
-const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
+const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
     const { user, setUser } = useUser();
     const navigate = useNavigate();
     const location = useLocation();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     
-    // Sidebar navigation items - phân biệt theo role
+    // Sidebar navigation items for Staff - chỉ 3 items
     const navigationItems = [
         {
             label: "Bảng điều khiển",
             icon: Home,
-            link: user?.RoleName === 'Staff' ? '/staff' : '/admin',
-            isActive: (user?.RoleName === 'Staff' && location.pathname === '/staff') || 
-                     (user?.RoleName === 'Admin' && location.pathname === '/admin')
+            link: `/roles/staff`,
+            isActive: location.pathname === '/roles/staff'
         },
-        // Chỉ hiển thị cho Staff
-        ...(user?.RoleName === 'Staff' ? [
-            {
-                label: "Quản lý bài viết",
-                icon: FileText,
-                link: `/roles/${user?.RoleID}/article-manage`,
-                isActive: location.pathname.includes('/article-manage')
-            },
-            {
-                label: "Quản lý chương trình cộng đồng", 
-                icon: Calendar,
-                link: `/roles/${user?.RoleID}/program-manage`,
-                isActive: location.pathname.includes('/program-manage')
-            }
-        ] : []),
-        // Hiển thị đầy đủ cho Admin
-        ...(user?.RoleName === 'Admin' ? [
-            {
-                label: "Quản lý khóa học",
-                icon: BookOpen,
-                link: `/roles/${user?.RoleID}/course-manage`,
-                isActive: location.pathname.includes('/course-manage')
-            },
-            {
-                label: "Quản lý chương trình", 
-                icon: Calendar,
-                link: `/roles/${user?.RoleID}/program-manage`,
-                isActive: location.pathname.includes('/program-manage')
-            },
-            {
-                label: "Quản lý tài khoản",
-                icon: Users,
-                link: `/roles/${user?.RoleID}/account-manage`,
-                isActive: location.pathname.includes('/account-manage')
-            },
-            {
-                label: "Quản lý bài viết",
-                icon: FileText,
-                link: `/roles/${user?.RoleID}/article-manage`,
-                isActive: location.pathname.includes('/article-manage')
-            }
-        ] : [])
+        {
+            label: "Quản lý bài viết",
+            icon: FileText,
+            link: `/roles/${user?.RoleID}/article-manage`,
+            isActive: location.pathname.includes('/article-manage')
+        },
+        {
+            label: "Quản lý chương trình", 
+            icon: Calendar,
+            link: `/roles/${user?.RoleID}/program-manage`,
+            isActive: location.pathname.includes('/program-manage')
+        }
     ];
 
     const handleLogout = () => {
@@ -123,8 +90,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 {/* Sidebar Header */}
                 <div className="flex items-center justify-between h-16 px-6 bg-slate-900">
                     <div className="flex items-center space-x-2">
-                        <Shield className="h-8 w-8 text-blue-400" />
-                        <span className="text-xl font-bold text-white">{user?.RoleName?.toUpperCase() || 'ADMIN'}</span>
+                        <UserCheck className="h-8 w-8 text-blue-400" />
+                        <span className="text-xl font-bold text-white">STAFF</span>
                     </div>
                     <button
                         onClick={() => setSidebarOpen(false)}
@@ -150,7 +117,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                                 />
                                 <div className="flex-1 text-left">
                                     <div className="text-white font-medium text-sm">{user?.FullName || user?.Username}</div>
-                                    <div className="text-gray-400 text-xs">{user?.RoleName}</div>
+                                    <div className="text-gray-400 text-xs">Staff</div>
                                 </div>
                                 <ChevronDown className={`h-4 w-4 text-gray-400 transform transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
                             </button>
@@ -251,4 +218,4 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     );
 };
 
-export default AdminLayout; 
+export default StaffLayout; 
