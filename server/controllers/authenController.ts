@@ -65,6 +65,13 @@ export async function login(
       return;
     }
 
+
+    // Check if account is disabled
+    if (user.IsDisabled) {
+      res.status(403).json({ message: "Tài khoản của bạn đã bị vô hiệu hóa." });
+      return;
+    }
+
     // Verify password
     const isMatch = await bcrypt.compare(password, user.Password);
     if (!isMatch) {
