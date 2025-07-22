@@ -21,7 +21,7 @@ dotenv.config();
 export async function getCourses(req: Request, res: Response): Promise<void> {
     try {
         const pool = await poolPromise; // Kết nối tới pool của database
-        
+
         // Thêm các tham số lọc và phân trang
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
@@ -84,7 +84,7 @@ export async function getCourses(req: Request, res: Response): Promise<void> {
         const request = pool.request();
         request.input('offset', sql.Int, offset);
         request.input('limit', sql.Int, limit);
-        
+
         // Thêm các tham số lọc
         params.forEach(param => {
             request.input(param.name, sql.NVarChar, param.value);
@@ -464,18 +464,18 @@ export async function unenrollCourse(req: Request, res: Response): Promise<void>
                 WHERE CourseID = @CourseID AND AccountID = @AccountID
             `);
         if (checkEnrollment.recordset.length === 0) {
-            res.status(404).json({ 
-                success: false, 
-                message: 'Bạn chưa đăng ký khóa học này' 
+            res.status(404).json({
+                success: false,
+                message: 'Bạn chưa đăng ký khóa học này'
             });
             return;
         }
         const enrollment = checkEnrollment.recordset[0];
         // Kiểm tra nếu đã hoàn thành khóa học
         if (enrollment.Status === 'Completed') {
-            res.status(400).json({ 
-                success: false, 
-                message: 'Không thể hủy đăng ký khóa học đã hoàn thành' 
+            res.status(400).json({
+                success: false,
+                message: 'Không thể hủy đăng ký khóa học đã hoàn thành'
             });
             return;
         }
@@ -496,17 +496,17 @@ export async function unenrollCourse(req: Request, res: Response): Promise<void>
                 WHERE CourseID = @CourseID AND EnrollCount > 0
             `);
         // Trả về kết quả hủy đăng ký thành công
-        res.status(200).json({ 
-            success: true, 
-            message: 'Hủy đăng ký khóa học thành công' 
+        res.status(200).json({
+            success: true,
+            message: 'Hủy đăng ký khóa học thành công'
         });
     } catch (err: any) {
         // Nếu có lỗi, trả về lỗi 500
         console.error('Lỗi trong unenrollCourse:', err);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Đã xảy ra lỗi khi hủy đăng ký khóa học', 
-            error: err.message 
+        res.status(500).json({
+            success: false,
+            message: 'Đã xảy ra lỗi khi hủy đăng ký khóa học',
+            error: err.message
         });
     }
 }
@@ -698,7 +698,7 @@ export async function getCourseCompletionRateStatistics(req: Request, res: Respo
             GROUP BY c.CourseID, c.CourseName
             ORDER BY CompletionRate DESC
         `);
-        // Trả về kết quả thống kê
+
         res.status(200).json({
             message: 'Thống kê tỷ lệ hoàn thành khóa học thành công',
             data: result.recordset
@@ -724,11 +724,11 @@ export async function getAllCourseEnrollmentStatistic(req: Request, res: Respons
     try {
         const pool = await poolPromise;
         const result = await pool.request().query(`
-            SELECT COUNT(*) AS TotalEnrollment FROM Enrollment
+            SELECT COUNT(*) AS totalEnrollment FROM Enrollment
         `);
         res.status(200).json({
             message: 'Thống kê tổng số lượt đăng ký khóa học thành công',
-            totalEnrollment: result.recordset[0]?.TotalEnrollment || 0
+            totalEnrollment: result.recordset[0]?.totalEnrollment || 0
         });
     } catch (err: any) {
         console.error('Lỗi trong getAllCourseEnrollmentStatistic:', err);
@@ -757,11 +757,19 @@ export async function getTotalCompletionRateStatistic(req: Request, res: Respons
                      ELSE CAST(SUM(CASE WHEN Status = 'Completed' THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) END AS CompletionRate
             FROM Enrollment
         `);
+
+
+        const totalEnrollment = result.recordset[0]?.TotalEnrollment || 0;
+        const totalCompleted = result.recordset[0]?.TotalCompleted || 0;
+
         res.status(200).json({
             message: 'Thống kê tỷ lệ hoàn thành toàn bộ khóa học thành công',
-            totalEnrollment: result.recordset[0]?.TotalEnrollment || 0,
-            totalCompleted: result.recordset[0]?.TotalCompleted || 0,
-            completionRate: result.recordset[0]?.CompletionRate || 0
+            data: {
+                totalEnrollment: result.recordset[0]?.TotalEnrollment || 0,
+                totalCompleted: result.recordset[0]?.TotalCompleted || 0,
+                completionRate: result.recordset[0]?.CompletionRate || 0,
+                completePercentage: totalEnrollment > 0 ? (totalCompleted / totalEnrollment) * 100 : 0
+            }
         });
     } catch (err: any) {
         console.error('Lỗi trong getTotalCompletionRateStatistic:', err);

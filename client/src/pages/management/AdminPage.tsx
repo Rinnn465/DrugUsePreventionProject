@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useUser } from "../../context/UserContext";
 import AdminLayout from "../../components/AdminLayout";
-import { 
-    Users, 
-    BookOpen, 
-    Calendar, 
+import {
+    Users,
+    BookOpen,
+    Calendar,
     BarChart3,
     TrendingUp,
     FileText
@@ -13,28 +13,22 @@ import {
 
 const AdminPage: React.FC = () => {
     const { user } = useUser();
-
-    
-    // Stats thực tế với ý nghĩa (dữ liệu động từ API)
     const [statsData, setStatsData] = useState([
         {
             title: "Tổng người dùng",
             value: "-",
-            change: "",
             icon: Users,
             color: "bg-blue-500"
         },
         {
             title: "Tổng lượt đăng ký khóa học",
             value: "-",
-            change: "",
             icon: BookOpen,
             color: "bg-green-500"
         },
         {
             title: "Tổng lượt tham gia chương trình",
             value: "-",
-            change: "",
             icon: Calendar,
             color: "bg-purple-500"
         },
@@ -52,11 +46,10 @@ const AdminPage: React.FC = () => {
             try {
                 const token = localStorage.getItem("token");
                 const headers: Record<string, string> = token ? { "Authorization": `Bearer ${token}` } : {};
-                // Gọi các API thống kê
                 const [userRes, courseEnrollRes, programEnrollRes, courseCompletionRes] = await Promise.all([
-                    fetch("http://localhost:5000/api/account/statistics/count", { headers }),
+                    fetch("http://localhost:5000/api/account/statistics/total", { headers }),
                     fetch("http://localhost:5000/api/course/statistics/total-enrollment", { headers }),
-                    fetch("http://localhost:5000/api/program-attendee/statistics/enroll", { headers }),
+                    fetch("http://localhost:5000/api/program-attendee/statistics/total-attendee", { headers }),
                     fetch("http://localhost:5000/api/course/statistics/total-completion-rate", { headers })
                 ]);
                 const userData = await userRes.json();
@@ -67,36 +60,31 @@ const AdminPage: React.FC = () => {
                 setStatsData([
                     {
                         title: "Tổng người dùng",
-                        value: userData.total || "-",
-                        change: "+0%",
+                        value: userData.data.total || "-",
                         icon: Users,
                         color: "bg-blue-500"
                     },
                     {
                         title: "Tổng lượt đăng ký khóa học",
                         value: courseEnrollData.totalEnrollment || "-",
-                        change: "+0%",
                         icon: BookOpen,
                         color: "bg-green-500"
                     },
                     {
                         title: "Tổng lượt tham gia chương trình",
-                        value: programEnrollData.data ? programEnrollData.data.reduce((sum: number, p: any) => sum + (p.EnrollCount || 0), 0) : "-",
-                        change: "+0%",
+                        value: programEnrollData.data.totalAttendee || "-",
                         icon: Calendar,
                         color: "bg-purple-500"
                     },
                     {
                         title: "Tỷ lệ hoàn thành khóa học",
-                        value: courseCompletionData.completionRate ? `${(courseCompletionData.completionRate * 100).toFixed(2)}%` : "-",
-                        change: "+0%",
+                        value: courseCompletionData.data.completePercentage + "%",
                         icon: TrendingUp,
                         color: "bg-orange-500"
                     }
                 ]);
             } catch (error) {
                 console.error("Error fetching stats:", error);
-                // Nếu lỗi, giữ nguyên stats mặc định
             }
         }
         fetchStats();
@@ -114,17 +102,12 @@ const AdminPage: React.FC = () => {
 
                 {/* Stats Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    {statsData.map((stat, index) => (
+                    {statsData.map((stat) => (
                         <div key={stat.title} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                             <div className="flex items-center justify-between">
                                 <div className="flex-1">
-                                    <p className="text-sm font-medium text-gray-600 mb-1">{stat.title}</p>
+                                    <p className="text-sm font-medium text-gray-600 mb-1 min-h-[40px]">{stat.title}</p>
                                     <p className="text-2xl font-bold text-gray-900 mb-2">{stat.value}</p>
-                                    <div className="flex items-center">
-                                        <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                                        <span className="text-sm text-green-600 font-medium">{stat.change}</span>
-                                        <span className="text-sm text-gray-500 ml-1">từ tháng trước</span>
-                                    </div>  
                                 </div>
                                 <div className={`p-3 rounded-xl ${stat.color}`}>
                                     <stat.icon className="h-6 w-6 text-white" />
@@ -134,7 +117,6 @@ const AdminPage: React.FC = () => {
                     ))}
                 </div>
 
-                {/* Quick Actions - Thực tế có thể click */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                         <BarChart3 className="h-5 w-5 mr-2 text-primary-600" />

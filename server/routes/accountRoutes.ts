@@ -6,7 +6,7 @@ import authorizeRoles from "../middleware/authenMiddleware";
 const router: Router = express.Router();
 
 // Configure multer for memory storage
-const upload = multer({ 
+const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
 });
@@ -43,6 +43,8 @@ router.delete("/:id", authorizeRoles(["Admin"]), accountController.deleteAccount
 
 // Thống kê tổng số tài khoản (Admin only)
 router.get("/statistics/count", authorizeRoles(["Admin"]), accountController.getMonthlyAccountCountStatistic);
+
+router.get("/statistics/total", authorizeRoles(["Admin"]), accountController.getTotalAccountNumber);
 
 // So sánh số lượng tài khoản được tạo giữa tháng hiện tại và tháng trước (Admin only)
 router.get("/statistics/compare-count", authorizeRoles(["Admin"]), accountController.compareAccountCountStatistic);
