@@ -72,7 +72,7 @@
 │    └──   utils/
 │    └──   App.tsx
 │    └──   ...
-├─   server/
+├─ · server/
 │    └──   config/
 │    └──   controllers/
 │    └──   middleware/
@@ -81,7 +81,10 @@
 │    └──   types/
 │    └──   app.ts
 │    └──   ...
-
+│    └──   ...
+├─ · README.md
+├─ · ...
+├─ · ...
   ```
 
 
