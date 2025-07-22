@@ -54,7 +54,7 @@ const LoginPage: React.FC = () => {
                             window.location.href = '/admin';
                             break;
                         case 'Manager':
-                            window.location.href = `/roles/${data.user.RoleID}`;
+                            window.location.href = '/manager';
                             break;
                         case 'Consultant':
                             window.location.href = '/consultant';

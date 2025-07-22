@@ -36,18 +36,18 @@ app.use(
 // Public Routes
 app.use(
   "/api/article",
-  authorizeRoles(["Guest", "Member", "Consultant", "Admin", "Staff"]),
+  authorizeRoles(["Guest", "Member", "Consultant", "Admin", "Staff", "Manager"]),
   apiArticleRoutes
 );
 app.use("/api/auth", apiAuthenRoutes);
 app.use(
   "/api/course",
-  authorizeRoles(["Guest", "Member", "Consultant", "Admin", "Staff"]),
+  authorizeRoles(["Guest", "Member", "Consultant", "Admin", "Staff", "Manager"]),
   courseRoutes
 );
 app.use(
   "/api/program",
-  authorizeRoles(["Guest", "Member", "Consultant", "Admin", "Staff"]),
+  authorizeRoles(["Guest", "Member", "Consultant", "Admin", "Staff", "Manager"]),
   apiProgramRoutes
 );
 app.use(
@@ -56,22 +56,22 @@ app.use(
 );
 app.use(
   "/api/consultant",
-  authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
+  authorizeRoles(["Guest", "Member", "Consultant", "Admin", "Manager"]),
   consultantRoutes
 );
 app.use(
   "/api/survey",
-  authorizeRoles(["Member", "Consultant", "Admin"]),
+  authorizeRoles(["Member", "Consultant", "Admin", "Manager"]),
   apiSurveyRoutes
 );
 app.use(
   "/api/program-survey",
-  authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
+  authorizeRoles(["Guest", "Member", "Consultant", "Admin", "Manager"]),
   apiProgramSurveyRoutes
 );
 app.use(
   "/api/lesson",
-  authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
+  authorizeRoles(["Guest", "Member", "Consultant", "Admin", "Manager"]),
   apiLessonRoutes
 );
 app.use(
@@ -92,7 +92,7 @@ app.use(
 );
 app.use(
   "/api/appointment",
-  authorizeRoles(["Guest", "Member", "Consultant", "Admin"]),
+  authorizeRoles(["Guest", "Member", "Consultant", "Admin", "Manager"]),
   appointmentRoutes
 );
 

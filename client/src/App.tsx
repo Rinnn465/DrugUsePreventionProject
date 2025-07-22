@@ -33,6 +33,9 @@ import ArticleDetailsPage from './pages/article/ArticleDetailsPage';
 import CommunityProgramPage from './pages/program/CommunityProgramPage';
 import CommunityProgramDetails from './pages/program/CommunityProgramDetailsPage';
 import AdminPage from './pages/management/AdminPage';
+import ManagerPage from './pages/management/ManagerPage';
+import ProjectManagementPage from './pages/management/ProjectManagementPage';
+import ReportsPage from './pages/management/ReportsPage';
 import ConsultantPage from './pages/management/ConsultantPage';
 import ConsultantSchedule from './pages/management/ConsultantSchedule';
 import AdminProfilePage from './pages/management/AdminProfilePage';
@@ -76,11 +79,14 @@ function App() {
             <Route path="*" element={<NotFoundPage />} />
           </Route>
 
-          {/* Admin/Staff routes - no header/footer */}
+          {/* Admin/Manager/Staff routes - no header/footer */}
           <Route path="admin" element={<AdminPage />} />
+          <Route path="manager" element={<ManagerPage />} />
           <Route path="staff" element={<AdminPage />} />
           <Route path="roles/:userId/course-manage" element={<CourseManagmentPage />} />
           <Route path="roles/:userId/program-manage" element={<ProgramManagementPage />} />
+          <Route path="roles/:userId/project-manage" element={<ProjectManagementPage />} />
+          <Route path="roles/:userId/reports" element={<ReportsPage />} />
           <Route path="roles/:userId/account-manage" element={<AccountManagementPage />} />
           <Route path="roles/:userId/admin-profile" element={<AdminProfilePage />} />
           <Route path="roles/:userId/change-password" element={<ChangePasswordPage />} />

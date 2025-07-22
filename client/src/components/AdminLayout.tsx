@@ -34,9 +34,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         {
             label: "Bảng điều khiển",
             icon: Home,
-            link: user?.RoleName === 'Staff' ? '/staff' : '/admin',
+            link: user?.RoleName === 'Staff' ? '/staff' : 
+                  user?.RoleName === 'Manager' ? '/manager' : '/admin',
             isActive: (user?.RoleName === 'Staff' && location.pathname === '/staff') || 
-                     (user?.RoleName === 'Admin' && location.pathname === '/admin')
+                     (user?.RoleName === 'Admin' && location.pathname === '/admin') ||
+                     (user?.RoleName === 'Manager' && location.pathname === '/manager')
         },
         // Chỉ hiển thị cho Staff
         ...(user?.RoleName === 'Staff' ? [
@@ -51,6 +53,27 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 icon: Calendar,
                 link: `/roles/${user?.RoleID}/program-manage`,
                 isActive: location.pathname.includes('/program-manage')
+            }
+        ] : []),
+        // Menu cho Manager
+        ...(user?.RoleName === 'Manager' ? [
+            {
+                label: "Quản lý dự án",
+                icon: BookOpen,
+                link: `/roles/${user?.RoleID}/project-manage`,
+                isActive: location.pathname.includes('/project-manage')
+            },
+            {
+                label: "Quản lý chương trình",
+                icon: Calendar,
+                link: `/roles/${user?.RoleID}/program-manage`,
+                isActive: location.pathname.includes('/program-manage')
+            },
+            {
+                label: "Báo cáo & Phân tích",
+                icon: FileText,
+                link: `/roles/${user?.RoleID}/reports`,
+                isActive: location.pathname.includes('/reports')
             }
         ] : []),
         // Hiển thị đầy đủ cho Admin
@@ -158,14 +181,16 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                             {/* Dropdown Menu */}
                             {dropdownOpen && (
                                 <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 rounded-lg shadow-lg border border-slate-700 z-50">
-                                    <Link
-                                        to={`/roles/${user?.RoleID}/admin-profile`}
-                                        className="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:bg-slate-700 hover:text-white transition-colors"
-                                        onClick={() => setDropdownOpen(false)}
-                                    >
-                                        <Settings className="h-4 w-4" />
-                                        <span className="text-sm">Chỉnh sửa hồ sơ</span>
-                                    </Link>
+                                    {user?.RoleName !== 'Manager' && (
+                                        <Link
+                                            to={`/roles/${user?.RoleID}/admin-profile`}
+                                            className="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:bg-slate-700 hover:text-white transition-colors"
+                                            onClick={() => setDropdownOpen(false)}
+                                        >
+                                            <Settings className="h-4 w-4" />
+                                            <span className="text-sm">Chỉnh sửa hồ sơ</span>
+                                        </Link>
+                                    )}
                                     <Link
                                         to={`/roles/${user?.RoleID}/change-password`}
                                         className="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:bg-slate-700 hover:text-white transition-colors"
