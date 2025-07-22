@@ -43,16 +43,16 @@ const SignUpPage: React.FC = () => {
     // Function to check password strength
     const getPasswordStrength = (password: string) => {
         if (!password) return { level: 0, text: '', color: '' };
-        
+
         const criteria = {
             length: password.length >= 8,
             lowercase: /[a-z]/.test(password),
             uppercase: /[A-Z]/.test(password),
             number: /\d/.test(password)
         };
-        
+
         const metCriteria = Object.values(criteria).filter(Boolean).length;
-        
+
         if (metCriteria <= 1) {
             return { level: 1, text: 'Yếu', color: 'bg-red-500' };
         } else if (metCriteria <= 2) {
@@ -60,7 +60,7 @@ const SignUpPage: React.FC = () => {
         } else if (metCriteria >= 3) {
             return { level: 3, text: 'Mạnh', color: 'bg-green-500' };
         }
-        
+
         return { level: 0, text: '', color: '' };
     };
 
@@ -304,7 +304,7 @@ const SignUpPage: React.FC = () => {
                             )}
                         </button>
                     </div>
-                    
+
                     {/* Password Strength Indicator */}
                     {formik.values.password && (
                         <div className="mt-2">
@@ -315,16 +315,16 @@ const SignUpPage: React.FC = () => {
                                 </span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div 
+                                <div
                                     className={`h-2 rounded-full transition-all duration-300 ${getPasswordStrength(formik.values.password).color}`}
-                                    style={{ 
-                                        width: `${(getPasswordStrength(formik.values.password).level / 3) * 100}%` 
+                                    style={{
+                                        width: `${(getPasswordStrength(formik.values.password).level / 3) * 100}%`
                                     }}
                                 ></div>
                             </div>
                         </div>
                     )}
-                    
+
                     {formik.touched.password && formik.errors.password ? <p className="text-red-600">
                         {formik.errors.password}
                     </p> : null}

@@ -111,6 +111,21 @@ const ExamPage: React.FC = () => {
         });
     };
 
+    const completeCourse = useCallback(async () => {
+        if (!user?.AccountID) {
+            toast.error("Bạn cần đăng nhập để hoàn thành khóa học");
+            return;
+        }
+
+        try {
+            await courses.complete(Number(id), user.AccountID);
+            toast.success("🏆 Khóa học đã được hoàn thành thành công!");
+        } catch (error) {
+            console.error("Error completing course:", error);
+            toast.error("Không thể hoàn thành khóa học");
+        }
+    }, [user?.AccountID, id]);
+
     const handleSubmitExam = useCallback(async () => {
         if (!exam || !user?.AccountID) {
             toast.error("Thông tin bài thi hoặc người dùng không hợp lệ");
@@ -208,6 +223,7 @@ const ExamPage: React.FC = () => {
 
             if (result.isPassed) {
                 toast.success(`Chúc mừng! Bạn đã trả lời đúng ${correctAnswers}/${totalQuestions} câu (${scorePercentage}%) và vượt qua bài thi!`);
+                completeCourse();
             } else {
                 toast.error(`Bạn trả lời đúng ${correctAnswers}/${totalQuestions} câu (${scorePercentage}%). Điểm tối thiểu là ${exam.PassingScore}%. Hãy thử lại!`);
             }
@@ -598,7 +614,9 @@ const ExamPage: React.FC = () => {
                 </div>
             </div>
         );
-    }; const renderExamResults = useCallback(() => {
+    };
+
+    const renderExamResults = useCallback(() => {
         console.log('=== RENDER FUNCTION CALLED ===');
         console.log('showResults:', showResults);
         console.log('exam exists:', !!exam);
