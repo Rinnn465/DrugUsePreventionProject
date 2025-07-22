@@ -181,16 +181,14 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                             {/* Dropdown Menu */}
                             {dropdownOpen && (
                                 <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 rounded-lg shadow-lg border border-slate-700 z-50">
-                                    {user?.RoleName !== 'Manager' && (
-                                        <Link
-                                            to={`/roles/${user?.RoleID}/admin-profile`}
-                                            className="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:bg-slate-700 hover:text-white transition-colors"
-                                            onClick={() => setDropdownOpen(false)}
-                                        >
-                                            <Settings className="h-4 w-4" />
-                                            <span className="text-sm">Chỉnh sửa hồ sơ</span>
-                                        </Link>
-                                    )}
+                                    <Link
+                                        to={`/roles/${user?.RoleID}/admin-profile`}
+                                        className="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:bg-slate-700 hover:text-white transition-colors"
+                                        onClick={() => setDropdownOpen(false)}
+                                    >
+                                        <Settings className="h-4 w-4" />
+                                        <span className="text-sm">Chỉnh sửa hồ sơ</span>
+                                    </Link>
                                     <Link
                                         to={`/roles/${user?.RoleID}/change-password`}
                                         className="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:bg-slate-700 hover:text-white transition-colors"

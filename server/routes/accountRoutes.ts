@@ -17,17 +17,17 @@ router.post("/", accountController.createAccount);
 // Update account (Admin only)
 router.put("/:id", authorizeRoles(["Admin"]), accountController.updateAccount);
 
-// Update account profile (Member, Consultant, Admin)
-router.put("/profile/:id", authorizeRoles(["Member", "Consultant", "Admin"]), accountController.updateAccountProfile);
+// Update account profile (Member, Consultant, Manager, Staff, Admin)
+router.put("/profile/:id", authorizeRoles(["Member", "Consultant", "Manager", "Staff", "Admin"]), accountController.updateAccountProfile);
 
-// Update account password (Member, Consultant, Admin)
-router.put("/password/:id", authorizeRoles(["Member", "Consultant", "Admin"]), accountController.updatePassword);
+// Update account password (Member, Consultant, Manager, Staff, Admin)
+router.put("/password/:id", authorizeRoles(["Member", "Consultant", "Manager", "Staff", "Admin"]), accountController.updatePassword);
 
-// Upload avatar (Member, Consultant, Admin)
-router.post("/:id/upload-avatar", authorizeRoles(["Member", "Consultant", "Admin"]), upload.single('profilePicture'), accountController.uploadAvatar);
+// Upload avatar (Member, Consultant, Manager, Staff, Admin)
+router.post("/:id/upload-avatar", authorizeRoles(["Member", "Consultant", "Manager", "Staff", "Admin"]), upload.single('profilePicture'), accountController.uploadAvatar);
 
-// Remove avatar (Member, Consultant, Admin)
-router.delete("/:id/remove-avatar", authorizeRoles(["Member", "Consultant", "Admin"]), accountController.removeAvatar);
+// Remove avatar (Member, Consultant, Manager, Staff, Admin)
+router.delete("/:id/remove-avatar", authorizeRoles(["Member", "Consultant", "Manager", "Staff", "Admin"]), accountController.removeAvatar);
 
 // Get all accounts (Admin only)
 router.get("/", authorizeRoles(["Admin"]), accountController.getAccounts);
@@ -35,8 +35,8 @@ router.get("/", authorizeRoles(["Admin"]), accountController.getAccounts);
 // Get all roles (Admin only)
 router.get("/roles", authorizeRoles(["Admin"]), accountController.getRoles);
 
-// Get account by ID (Member, Consultant, Admin - restricted to own account)
-router.get("/:id", authorizeRoles(["Member", "Consultant", "Admin"]), accountController.getAccountById);
+// Get account by ID (Member, Consultant, Manager, Staff, Admin - restricted to own account)
+router.get("/:id", authorizeRoles(["Member", "Consultant", "Manager", "Staff", "Admin"]), accountController.getAccountById);
 
 // Delete account (Admin only)
 router.delete("/:id", authorizeRoles(["Admin"]), accountController.deleteAccount);

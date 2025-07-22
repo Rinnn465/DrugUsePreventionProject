@@ -37,6 +37,32 @@ const Layout: React.FC = () => {
     );
   }
 
+  // Redirect Manager to manager panel if they try to access other routes
+  if (user && user.RoleName === 'Manager') {
+    const isManagerRoute = location.pathname.startsWith('/manager') || location.pathname.startsWith('/roles');
+    if (!isManagerRoute) {
+      return <Navigate to="/manager" replace />;
+    }
+    return (
+      <main className="min-h-screen bg-gray-50">
+        <Outlet />
+      </main>
+    );
+  }
+
+  // Redirect Staff to staff panel if they try to access other routes  
+  if (user && user.RoleName === 'Staff') {
+    const isStaffRoute = location.pathname.startsWith('/staff') || location.pathname.startsWith('/roles');
+    if (!isStaffRoute) {
+      return <Navigate to="/staff" replace />;
+    }
+    return (
+      <main className="min-h-screen bg-gray-50">
+        <Outlet />
+      </main>
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header toggleMobileMenu={toggleMobileMenu} />

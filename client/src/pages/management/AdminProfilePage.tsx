@@ -28,7 +28,6 @@ const AdminProfilePage: React.FC = () => {
     const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
     const [editForm, setEditForm] = useState({
         FullName: '',
-        Email: '',
         Username: '',
         DateOfBirth: ''
     });
@@ -55,7 +54,6 @@ const AdminProfilePage: React.FC = () => {
                 setProfile(data);
                 setEditForm({
                     FullName: data.FullName || '',
-                    Email: data.Email || '',
                     Username: data.Username || '',
                     DateOfBirth: data.DateOfBirth ? new Date(data.DateOfBirth).toISOString().split('T')[0] : ''
                 });
@@ -72,25 +70,52 @@ const AdminProfilePage: React.FC = () => {
 
     const handleUpdateProfile = async () => {
         try {
-            if (!user?.AccountID) return;
+            if (!user?.AccountID || !profile) return;
 
-            const updateData = {
-                FullName: editForm.FullName,
-                Email: editForm.Email,
-                Username: editForm.Username,
-                DateOfBirth: editForm.DateOfBirth || null
-            };
+            // Chỉ gửi các field thực sự thay đổi
+            const updateData: any = {};
 
-            const response = await fetch(`http://localhost:5000/api/account/${user.AccountID}`, {
+            // So sánh và chỉ thêm field nào thay đổi
+            if (editForm.FullName !== (profile.FullName || '')) {
+                updateData.fullName = editForm.FullName;
+            }
+            
+            if (editForm.Username !== (profile.Username || '')) {
+                updateData.username = editForm.Username;
+            }
+
+            // Đối với ngày sinh, so sánh format ISO date
+            const currentDateOfBirth = profile.DateOfBirth ? new Date(profile.DateOfBirth).toISOString().split('T')[0] : '';
+            if (editForm.DateOfBirth !== currentDateOfBirth) {
+                updateData.dateOfBirth = editForm.DateOfBirth || null;
+            }
+
+            // Kiểm tra xem có field nào thay đổi không
+            if (Object.keys(updateData).length === 0) {
+                toast.info('Không có thông tin nào thay đổi');
+                setIsEditing(false);
+                return;
+            }
+
+            console.log('Sending update data:', updateData);
+
+            const response = await fetch(`http://localhost:5000/api/account/profile/${user.AccountID}`, {
                 method: 'PUT',
                 headers: getAuthHeaders(),
                 body: JSON.stringify(updateData),
             });
 
             if (response.ok) {
+                const result = await response.json();
                 toast.success('Cập nhật thông tin thành công!');
                 setIsEditing(false);
                 fetchProfile();
+                
+                // Cập nhật user context nếu có thay đổi
+                if (result.user && setUser) {
+                    setUser(result.user);
+                    localStorage.setItem('user', JSON.stringify(result.user));
+                }
             } else {
                 const error = await response.json();
                 throw new Error(error.message || 'Không thể cập nhật thông tin');
@@ -107,7 +132,6 @@ const AdminProfilePage: React.FC = () => {
         if (profile) {
             setEditForm({
                 FullName: profile.FullName || '',
-                Email: profile.Email || '',
                 Username: profile.Username || '',
                 DateOfBirth: profile.DateOfBirth ? new Date(profile.DateOfBirth).toISOString().split('T')[0] : ''
             });
@@ -404,25 +428,13 @@ const AdminProfilePage: React.FC = () => {
                                 )}
                             </div>
 
-                            {/* Email */}
+                            {/* Email - Read Only */}
                             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                                 <div className="flex items-center space-x-4 flex-1">
                                     <span className="text-sm font-medium text-gray-600 w-20">Email</span>
-                                    {isEditing ? (
-                                        <input
-                                            type="email"
-                                            value={editForm.Email}
-                                            onChange={(e) => setEditForm({...editForm, Email: e.target.value})}
-                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="Nhập email"
-                                        />
-                                    ) : (
-                                        <span className="text-gray-900">{profile.Email}</span>
-                                    )}
+                                    <span className="text-gray-900">{profile.Email}</span>
+                                    <span className="text-xs text-gray-500 italic">(Không thể thay đổi)</span>
                                 </div>
-                                {!isEditing && (
-                                    <Edit2 className="h-4 w-4 text-blue-600 cursor-pointer" onClick={() => setIsEditing(true)} />
-                                )}
                             </div>
 
                             {/* Date of Birth */}
