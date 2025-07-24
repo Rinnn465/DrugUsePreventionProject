@@ -99,19 +99,6 @@ const DashBoardPage: React.FC = () => {
     dateOfBirth: user?.DateOfBirth ? new Date(user.DateOfBirth).toISOString().split('T')[0] : "",
   });
 
-  // Track which field is being edited
-  const [editingField, setEditingField] = useState<null | 'username' | 'fullName' | 'dateOfBirth'>(null);
-
-  // Always sync profileForm with user context when user changes
-  useEffect(() => {
-    setProfileForm({
-      username: user?.Username || "",
-      email: user?.Email || "",
-      fullName: user?.FullName || "",
-      dateOfBirth: user?.DateOfBirth ? new Date(user.DateOfBirth).toISOString().split('T')[0] : "",
-    });
-  }, [user]);
-
   // Password form state
   const [passwordForm, setPasswordForm] = useState<PasswordFormData>({
     currentPassword: "",
