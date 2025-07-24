@@ -2,9 +2,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useUser } from "../../context/UserContext";
 import AdminLayout from "../../components/AdminLayout";
-import { 
-    BookOpen, 
-    Calendar, 
+import {
+    Users,
+    BookOpen,
+    Calendar,
     BarChart3,
     FileText
 } from "lucide-react";
@@ -26,7 +27,6 @@ const AdminPage: React.FC = () => {
 
 
 
-                {/* Quick Actions - Thực tế có thể click */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                         <BarChart3 className="h-5 w-5 mr-2 text-primary-600" />

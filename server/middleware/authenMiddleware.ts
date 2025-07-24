@@ -27,21 +27,28 @@ const authorizeRoles =
         (req as any).user = decoded;
 
         const userRoleID = decoded.user?.RoleID as number;
-        if (!userRoleID) {
-          res.status(403).json({ message: "Invalid token: No role ID found" });
+        const userAccountID = decoded.user?.AccountID as number;
+        if (!userRoleID || !userAccountID) {
+          res.status(403).json({ message: "Token không hợp lệ: Không tìm thấy RoleID hoặc ID tài khoản" });
           return;
         }
 
-        // Query the Role table to get the RoleName
+        // Query the Role table to get the RoleName and check account status
         const pool = await poolPromise;
-        const result = await pool
-          .request()
-          .input("RoleID", sql.Int, userRoleID)
-          .query("SELECT RoleName FROM Role WHERE RoleID = @RoleID");
+        const [roleResult, accountResult] = await Promise.all([
+          pool
+            .request()
+            .input("RoleID", sql.Int, userRoleID)
+            .query("SELECT RoleName FROM Role WHERE RoleID = @RoleID"),
+          pool
+            .request()
+            .input("AccountID", sql.Int, userAccountID)
+            .query("SELECT IsDisabled FROM Account WHERE AccountID = @AccountID")
+        ]);
 
-        const userRoleName = result.recordset[0]?.RoleName as string;
-        console.log(`🔐 Auth Debug: UserID=${decoded.user?.UserID}, RoleID=${userRoleID}, RoleName=${userRoleName}, AllowedRoles=${allowedRoles.join(',')}`);
-        
+        const userRoleName = roleResult.recordset[0]?.RoleName as string;
+        const accountData = accountResult.recordset[0];
+
         if (!userRoleName || !allowedRoles.includes(userRoleName)) {
           console.log(`❌ Auth Failed: RoleName="${userRoleName}" not in AllowedRoles=[${allowedRoles.join(',')}]`);
           res.status(403).json({ message: "Forbidden: Role not allowed" });
@@ -51,10 +58,16 @@ const authorizeRoles =
         console.log(`✅ Auth Success: User ${decoded.user?.UserID} with role ${userRoleName} authorized`);
         
 
+        // Check if account is disabled
+        if (accountData?.IsDisabled) {
+          res.status(403).json({ message: "Tài khoản của bạn đã bị vô hiệu hóa." });
+          return;
+        }
+
         next();
       } catch (err: any) {
         console.log("Token verification failed:", err.message);
-        res.status(403).json({ message: "Invalid or expired token" });
+        res.status(403).json({ message: "Token không hợp lệ hoặc đã hết hạn" });
       }
     };
 

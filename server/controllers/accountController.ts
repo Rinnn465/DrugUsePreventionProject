@@ -27,11 +27,11 @@ export const getAccounts = async (req: Request, res: Response) => {
   try {
     const pool = await poolPromise;
     const result = await pool.request().query("SELECT Account.*, Role.RoleName FROM Account JOIN Role ON Account.RoleID = Role.RoleID ORDER BY Account.CreatedAt DESC");
-    
+
     // Get current user ID from JWT token to exclude from list
     const currentUser = (req as any).user?.user;
     const currentUserAccountID = currentUser?.AccountID;
-    
+
     // Convert relative ProfilePicture paths to full URLs and filter out current admin
     const accounts = result.recordset
       .filter((account: any) => {
@@ -45,13 +45,33 @@ export const getAccounts = async (req: Request, res: Response) => {
         }
         return account;
       });
-    
+
     res.json(accounts as Account[]);
   } catch (err: any) {
     console.error("Lỗi khi lấy danh sách tài khoản:", err.message);
     res.status(500).json({ error: "Lỗi máy chủ" });
   }
 };
+
+export const getTotalAccountNumber = async (req: Request, res: Response) => {
+  try {
+    const pool = await poolPromise;
+    const result = await pool.request().query(`
+      SELECT COUNT(*) AS Total FROM Account
+      WHERE IsDisabled = 0
+      AND RoleID != 1 AND RoleID != 3 AND RoleID != 5
+      `);
+    res.json({
+      message: "Lấy tổng số tài khoản thành công",
+      data: {
+        total: result.recordset[0].Total
+      }
+    });
+  } catch (err: any) {
+    console.error("Lỗi khi lấy tổng số tài khoản:", err.message);
+    res.status(500).json({ error: "Lỗi máy chủ" });
+  }
+}
 
 // Get all roles  
 export const getRoles = async (req: Request, res: Response) => {
@@ -84,7 +104,7 @@ export const getAccountById = async (
     }
 
     const account = result.recordset[0];
-    
+
     // Convert relative ProfilePicture path to full URL if exists
     if (account.ProfilePicture) {
       account.ProfilePicture = `http://localhost:5000${account.ProfilePicture}`;
@@ -100,7 +120,7 @@ export const getAccountById = async (
 // Create new account
 export const createAccount = async (req: Request, res: Response) => {
   const { Username, Email, Password, FullName, DateOfBirth, RoleID } = req.body;
-  
+
   try {
     const pool = await poolPromise;
 
@@ -145,7 +165,7 @@ export const createAccount = async (req: Request, res: Response) => {
       .request()
       .input("RoleID", sql.Int, RoleID || 3) // Default to Member role (RoleID = 3)
       .query("SELECT RoleID, RoleName FROM Role WHERE RoleID = @RoleID");
-    
+
     if (roleResult.recordset.length === 0) {
       res.status(400).json({ message: "Vai trò không hợp lệ" });
       return;
@@ -156,7 +176,7 @@ export const createAccount = async (req: Request, res: Response) => {
       .request()
       .input("Username", sql.NVarChar, Username)
       .query("SELECT AccountID FROM Account WHERE Username = @Username");
-    
+
     if (usernameCheck.recordset.length > 0) {
       res.status(400).json({ message: "Tên người dùng đã tồn tại" });
       return;
@@ -167,7 +187,7 @@ export const createAccount = async (req: Request, res: Response) => {
       .request()
       .input("Email", sql.NVarChar, Email)
       .query("SELECT AccountID FROM Account WHERE Email = @Email");
-    
+
     if (emailCheck.recordset.length > 0) {
       res.status(400).json({ message: "Email đã tồn tại" });
       return;
@@ -189,7 +209,7 @@ export const createAccount = async (req: Request, res: Response) => {
       .query(`INSERT INTO Account 
         (Username, Email, Password, FullName, DateOfBirth, RoleID, CreatedAt, IsDisabled) 
         VALUES (@Username, @Email, @Password, @FullName, @DateOfBirth, @RoleID, @CreatedAt, 0)`);
-    
+
     res.status(201).json({ message: "Tài khoản đã được tạo thành công" });
   } catch (err: any) {
     console.error("Lỗi khi tạo tài khoản:", err.message);
@@ -214,7 +234,7 @@ export const updateAccount = async (
       .request()
       .input("AccountID", sql.Int, accountId)
       .query("SELECT Account.*, Role.RoleName FROM Account JOIN Role ON Account.RoleID = Role.RoleID WHERE AccountID = @AccountID");
-    
+
     if (currentAccountResult.recordset.length === 0) {
       res.status(404).json({ message: "Tài khoản không tồn tại" });
       return;
@@ -252,7 +272,7 @@ export const updateAccount = async (
         .request()
         .input("RoleID", sql.Int, RoleID)
         .query("SELECT RoleID, RoleName FROM Role WHERE RoleID = @RoleID");
-      
+
       if (roleResult.recordset.length === 0) {
         res.status(400).json({ message: "Vai trò không hợp lệ" });
         return;
@@ -276,7 +296,7 @@ export const updateAccount = async (
         .input("Username", sql.NVarChar, Username)
         .input("AccountID", sql.Int, accountId)
         .query("SELECT AccountID FROM Account WHERE Username = @Username AND AccountID != @AccountID");
-      
+
       if (usernameCheck.recordset.length > 0) {
         res.status(400).json({ message: "Tên người dùng đã tồn tại" });
         return;
@@ -308,7 +328,7 @@ export const updateAccount = async (
         .input("Email", sql.NVarChar, Email)
         .input("AccountID", sql.Int, accountId)
         .query("SELECT AccountID FROM Account WHERE Email = @Email AND AccountID != @AccountID");
-      
+
       if (emailCheck.recordset.length > 0) {
         res.status(400).json({ message: "Email đã tồn tại" });
         return;
@@ -351,7 +371,7 @@ export const updateAccount = async (
     }
 
     const result = await request.query(`UPDATE Account SET ${updates.join(', ')} WHERE AccountID = @AccountID`);
-    
+
     if (result.rowsAffected[0] === 0) {
       res.status(404).json({ message: "Tài khoản không tồn tại" });
       return;
@@ -457,7 +477,7 @@ export const updateAccountProfile = async (
       .query("SELECT Account.*, Role.RoleName FROM Account JOIN Role ON Account.RoleID = Role.RoleID WHERE AccountID = @AccountID");
 
     const userData = updatedUser.recordset[0];
-    
+
     // Convert relative ProfilePicture path to full URL if exists
     if (userData.ProfilePicture) {
       userData.ProfilePicture = `http://localhost:5000${userData.ProfilePicture}`;
@@ -561,39 +581,39 @@ export const deleteAccount = async (
   try {
     const pool = await poolPromise;
     const accountId = parseInt(req.params.id, 10);
-    
+
     // Get current user info from JWT token
     const currentUser = (req as any).user?.user;
     const currentUserAccountID = currentUser?.AccountID;
-    
+
     // Prevent deletion of current user's own account
     if (accountId === currentUserAccountID) {
       res.status(403).json({ message: "Không thể xóa tài khoản của chính mình" });
       return;
     }
-    
+
     // Check if target account is Admin to prevent deletion
     const checkAccountResult = await pool
       .request()
       .input("AccountID", sql.Int, accountId)
       .query("SELECT Account.*, Role.RoleName FROM Account JOIN Role ON Account.RoleID = Role.RoleID WHERE AccountID = @AccountID");
-    
+
     if (checkAccountResult.recordset.length === 0) {
       res.status(404).json({ message: "Tài khoản không tồn tại" });
       return;
     }
-    
+
     const targetAccount = checkAccountResult.recordset[0];
     if (targetAccount.RoleName === 'Admin') {
       res.status(403).json({ message: "Không thể xóa tài khoản Admin" });
       return;
     }
-    
+
     const result = await pool
       .request()
       .input("AccountID", sql.Int, accountId)
       .query("DELETE FROM Account WHERE AccountID=@AccountID");
-      
+
     if (result.rowsAffected[0] === 0) {
       res.status(404).json({ message: "Tài khoản không tồn tại" });
       return;
@@ -678,9 +698,11 @@ export const compareAccountCountStatistic = async (req: Request, res: Response) 
     }
     res.status(200).json({
       message: 'So sánh số lượng tài khoản được tạo giữa tháng hiện tại và tháng trước thành công',
-      previousMonth: { year: prevYear, month: prevMonth, count: prevCount },
-      currentMonth: { year: currentYear, month: currentMonth, count: currCount },
-      percentChange
+      data: {
+        previousMonth: { year: prevYear, month: prevMonth, count: prevCount },
+        currentMonth: { year: currentYear, month: currentMonth, count: currCount },
+        percentChange: percentChange.toFixed(2)
+      }
     });
   } catch (err: any) {
     console.error('Lỗi trong compareAccountCountStatistic:', err);
@@ -760,7 +782,7 @@ export const uploadAvatar = async (req: Request, res: Response) => {
       .input("ProfilePicture", sql.NVarChar, filePath)
       .query("UPDATE Account SET ProfilePicture = @ProfilePicture WHERE AccountID = @AccountID");
 
-    res.json({ 
+    res.json({
       message: "Upload avatar thành công",
       profilePicture: `http://localhost:5000${filePath}`
     });
@@ -811,7 +833,7 @@ export const removeAvatar = async (req: Request, res: Response) => {
       .input("AccountID", sql.Int, accountId)
       .query("UPDATE Account SET ProfilePicture = NULL WHERE AccountID = @AccountID");
 
-    res.json({ 
+    res.json({
       message: "Xóa avatar thành công"
     });
   } catch (err: any) {

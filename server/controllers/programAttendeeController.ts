@@ -482,7 +482,9 @@ export async function getTotalProgramAttendeeStatistic(req: Request, res: Respon
         `);
         res.status(200).json({
             message: 'Thống kê tổng số người tham gia thành công',
-            totalAttendee: result.recordset[0]?.TotalAttendee || 0
+            data: {
+                totalAttendee: result.recordset[0]?.TotalAttendee || 0
+            }
         });
     } catch (err: any) {
         console.error('Lỗi khi thống kê tổng số người tham gia:', err.message);
@@ -567,10 +569,10 @@ export async function compareProgramEnrollmentStatistics(req: Request, res: Resp
  */
 export async function sendInviteToAttendee(req: Request, res: Response): Promise<void> {
     const programId = Number(req.params.programId);
-    
+
     try {
         const pool = await poolPromise;
-        
+
         // Lấy thông tin chương trình
         const programResult = await pool.request()
             .input('ProgramID', sql.Int, programId)
@@ -594,16 +596,16 @@ export async function sendInviteToAttendee(req: Request, res: Response): Promise
 
         // Kiểm tra trạng thái chương trình - không cho phép gửi lời mời khi đã kết thúc
         if (program.Status === 'completed') {
-            res.status(400).json({ 
-                message: "Không thể gửi lời mời tham gia vì chương trình đã kết thúc." 
+            res.status(400).json({
+                message: "Không thể gửi lời mời tham gia vì chương trình đã kết thúc."
             });
             return;
         }
 
         // Kiểm tra chương trình đã có Zoom meeting chưa
         if (!program.MeetingRoomName) {
-            res.status(400).json({ 
-                message: "Chương trình chưa có thông tin Zoom meeting. Vui lòng tạo Zoom meeting trước khi gửi lời mời." 
+            res.status(400).json({
+                message: "Chương trình chưa có thông tin Zoom meeting. Vui lòng tạo Zoom meeting trước khi gửi lời mời."
             });
             return;
         }
@@ -629,8 +631,8 @@ export async function sendInviteToAttendee(req: Request, res: Response): Promise
         const attendees = attendeesResult.recordset;
 
         if (attendees.length === 0) {
-            res.status(404).json({ 
-                message: "Không tìm thấy người tham gia nào có email hợp lệ cho chương trình này" 
+            res.status(404).json({
+                message: "Không tìm thấy người tham gia nào có email hợp lệ cho chương trình này"
             });
             return;
         }
@@ -653,7 +655,7 @@ export async function sendInviteToAttendee(req: Request, res: Response): Promise
             try {
                 // Tạo Zoom join URL từ meeting ID
                 const zoomJoinUrl = `https://zoom.us/j/${program.MeetingRoomName}`;
-                
+
                 const emailData = {
                     recipientName: attendee.FullName || attendee.Username,
                     programName: program.ProgramName,
@@ -666,23 +668,23 @@ export async function sendInviteToAttendee(req: Request, res: Response): Promise
                 };
 
                 const emailContent = programInvitationTemplate(emailData);
-                
+
                 await sendEmail(
                     attendee.Email,
                     `🎯 Lời mời tham gia: ${program.ProgramName}`,
                     emailContent
                 );
 
-                return { 
-                    success: true, 
-                    email: attendee.Email, 
+                return {
+                    success: true,
+                    email: attendee.Email,
                     name: attendee.FullName || attendee.Username
                 };
             } catch (error) {
                 console.error(`Lỗi gửi email cho ${attendee.Email}:`, error);
-                return { 
-                    success: false, 
-                    email: attendee.Email, 
+                return {
+                    success: false,
+                    email: attendee.Email,
                     name: attendee.FullName || attendee.Username,
                     error: error instanceof Error ? error.message : 'Lỗi không xác định'
                 };
@@ -691,11 +693,11 @@ export async function sendInviteToAttendee(req: Request, res: Response): Promise
 
         // Chờ tất cả email được gửi
         const results = await Promise.all(emailPromises);
-        
+
         const successCount = results.filter(r => r.success).length;
         const failCount = results.filter(r => !r.success).length;
         const failedEmails = results.filter(r => !r.success);
-        
+
         res.status(200).json({
             message: `Đã gửi lời mời thành công cho ${successCount}/${attendees.length} người tham gia`,
             summary: {
@@ -710,7 +712,7 @@ export async function sendInviteToAttendee(req: Request, res: Response): Promise
 
     } catch (err) {
         console.error('Lỗi trong sendInviteToAttendee:', err);
-        res.status(500).json({ 
+        res.status(500).json({
             message: "Lỗi máy chủ khi gửi lời mời",
             error: err instanceof Error ? err.message : 'Lỗi không xác định'
         });
