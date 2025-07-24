@@ -91,13 +91,26 @@ const DashBoardPage: React.FC = () => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [appointmentToReject, setAppointmentToReject] = useState<number | null>(null);
 
-  // Profile form state
+  // Profile form state (for inline edit)
   const [profileForm, setProfileForm] = useState<ProfileFormData>({
     username: user?.Username || "",
     email: user?.Email || "",
     fullName: user?.FullName || "",
     dateOfBirth: user?.DateOfBirth ? new Date(user.DateOfBirth).toISOString().split('T')[0] : "",
   });
+
+  // Track which field is being edited
+  const [editingField, setEditingField] = useState<null | 'username' | 'fullName' | 'dateOfBirth'>(null);
+
+  // Always sync profileForm with user context when user changes
+  useEffect(() => {
+    setProfileForm({
+      username: user?.Username || "",
+      email: user?.Email || "",
+      fullName: user?.FullName || "",
+      dateOfBirth: user?.DateOfBirth ? new Date(user.DateOfBirth).toISOString().split('T')[0] : "",
+    });
+  }, [user]);
 
   // Password form state
   const [passwordForm, setPasswordForm] = useState<PasswordFormData>({
@@ -154,6 +167,38 @@ const DashBoardPage: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [message]);
+
+  // Fetch user profile when on profile page or userId changes
+  useEffect(() => {
+    if (isProfilePage && userId) {
+      const fetchUserProfile = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await fetch(`http://localhost:5000/api/account/${userId}`, {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.data) {
+              setUser(data.data);
+              setProfileForm({
+                username: data.data.Username || '',
+                email: data.data.Email || '',
+                fullName: data.data.FullName || '',
+                dateOfBirth: data.data.DateOfBirth ? new Date(data.data.DateOfBirth).toISOString().split('T')[0] : '',
+              });
+            }
+          }
+        } catch (err) {
+          console.error('Không thể tải thông tin hồ sơ:', err);
+        }
+      };
+      fetchUserProfile();
+    }
+  }, [isProfilePage, userId, setUser, setProfileForm]);
 
   useEffect(() => {
 
@@ -256,7 +301,7 @@ const DashBoardPage: React.FC = () => {
     return date.toLocaleDateString('vi-VN');
   };
 
-  // Handle profile form input changes
+  // Handle profile form input changes (inline)
   const handleProfileChange = (e: ChangeEvent<HTMLInputElement>) => {
     setProfileForm({ ...profileForm, [e.target.name]: e.target.value });
   };
@@ -383,6 +428,7 @@ const DashBoardPage: React.FC = () => {
         body: JSON.stringify({
           currentPassword: passwordForm.currentPassword,
           newPassword: passwordForm.newPassword,
+          confirmPassword: passwordForm.confirmPassword,
         }),
       });
 
