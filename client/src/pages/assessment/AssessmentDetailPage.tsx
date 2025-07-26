@@ -530,13 +530,13 @@ const AssessmentDetailPage: React.FC = () => {
     return assessment.questions.every(question => {
       const answer = values[question.id];
       let isComplete = false;
-      
+
       if (question.type === 'checkbox') {
         isComplete = Array.isArray(answer) && answer.length > 0;
       } else {
         isComplete = answer !== undefined && answer !== null && answer !== '';
       }
-      
+
       console.log(`Q${question.id} complete:`, isComplete, 'Value:', answer);
       return isComplete;
     });
@@ -602,11 +602,10 @@ const AssessmentDetailPage: React.FC = () => {
                           type="button"
                           onClick={() => handleQuestionChange(Math.max(0, currentQuestionIndex - 1))}
                           disabled={currentQuestionIndex === 0}
-                          className={`flex items-center justify-center w-12 h-12 rounded-full transition-all shadow-lg ${
-                            currentQuestionIndex === 0
-                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                              : 'bg-gradient-to-r from-gray-500 to-gray-400 text-white hover:from-gray-600 hover:to-gray-500 hover:scale-110'
-                          }`}
+                          className={`flex items-center justify-center w-12 h-12 rounded-full transition-all shadow-lg ${currentQuestionIndex === 0
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-gray-500 to-gray-400 text-white hover:from-gray-600 hover:to-gray-500 hover:scale-110'
+                            }`}
                           title="Quay lại"
                         >
                           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -668,13 +667,13 @@ const AssessmentDetailPage: React.FC = () => {
                                 }
                                 return answer && answer !== '' ? null : 'Không được để trống';
                               })();
-                              
+
                               if (currentValidationError) {
                                 formikProps.setFieldError(question.id, currentValidationError);
                                 formikProps.setFieldTouched(question.id, true);
                                 return;
                               }
-                              
+
                               formikProps.setFieldError(question.id, undefined);
                               handleQuestionChange(Math.min(assessment.questions.length - 1, currentQuestionIndex + 1));
                             }}
@@ -696,20 +695,20 @@ const AssessmentDetailPage: React.FC = () => {
                                 }
                                 return answer && answer !== '' ? null : 'Không được để trống';
                               })();
-                              
+
                               if (currentValidationError) {
                                 formikProps.setFieldError(question.id, currentValidationError);
                                 formikProps.setFieldTouched(question.id, true);
                                 return;
                               }
-                              
+
                               formikProps.setFieldError(question.id, undefined);
-                              
+
                               if (!isAssessmentComplete(formikProps.values)) {
                                 alert('Vui lòng trả lời tất cả câu hỏi trước khi hoàn thành đánh giá.');
                                 return;
                               }
-                              
+
                               formikProps.submitForm();
                             }}
                             className="flex items-center justify-center w-12 h-12 rounded-full bg-green-600 text-white hover:bg-green-700 transition-all shadow-lg hover:scale-110"
@@ -789,25 +788,25 @@ const AssessmentDetailPage: React.FC = () => {
           <div className="mb-8 flex items-center gap-4">
             {assessment.id <= 2 ? (
               <span className={`inline-block px-4 py-2 rounded-full text-lg font-bold shadow-md
-                ${risk === 'cao' ? 'bg-error-100 text-error-700' : 
-                  risk === 'trung bình' ? 'bg-warning-100 text-warning-700' : 
-                  'bg-success-100 text-success-700'}`}
+                ${risk === 'cao' ? 'bg-error-100 text-error-700' :
+                  risk === 'trung bình' ? 'bg-warning-100 text-warning-700' :
+                    'bg-success-100 text-success-700'}`}
               >
                 Nguy cơ sử dụng ma túy: {risk.toUpperCase()}
               </span>
             ) : assessment.id === 3 ? (
               <span className={`inline-block px-4 py-2 rounded-full text-lg font-bold shadow-md
-                ${risk === 'cần hỗ trợ tích cực' ? 'bg-warning-100 text-warning-700' : 
-                  risk === 'cần tăng cường' ? 'bg-info-100 text-info-700' : 
-                  'bg-success-100 text-success-700'}`}
+                ${risk === 'cần hỗ trợ tích cực' ? 'bg-warning-100 text-warning-700' :
+                  risk === 'cần tăng cường' ? 'bg-info-100 text-info-700' :
+                    'bg-success-100 text-success-700'}`}
               >
                 Mức độ hiệu quả phòng chống: {risk.toUpperCase()}
               </span>
             ) : (
               <span className={`inline-block px-4 py-2 rounded-full text-lg font-bold shadow-md
-                ${risk === 'cần tăng cường đáng kể' ? 'bg-warning-100 text-warning-700' : 
-                  risk === 'cần cải thiện' ? 'bg-info-100 text-info-700' : 
-                  'bg-success-100 text-success-700'}`}
+                ${risk === 'cần tăng cường đáng kể' ? 'bg-warning-100 text-warning-700' :
+                  risk === 'cần cải thiện' ? 'bg-info-100 text-info-700' :
+                    'bg-success-100 text-success-700'}`}
               >
                 Mức độ triển khai phòng chống: {risk.toUpperCase()}
               </span>
@@ -935,12 +934,6 @@ const AssessmentDetailPage: React.FC = () => {
                 <p className="text-sm mt-2">
                   Đối tượng: <span className="font-semibold">{assessment.audiences.join(', ')}</span>
                 </p>
-                <p className="text-xs mt-1">Tổng số chuyên viên có sẵn: {consultants.length}</p>
-                <div className="mt-4 text-xs text-left bg-gray-100 p-3 rounded max-h-60 overflow-y-auto">
-                  <p className="font-semibold mb-2">Debug info:</p>
-                  <p className="mb-1">Assessment audiences: {JSON.stringify(assessment.audiences)}</p>
-                  <p className="mb-1">Available consultant categories: {[...new Set(consultants.flatMap(c => c.Categories?.map(cat => cat.CategoryName) || []))].join(', ')}</p>
-                </div>
               </div>
             )}
           </div>

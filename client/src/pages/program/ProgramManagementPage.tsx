@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    Plus, 
-    Edit, 
-    Trash2, 
+import {
+    Plus,
+    Edit,
+    Trash2,
     Calendar,
     Search,
     ChevronDown,
@@ -14,6 +14,10 @@ import { CommunityProgram } from '../../types/CommunityProgram';
 import { toast } from 'react-toastify';
 import SurveyResponseModal from '../../components/modal/SurveyResponseModal';
 import AdminLayout from '../../components/AdminLayout';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import Pagination from '@/components/pagination/Pagination';
+import { usePagination } from '@/hooks/usePagination';
 
 const ProgramManagementPage: React.FC = () => {
     const [programs, setPrograms] = useState<CommunityProgram[]>([]);
@@ -51,6 +55,29 @@ const ProgramManagementPage: React.FC = () => {
         Status: 'upcoming',
         IsDisabled: false
     });
+    const formik = useFormik({
+        initialValues: formData,
+        validationSchema: Yup.object({
+            ProgramName: Yup.string()
+                .required('Tên chương trình là bắt buộc')
+                .matches(/^[a-zA-Z0-9\sÀ-ỹ]+$/, 'Tên chương trình không được chứa ký tự đặc biệt'),
+            date: Yup.date()
+                .required('Ngày diễn ra là bắt buộc').min(new Date(), 'Ngày không được trong quá khứ'),
+            Description:
+                Yup.string(),
+            Content:
+                Yup.string()
+                    .required('Nội dung là bắt buộc')
+                    .matches(/^[a-zA-Z0-9\sÀ-ỹ]+$/, 'Nội dung chương trình không được chứa ký tự đặc biệt'),
+            Organizer:
+                Yup.string().required('Người tổ chức là bắt buộc'),
+            ImageUrl: Yup.string(),
+        }),
+        onSubmit: (values) => {
+            console.log(values);
+            handleCreateProgram();
+        }
+    })
 
     // Fetch programs
     const fetchPrograms = async () => {
@@ -131,7 +158,7 @@ const ProgramManagementPage: React.FC = () => {
                 } else {
                     toast.success(`Gửi lời mời thành công cho tất cả ${summary.success} người tham gia!`);
                 }
-                
+
                 // Refresh attendees list
                 if (selectedProgram) {
                     fetchAttendees(selectedProgram.ProgramID);
@@ -164,10 +191,10 @@ const ProgramManagementPage: React.FC = () => {
 
             if (response.ok) {
                 toast.success('Tạo link Zoom mới thành công!');
-                
+
                 // Refresh programs list to get updated Zoom info
                 fetchPrograms();
-                
+
                 // Fetch fresh program data and update selectedProgram
                 const freshResponse = await fetch(`http://localhost:5000/api/program/${program.ProgramID}`, {
                     headers: {
@@ -175,7 +202,7 @@ const ProgramManagementPage: React.FC = () => {
                         'Content-Type': 'application/json'
                     }
                 });
-                
+
                 if (freshResponse.ok) {
                     const freshResult = await freshResponse.json();
                     setSelectedProgram(freshResult.data);
@@ -198,26 +225,26 @@ const ProgramManagementPage: React.FC = () => {
     // Validate date is not in the past
     const validateDate = (dateString: string): boolean => {
         if (!dateString) return false;
-        
+
         // Date picker returns YYYY-MM-DD format
         const selectedDate = new Date(dateString);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         selectedDate.setHours(0, 0, 0, 0);
-        
+        console.log(selectedDate, today);
         return selectedDate >= today;
     };
 
     // Create program
-    const handleCreateProgram = async (e: React.FormEvent) => {
-        e.preventDefault();
-        
+    const handleCreateProgram = async () => {
+
         // Validate date
-        if (!validateDate(formData.date)) {
+        if (!validateDate(formik.values.date)) {
+
             toast.error('Không thể thêm chương trình với ngày trong quá khứ. Vui lòng chọn ngày từ hôm nay trở đi.');
             return;
         }
-        
+
         try {
             // Form data already in YYYY-MM-DD format from date picker
             const token = localStorage.getItem('token');
@@ -251,7 +278,7 @@ const ProgramManagementPage: React.FC = () => {
         if (!selectedProgram) return;
 
         // Validate date
-        if (!validateDate(formData.date)) {
+        if (!validateDate(formik.values.date)) {
             toast.error('Không thể cập nhật chương trình với ngày trong quá khứ. Vui lòng chọn ngày từ hôm nay trở đi.');
             return;
         }
@@ -341,15 +368,15 @@ const ProgramManagementPage: React.FC = () => {
             if (response.ok) {
                 const result = await response.json();
                 const freshProgram = result.data;
-                
+
                 setSelectedProgram(freshProgram);
-                
+
                 // Format date for input type="date" (YYYY-MM-DD format)
                 const programDate = new Date(freshProgram.Date);
                 const formattedDate = programDate.toLocaleDateString('en-CA', {
                     timeZone: 'Asia/Ho_Chi_Minh'
                 }); // en-CA gives YYYY-MM-DD format
-                
+
                 setFormData({
                     ProgramName: freshProgram.ProgramName,
                     Type: freshProgram.Type ?? 'online',
@@ -368,7 +395,7 @@ const ProgramManagementPage: React.FC = () => {
                 const formattedDate = programDate.toLocaleDateString('en-CA', {
                     timeZone: 'Asia/Ho_Chi_Minh'
                 });
-                
+
                 setFormData({
                     ProgramName: program.ProgramName,
                     Type: program.Type ?? 'online',
@@ -389,7 +416,7 @@ const ProgramManagementPage: React.FC = () => {
             const formattedDate = programDate.toLocaleDateString('en-CA', {
                 timeZone: 'Asia/Ho_Chi_Minh'
             });
-            
+
             setFormData({
                 ProgramName: program.ProgramName,
                 Type: program.Type ?? 'online',
@@ -402,7 +429,7 @@ const ProgramManagementPage: React.FC = () => {
                 IsDisabled: program.IsDisabled
             });
         }
-        
+
         setShowEditModal(true);
     };
 
@@ -413,14 +440,28 @@ const ProgramManagementPage: React.FC = () => {
         setShowAttendeesModal(true);
     };
 
-    // Filter programs
     const filteredPrograms = programs.filter(program => {
         const matchesSearch = program.ProgramName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            program.Description?.toLowerCase().includes(searchTerm.toLowerCase());
+            program.Description?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === 'all' || program.Status === statusFilter;
-        
+
         return matchesSearch && matchesStatus;
     });
+
+    const {
+        currentPage,
+        totalPages,
+        currentItems: currentPrograms,
+        setCurrentPage,
+        totalItems
+    } = usePagination({
+        data: filteredPrograms,
+        itemsPerPage: 5,
+        resetTriggers: [searchTerm, statusFilter] // Reset to page 1 when these change
+    });
+
+
+
 
     // Format date
     const formatDate = (dateString: string) => {
@@ -539,7 +580,7 @@ const ProgramManagementPage: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {filteredPrograms.map((program) => (
+                                {currentPrograms.map((program) => (
                                     <tr key={program.ProgramID} className="hover:bg-gray-50">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
@@ -572,14 +613,14 @@ const ProgramManagementPage: React.FC = () => {
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {program.Organizer ?? 'Không rõ'}
                                         </td>                        <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
-                            {program.ZoomLink ? (
-                                <a href={program.ZoomLink} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                                    Zoom Link
-                                </a>
-                            ) : (
-                                <span className="text-gray-400">Chưa có link</span>
-                            )}
-                        </td>
+                                            {program.ZoomLink ? (
+                                                <a href={program.ZoomLink} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                                                    Zoom Link
+                                                </a>
+                                            ) : (
+                                                <span className="text-gray-400">Chưa có link</span>
+                                            )}
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex items-center space-x-2">
                                                 <button
@@ -610,14 +651,14 @@ const ProgramManagementPage: React.FC = () => {
                             </tbody>
                         </table>
                     </div>
-                    
+
                     {filteredPrograms.length === 0 && (
                         <div className="text-center py-12">
                             <Calendar className="mx-auto h-12 w-12 text-gray-400" />
                             <h3 className="mt-2 text-sm font-medium text-gray-900">Không có chương trình nào</h3>
                             <p className="mt-1 text-sm text-gray-500">
-                                {searchTerm || statusFilter !== 'all' 
-                                    ? 'Không tìm thấy chương trình phù hợp với bộ lọc.' 
+                                {searchTerm || statusFilter !== 'all'
+                                    ? 'Không tìm thấy chương trình phù hợp với bộ lọc.'
                                     : 'Bắt đầu bằng cách thêm chương trình đầu tiên.'}
                             </p>
                             <div className="mt-6">
@@ -631,6 +672,17 @@ const ProgramManagementPage: React.FC = () => {
                             </div>
                         </div>
                     )}
+
+                    {/* Pagination */}
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalItems={totalItems}
+                        itemsPerPage={5}
+                        onPageChange={setCurrentPage}
+                        itemName="chương trình"
+                        showInfo={true}
+                    />
                 </div>
             </div>
 
@@ -640,19 +692,23 @@ const ProgramManagementPage: React.FC = () => {
                     <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
                         <div className="mt-3">
                             <h3 className="text-lg font-medium text-gray-900 mb-4">Thêm chương trình mới</h3>
-                            <form onSubmit={handleCreateProgram} className="space-y-4">
+                            <form onSubmit={formik.handleSubmit} className="space-y-4">
                                 <div>
                                     <label htmlFor="programName" className="block text-sm font-medium text-gray-700 mb-1">
                                         Tên chương trình *
                                     </label>
                                     <input
                                         id="programName"
+                                        name="ProgramName"
                                         type="text"
-                                        required
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        value={formData.ProgramName}
-                                        onChange={(e) => setFormData({...formData, ProgramName: e.target.value})}
+                                        value={formik.values.ProgramName}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
                                     />
+                                    {formik.touched.ProgramName && formik.errors.ProgramName && (
+                                        <div className="text-red-600 text-sm mt-1">{formik.errors.ProgramName}</div>
+                                    )}
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -692,12 +748,17 @@ const ProgramManagementPage: React.FC = () => {
                                     <input
                                         id="date"
                                         type="date"
+                                        name="date"
                                         required
                                         min={new Date().toISOString().split('T')[0]} // Không cho chọn ngày quá khứ
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        value={formData.date}
-                                        onChange={(e) => setFormData({...formData, date: e.target.value})}
+                                        value={formik.values.date}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
                                     />
+                                    {formik.touched.date && formik.errors.date && (
+                                        <div className="text-red-600 text-sm mt-1">{formik.errors.date}</div>
+                                    )}
                                 </div>
 
                                 <div>
@@ -706,11 +767,16 @@ const ProgramManagementPage: React.FC = () => {
                                     </label>
                                     <input
                                         id="organizer"
+                                        name='Organizer'
                                         type="text"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        value={formData.Organizer}
-                                        onChange={(e) => setFormData({...formData, Organizer: e.target.value})}
+                                        value={formik.values.Organizer}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
                                     />
+                                    {formik.touched.Organizer && formik.errors.Organizer && (
+                                        <div className="text-red-600 text-sm mt-1">{formik.errors.Organizer}</div>
+                                    )}
                                 </div>
 
                                 <div>
@@ -719,10 +785,11 @@ const ProgramManagementPage: React.FC = () => {
                                     </label>
                                     <input
                                         id="imageUrl"
+                                        name="ImageUrl"
                                         type="url"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        value={formData.ImageUrl}
-                                        onChange={(e) => setFormData({...formData, ImageUrl: e.target.value})}
+                                        value={formik.values.ImageUrl}
+                                        onChange={formik.handleChange}
                                     />
                                 </div>
 
@@ -732,11 +799,16 @@ const ProgramManagementPage: React.FC = () => {
                                     </label>
                                     <textarea
                                         id="description"
+                                        name='Description'
                                         rows={3}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        value={formData.Description}
-                                        onChange={(e) => setFormData({...formData, Description: e.target.value})}
+                                        value={formik.values.Description}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
                                     />
+                                    {formik.touched.Description && formik.errors.Description && (
+                                        <div className="text-red-600 text-sm mt-1">{formik.errors.Description}</div>
+                                    )}
                                 </div>
 
                                 <div>
@@ -745,11 +817,16 @@ const ProgramManagementPage: React.FC = () => {
                                     </label>
                                     <textarea
                                         id="content"
+                                        name="Content"
                                         rows={4}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        value={formData.Content}
-                                        onChange={(e) => setFormData({...formData, Content: e.target.value})}
+                                        value={formik.values.Content}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
                                     />
+                                    {formik.touched.Content && formik.errors.Content && (
+                                        <div className="text-red-600 text-sm mt-1">{formik.errors.Content}</div>
+                                    )}
                                 </div>
 
                                 <div className="flex justify-end space-x-3 pt-4">
@@ -789,175 +866,194 @@ const ProgramManagementPage: React.FC = () => {
                                     </label>
                                     <input
                                         id="editProgramName"
+                                        name="ProgramName"
                                         type="text"
                                         required
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        value={formData.ProgramName}
-                                        onChange={(e) => setFormData({...formData, ProgramName: e.target.value})}
+                                        value={formik.values.ProgramName}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
                                     />
-                                </div>
+                                    <div className="text-red-600 text-sm mt-1">
+                                        {formik.touched.ProgramName && formik.errors.ProgramName}
+                                    </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label htmlFor="editType" className="block text-sm font-medium text-gray-700 mb-1">
+                                                Loại chương trình
+                                            </label>
+                                            <input
+                                                id="editType"
+                                                type="text"
+                                                disabled
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 cursor-not-allowed"
+                                                value="Trực tuyến"
+                                                readOnly
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label htmlFor="editStatus" className="block text-sm font-medium text-gray-700 mb-1">
+                                                Trạng thái
+                                            </label>
+                                            <select
+                                                id="editStatus"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                value={formData.Status}
+                                                onChange={(e) => setFormData({ ...formData, Status: e.target.value })}
+                                            >
+                                                <option value="upcoming">Sắp diễn ra</option>
+                                                <option value="ongoing">Đang diễn ra</option>
+                                                <option value="completed">Đã kết thúc</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
                                     <div>
-                                        <label htmlFor="editType" className="block text-sm font-medium text-gray-700 mb-1">
-                                            Loại chương trình
+                                        <label htmlFor="editDate" className="block text-sm font-medium text-gray-700 mb-1">
+                                            Ngày diễn ra *
                                         </label>
                                         <input
-                                            id="editType"
+                                            id="editDate"
+                                            type="date"
+                                            required
+                                            min={new Date().toISOString().split('T')[0]} // Không cho chọn ngày quá khứ
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                            value={formik.values.date}
+                                            onChange={formik.handleChange}
+                                            onBlur={formik.handleBlur}
+                                        />
+                                        <div className="text-red-600 text-sm mt-1">
+                                            {formik.touched.date && formik.errors.date}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label htmlFor="editOrganizer" className="block text-sm font-medium text-gray-700 mb-1">
+                                            Người tổ chức
+                                        </label>
+                                        <input
+                                            id="editOrganizer"
+                                            name='Organizer'
                                             type="text"
-                                            disabled
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 cursor-not-allowed"
-                                            value="Trực tuyến"
-                                            readOnly
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                            value={formik.values.Organizer}
+                                            onChange={formik.handleChange}
+                                            onBlur={formik.handleBlur}
+                                        />
+                                        <div className="text-red-600 text-sm mt-1">
+                                            {formik.touched.Organizer && formik.errors.Organizer}
+                                        </div>
+                                    </div>
+
+                                    {/* Zoom Link Section */}
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <label className="block text-sm font-medium text-blue-800">
+                                                Liên kết Zoom Meeting
+                                            </label>
+                                            <button
+                                                type="button"
+                                                onClick={() => selectedProgram && regenerateZoomLink(selectedProgram)}
+                                                disabled={regeneratingZoom}
+                                                className={`px-3 py-1.5 text-xs font-medium text-white rounded-md transition-colors ${regeneratingZoom
+                                                    ? 'bg-gray-400 cursor-not-allowed'
+                                                    : 'bg-blue-600 hover:bg-blue-700'
+                                                    }`}
+                                            >
+                                                <div className="flex items-center space-x-1">
+                                                    <RefreshCw className={`h-3 w-3 ${regeneratingZoom ? 'animate-spin' : ''}`} />
+                                                    <span>{regeneratingZoom ? 'Đang tạo...' : 'Tạo link mới'}</span>
+                                                </div>
+                                            </button>
+                                        </div>
+
+                                        <div className="text-xs text-blue-700 bg-blue-100 p-2 rounded">
+                                            <p className="font-medium">  ID Phòng: {selectedProgram?.MeetingRoomName || 'Chưa có'}</p>
+                                            <p className="mt-1 break-all">
+                                                Link: {selectedProgram?.ZoomLink ? (
+                                                    <a
+                                                        href={selectedProgram.ZoomLink}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-blue-600 hover:underline"
+                                                    >
+                                                        {selectedProgram.ZoomLink}
+                                                    </a>
+                                                ) : 'Chưa có'}
+                                            </p>
+                                        </div>
+
+                                        <p className="text-xs text-blue-600 mt-2">
+                                            Nhấn "Tạo link mới" để tạo một meeting Zoom hoàn toàn mới cho chương trình này
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <label htmlFor="editImageUrl" className="block text-sm font-medium text-gray-700 mb-1">
+                                            URL Hình ảnh
+                                        </label>
+                                        <input
+                                            id="editImageUrl"
+                                            name='ImageUrl'
+                                            type="url"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                            value={formik.values.ImageUrl}
+                                            onChange={formik.handleChange}
+                                            onBlur={formik.handleBlur}
                                         />
                                     </div>
 
                                     <div>
-                                        <label htmlFor="editStatus" className="block text-sm font-medium text-gray-700 mb-1">
-                                            Trạng thái
+                                        <label htmlFor="editDescription" className="block text-sm font-medium text-gray-700 mb-1">
+                                            Mô tả
                                         </label>
-                                        <select
-                                            id="editStatus"
+                                        <textarea
+                                            id="editDescription"
+                                            name='Description'
+                                            rows={3}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                            value={formData.Status}
-                                            onChange={(e) => setFormData({...formData, Status: e.target.value})}
-                                        >
-                                            <option value="upcoming">Sắp diễn ra</option>
-                                            <option value="ongoing">Đang diễn ra</option>
-                                            <option value="completed">Đã kết thúc</option>
-                                        </select>
+                                            value={formik.values.Description}
+                                            onChange={formik.handleChange}
+                                            onBlur={formik.handleBlur}
+                                        />
                                     </div>
-                                </div>
 
-                                <div>
-                                    <label htmlFor="editDate" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Ngày diễn ra *
-                                    </label>
-                                    <input
-                                        id="editDate"
-                                        type="date"
-                                        required
-                                        min={new Date().toISOString().split('T')[0]} // Không cho chọn ngày quá khứ
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        value={formData.date}
-                                        onChange={(e) => setFormData({...formData, date: e.target.value})}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="editOrganizer" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Người tổ chức
-                                    </label>
-                                    <input
-                                        id="editOrganizer"
-                                        type="text"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        value={formData.Organizer}
-                                        onChange={(e) => setFormData({...formData, Organizer: e.target.value})}
-                                    />
-                                </div>
-
-                                {/* Zoom Link Section */}
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <label className="block text-sm font-medium text-blue-800">
-                                            Liên kết Zoom Meeting
+                                    <div>
+                                        <label htmlFor="editContent" className="block text-sm font-medium text-gray-700 mb-1">
+                                            Nội dung chi tiết
                                         </label>
+                                        <textarea
+                                            id="editContent"
+                                            name='Content'
+                                            rows={4}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                            value={formik.values.Content}
+                                            onChange={formik.handleChange}
+                                            onBlur={formik.handleBlur}
+                                        />
+                                    </div>
+
+                                    <div className="flex justify-end space-x-3 pt-4">
                                         <button
                                             type="button"
-                                            onClick={() => selectedProgram && regenerateZoomLink(selectedProgram)}
-                                            disabled={regeneratingZoom}
-                                            className={`px-3 py-1.5 text-xs font-medium text-white rounded-md transition-colors ${
-                                                regeneratingZoom 
-                                                    ? 'bg-gray-400 cursor-not-allowed' 
-                                                    : 'bg-blue-600 hover:bg-blue-700'
-                                            }`}
+                                            onClick={() => {
+                                                setShowEditModal(false);
+                                                setSelectedProgram(null);
+                                                resetForm();
+                                            }}
+                                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
                                         >
-                                            <div className="flex items-center space-x-1">
-                                                <RefreshCw className={`h-3 w-3 ${regeneratingZoom ? 'animate-spin' : ''}`} />
-                                                <span>{regeneratingZoom ? 'Đang tạo...' : 'Tạo link mới'}</span>
-                                            </div>
+                                            Hủy
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700"
+                                        >
+                                            Cập nhật
                                         </button>
                                     </div>
-                                    
-                                    <div className="text-xs text-blue-700 bg-blue-100 p-2 rounded">
-                                        <p className="font-medium">Meeting ID: {selectedProgram?.MeetingRoomName || 'Chưa có'}</p>
-                                        <p className="mt-1 break-all">
-                                            Link: {selectedProgram?.ZoomLink ? (
-                                                <a 
-                                                    href={selectedProgram.ZoomLink} 
-                                                    target="_blank" 
-                                                    rel="noopener noreferrer" 
-                                                    className="text-blue-600 hover:underline"
-                                                >
-                                                    {selectedProgram.ZoomLink}
-                                                </a>
-                                            ) : 'Chưa có'}
-                                        </p>
-                                    </div>
-                                    
-                                    <p className="text-xs text-blue-600 mt-2">
-                                        Nhấn "Tạo link mới" để tạo một meeting Zoom hoàn toàn mới cho chương trình này
-                                    </p>
-                                </div>
-
-                                <div>
-                                    <label htmlFor="editImageUrl" className="block text-sm font-medium text-gray-700 mb-1">
-                                        URL Hình ảnh
-                                    </label>
-                                    <input
-                                        id="editImageUrl"
-                                        type="url"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        value={formData.ImageUrl}
-                                        onChange={(e) => setFormData({...formData, ImageUrl: e.target.value})}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="editDescription" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Mô tả
-                                    </label>
-                                    <textarea
-                                        id="editDescription"
-                                        rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        value={formData.Description}
-                                        onChange={(e) => setFormData({...formData, Description: e.target.value})}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="editContent" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Nội dung chi tiết
-                                    </label>
-                                    <textarea
-                                        id="editContent"
-                                        rows={4}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                        value={formData.Content}
-                                        onChange={(e) => setFormData({...formData, Content: e.target.value})}
-                                    />
-                                </div>
-
-                                <div className="flex justify-end space-x-3 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setShowEditModal(false);
-                                            setSelectedProgram(null);
-                                            resetForm();
-                                        }}
-                                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
-                                    >
-                                        Hủy
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700"
-                                    >
-                                        Cập nhật
-                                    </button>
                                 </div>
                             </form>
                         </div>
@@ -976,7 +1072,7 @@ const ProgramManagementPage: React.FC = () => {
                             <h3 className="text-lg font-medium text-gray-900 mt-4">Xóa chương trình</h3>
                             <div className="mt-2 px-7 py-3">
                                 <p className="text-sm text-gray-500">
-                                    Bạn có chắc chắn muốn xóa chương trình "{selectedProgram.ProgramName}"? 
+                                    Bạn có chắc chắn muốn xóa chương trình "{selectedProgram.ProgramName}"?
                                     Hành động này không thể hoàn tác.
                                 </p>
                             </div>
@@ -1039,28 +1135,25 @@ const ProgramManagementPage: React.FC = () => {
                                                     {formatDate(attendee.RegistrationDate)}
                                                 </td>
                                                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    <span className={`px-2 py-1 text-xs rounded-full ${
-                                                        attendee.Status === 'registered' 
-                                                            ? 'bg-green-100 text-green-800' 
-                                                            : 'bg-gray-100 text-gray-800'
-                                                    }`}>
+                                                    <span className={`px-2 py-1 text-xs rounded-full ${attendee.Status === 'registered'
+                                                        ? 'bg-green-100 text-green-800'
+                                                        : 'bg-gray-100 text-gray-800'
+                                                        }`}>
                                                         {formatStatus(attendee.Status)}
                                                     </span>
                                                 </td>
                                                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                                                     <div className="flex space-x-2">
-                                                        <span className={`px-2 py-1 text-xs rounded-full ${
-                                                            attendee.HasBeforeSurvey 
-                                                                ? 'bg-blue-100 text-blue-800' 
-                                                                : 'bg-gray-100 text-gray-500'
-                                                        }`}>
+                                                        <span className={`px-2 py-1 text-xs rounded-full ${attendee.HasBeforeSurvey
+                                                            ? 'bg-blue-100 text-blue-800'
+                                                            : 'bg-gray-100 text-gray-500'
+                                                            }`}>
                                                             Trước: {attendee.HasBeforeSurvey ? '✓' : '✗'}
                                                         </span>
-                                                        <span className={`px-2 py-1 text-xs rounded-full ${
-                                                            attendee.HasAfterSurvey 
-                                                                ? 'bg-purple-100 text-purple-800' 
-                                                                : 'bg-gray-100 text-gray-500'
-                                                        }`}>
+                                                        <span className={`px-2 py-1 text-xs rounded-full ${attendee.HasAfterSurvey
+                                                            ? 'bg-purple-100 text-purple-800'
+                                                            : 'bg-gray-100 text-gray-500'
+                                                            }`}>
                                                             Sau: {attendee.HasAfterSurvey ? '✓' : '✗'}
                                                         </span>
                                                     </div>
@@ -1104,11 +1197,10 @@ const ProgramManagementPage: React.FC = () => {
                                 <button
                                     onClick={() => sendZoomInvite(selectedProgram)}
                                     disabled={sendingInvite || selectedProgram?.Status === 'completed'}
-                                    className={`px-4 py-2 text-sm font-medium text-white rounded-md ${
-                                        sendingInvite || selectedProgram?.Status === 'completed'
-                                            ? 'bg-gray-400 cursor-not-allowed' 
-                                            : 'bg-green-600 hover:bg-green-700'
-                                    }`}
+                                    className={`px-4 py-2 text-sm font-medium text-white rounded-md ${sendingInvite || selectedProgram?.Status === 'completed'
+                                        ? 'bg-gray-400 cursor-not-allowed'
+                                        : 'bg-green-600 hover:bg-green-700'
+                                        }`}
                                     title={selectedProgram?.Status === 'completed' ? 'Không thể gửi lời mời cho chương trình đã kết thúc' : ''}
                                 >
                                     {sendingInvite ? (

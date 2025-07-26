@@ -276,3 +276,60 @@ export async function getAppointmentsByFilter(req: Request, res: Response, next:
         res.status(500).json({ message: "Lỗi máy chủ" });
     }
 }
+
+export async function getAppointmentByUserIdAndWeek(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { userId, week } = req.params;
+
+    if (!userId) {
+        res.status(400).json({ message: 'User ID is required' });
+        return;
+    }
+
+    if (!week) {
+        res.status(400).json({ message: 'Week is required' });
+        return;
+    }
+
+    try {
+        const pool = await poolPromise;
+
+        // Get first and last day of the week
+        const firstDayOfWeek = new Date(week);
+        const lastDayOfWeek = new Date(firstDayOfWeek);
+        lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
+
+        const result = await pool.request()
+            .input('UserId', sql.Int, userId)
+            .input('FirstDay', sql.DateTime, firstDayOfWeek)
+            .input('LastDay', sql.DateTime, lastDayOfWeek)
+            .query(`
+                SELECT 
+                    a.AppointmentID,
+                    a.ConsultantID,
+                    a.AccountID,
+                    a.Time,
+                    a.Date,
+                    a.Status,
+                    a.Description,
+                    a.Duration,
+                    a.Rating,
+                    a.Feedback,
+                    a.RejectedReason,
+                    c.Name as ConsultantName
+                FROM Appointment a
+                LEFT JOIN Consultant c ON a.ConsultantID = c.AccountID
+                WHERE a.AccountID = @UserId 
+                    AND a.Date >= @FirstDay 
+                    AND a.Date <= @LastDay
+                ORDER BY a.Date ASC, a.Time ASC
+            `);
+
+        res.status(200).json({
+            message: 'Lấy danh sách cuộc hẹn tuần thành công',
+            data: result.recordset
+        });
+    } catch (error) {
+        console.error('Error fetching week appointments for user:', error);
+        res.status(500).json({ message: 'Lỗi máy chủ khi lấy danh sách cuộc hẹn tuần' });
+    }
+}
