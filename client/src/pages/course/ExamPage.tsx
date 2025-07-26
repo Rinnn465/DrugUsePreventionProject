@@ -81,6 +81,7 @@ const ExamPage: React.FC = () => {
 
     const handleStartExam = () => {
         setExamStarted(true);
+        localStorage.setItem('examStarted', 'true');
         toast.info("Bài thi đã bắt đầu! Bạn có 30 phút để hoàn thành.");
     };
 
@@ -132,6 +133,7 @@ const ExamPage: React.FC = () => {
             return;
         }
 
+
         // Check if all questions are answered
         const unansweredQuestions = exam.Questions.filter(q =>
             !userAnswers[q.QuestionID] || userAnswers[q.QuestionID].length === 0
@@ -142,6 +144,7 @@ const ExamPage: React.FC = () => {
                 `Bạn chưa trả lời ${unansweredQuestions.length} câu hỏi. Bạn có muốn nộp bài?`
             );
             if (!proceed) return;
+            localStorage.removeItem('examStarted');
         }
 
         setSubmitting(true);
@@ -197,7 +200,9 @@ const ExamPage: React.FC = () => {
             // Set both states together to avoid timing issues
             setExamResult(resultData);
             setShowResults(true);
+            localStorage.setItem('showResults', 'true');
             setExamStarted(false);
+            localStorage.removeItem('examStarted');
             setRenderKey(prev => prev + 1); // Force re-render
 
             // Additional debug after state set
@@ -379,7 +384,7 @@ const ExamPage: React.FC = () => {
 
     // Timer for exam - moved after handleSubmitExam definition
     useEffect(() => {
-        if (examStarted && timeLeft > 0) {
+        if ((localStorage.getItem('examStarted') === 'true' || examStarted) && timeLeft > 0) {
             const timer = setInterval(() => {
                 setTimeLeft(prev => {
                     if (prev <= 1) {
@@ -590,7 +595,6 @@ const ExamPage: React.FC = () => {
                                             value={answer.AnswerID}
                                             checked={isSelected}
                                             onChange={() => handleAnswerChange(question.QuestionID, answer.AnswerID, isMultiple)}
-                                            disabled={showResults || !examStarted}
                                             className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                                         />
                                         <span className={`flex-1 ${showResults
@@ -746,7 +750,7 @@ const ExamPage: React.FC = () => {
                             </div>
                         </div>
 
-                        {examStarted && !showResults && (
+                        {(localStorage.getItem('examStarted') === 'true' || examStarted) && !showResults && (
                             <div className="flex items-center gap-2 text-red-600">
                                 <Clock className="w-5 h-5" />
                                 <span className="font-mono text-lg">{formatTime(timeLeft)}</span>
@@ -758,7 +762,7 @@ const ExamPage: React.FC = () => {
 
             {/* Main Content */}
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {!examStarted && !showResults && (
+                {localStorage.getItem('examStarted') !== 'true' && !showResults && (
                     <div className="bg-white rounded-lg shadow-sm p-8 text-center">
                         <BookOpen className="w-16 h-16 text-blue-600 mx-auto mb-4" />
                         <h1 className="text-2xl font-bold text-gray-900 mb-2">{exam.ExamTitle}</h1>
@@ -775,7 +779,7 @@ const ExamPage: React.FC = () => {
                             </div>
                             <div className="bg-amber-50 p-4 rounded-lg">
                                 <div className="text-xl font-bold text-amber-600">{exam.PassingScore}%</div>
-                                <div className="text-sm text-amber-700">Điểm đạt</div>
+                                <div className="text-sm text-amber-700">Điểm tối thiểu cần đạt</div>
                             </div>
                         </div>
 
@@ -790,7 +794,7 @@ const ExamPage: React.FC = () => {
 
                 {showResults && renderExamResults()}
 
-                {examStarted && (
+                {(examStarted || localStorage.getItem('examStarted') === 'true') && (
                     <div className="space-y-6">
                         {exam.Questions.map((question, index) => renderQuestion(question, index))}
 

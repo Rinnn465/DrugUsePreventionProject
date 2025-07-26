@@ -12,10 +12,12 @@ router.get('/', consultantController.getConsultants);
 
 // Get qualifications - must be before /:id route
 router.get('/qualifications', consultantController.getQualifications);
+router.get('/qualifications/:id', consultantController.getConsultantQualificationByConsultantId);
 
 
 // Get specialties - must be before /:id route
 router.get('/specialties', consultantController.getSpecialties);
+router.get('/specialties/:id', consultantController.getConsultantSpecialtyById);
 
 
 // Get categories - must be before /:id route  
@@ -48,6 +50,8 @@ router.get('/week-appointments/:consultantId/:week', consultantController.getWee
 router.get('/compare-appointments/:consultantId', consultantController.compareAppointments);
 
 router.get('/average-month-rating/:consultantId', consultantController.getAverageRating)
+
+router.get('/average-all-rating/:consultantId', consultantController.getAverageAllRating);
 
 
 // Get consultant by ID - must be LAST as it's most general
