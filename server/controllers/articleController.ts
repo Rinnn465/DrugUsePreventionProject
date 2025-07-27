@@ -130,13 +130,13 @@ export const createArticle = async (req: Request, res: Response): Promise<void> 
     try {
         const pool = await poolPromise;
         const insertResult = await pool.request()
-            .input('AccountID', AccountID)
+            .input('AccountID', AccountID || null)
             .input('ArticleTitle', ArticleTitle)
-            .input('PublishedDate', PublishedDate)
-            .input('ImageUrl', ImageUrl)
-            .input('Author', Author)
-            .input('Status', Status)
-            .input('Description', Description)
+            .input('PublishedDate', PublishedDate || new Date())
+            .input('ImageUrl', ImageUrl || null)
+            .input('Author', Author || 'Anonymous')
+            .input('Status', Status || 'Published')
+            .input('Description', Description || null)
             .input('Content', Content)
             .input('IsDisabled', IsDisabled ?? 0)
             .query(`

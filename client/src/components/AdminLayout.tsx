@@ -58,12 +58,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         // Menu cho Manager
         ...(user?.RoleName === 'Manager' ? [
             {
-                label: "Quản lý dự án",
-                icon: BookOpen,
-                link: `/roles/${user?.RoleID}/project-manage`,
-                isActive: location.pathname.includes('/project-manage')
-            },
-            {
                 label: "Quản lý chương trình",
                 icon: Calendar,
                 link: `/roles/${user?.RoleID}/program-manage`,
