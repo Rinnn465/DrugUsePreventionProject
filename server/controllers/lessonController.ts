@@ -177,7 +177,7 @@ export async function checkLessonEnrollment(req: Request, res: Response): Promis
 export async function lessonEnroll(req: Request, res: Response): Promise<void> {
     const { lessonId, accountId } = req.params;
 
-    console.log('Lesson enrollment request:', req.params);
+    
 
     if (!lessonId || !accountId) {
         res.status(400).json({ message: 'Thiếu thông tin bài học hoặc tài khoản' });
@@ -803,7 +803,7 @@ export async function getLessonProgressByCourseAndLessonId(req: Request, res: Re
         return;
     }
 
-    console.log(req.params);
+    
 
     try {
         const pool = await poolPromise;

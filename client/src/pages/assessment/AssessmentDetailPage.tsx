@@ -115,6 +115,8 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   );
 };
 
+const DEFAULT_AVATAR = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNTYiIHZpZXdCb3g9IjAgMCA1NiA1NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjgiIGN5PSIyOCIgcj0iMjgiIGZpbGw9IiNGM0Y0RjYiLz4KPHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4PSIxNiIgeT0iMTYiPgo8cGF0aCBkPSJNMTIgMTJjMi4yMSAwIDQtMS43OSA0LTRzLTEuNzktNC00LTQtNCAxLjc5LTQgNCAxLjc5IDQgNCA0em0wIDJjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6IiBmaWxsPSIjOUI5Qjk5Ii8+Cjwvc3ZnPgo8L3N2Zz4K';
+
 const AssessmentDetailPage: React.FC = () => {
   const { assessmentId } = useParams<{ assessmentId: string }>();
   const assessment = assessmentData[Number(assessmentId) - 1];
@@ -284,10 +286,10 @@ const AssessmentDetailPage: React.FC = () => {
         riskLevel = total >= 4 ? 'cao' : total >= 2 ? 'trung bình' : 'thấp';
         break;
       case 3: // Parent Assessment
-        riskLevel = total < 50 ? 'cần hỗ trợ tích cực' : total < 75 ? 'cần tăng cường' : 'hiệu quả tốt';
+        riskLevel = total < 50 ? 'cao' : total < 75 ? 'trung bình' : 'thấp';
         break;
       case 4: // School Assessment
-        riskLevel = total < 60 ? 'cần tăng cường đáng kể' : total < 80 ? 'cần cải thiện' : 'triển khai tốt';
+        riskLevel = total < 60 ? 'cao' : total < 80 ? 'trung bình' : 'thấp';
         break;
       default:
         riskLevel = 'không xác định';
@@ -364,7 +366,7 @@ const AssessmentDetailPage: React.FC = () => {
       if (isAuthorized()) {
         try {
           const token = localStorage.getItem('token');
-          const response = await fetch(`http://localhost:5000/api/assessment/assessment-results/${assessmentId}`, {
+          const response = await fetch(`http://localhost:5000/api/assessment/assessment-results/by-assessment/${assessmentId}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -392,6 +394,18 @@ const AssessmentDetailPage: React.FC = () => {
         const coursesData = await coursesResponse.json();
         setCourses(coursesData.data || []);
 
+        // Debug: Fetch categories to see what's available
+        try {
+          const categoriesResponse = await fetch('http://localhost:5000/api/course/category');
+          if (categoriesResponse.ok) {
+            const categoriesData = await categoriesResponse.json();
+            console.log('=== AVAILABLE CATEGORIES IN DATABASE ===');
+            console.log('Categories:', categoriesData.data?.map((cat: any) => cat.CategoryName) || []);
+          }
+        } catch (catError) {
+          console.log('Could not fetch categories:', catError);
+        }
+
         const consultantsResponse = await fetch('http://localhost:5000/api/consultant/category');
         if (!consultantsResponse.ok) throw new Error(`Lỗi khi lấy chuyên viên: ${consultantsResponse.status}`);
         const consultantsData = await consultantsResponse.json();
@@ -417,6 +431,7 @@ const AssessmentDetailPage: React.FC = () => {
     console.log('Current risk:', risk);
     console.log('Assessment audiences:', assessment.audiences);
     console.log('Total courses available:', courses.length);
+    console.log('Sample course structure:', courses[0]);
 
     if (courses.length === 0) {
       console.log('No courses available to filter');
@@ -429,7 +444,7 @@ const AssessmentDetailPage: React.FC = () => {
       console.log('Course categories:', course.Category?.map(cat => cat.CategoryName) || []);
 
       const riskMatches = course.Risk === risk;
-      console.log('Risk matches:', riskMatches);
+      console.log('Risk matches:', riskMatches, `(${course.Risk} === ${risk})`);
 
       const audienceMatches = assessment.audiences.some(audience =>
         course.Category?.some(category => {
@@ -441,11 +456,19 @@ const AssessmentDetailPage: React.FC = () => {
           const exactMatch = audienceNormalized === categoryNormalized;
           const audienceContainsCategory = audienceNormalized.includes(categoryNormalized);
           const categoryContainsAudience = categoryNormalized.includes(audienceNormalized);
+          
+          // Additional flexible matching
+          const flexibleMatches = (
+            (audienceNormalized === 'học sinh' && categoryNormalized.includes('sinh viên')) ||
+            (audienceNormalized === 'sinh viên' && categoryNormalized.includes('học sinh')) ||
+            (audienceNormalized === 'người lớn' && (categoryNormalized.includes('phụ huynh') || categoryNormalized.includes('cộng đồng'))) ||
+            (audienceNormalized.includes('giáo viên') && categoryNormalized.includes('giáo viên'))
+          );
 
-          const matches = exactMatch || audienceContainsCategory || categoryContainsAudience;
+          const matches = exactMatch || audienceContainsCategory || categoryContainsAudience || flexibleMatches;
 
           if (matches) {
-            console.log(`  ✅ CATEGORY MATCH: ${matches}`);
+            console.log(`  ✅ CATEGORY MATCH: ${matches} (flexible: ${flexibleMatches})`);
           }
 
           return matches;
@@ -463,6 +486,28 @@ const AssessmentDetailPage: React.FC = () => {
     console.log(`\n=== COURSE FILTERING COMPLETE ===`);
     console.log(`Filtered courses count: ${filtered.length}`);
     console.log('Filtered courses:', filtered.map(c => c.CourseName));
+    console.log('Assessment ID:', assessment.id, 'Assessment Title:', assessment.title);
+
+    // Fallback: If no courses match, show courses that match at least the risk level
+    if (filtered.length === 0) {
+      console.log('\n=== NO COURSES MATCHED - TRYING RISK-ONLY FILTER ===');
+      const riskOnlyFiltered = courses.filter(course => course.Risk === risk);
+      console.log(`Risk-only filtered courses: ${riskOnlyFiltered.length}`);
+      
+      if (riskOnlyFiltered.length > 0) {
+        console.log('Returning risk-only filtered courses:', riskOnlyFiltered.map(c => c.CourseName));
+        return riskOnlyFiltered;
+      }
+      
+      // Last fallback: show all courses with some logging about the mismatch
+      console.log('\n=== NO RISK MATCH EITHER - SHOWING ALL COURSES ===');
+      console.log('Available risk levels in courses:', [...new Set(courses.map(c => c.Risk))]);
+      console.log('Target risk level:', risk);
+      console.log('Available categories in courses:', courses.flatMap(c => c.Category?.map(cat => cat.CategoryName) || []));
+      console.log('Target audiences:', assessment.audiences);
+      
+      return courses.slice(0, 6); // Show first 6 courses as fallback
+    }
 
     return filtered;
   };
@@ -530,13 +575,13 @@ const AssessmentDetailPage: React.FC = () => {
     return assessment.questions.every(question => {
       const answer = values[question.id];
       let isComplete = false;
-      
+
       if (question.type === 'checkbox') {
         isComplete = Array.isArray(answer) && answer.length > 0;
       } else {
         isComplete = answer !== undefined && answer !== null && answer !== '';
       }
-      
+
       console.log(`Q${question.id} complete:`, isComplete, 'Value:', answer);
       return isComplete;
     });
@@ -602,11 +647,10 @@ const AssessmentDetailPage: React.FC = () => {
                           type="button"
                           onClick={() => handleQuestionChange(Math.max(0, currentQuestionIndex - 1))}
                           disabled={currentQuestionIndex === 0}
-                          className={`flex items-center justify-center w-12 h-12 rounded-full transition-all shadow-lg ${
-                            currentQuestionIndex === 0
-                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                              : 'bg-gradient-to-r from-gray-500 to-gray-400 text-white hover:from-gray-600 hover:to-gray-500 hover:scale-110'
-                          }`}
+                          className={`flex items-center justify-center w-12 h-12 rounded-full transition-all shadow-lg ${currentQuestionIndex === 0
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-gray-500 to-gray-400 text-white hover:from-gray-600 hover:to-gray-500 hover:scale-110'
+                            }`}
                           title="Quay lại"
                         >
                           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -668,13 +712,13 @@ const AssessmentDetailPage: React.FC = () => {
                                 }
                                 return answer && answer !== '' ? null : 'Không được để trống';
                               })();
-                              
+
                               if (currentValidationError) {
                                 formikProps.setFieldError(question.id, currentValidationError);
                                 formikProps.setFieldTouched(question.id, true);
                                 return;
                               }
-                              
+
                               formikProps.setFieldError(question.id, undefined);
                               handleQuestionChange(Math.min(assessment.questions.length - 1, currentQuestionIndex + 1));
                             }}
@@ -696,20 +740,20 @@ const AssessmentDetailPage: React.FC = () => {
                                 }
                                 return answer && answer !== '' ? null : 'Không được để trống';
                               })();
-                              
+
                               if (currentValidationError) {
                                 formikProps.setFieldError(question.id, currentValidationError);
                                 formikProps.setFieldTouched(question.id, true);
                                 return;
                               }
-                              
+
                               formikProps.setFieldError(question.id, undefined);
-                              
+
                               if (!isAssessmentComplete(formikProps.values)) {
                                 alert('Vui lòng trả lời tất cả câu hỏi trước khi hoàn thành đánh giá.');
                                 return;
                               }
-                              
+
                               formikProps.submitForm();
                             }}
                             className="flex items-center justify-center w-12 h-12 rounded-full bg-green-600 text-white hover:bg-green-700 transition-all shadow-lg hover:scale-110"
@@ -789,33 +833,29 @@ const AssessmentDetailPage: React.FC = () => {
           <div className="mb-8 flex items-center gap-4">
             {assessment.id <= 2 ? (
               <span className={`inline-block px-4 py-2 rounded-full text-lg font-bold shadow-md
-                ${risk === 'cao' ? 'bg-error-100 text-error-700' : 
-                  risk === 'trung bình' ? 'bg-warning-100 text-warning-700' : 
-                  'bg-success-100 text-success-700'}`}
+                ${risk === 'cao' ? 'bg-error-100 text-error-700' :
+                  risk === 'trung bình' ? 'bg-warning-100 text-warning-700' :
+                    'bg-success-100 text-success-700'}`}
               >
                 Nguy cơ sử dụng ma túy: {risk.toUpperCase()}
               </span>
             ) : assessment.id === 3 ? (
               <span className={`inline-block px-4 py-2 rounded-full text-lg font-bold shadow-md
-                ${risk === 'cần hỗ trợ tích cực' ? 'bg-warning-100 text-warning-700' : 
-                  risk === 'cần tăng cường' ? 'bg-info-100 text-info-700' : 
-                  'bg-success-100 text-success-700'}`}
+                ${risk === 'cần hỗ trợ tích cực' ? 'bg-warning-100 text-warning-700' :
+                  risk === 'cần tăng cường' ? 'bg-info-100 text-info-700' :
+                    'bg-success-100 text-success-700'}`}
               >
                 Mức độ hiệu quả phòng chống: {risk.toUpperCase()}
               </span>
             ) : (
               <span className={`inline-block px-4 py-2 rounded-full text-lg font-bold shadow-md
-                ${risk === 'cần tăng cường đáng kể' ? 'bg-warning-100 text-warning-700' : 
-                  risk === 'cần cải thiện' ? 'bg-info-100 text-info-700' : 
-                  'bg-success-100 text-success-700'}`}
+                ${risk === 'cần tăng cường đáng kể' ? 'bg-warning-100 text-warning-700' :
+                  risk === 'cần cải thiện' ? 'bg-info-100 text-info-700' :
+                    'bg-success-100 text-success-700'}`}
               >
                 Mức độ triển khai phòng chống: {risk.toUpperCase()}
               </span>
             )}
-            <span className="text-gray-600">
-              Điểm số: {result}
-              {assessment.id >= 3 && '%'}
-            </span>
           </div>
 
           <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -852,14 +892,18 @@ const AssessmentDetailPage: React.FC = () => {
                 filteredCourses.map(course => (
                   <div key={course.CourseID} className="bg-white border-2 border-primary-100 rounded-xl shadow-lg p-5 flex flex-col justify-between">
                     <img
-                      src={course.ImageUrl}
+                      src={course.ImageUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjE0cHgiIGZpbGw9IiM5OTk5OTkiPkjDrG5oIMSRw6BvIHThuqFvPC90ZXh0Pjwvc3ZnPg=='}
                       alt={course.CourseName}
                       className="w-full h-32 object-cover rounded-lg mb-3"
-                      onError={(e) => { e.currentTarget.src = '/placeholder-course.jpg'; }}
+                      onError={(e) => { 
+                        const fallback = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjE0cHgiIGZpbGw9IiM5OTk5OTkiPkjDrG5oIMSRw6BvIHThuqFvPC90ZXh0Pjwvc3ZnPg==';
+                        if (e.currentTarget.src !== fallback) {
+                          e.currentTarget.src = fallback;
+                        }
+                      }}
                     />
                     <h4 className="text-lg font-bold text-primary-700 mb-2">{course.CourseName}</h4>
                     <p className="mb-2 text-gray-700">{course.Description}</p>
-                    <div className="text-xs text-gray-500 mb-2">Mức độ rủi ro: {course.Risk}</div>
                     <div className="text-xs text-gray-500 mb-2">
                       Đối tượng: {course.Category?.map((category, index) => (
                         <span key={category.CategoryID}>
@@ -896,10 +940,14 @@ const AssessmentDetailPage: React.FC = () => {
                 <div key={consultant.AccountID} className="bg-white border-2 border-accent-100 rounded-xl shadow-lg p-5 flex flex-col justify-between">
                   <div className="flex items-center gap-4 mb-2">
                     <img
-                      src={consultant.ImageUrl}
+                      src={consultant.ImageUrl || DEFAULT_AVATAR}
                       alt={consultant.Name}
                       className="w-14 h-14 rounded-full object-cover border-2 border-accent-300 shadow"
-                      onError={(e) => { e.currentTarget.src = '/placeholder-avatar.jpg'; }}
+                      onError={(e) => { 
+                        if (e.currentTarget.src !== DEFAULT_AVATAR) {
+                          e.currentTarget.src = DEFAULT_AVATAR;
+                        }
+                      }}
                     />
                     <div>
                       <Link
@@ -935,12 +983,6 @@ const AssessmentDetailPage: React.FC = () => {
                 <p className="text-sm mt-2">
                   Đối tượng: <span className="font-semibold">{assessment.audiences.join(', ')}</span>
                 </p>
-                <p className="text-xs mt-1">Tổng số chuyên viên có sẵn: {consultants.length}</p>
-                <div className="mt-4 text-xs text-left bg-gray-100 p-3 rounded max-h-60 overflow-y-auto">
-                  <p className="font-semibold mb-2">Debug info:</p>
-                  <p className="mb-1">Assessment audiences: {JSON.stringify(assessment.audiences)}</p>
-                  <p className="mb-1">Available consultant categories: {[...new Set(consultants.flatMap(c => c.Categories?.map(cat => cat.CategoryName) || []))].join(', ')}</p>
-                </div>
               </div>
             )}
           </div>

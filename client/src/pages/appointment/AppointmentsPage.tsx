@@ -1,18 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Users, Search, Calendar as CalendarIcon, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import CounselorCard from '../../components/counselors/CounselorCard';
-import { useLocation } from 'react-router-dom';
 import { ConsultantWithSchedule, Qualification, Specialty } from '../../types/Consultant';
-import { useUser } from '@/context/UserContext';
+
 
 const AppointmentsPage: React.FC = () => {
-  const location = useLocation();
-  const state = location.state as { counselorId?: number };
-  const { user } = useUser();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCounselor, setSelectedCounselor] = useState<number | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'selection'>('list');
+  const [viewMode] = useState<'list' | 'selection'>('list');
   const [showSpecialtyFilter, setShowSpecialtyFilter] = useState(false);
 
   // Set data from fetching
@@ -23,15 +19,6 @@ const AppointmentsPage: React.FC = () => {
   // Handling filter data
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
 
-  useEffect(() => {
-    if (state?.counselorId) {
-      setSelectedCounselor(state.counselorId);
-      setViewMode('selection');
-      console.log(`Selected counselor ID from state: ${state.counselorId}`);
-    } else {
-      console.log('No counselor ID found in state, defaulting to null');
-    }
-  }, [state?.counselorId]);
 
   useEffect(() => {
     fetch('http://localhost:5000/api/consultant')
@@ -101,7 +88,6 @@ const AppointmentsPage: React.FC = () => {
       }
     });
 
-    // Process specialty data
     specialtyData.forEach((item) => {
       if (!item || typeof item !== 'object' || !item.AccountID) {
         console.warn('Invalid specialty item:', item);
@@ -117,7 +103,6 @@ const AppointmentsPage: React.FC = () => {
       }
     });
 
-    // Process qualification data
     qualificationData.forEach((item) => {
       if (!item || typeof item !== 'object' || !item.AccountID) {
         console.warn('Invalid qualification item:', item);
@@ -143,13 +128,27 @@ const AppointmentsPage: React.FC = () => {
   const mergedConsultants = mergeDataIntoConsultants(consultantData, specialtyData, qualificationData);
   const specialtyOptions = specialtyData.map(specialty => specialty.Name);
 
-  const filteredConsultants = mergedConsultants.filter(consultant => {
-    const matchesSearch = consultant.Name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSpecialty = selectedSpecialties.length === 0 ||
-      selectedSpecialties.some(specialty => consultant.Specialties.some(s => s.Name === specialty));
-    return matchesSearch && matchesSpecialty && user?.AccountID !== consultant.ConsultantID;
-  });
+  const normalizeString = (str: string) =>
+    str
+      .normalize('NFD')                      // Decompose accents
+      .replace(/[\u0300-\u036f]/g, '')       // Remove accents
+      .replace(/\s+/g, '')                   // Remove spaces
+      .toLowerCase();                        // Convert to lowercase
 
+  const normalizedSearch = normalizeString(searchTerm);
+
+  const filteredConsultants = mergedConsultants.filter(consultant => {
+    const normalizedName = normalizeString(consultant.Name);
+    const matchesSearch = normalizedName.includes(normalizedSearch);
+
+    const matchesSpecialty =
+      selectedSpecialties.length === 0 ||
+      selectedSpecialties.some(specialty =>
+        consultant.Specialties.some(s => s.Name === specialty)
+      );
+
+    return matchesSearch && matchesSpecialty;
+  });
   const selectedConsultant = filteredConsultants.find(c => c.ConsultantID === selectedCounselor);
 
   return (

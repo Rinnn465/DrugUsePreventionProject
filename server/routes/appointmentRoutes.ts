@@ -25,4 +25,6 @@ router.get('/:id', appointmentController.getAppointmentById);
 
 router.post('/', appointmentController.bookAppointment);
 
+router.get('/week/:userId/:week', appointmentController.getAppointmentByUserIdAndWeek);
+
 export default router;

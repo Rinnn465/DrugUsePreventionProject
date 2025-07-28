@@ -69,12 +69,28 @@ const CoursesPage: React.FC = () => {
   }, []);
 
   // Filter courses by search and audience
+
+  const normalizeString = (str: string) =>
+    str
+      .normalize('NFD')                      // Decompose accents
+      .replace(/[\u0300-\u036f]/g, '')       // Remove accents
+      .replace(/\s+/g, '')                   // Remove spaces
+      .toLowerCase();                        // Convert to lowercase
+
+  const normalizedSearch = normalizeString(searchTerm);
+  const searchTerms = normalizedSearch.split(' ').filter(term => term !== '');
+
   const filteredCourses = courses.filter(course => {
     const audience = getAudienceLabel(course.CourseName);
     const matchesAudience = selectedAudience === 'all' || audience === selectedAudience;
-    const matchesSearch =
-      course.CourseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (course.Description && course.Description.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const courseName = normalizeString(course.CourseName);
+    const description = course.Description ? normalizeString(course.Description) : '';
+
+    const matchesSearch = searchTerms.length === 0 || searchTerms.some(term =>
+      courseName.includes(term) || description.includes(term)
+    );
+
     return matchesAudience && matchesSearch;
   });
 

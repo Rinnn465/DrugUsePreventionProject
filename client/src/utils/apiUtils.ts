@@ -112,6 +112,10 @@ const put = async <T>(url: string, data?: any, config?: AxiosRequestConfig): Pro
     return request<T>({ ...config, method: 'PUT', url, data });
 };
 
+const patch = async <T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> => {
+    return request<T>({ ...config, method: 'PATCH', url, data });
+};
+
 const deleteRequest = async <T>(url: string, config?: AxiosRequestConfig): Promise<T> => {
     return request<T>({ ...config, method: 'DELETE', url });
 };
@@ -149,7 +153,7 @@ const courses = {
 
     getEnrolledByUser: (userId: number) => get<any[]>(`/course/${userId}/enrolled/user`),
 
-    complete: (courseId: number, accountId: number) => post<{ message: string }>(`/course/${courseId}/complete`, { accountId }),
+    complete: (courseId: number, accountId: number) => patch<{ message: string }>(`/course/${courseId}/complete`, { accountId }),
 
     getCompleted: (courseId: number, userId: number) => get<any>(`/course/${courseId}/completed/${userId}`),
 

@@ -361,7 +361,7 @@ export async function unenrollFromProgram(req: Request, res: Response): Promise<
             // Commit transaction
             await transaction.commit();
 
-            console.log(`Unenrolled user ${accountId} from program ${programId} and deleted survey responses`);
+            
         } catch (transactionError) {
             // Rollback nếu có lỗi
             await transaction.rollback();

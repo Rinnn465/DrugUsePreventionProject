@@ -11,8 +11,12 @@ import AppointmentDetailModal from "../components/modal/AppointmentDetailModal";
 import { toast } from 'react-toastify';
 import { validateImageFile } from "../utils/imageUtils";
 import apiUtils from "@/utils/apiUtils";
-import useModal from "@/hooks/useModal";
-import Modal from "@/components/modal/ModalNotification";
+
+// Week interface for dropdown
+interface Week {
+  label: string;
+  value: string; // SQL date format
+}
 
 interface ProfileFormData {
   username: string;
@@ -62,7 +66,6 @@ interface EnrolledEventsResponse {
 const DashBoardPage: React.FC = () => {
   const { userId } = useParams();
   const { user, setUser } = useUser();
-  const { isOpen, openModal, closeModal } = useModal();
 
   const location = useLocation();
 
@@ -70,10 +73,14 @@ const DashBoardPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
-  const [confirmCancel, setConfirmCancel] = useState(false);
   const [isLoadingCourses, setIsLoadingCourses] = useState(false);
   const [enrolledEvents, setEnrolledEvents] = useState<EnrolledEvent[]>([]);
   const [isLoadingEvents, setIsLoadingEvents] = useState(false);
+
+  // Week filtering for appointments (for member dashboard)
+  const [weeks, setWeeks] = useState<Week[]>([]);
+  const [selectedWeek, setSelectedWeek] = useState<string>('');
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
 
 
   // Modal state
@@ -90,8 +97,10 @@ const DashBoardPage: React.FC = () => {
   const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [appointmentToReject, setAppointmentToReject] = useState<number | null>(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [appointmentToCancel, setAppointmentToCancel] = useState<Appointment | null>(null);
 
-  // Profile form state
+  // Profile form state (for inline edit)
   const [profileForm, setProfileForm] = useState<ProfileFormData>({
     username: user?.Username || "",
     email: user?.Email || "",
@@ -122,6 +131,97 @@ const DashBoardPage: React.FC = () => {
   const isConsultant = user?.RoleName === 'consultant' || user?.RoleName === 'Consultant';
   const role = isConsultant ? 'consultant' : 'user';
 
+  // Format time for appointments
+  const formatTime = useCallback((timeString: string) => {
+    if (!timeString) return '';
+    if (timeString.includes('T')) {
+      const timePart = timeString.split('T')[1];
+      return timePart.substring(0, 5);
+    }
+    return timeString.substring(0, 5);
+  }, []);
+
+  // Week dropdown helper functions
+  const formatDateOfWeek = useCallback((date: Date) => {
+    return `${date.getUTCDate()}/${date.getUTCMonth() + 1}`;
+  }, []);
+
+  const generateWeekDropdown = useCallback((year: number) => {
+    const weeks = [];
+
+    // Start from the first Monday of the year in UTC
+    let startDate = new Date(Date.UTC(year, 0, 1));
+    const day = startDate.getUTCDay();
+    const diffToMonday = (day === 0 ? -6 : 1) - day;
+    startDate.setUTCDate(startDate.getUTCDate() + diffToMonday);
+
+    while (startDate.getUTCFullYear() <= year) {
+      const endDate = new Date(startDate);
+      endDate.setUTCDate(startDate.getUTCDate() + 6);
+
+      // Stop if we've gone past the current year
+      if (endDate.getUTCFullYear() > year) break;
+
+      weeks.push({
+        label: formatDateOfWeek(startDate) + ' đến ' + formatDateOfWeek(endDate),
+        value: startDate.toISOString().split('T')[0] // YYYY-MM-DD format in UTC
+      });
+
+      // Move to next week
+      startDate = new Date(startDate);
+      startDate.setUTCDate(startDate.getUTCDate() + 7);
+    }
+
+    return weeks;
+  }, [formatDateOfWeek]);
+
+  const getCurrentWeekValue = useCallback((weeks: Week[]) => {
+    if (weeks.length === 0) return "";
+
+    // Get current UTC date
+    const today = new Date();
+    const todayUTC = new Date(Date.UTC(
+      today.getUTCFullYear(),
+      today.getUTCMonth(),
+      today.getUTCDate()
+    ));
+
+    for (const week of weeks) {
+      const start = new Date(week.value + 'T00:00:00.000Z'); // Parse as UTC
+      const end = new Date(start);
+      end.setUTCDate(start.getUTCDate() + 6);
+      end.setUTCHours(23, 59, 59, 999);
+
+      if (todayUTC >= start && todayUTC <= end) {
+        return week.value;
+      }
+    }
+
+    // If no current week found, return the closest week
+    const todayTime = todayUTC.getTime();
+    let closestWeek = weeks[0];
+    let minDiff = Math.abs(todayTime - new Date(weeks[0].value + 'T00:00:00.000Z').getTime());
+
+    for (const week of weeks) {
+      const weekStart = new Date(week.value + 'T00:00:00.000Z');
+      const diff = Math.abs(todayTime - weekStart.getTime());
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestWeek = week;
+      }
+    }
+
+    return closestWeek.value;
+  }, []);
+
+  // Get available years from appointments
+  const getAvailableYears = useCallback(() => {
+    const years = new Set(appointments.map(appointment =>
+      new Date(appointment.Date).getFullYear()
+    ));
+    return Array.from(years).sort((a, b) => b - a);
+  }, [appointments]);
+
   // Fetch all appointments function
   const fetchAllAppointments = useCallback(async () => {
     const token = localStorage.getItem('token');
@@ -137,8 +237,7 @@ const DashBoardPage: React.FC = () => {
         },
       });
       const data = await response.json();
-      console.log(data
-      );
+      console.log(data);
 
       setAppointments(data.data || []);
     } catch (err) {
@@ -146,6 +245,34 @@ const DashBoardPage: React.FC = () => {
       setMessage({ type: "error", text: "Không thể tải danh sách lịch hẹn" });
     }
   }, [role, user?.AccountID]);
+
+  // Fetch appointments by week for member dashboard
+  const fetchWeekAppointments = useCallback(async () => {
+    if (!user?.AccountID || !selectedWeek || isConsultant) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/appointment/week/${user.AccountID}/${selectedWeek}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      console.log('Week appointments data:', data);
+
+      // Format time for display
+      const formattedAppointments = (data.data || []).map((appointment: Appointment) => ({
+        ...appointment,
+        Time: formatTime(appointment.Time)
+      }));
+
+      setAppointments(formattedAppointments);
+    } catch (err) {
+      console.error("Error fetching week appointments:", err);
+      setMessage({ type: "error", text: "Không thể tải danh sách lịch hẹn tuần này" });
+      setAppointments([]);
+    }
+  }, [user?.AccountID, selectedWeek, isConsultant, formatTime]);
 
   // Auto-hide message after 5 seconds
   useEffect(() => {
@@ -155,6 +282,38 @@ const DashBoardPage: React.FC = () => {
     }
   }, [message]);
 
+  // Fetch user profile when on profile page or userId changes
+  useEffect(() => {
+    if (isProfilePage && userId) {
+      const fetchUserProfile = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await fetch(`http://localhost:5000/api/account/${userId}`, {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.data) {
+              setUser(data.data);
+              setProfileForm({
+                username: data.data.Username || '',
+                email: data.data.Email || '',
+                fullName: data.data.FullName || '',
+                dateOfBirth: data.data.DateOfBirth ? new Date(data.data.DateOfBirth).toISOString().split('T')[0] : '',
+              });
+            }
+          }
+        } catch (err) {
+          console.error('Không thể tải thông tin hồ sơ:', err);
+        }
+      };
+      fetchUserProfile();
+    }
+  }, [isProfilePage, userId, setUser, setProfileForm]);
+
   useEffect(() => {
 
   }, [userId]);
@@ -163,6 +322,24 @@ const DashBoardPage: React.FC = () => {
   useEffect(() => {
     fetchAllAppointments();
   }, [fetchAllAppointments]);
+
+  // Initialize weeks and set current week for member dashboard
+  useEffect(() => {
+    if (!isConsultant) {
+      const allWeeks = generateWeekDropdown(selectedYear);
+      setWeeks(allWeeks);
+
+      const currentWeekValue = getCurrentWeekValue(allWeeks);
+      setSelectedWeek(currentWeekValue);
+    }
+  }, [generateWeekDropdown, selectedYear, getCurrentWeekValue, isConsultant]);
+
+  // Fetch week appointments when week changes (for member dashboard)
+  useEffect(() => {
+    if (!isConsultant && selectedWeek) {
+      fetchWeekAppointments();
+    }
+  }, [fetchWeekAppointments, isConsultant, selectedWeek]);
 
   useEffect(() => {
     const fetchEnrolledCourses = async () => {
@@ -256,7 +433,7 @@ const DashBoardPage: React.FC = () => {
     return date.toLocaleDateString('vi-VN');
   };
 
-  // Handle profile form input changes
+  // Handle profile form input changes (inline)
   const handleProfileChange = (e: ChangeEvent<HTMLInputElement>) => {
     setProfileForm({ ...profileForm, [e.target.name]: e.target.value });
   };
@@ -383,6 +560,7 @@ const DashBoardPage: React.FC = () => {
         body: JSON.stringify({
           currentPassword: passwordForm.currentPassword,
           newPassword: passwordForm.newPassword,
+          confirmPassword: passwordForm.confirmPassword,
         }),
       });
 
@@ -397,7 +575,7 @@ const DashBoardPage: React.FC = () => {
         newPassword: "",
         confirmPassword: "",
       });
-      
+
       setMessage({ type: "success", text: "Mật khẩu đã được cập nhật thành công!" });
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Đã xảy ra lỗi khi cập nhật mật khẩu";
@@ -456,19 +634,47 @@ const DashBoardPage: React.FC = () => {
     }
   };
 
-  const handleCancelAppointment = useCallback(async (appointmentId: number) => {
-    openModal();
-    if (confirmCancel) {
-      try {
-        await apiUtils.appointments.cancel(appointmentId)
-        toast.success('Đã hủy cuộc hẹn thành công!');
-        fetchAllAppointments(); // Refresh appointments list
-      } catch (error) {
-        console.error('Error cancelling appointment:', error);
-        toast.error('Không thể hủy cuộc hẹn');
+  const handleCancelConfirm = async () => {
+    if (!appointmentToCancel) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/appointment/${appointmentToCancel.AppointmentID}/cancel`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to cancel appointment');
       }
+
+      toast.success('Đã hủy cuộc hẹn thành công!');
+
+      // Refresh appointments
+      if (selectedWeek) {
+        fetchWeekAppointments();
+      } else {
+        fetchAllAppointments();
+      }
+
+      // Close modal and reset state
+      setShowCancelModal(false);
+      setAppointmentToCancel(null);
+
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+      toast.error('Không thể hủy cuộc hẹn');
+      setShowCancelModal(false);
+      setAppointmentToCancel(null);
     }
-  }, [confirmCancel, fetchAllAppointments, openModal])
+  };
+  const closeCancelModal = () => {
+    setShowCancelModal(false);
+    setAppointmentToCancel(null);
+  };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -500,13 +706,13 @@ const DashBoardPage: React.FC = () => {
     try {
       setUploadingAvatar(true);
       const formData = new FormData();
-      
+
       // Create a file from the blob with proper name and type
       const croppedFile = new File([croppedImageBlob], 'avatar.jpg', {
         type: 'image/jpeg',
         lastModified: Date.now(),
       });
-      
+
       formData.append('profilePicture', croppedFile);
 
       const token = localStorage.getItem('token');
@@ -632,7 +838,7 @@ const DashBoardPage: React.FC = () => {
                     <p className="text-gray-600">Xem thông tin tài khoản của bạn</p>
                   </div>
                 </div>
-                
+
                 {user?.ProfilePicture && (
                   <button
                     onClick={() => {
@@ -798,7 +1004,7 @@ const DashBoardPage: React.FC = () => {
             </div>
           </div>
         )}
-        
+
         {/* Image Crop Modal */}
         <ImageCropModal
           isOpen={showCropModal}
@@ -1099,6 +1305,69 @@ const DashBoardPage: React.FC = () => {
 
             {/* Appointments Content */}
             <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+              {/* Week Filter for Member Dashboard */}
+              {!isConsultant && (
+                <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Year Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Năm
+                      </label>
+                      <select
+                        value={selectedYear}
+                        onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      >
+                        {getAvailableYears().map(year => (
+                          <option key={year} value={year}>
+                            {year}
+                          </option>
+                        ))}
+                        {getAvailableYears().length === 0 && (
+                          <option value={new Date().getFullYear()}>
+                            {new Date().getFullYear()}
+                          </option>
+                        )}
+                      </select>
+                    </div>
+
+                    {/* Week Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Tuần
+                      </label>
+                      <select
+                        value={selectedWeek}
+                        onChange={(e) => setSelectedWeek(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      >
+                        {weeks.map((week, index) => (
+                          <option key={index} value={week.value}>
+                            {week.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Current Week Info */}
+                    <div className="flex items-center">
+                      <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 w-full">
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="h-5 w-5 text-purple-600" />
+                          <div>
+                            <p className="text-sm font-medium text-purple-900">Tuần hiện tại</p>
+                            <p className="text-xs text-purple-600">
+                              {weeks.find(week => week.value === selectedWeek)?.label || 'Chưa chọn tuần'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {appointments.length > 0 ? (
                 <div className="space-y-6">
 
@@ -1115,7 +1384,7 @@ const DashBoardPage: React.FC = () => {
                                 {isConsultant ? `Cuộc hẹn với khách hàng` : `Cuộc hẹn với chuyên viên`}
                               </h3>
                               <p className="text-gray-600 text-sm">
-                                {formatDate(appointment.Date)}
+                                {formatDate(appointment.Date)} lúc {formatTime(appointment.Time)}
                               </p>
                             </div>
                           </div>
@@ -1141,7 +1410,10 @@ const DashBoardPage: React.FC = () => {
                             appointment.Status === 'confirmed')
                             && (
                               <button
-                                onClick={() => handleCancelAppointment(appointment.AppointmentID)}
+                                onClick={() => {
+                                  setAppointmentToCancel(appointment);
+                                  setShowCancelModal(true);
+                                }}
                                 className="flex items-center space-x-2 px-6 py-3 bg-red-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
                               >
                                 <Calendar className="h-4 w-4" />
@@ -1199,17 +1471,55 @@ const DashBoardPage: React.FC = () => {
           consultantImageUrl={consultantDetails?.imageUrl}
           consultantSpecialties={consultantDetails?.specialties}
         />
-        <Modal
-          isOpen={isOpen}
-          onClose={closeModal}
-          title="Bạn có chắc muốn hủy cuộc hẹn này không?"
-          description="Cuộc hẹn sẽ bị hủy và không thể khôi phục."
-          confirmMessage="Hủy cuộc hẹn"
-          confirmUrl={() => {
-            setConfirmCancel(true)
-            if (selectedAppointment) handleCancelAppointment(selectedAppointment.AppointmentID);
-          }}
-        />
+        {showCancelModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <div className="text-center">
+                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                  <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.966-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Xác nhận hủy cuộc hẹn
+                </h3>
+
+                <p className="text-sm text-gray-500 mb-6">
+                  Bạn có chắc chắn muốn hủy cuộc hẹn này không? Hành động này không thể hoàn tác.
+                </p>
+
+                {appointmentToCancel && (
+                  <div className="bg-gray-50 rounded-lg p-3 mb-6 text-left">
+                    <p className="text-sm text-gray-700">
+                      <span className="font-medium">Thời gian:</span> {appointmentToCancel.Time} - {formatDate(appointmentToCancel.Date)}
+                    </p>
+                    {appointmentToCancel.Description && (
+                      <p className="text-sm text-gray-700 mt-1">
+                        <span className="font-medium">Mô tả:</span> {appointmentToCancel.Description}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex space-x-4">
+                  <button
+                    onClick={closeCancelModal}
+                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Không
+                  </button>
+                  <button
+                    onClick={handleCancelConfirm}
+                    className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  >
+                    Có, hủy cuộc hẹn
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Rejection Reason Modal */}
         {isRejectionModalOpen && (
@@ -1488,7 +1798,7 @@ const DashBoardPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-800 mb-6">Trang không tìm thấy</h1>
           <p className="text-gray-600">Trang bạn đang tìm kiếm không tồn tại.</p>
         </div>
-        
+
         {/* Image Crop Modal for fallback */}
         <ImageCropModal
           isOpen={showCropModal}

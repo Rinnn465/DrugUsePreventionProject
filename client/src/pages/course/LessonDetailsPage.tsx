@@ -121,7 +121,7 @@ const LessonDetailsPage: React.FC = () => {
                         };
                     } catch {
                         // If lesson progress doesn't exist, return null
-                        console.log(`No progress found for lesson ${lessonItem.LessonID}`);
+
                         return {
                             lessonId: lessonItem.LessonID,
                             progressData: null
@@ -189,13 +189,13 @@ const LessonDetailsPage: React.FC = () => {
             if (!id || !selected || typeof selected !== 'number') return;
             try {
                 const enrollmentStatus = await apiUtils.courses.checkLessonEnrollment(Number(id), Number(selected), user?.AccountID || 0);
-                console.log('Enrollment status response:', enrollmentStatus);
+
 
                 // Handle different response formats
                 const isEnrolled = enrollmentStatus?.isEnrolled || enrollmentStatus?.data?.isEnrolled || false;
                 setIsLessonEnrolled(isEnrolled);
 
-                console.log('Lesson enrollment status for lesson', selected, ':', isEnrolled);
+
 
             } catch (error) {
                 console.error("Error checking enrollment:", error);
@@ -216,11 +216,11 @@ const LessonDetailsPage: React.FC = () => {
             if (!user?.AccountID) return; // No user
 
             try {
-                console.log('Attempting to enroll in lesson:', selected, 'for user:', user.AccountID);
+
 
                 // First try to enroll
                 await apiUtils.courses.lessonEnroll(selected, user.AccountID);
-                console.log('Enrollment API call completed for lesson:', selected);
+
 
                 // Wait a bit for the database to update
                 await new Promise(resolve => setTimeout(resolve, 500));
@@ -231,7 +231,7 @@ const LessonDetailsPage: React.FC = () => {
                 setIsLessonEnrolled(isEnrolled);
 
                 if (isEnrolled) {
-                    console.log('Successfully enrolled and verified for lesson:', selected);
+
                 } else {
                     console.warn('Enrollment may have failed for lesson:', selected);
                 }
@@ -244,7 +244,7 @@ const LessonDetailsPage: React.FC = () => {
 
                 if (responseMessage?.includes('đã đăng ký')) {
                     setIsLessonEnrolled(true);
-                    console.log('User was already enrolled in lesson:', selected);
+
                 } else {
                     toast.error("Không thể đăng ký bài học: " + (responseMessage || errorMessage));
                 }
@@ -287,31 +287,13 @@ const LessonDetailsPage: React.FC = () => {
         }
     }, [isPlaying]);
 
-    const completeCourse = useCallback(async () => {
-        if (!user?.AccountID) {
-            toast.error("Bạn cần đăng nhập để hoàn thành khóa học");
-            return;
-        }
-
-        try {
-            await courses.complete(Number(id), user.AccountID);
-            toast.success("🏆 Khóa học đã được hoàn thành thành công!");
-        } catch (error) {
-            console.error("Error completing course:", error);
-            toast.error("Không thể hoàn thành khóa học");
-        }
-    }, [user?.AccountID, id]);
-
     const checkCourseCompletion = useCallback(() => {
         const allLessonsCompleted = !lesson || completedLessons.size === lesson.length;
         if (allLessonsCompleted && !courseCompleted) {
-            setCourseCompleted(true);
-            toast.success("🎉 Chúc mừng! Bạn đã hoàn thành tất cả bài học.");
-            completeCourse();
             return true;
         }
         return false;
-    }, [lesson, completedLessons.size, courseCompleted, completeCourse]);
+    }, [lesson, completedLessons.size, courseCompleted]);
 
     const handleVideoTimeUpdate = (lessonId: string | number) => {
         if (videoRef.current && !isSeekingRef.current && !videoRef.current.paused) {
@@ -356,7 +338,7 @@ const LessonDetailsPage: React.FC = () => {
                         setCompletedMilestones((prev) => {
                             const newMilestones = new Set(lessonMilestones);
                             newMilestones.add(currentMilestone);
-                            console.log(`Reached ${currentMilestone}% milestone for lesson ${lessonId}`);
+
                             updateLessonProgress(lessonId, currentMilestone, newLastValidTime);
 
                             return { ...prev, [lessonIdStr]: newMilestones };
@@ -383,12 +365,7 @@ const LessonDetailsPage: React.FC = () => {
                 lastValidTime: lastValidTime
             });
 
-            console.log('Lesson progress updated:', {
-                lessonId,
-                progressPercentage,
-                lastValidTime,
-                accountId: user.AccountID
-            });
+
         } catch (error) {
             console.error('Error updating lesson progress:', error);
         }
@@ -401,11 +378,7 @@ const LessonDetailsPage: React.FC = () => {
         try {
             await apiUtils.courses.markLessonCompleted(Number(id), Number(lessonId), user.AccountID);
 
-            console.log('Lesson completed on server:', {
-                lessonId,
-                accountId: user.AccountID,
-                courseId: id
-            });
+
         } catch (error) {
             console.error('Error marking lesson as completed on server:', error);
         }

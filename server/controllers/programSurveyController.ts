@@ -58,7 +58,7 @@ export async function getSurveysByProgramId(req: Request, res: Response): Promis
 
         // Nếu chưa có mapping, tự động tạo
         if (existingMapping.recordset[0].count === 0) {
-            console.log(`No survey mapping found for program ${programId}, auto-creating...`);
+            
             const success = await autoCreateSurveyMapping(programId);
             
             if (!success) {
@@ -92,7 +92,7 @@ export async function getSurveysByProgramId(req: Request, res: Response): Promis
                 ORDER BY cps.SurveyType
             `);
 
-        console.log('Program surveys result:', result.recordset);
+        
         res.status(200).json(result.recordset);
     } catch (err) {
         console.error('Error fetching program surveys:', err);

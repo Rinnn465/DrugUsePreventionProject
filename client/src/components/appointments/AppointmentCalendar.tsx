@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { ConsultantWithSchedule } from '../../types/Consultant';
 import { useUser } from '../../context/UserContext';
 import Modal from '../modal/ModalNotification';
 import useModal from '@/hooks/useModal';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 
 
 interface AppointmentCalendarProps {
@@ -36,7 +38,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
 
   const { isOpen, openModal, closeModal } = useModal();
   const navigate = useNavigate();
-  // Auto-navigate to earliest available month
+
   useEffect(() => {
     if (schedule && schedule.Schedule && schedule.Schedule.length > 0) {
       const dates = schedule.Schedule
@@ -51,7 +53,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
         })
         .filter((date): date is Date => date !== null);
       if (dates.length > 0) {
-        const earliestDate = new Date(Math.min(...dates.map((date) => date.getTime())));
+        const earliestDate = new Date();
         // Use UTC to avoid timezone shifts
         setCurrentDate(new Date(Date.UTC(earliestDate.getUTCFullYear(), earliestDate.getUTCMonth(), 1)));
       }
@@ -61,7 +63,6 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
   useEffect(() => {
     if (selectedDate) {
       const dateStr = selectedDate.toISOString().split('T')[0];
-      // Fix: Change the URL to match your route
       fetch(`http://localhost:5000/api/appointment/filter?consultantId=${consultantId}&date=${dateStr}`)
         .then(response => response.json())
         .then(data => {
@@ -181,15 +182,18 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
         return appointmentDate === dateStr && appointmentTime === slot.start;
       });
 
-
       return {
         ...slot,
         isBooked,
       };
+
     });
 
     return slotsWithBookingStatus;
+
   };
+
+
 
   // Format time for display (12-hour format)
   const formatTime = (time: string) => {
@@ -210,6 +214,23 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
   ];
 
   const dayNames = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
+
+  const formik = useFormik({
+    initialValues: {
+      note: '',
+    },
+    validationSchema: Yup.object({
+      note: Yup.string()
+        .max(500, 'Ghi chú không được quá 500 ký tự')
+        .test('note', 'Ghi chú không được chứa ký tự đặc biệt', (value) => {
+          return !/[!@#$%^&*(),.?":{}|<>]/.test(value || '');
+        })
+    }),
+    onSubmit: (values) => {
+      console.log('Form submitted:', values);
+      handleConfirmBooking();
+    },
+  });
 
   const handlePrevMonth = () => {
     const newCurrentDate = new Date(Date.UTC(year, month - 1, 1));
@@ -255,10 +276,19 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
       return;
     }
 
+    if (user?.RoleName.toLowerCase() === 'member') {
+      toast.error('❌ Bạn không có quyền đặt lịch hẹn với chuyên viên!');
+      return;
+    }
+
     toast.success(
-      `✅ Đặt lịch thành công! Bạn đã đặt lịch với chuyên viên vào ngày ${selectedDate?.toLocaleDateString(
-        'vi-VN'
-      )} lúc ${formatTime(selectedTime!)}`,
+      <div>
+        <Link to={`/dashboard/${user?.AccountID}/appointments`}>
+          ✅ Đặt lịch thành công!
+          <br />
+          Nhấn vào đây để xem chi tiết
+        </Link>
+      </div>,
       { autoClose: 5000 }
     );
 
@@ -465,12 +495,18 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
         <div className="flex flex-col items-center gap-4 p-6 border border-gray-300 rounded-lg bg-gray-50 max-w-md mx-auto">
           <h2 className="text-xl font-semibold text-gray-800">Bạn có điều gì cần các chuyên viên lưu ý không?</h2>
           <textarea
+            id='note'
+            name="note"
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="Nhập nội dung tư vấn của bạn..."
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
+            value={formik.values.note}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
             rows={4}
           ></textarea>
+          {formik.touched.note && formik.errors.note && (
+            <div className="text-red-500 text-sm">{formik.errors.note}</div>
+          )}
           <div className="flex justify-center space-x-4">
             <button
               onClick={handleBackToTime}
@@ -479,8 +515,12 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
               Quay lại
             </button>
             <button
-              className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition duration-300"
+              className={`px-6 py-2 font-medium rounded-md transition duration-300 ${formik.errors.note
+                ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
               onClick={() => setBookingStep('confirm')}
+              disabled={!!formik.errors.note}
             >
               Đặt lịch
             </button>
@@ -488,7 +528,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
         </div>
       )}
       {bookingStep === 'confirm' && selectedDate && selectedTime && (
-        <div className="bg-gradient-to-br from-white via-sky-50 to-blue-50 p-8 rounded-2xl border-2 border-sky-100 shadow-2xl animate-fade-in">
+        <form onSubmit={formik.handleSubmit} className="bg-gradient-to-br from-white via-sky-50 to-blue-50 p-8 rounded-2xl border-2 border-sky-100 shadow-2xl animate-fade-in">
           <h3 className="text-xl font-bold mb-4 text-sky-700">Xác nhận lịch hẹn</h3>
           <div className="mb-6">
             <div className="flex items-center justify-between py-3 border-b-2 border-sky-50">
@@ -528,13 +568,13 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
               Quay lại
             </button>
             <button
-              onClick={handleConfirmBooking}
+              type='submit'
               className="flex-1 py-2 px-4 bg-gradient-to-r from-sky-500 to-blue-500 text-white rounded-xl hover:from-blue-600 hover:to-sky-600 transition-all font-bold shadow-lg"
             >
               Xác nhận đặt lịch
             </button>
           </div>
-        </div>
+        </form>
       )}
     </div>
   );

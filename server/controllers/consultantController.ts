@@ -158,18 +158,29 @@ export async function getConsultantById(
             .request()
             .input("consultantId", sql.Int, consultantId)
             .query(`
-                SELECT 
-                    c.AccountID,
-                    c.Name,
-                    c.Bio,
-                    c.Title,
-                    c.ImageUrl,
-                    c.IsDisabled
-                FROM Consultant c 
-                WHERE c.AccountID = @consultantId AND (c.IsDisabled = 0 OR c.IsDisabled IS NULL)
+               SELECT * FROM Consultant 
+                WHERE AccountID = @consultantId
+            `);
+        const specialtyResult = await pool
+            .request()
+            .input("consultantId", sql.Int, consultantId)
+            .query(`
+                SELECT s.SpecialtyID, s.Name 
+                FROM Specialty s 
+                JOIN ConsultantSpecialty cs ON s.SpecialtyID = cs.SpecialtyID 
+                WHERE cs.AccountID = @consultantId
             `);
 
-        // Check if consultant exists
+        const qualificationResult = await pool
+            .request()
+            .input("consultantId", sql.Int, consultantId)
+            .query(`
+                SELECT q.QualificationID, q.Name 
+                FROM Qualification q 
+                JOIN ConsultantQualification cq ON q.QualificationID = cq.QualificationID 
+                WHERE cq.AccountID = @consultantId
+            `);
+
         if (result.recordset.length === 0) {
             res.status(404).json({ message: "Consultant not found" });
             return;
@@ -177,7 +188,11 @@ export async function getConsultantById(
 
         res.status(200).json({
             message: "Tải dữ liệu chuyên viên thành công",
-            data: result.recordset[0],
+            data: {
+                consultant: result.recordset,
+                specialties: specialtyResult.recordset,
+                qualifications: qualificationResult.recordset
+            },
         });
     } catch (err: any) {
         console.error(err);
@@ -253,6 +268,65 @@ export async function getSpecialties(
         throw new Error("Lỗi máy chủ");
     }
 }
+
+export async function getConsultantSpecialtyById(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    const { id } = req.params;
+    if (!id) {
+        res.status(400).json({ message: "Specialty ID is required" });
+        return;
+    }
+
+    console.log(id);
+
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('AccountID', sql.Int, id)
+            .query(`
+                SELECT * 
+                FROM ConsultantSpecialty 
+                WHERE AccountID = @AccountID
+            `);
+
+        res.status(200).json(result.recordset);
+    } catch (error) {
+        console.error('Error fetching consultant specialty:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+export async function getConsultantQualificationByConsultantId(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    const { id } = req.params;
+    if (!id) {
+        res.status(400).json({ message: "Consultant ID is required" });
+        return;
+    }
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('ConsultantID', sql.Int, id)
+            .query(`
+                SELECT q.QualificationID, q.Name
+                FROM Qualification q
+                JOIN ConsultantQualification cq ON q.QualificationID = cq.QualificationID
+                WHERE cq.AccountID = @ConsultantID
+            `);
+
+        res.status(200).json(result.recordset);
+    } catch (error) {
+        console.error('Error fetching consultant qualifications:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
 
 export async function getSchedule(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -627,4 +701,36 @@ export async function getAverageRating(req: Request, res: Response, next: NextFu
         res.status(500).json({ message: 'Lỗi máy chủ khi lấy đánh giá trung bình' });
     }
 
+}
+
+export async function getAverageAllRating(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { consultantId } = req.params;
+
+    if (!consultantId) {
+        res.status(400).json({ message: 'Consultant ID is required' });
+        return;
+    }
+
+    try {
+        const pool = await poolPromise;
+
+        // Query to get average rating for the consultant
+        const result = await pool.request()
+            .input('ConsultantID', sql.Int, consultantId)
+            .query(`
+                SELECT AVG(Rating) AS averageRating
+                FROM Appointment
+                WHERE ConsultantID = @ConsultantID
+            `);
+
+        const averageRating = result.recordset[0]?.averageRating || 0;
+
+        res.status(200).json({
+            message: 'Lấy đánh giá trung bình thành công',
+            data: { averageRating }
+        });
+    } catch (error) {
+        console.error('Error getting average rating:', error);
+        res.status(500).json({ message: 'Lỗi máy chủ khi lấy đánh giá trung bình' });
+    }
 }

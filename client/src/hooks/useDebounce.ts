@@ -12,7 +12,7 @@ function useDebounce(value: string, delay = 500) {
     useEffect(() => {
         const timer = setTimeout(() => setDebouncedValue(value), delay);
 
-        return () => clearTimeout(timer); // Cleanup on value/delay change or unmount
+        return () => clearTimeout(timer);
     }, [value, delay]);
 
     return debouncedValue;
