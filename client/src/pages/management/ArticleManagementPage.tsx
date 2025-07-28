@@ -17,7 +17,6 @@ import {
 import { Article, CreateArticleData, UpdateArticleData } from '../../types/Article';
 
 const ArticleManagementPage: React.FC = () => {
-    const { user } = useUser();
     const [articles, setArticles] = useState<Article[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
