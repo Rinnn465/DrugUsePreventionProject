@@ -11,8 +11,7 @@ interface AssessmentResult {
 export const saveAssessmentResult = async (req: Request, res: Response): Promise<void> => {
     const { account_id, assessment_id, score, risk_level } = req.body as AssessmentResult;
 
-    console.log('=== NHẬN YÊU CẦU POST ===');
-    console.log('Dữ liệu nhận được:', JSON.stringify(req.body, null, 2));
+    
 
     // Kiểm tra dữ liệu đầu vào
     if (!account_id || !assessment_id || score === undefined || !risk_level) {
@@ -25,7 +24,7 @@ export const saveAssessmentResult = async (req: Request, res: Response): Promise
     }
 
     try {
-        console.log('Kết nối tới SQL Server bằng poolPromise...');
+        
         const pool = await poolPromise;
         const request = pool.request();
 
@@ -38,7 +37,7 @@ export const saveAssessmentResult = async (req: Request, res: Response): Promise
         request.input('AccountID', sql.Int, account_id);
         request.input('AssessmentID', sql.Int, assessment_id);
         const checkResult = await request.query(checkQuery);
-        console.log('Kết quả kiểm tra bản ghi:', JSON.stringify(checkResult.recordset, null, 2));
+        
 
         if (checkResult.recordset.length > 0) {
             // Cập nhật bản ghi cũ
@@ -52,8 +51,7 @@ export const saveAssessmentResult = async (req: Request, res: Response): Promise
             request.input('Score', sql.Int, score);
             request.input('RiskLevel', sql.NVarChar, risk_level);
 
-            console.log('Thực thi query cập nhật:', updateQuery);
-            console.log('Tham số:', { result_id: resultId, score, risk_level });
+            
 
             const updateResult = await request.query(updateQuery);
             if (updateResult.rowsAffected[0] === 0) {
@@ -74,8 +72,7 @@ export const saveAssessmentResult = async (req: Request, res: Response): Promise
             request.input('Score', sql.Int, score);
             request.input('RiskLevel', sql.NVarChar, risk_level);
 
-            console.log('Thực thi query thêm mới:', insertQuery);
-            console.log('Tham số:', { account_id, assessment_id, score, risk_level });
+            
 
             const insertResult = await request.query(insertQuery);
             if (insertResult.rowsAffected[0] === 0) {
@@ -155,6 +152,64 @@ export const deleteAssessmentResult = async (req: Request, res: Response): Promi
         console.error('Lỗi khi xóa kết quả đánh giá:', error.message);
         res.status(500).json({ 
             error: 'Không thể xóa kết quả đánh giá',
+            details: error.message
+        });
+    }
+};
+
+export const getAssessmentResultByAssessment = async (req: Request, res: Response): Promise<void> => {
+    const { assessmentId } = req.params;
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!token) {
+        res.status(401).json({ error: 'Token không hợp lệ' });
+        return;
+    }
+
+    try {
+        // Decode token để lấy accountId
+        const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+        const accountId = payload.user?.AccountID;
+        
+        if (!accountId) {
+            res.status(401).json({ error: 'Token không chứa thông tin tài khoản' });
+            return;
+        }
+
+        const pool = await poolPromise;
+        const request = pool.request();
+        
+        const query = `
+            SELECT ResultID, AccountID, AssessmentID, Score, RiskLevel, CreatedAt
+            FROM AssessmentResults
+            WHERE AssessmentID = @assessmentId AND AccountID = @accountId
+            ORDER BY CreatedAt DESC;
+        `;
+        
+        request.input('assessmentId', sql.Int, parseInt(assessmentId));
+        request.input('accountId', sql.Int, accountId);
+        const result = await request.query(query);
+        
+        if (result.recordset.length === 0) {
+            res.status(404).json({ error: 'Không tìm thấy kết quả đánh giá' });
+            return;
+        }
+        
+        // Lấy kết quả mới nhất
+        const latestResult = result.recordset[0];
+        
+        res.status(200).json({ 
+            message: 'Lấy kết quả đánh giá thành công',
+            data: {
+                score: latestResult.Score,
+                risk_level: latestResult.RiskLevel,
+                created_at: latestResult.CreatedAt
+            }
+        });
+    } catch (error: any) {
+        console.error('Lỗi khi lấy kết quả đánh giá theo assessment:', error.message);
+        res.status(500).json({ 
+            error: 'Không thể lấy kết quả đánh giá',
             details: error.message
         });
     }

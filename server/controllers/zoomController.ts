@@ -57,7 +57,7 @@ export async function updateZoomAccountSettings(): Promise<void> {
                 }
             }
         );
-        console.log('Account settings updated for free access');
+            
     } catch (error: any) {
         console.error('Error updating account settings:', error.response?.data || error.message);
     }
@@ -96,7 +96,7 @@ export async function updateZoomUserSettings(): Promise<void> {
                 }
             }
         );
-        console.log('User settings updated for free access');
+        
     } catch (error: any) {
         console.error('Error updating user settings:', error.response?.data || error.message);
     }
@@ -132,11 +132,7 @@ export async function createZoomMeeting(program: CommunityProgram): Promise<{ jo
         programDate.setHours(10, 0, 0, 0); // Set to 10:00 AM
         const startTime = programDate.toISOString();
         
-        console.log('Program Date Input:', program.Date);
-        console.log('Parsed Date:', programDate);
-        console.log('Start Time for Zoom:', startTime);
-        
-        console.log('Creating free-access Zoom meeting...');
+       
         
         const meetingSettings = {
             topic: program.ProgramName,
@@ -177,13 +173,13 @@ export async function createZoomMeeting(program: CommunityProgram): Promise<{ jo
         const meetingId = response.data.id.toString();
         const joinUrl = response.data.join_url;
         
-        console.log('Meeting created:', meetingId);
+       
         
         // Verify meeting settings
         const isPasswordFree = await verifyMeetingSettings(meetingId);
         
         if (!isPasswordFree) {
-            console.log('Applying force fix...');
+            
             await forceRemovePassword(meetingId);
         }
         
@@ -272,7 +268,7 @@ export async function forceRemovePassword(meetingId: string): Promise<void> {
             }
         );
         
-        console.log('Force fix applied to meeting:', meetingId);
+        
     } catch (error: any) {
         console.error('Error applying force fix:', error.response?.data || error.message);
     }
