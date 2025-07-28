@@ -36,7 +36,7 @@ const Pagination: React.FC<PaginationProps> = ({
         } else {
             const halfMaxPages = Math.floor(maxPagesToShow / 2);
             let startPage = Math.max(1, currentPage - halfMaxPages);
-            let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+            const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
 
             // Adjust if we're near the end
             if (endPage - startPage + 1 < maxPagesToShow) {
@@ -99,8 +99,8 @@ const Pagination: React.FC<PaginationProps> = ({
                                 key={pageNumber}
                                 onClick={() => onPageChange(pageNumber)}
                                 className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${pageNumber === currentPage
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                                     }`}
                                 aria-current={pageNumber === currentPage ? 'page' : undefined}
                             >

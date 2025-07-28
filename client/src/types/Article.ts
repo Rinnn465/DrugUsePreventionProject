@@ -12,13 +12,13 @@ export interface Article {
 }
 
 export interface CreateArticleData {
-    Title: string;
+    ArticleTitle: string;
     Content: string;
     Author?: string;
 }
 
 export interface UpdateArticleData {
-    Title?: string;
+    ArticleTitle?: string;
     Content?: string;
     Author?: string;
     IsDisabled?: boolean;

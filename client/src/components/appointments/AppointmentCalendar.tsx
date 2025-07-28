@@ -38,7 +38,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
 
   const { isOpen, openModal, closeModal } = useModal();
   const navigate = useNavigate();
-  // Auto-navigate to earliest available month
+
   useEffect(() => {
     if (schedule && schedule.Schedule && schedule.Schedule.length > 0) {
       const dates = schedule.Schedule
@@ -63,7 +63,6 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
   useEffect(() => {
     if (selectedDate) {
       const dateStr = selectedDate.toISOString().split('T')[0];
-      // Fix: Change the URL to match your route
       fetch(`http://localhost:5000/api/appointment/filter?consultantId=${consultantId}&date=${dateStr}`)
         .then(response => response.json())
         .then(data => {
@@ -183,15 +182,18 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
         return appointmentDate === dateStr && appointmentTime === slot.start;
       });
 
-
       return {
         ...slot,
         isBooked,
       };
+
     });
 
     return slotsWithBookingStatus;
+
   };
+
+
 
   // Format time for display (12-hour format)
   const formatTime = (time: string) => {

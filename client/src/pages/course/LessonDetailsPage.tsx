@@ -287,31 +287,13 @@ const LessonDetailsPage: React.FC = () => {
         }
     }, [isPlaying]);
 
-    const completeCourse = useCallback(async () => {
-        if (!user?.AccountID) {
-            toast.error("Bạn cần đăng nhập để hoàn thành khóa học");
-            return;
-        }
-
-        try {
-            await courses.complete(Number(id), user.AccountID);
-            toast.success("🏆 Khóa học đã được hoàn thành thành công!");
-        } catch (error) {
-            console.error("Error completing course:", error);
-            toast.error("Không thể hoàn thành khóa học");
-        }
-    }, [user?.AccountID, id]);
-
     const checkCourseCompletion = useCallback(() => {
         const allLessonsCompleted = !lesson || completedLessons.size === lesson.length;
         if (allLessonsCompleted && !courseCompleted) {
-            setCourseCompleted(true);
-            toast.success("🎉 Chúc mừng! Bạn đã hoàn thành tất cả bài học.");
-            completeCourse();
             return true;
         }
         return false;
-    }, [lesson, completedLessons.size, courseCompleted, completeCourse]);
+    }, [lesson, completedLessons.size, courseCompleted]);
 
     const handleVideoTimeUpdate = (lessonId: string | number) => {
         if (videoRef.current && !isSeekingRef.current && !videoRef.current.paused) {
@@ -356,7 +338,6 @@ const LessonDetailsPage: React.FC = () => {
                         setCompletedMilestones((prev) => {
                             const newMilestones = new Set(lessonMilestones);
                             newMilestones.add(currentMilestone);
-                            console.log(`Reached ${currentMilestone}% milestone for lesson ${lessonId}`);
                             updateLessonProgress(lessonId, currentMilestone, newLastValidTime);
 
                             return { ...prev, [lessonIdStr]: newMilestones };

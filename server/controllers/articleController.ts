@@ -206,13 +206,8 @@ export const updateArticle = async (req: Request, res: Response): Promise<void> 
         return;
     }
     const {
-        AccountID,
         ArticleTitle,
-        PublishedDate,
-        ImageUrl,
         Author,
-        Status,
-        Description,
         Content,
         IsDisabled
     } = req.body;
@@ -224,27 +219,17 @@ export const updateArticle = async (req: Request, res: Response): Promise<void> 
         const pool = await poolPromise;
         const updateResult = await pool.request()
             .input('BlogID', articleId)
-            .input('AccountID', AccountID)
             .input('ArticleTitle', ArticleTitle)
-            .input('PublishedDate', PublishedDate)
-            .input('ImageUrl', ImageUrl)
             .input('Author', Author)
-            .input('Status', Status)
-            .input('Description', Description)
             .input('Content', Content)
             .input('IsDisabled', IsDisabled ?? 0)
             .query(`
                 UPDATE Article SET
-                    AccountID = @AccountID,
                     ArticleTitle = @ArticleTitle,
-                    PublishedDate = @PublishedDate,
-                    ImageUrl = @ImageUrl,
                     Author = @Author,
-                    Status = @Status,
-                    Description = @Description,
                     Content = @Content,
                     IsDisabled = @IsDisabled
-                WHERE BlogID = @BlogID
+                WHERE BlogID = @BlogID  
             `);
         if (updateResult.rowsAffected[0] === 0) {
             res.status(404).json({ message: "Không tìm thấy bài viết" });
