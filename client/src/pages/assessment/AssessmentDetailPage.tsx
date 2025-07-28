@@ -6,6 +6,7 @@ import * as Yup from 'yup';
 import { assessmentData } from '../../data/assessmentData';
 import { SqlCourse } from '../../types/Course';
 import { Assessment } from '../../types/Assessment';
+import { useUser } from '@/context/UserContext';
 
 type FormValues = {
   [key: string]: string | string[];
@@ -71,6 +72,7 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
     }
   };
 
+
   return (
     <div className="flex justify-between items-center mt-6">
       <button
@@ -119,6 +121,7 @@ const DEFAULT_AVATAR = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD
 
 const AssessmentDetailPage: React.FC = () => {
   const { assessmentId } = useParams<{ assessmentId: string }>();
+  const { user } = useUser();
   const assessment = assessmentData[Number(assessmentId) - 1];
   const [result, setResult] = useState<number | null>(-1);
   const [risk, setRisk] = useState<string>('thấp');
@@ -296,7 +299,7 @@ const AssessmentDetailPage: React.FC = () => {
     }
 
     try {
-      const accountId = 1; // TODO: Thay bằng AccountID từ token
+      const accountId = user?.AccountID;
       const resultData = {
         account_id: accountId,
         assessment_id: Number(assessmentId),
@@ -456,7 +459,7 @@ const AssessmentDetailPage: React.FC = () => {
           const exactMatch = audienceNormalized === categoryNormalized;
           const audienceContainsCategory = audienceNormalized.includes(categoryNormalized);
           const categoryContainsAudience = categoryNormalized.includes(audienceNormalized);
-          
+
           // Additional flexible matching
           const flexibleMatches = (
             (audienceNormalized === 'học sinh' && categoryNormalized.includes('sinh viên')) ||
@@ -493,19 +496,19 @@ const AssessmentDetailPage: React.FC = () => {
       console.log('\n=== NO COURSES MATCHED - TRYING RISK-ONLY FILTER ===');
       const riskOnlyFiltered = courses.filter(course => course.Risk === risk);
       console.log(`Risk-only filtered courses: ${riskOnlyFiltered.length}`);
-      
+
       if (riskOnlyFiltered.length > 0) {
         console.log('Returning risk-only filtered courses:', riskOnlyFiltered.map(c => c.CourseName));
         return riskOnlyFiltered;
       }
-      
+
       // Last fallback: show all courses with some logging about the mismatch
       console.log('\n=== NO RISK MATCH EITHER - SHOWING ALL COURSES ===');
       console.log('Available risk levels in courses:', [...new Set(courses.map(c => c.Risk))]);
       console.log('Target risk level:', risk);
       console.log('Available categories in courses:', courses.flatMap(c => c.Category?.map(cat => cat.CategoryName) || []));
       console.log('Target audiences:', assessment.audiences);
-      
+
       return courses.slice(0, 6); // Show first 6 courses as fallback
     }
 
@@ -605,6 +608,7 @@ const AssessmentDetailPage: React.FC = () => {
   const filteredConsultants = result !== null && result > -1 ? getFilteredConsultants() : [];
 
   return (
+
     <div className='container mx-auto px-4 py-8'>
       {result === -1 && (
         <Formik
@@ -895,7 +899,7 @@ const AssessmentDetailPage: React.FC = () => {
                       src={course.ImageUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjE0cHgiIGZpbGw9IiM5OTk5OTkiPkjDrG5oIMSRw6BvIHThuqFvPC90ZXh0Pjwvc3ZnPg=='}
                       alt={course.CourseName}
                       className="w-full h-32 object-cover rounded-lg mb-3"
-                      onError={(e) => { 
+                      onError={(e) => {
                         const fallback = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjE0cHgiIGZpbGw9IiM5OTk5OTkiPkjDrG5oIMSRw6BvIHThuqFvPC90ZXh0Pjwvc3ZnPg==';
                         if (e.currentTarget.src !== fallback) {
                           e.currentTarget.src = fallback;
@@ -943,7 +947,7 @@ const AssessmentDetailPage: React.FC = () => {
                       src={consultant.ImageUrl || DEFAULT_AVATAR}
                       alt={consultant.Name}
                       className="w-14 h-14 rounded-full object-cover border-2 border-accent-300 shadow"
-                      onError={(e) => { 
+                      onError={(e) => {
                         if (e.currentTarget.src !== DEFAULT_AVATAR) {
                           e.currentTarget.src = DEFAULT_AVATAR;
                         }

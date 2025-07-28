@@ -1,7 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ClipboardCheck, AlertTriangle, InfoIcon, Search } from 'lucide-react';
 import { assessmentData } from '../../data/assessmentData';
+import { useUser } from '@/context/UserContext';
+import useModal from '@/hooks/useModal';
+import Modal from '@/components/modal/ModalNotification';
 
 type AssessmentColor = 'primary' | 'secondary' | 'accent' | 'success' | 'warning' | 'error';
 const colorMap: Record<AssessmentColor, { gradient: string; text: string; badge: string; button: string }> = {
@@ -45,6 +48,9 @@ const colorMap: Record<AssessmentColor, { gradient: string; text: string; badge:
 
 // Update the AssessmentsPage component
 const AssessmentsPage: React.FC = () => {
+  const { user } = useUser();
+  const navigate = useNavigate();
+  const { isOpen, openModal, closeModal } = useModal();
   const [selectedAudience, setSelectedAudience] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -76,9 +82,25 @@ const AssessmentsPage: React.FC = () => {
   };
 
   const hasActiveFilters = selectedAudience !== 'all' || searchTerm !== '';
-
+  const handleNavigate = (assessmentId: string) => {
+    if (!user?.AccountID) {
+      openModal();
+    } else {
+      window.location.href = `/assessments/${assessmentId}`;
+    }
+  };
   return (
     <div className="bg-gray-50 min-h-screen">
+      <Modal
+        isOpen={isOpen}
+        onClose={closeModal}
+        title="Bạn cần đăng nhập"
+        description="Vui lòng đăng nhập để tham gia khóa học này."
+        confirmMessage="Đăng nhập ngay"
+        confirmUrl={() => {
+          navigate('/login');
+        }}
+      />
       {/* Hero Section - keep as is */}
       <div className="relative bg-gradient-to-r from-primary-600 via-primary-700 to-blue-600 overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>
@@ -258,13 +280,13 @@ const AssessmentsPage: React.FC = () => {
                             <div className="flex flex-wrap items-center gap-4 mb-4">
                               <div className="flex flex-wrap gap-2">
                                 <span className="text-sm font-semibold text-gray-700">Đề xuất cho:</span>
-                                {assessment.audiences.map((audience, index) => (
+                                {assessment.audiences.map((audience) => (
                                   <button
                                     key={audience}
                                     onClick={() => setSelectedAudience(audience)}
                                     className={`text-sm px-3 py-1 rounded-full font-bold shadow transition-all hover:shadow-md cursor-pointer ${selectedAudience === audience
-                                        ? `${colorMap[colorKey].badge} ring-2 ring-offset-1 ring-blue-400`
-                                        : `${colorMap[colorKey].badge} hover:bg-opacity-80`
+                                      ? `${colorMap[colorKey].badge} ring-2 ring-offset-1 ring-blue-400`
+                                      : `${colorMap[colorKey].badge} hover:bg-opacity-80`
                                       }`}
                                   >
                                     {audience}
@@ -274,12 +296,12 @@ const AssessmentsPage: React.FC = () => {
                             </div>
                           </div>
                           <div className="flex-shrink-0">
-                            <Link
-                              to={`/assessments/${assessment.id}`}
+                            <button
+                              onClick={() => handleNavigate(String(assessment.id))}
                               className={`inline-block bg-gradient-to-r ${colorMap[colorKey].button} text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl text-lg`}
                             >
                               Bắt đầu đánh giá
-                            </Link>
+                            </button>
                           </div>
                         </div>
                       </div>

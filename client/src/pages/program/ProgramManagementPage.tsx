@@ -87,7 +87,7 @@ const ProgramManagementPage: React.FC = () => {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             console.log('🚀 Fetching programs with token:', token ? 'Has token' : 'No token');
             console.log('👤 User info:', user);
-            
+
             if (token) {
                 const tokenParts = token.split('.');
                 if (tokenParts.length === 3) {
@@ -99,7 +99,7 @@ const ProgramManagementPage: React.FC = () => {
                     }
                 }
             }
-            
+
             const response = await fetch('http://localhost:5000/api/program', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -195,7 +195,6 @@ const ProgramManagementPage: React.FC = () => {
             setSendingInvite(false);
         }
     };
-
     // Regenerate Zoom link for a program
     const regenerateZoomLink = async (program: CommunityProgram) => {
         try {
@@ -276,7 +275,7 @@ const ProgramManagementPage: React.FC = () => {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(formik.values)
             });
 
             if (response.ok) {
@@ -313,7 +312,7 @@ const ProgramManagementPage: React.FC = () => {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(formik.values)
             });
 
             if (response.ok) {
@@ -938,6 +937,7 @@ const ProgramManagementPage: React.FC = () => {
                                         </label>
                                         <input
                                             id="editDate"
+                                            name='date'
                                             type="date"
                                             required
                                             min={new Date().toISOString().split('T')[0]} // Không cho chọn ngày quá khứ
