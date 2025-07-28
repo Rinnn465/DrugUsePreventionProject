@@ -159,3 +159,61 @@ export const deleteAssessmentResult = async (req: Request, res: Response): Promi
         });
     }
 };
+
+export const getAssessmentResultByAssessment = async (req: Request, res: Response): Promise<void> => {
+    const { assessmentId } = req.params;
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!token) {
+        res.status(401).json({ error: 'Token không hợp lệ' });
+        return;
+    }
+
+    try {
+        // Decode token để lấy accountId
+        const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+        const accountId = payload.user?.AccountID;
+        
+        if (!accountId) {
+            res.status(401).json({ error: 'Token không chứa thông tin tài khoản' });
+            return;
+        }
+
+        const pool = await poolPromise;
+        const request = pool.request();
+        
+        const query = `
+            SELECT ResultID, AccountID, AssessmentID, Score, RiskLevel, CreatedAt
+            FROM AssessmentResults
+            WHERE AssessmentID = @assessmentId AND AccountID = @accountId
+            ORDER BY CreatedAt DESC;
+        `;
+        
+        request.input('assessmentId', sql.Int, parseInt(assessmentId));
+        request.input('accountId', sql.Int, accountId);
+        const result = await request.query(query);
+        
+        if (result.recordset.length === 0) {
+            res.status(404).json({ error: 'Không tìm thấy kết quả đánh giá' });
+            return;
+        }
+        
+        // Lấy kết quả mới nhất
+        const latestResult = result.recordset[0];
+        
+        res.status(200).json({ 
+            message: 'Lấy kết quả đánh giá thành công',
+            data: {
+                score: latestResult.Score,
+                risk_level: latestResult.RiskLevel,
+                created_at: latestResult.CreatedAt
+            }
+        });
+    } catch (error: any) {
+        console.error('Lỗi khi lấy kết quả đánh giá theo assessment:', error.message);
+        res.status(500).json({ 
+            error: 'Không thể lấy kết quả đánh giá',
+            details: error.message
+        });
+    }
+};
