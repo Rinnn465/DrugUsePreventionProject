@@ -30,7 +30,6 @@ export const getArticles = async (req: Request, res: Response): Promise<void> =>
                 CAST(Content AS NVARCHAR(MAX)) as Content,
                 IsDisabled
             FROM Article
-            WHERE IsDisabled = 0
             ORDER BY PublishedDate DESC
         `);
 
