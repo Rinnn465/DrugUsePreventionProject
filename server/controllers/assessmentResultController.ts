@@ -214,3 +214,40 @@ export const getAssessmentResultByAssessment = async (req: Request, res: Respons
         });
     }
 };
+
+export const deleteAssessmentResultByAssessment = async (req: Request, res: Response): Promise<void> => {
+    const { assessmentId } = req.params;
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+        res.status(401).json({ error: 'Token không hợp lệ' });
+        return;
+    }
+    try {
+        // Decode token để lấy accountId
+        const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+        const accountId = payload.user?.AccountID;
+        if (!accountId) {
+            res.status(401).json({ error: 'Token không chứa thông tin tài khoản' });
+            return;
+        }
+        const pool = await poolPromise;
+        const request = pool.request();
+        // Xóa kết quả mới nhất của user cho assessment này
+        const selectQuery = `SELECT TOP 1 ResultID FROM AssessmentResults WHERE AssessmentID = @assessmentId AND AccountID = @accountId ORDER BY CreatedAt DESC;`;
+        request.input('assessmentId', sql.Int, parseInt(assessmentId));
+        request.input('accountId', sql.Int, accountId);
+        const selectResult = await request.query(selectQuery);
+        if (selectResult.recordset.length === 0) {
+            res.status(404).json({ error: 'Không tìm thấy kết quả đánh giá để xóa' });
+            return;
+        }
+        const resultId = selectResult.recordset[0].ResultID;
+        const deleteQuery = `DELETE FROM AssessmentResults WHERE ResultID = @resultId;`;
+        request.input('resultId', sql.Int, resultId);
+        await request.query(deleteQuery);
+        res.status(200).json({ message: 'Xóa kết quả đánh giá thành công' });
+    } catch (error: any) {
+        console.error('Lỗi khi xóa kết quả đánh giá:', error.message);
+        res.status(500).json({ error: 'Không thể xóa kết quả đánh giá', details: error.message });
+    }
+};

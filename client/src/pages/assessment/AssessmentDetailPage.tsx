@@ -364,29 +364,41 @@ const AssessmentDetailPage: React.FC = () => {
       setRisk(parsedResult.risk);
       setHasViewedResult(true);
     }
-
-    const fetchResultIfAuthorized = async () => {
-      if (isAuthorized()) {
-        try {
-          const token = localStorage.getItem('token');
-          const response = await fetch(`http://localhost:5000/api/assessment/assessment-results/by-assessment/${assessmentId}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-            },
-          });
-          if (!response.ok) throw new Error('Failed to fetch assessment result');
-          const resultData = await response.json();
-          setResult(resultData.data.score);
-          setRisk(resultData.data.risk_level);
-        } catch (error) {
-          console.error('Error fetching result:', error);
-        }
-      }
-    };
-    fetchResultIfAuthorized();
   }, [assessmentId]);
+
+  const fetchResultIfAuthorized = async () => {
+    if (!user) {
+      console.log('fetchResultIfAuthorized: user is null, skip fetch');
+      return;
+    }
+    const token = localStorage.getItem('token');
+    console.log('fetchResultIfAuthorized: token =', token);
+    console.log('fetchResultIfAuthorized: user =', user);
+    try {
+      const response = await fetch(`http://localhost:5000/api/assessment/assessment-results/by-assessment/${assessmentId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      console.log('fetchResultIfAuthorized: response status =', response.status);
+      const resultData = await response.json();
+      console.log('fetchResultIfAuthorized: response data =', resultData);
+      if (!response.ok) throw new Error(resultData?.error || 'Failed to fetch assessment result');
+      setResult(resultData.data.score);
+      setRisk(resultData.data.risk_level);
+    } catch (error) {
+      console.error('Error fetching result:', error);
+      setResult(-1);
+      setRisk('thấp');
+    }
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    fetchResultIfAuthorized();
+  }, [assessmentId, user]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -590,13 +602,26 @@ const AssessmentDetailPage: React.FC = () => {
     });
   };
 
-  const handleRedoAssessment = () => {
-    localStorage.removeItem(`assessmentResult_${assessmentId}`);
-    setResult(-1);
-    setRisk('thấp');
-    setCurrentQuestionIndex(0);
-    setHasViewedResult(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleRedoAssessment = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch(`http://localhost:5000/api/assessment/assessment-results/by-assessment/${assessmentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) throw new Error('Failed to delete assessment result');
+      setResult(-1);
+      setRisk('thấp');
+      setCurrentQuestionIndex(0);
+      setHasViewedResult(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (error) {
+      alert('Không thể xóa kết quả.');
+      console.error('Error deleting assessment result:', error);
+    }
   };
 
   const handleBackToAssessments = () => {
