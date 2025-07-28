@@ -59,10 +59,16 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         // Menu cho Manager
         ...(user?.RoleName === 'Manager' ? [
             {
-                label: "Quản lý dự án",
+                label: "Quản lý khóa học",
                 icon: BookOpen,
-                link: `/roles/${user?.RoleID}/project-manage`,
-                isActive: location.pathname.includes('/project-manage')
+                link: `/roles/${user?.RoleID}/course-manage`,
+                isActive: location.pathname.includes('/course-manage')
+            },
+            {
+                label: "Quản lý bài viết",
+                icon: FileText,
+                link: `/roles/${user?.RoleID}/article-manage`,
+                isActive: location.pathname.includes('/article-manage')
             },
             {
                 label: "Quản lý chương trình",
@@ -72,7 +78,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             },
             {
                 label: "Báo cáo & Phân tích",
-                icon: FileText,
+                icon: Settings,
                 link: `/roles/${user?.RoleID}/reports`,
                 isActive: location.pathname.includes('/reports')
             }

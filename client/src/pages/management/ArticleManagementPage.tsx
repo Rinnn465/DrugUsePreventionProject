@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import AdminLayout from '../../components/AdminLayout';
-import {
-    FileText,
-    Search,
-    Filter,
-    Plus,
-    Edit,
-    Trash2,
-    Eye,
-    EyeOff,
+import { 
+    FileText, 
+    Search, 
+    Filter, 
+    Plus, 
+    Edit, 
+    Trash2, 
+    Eye, 
+    EyeOff, 
     Calendar,
     User,
     AlertCircle
@@ -69,7 +69,14 @@ const ArticleManagementPage: React.FC = () => {
 
             if (response.ok) {
                 const data = await response.json();
-                setArticles(data);
+                // Ensure data is an array before setting
+                if (Array.isArray(data)) {
+                    setArticles(data);
+                } else {
+                    console.error('Expected array but got:', data);
+                    setArticles([]);
+                    toast.error('Dữ liệu bài viết không đúng định dạng');
+                }
             } else {
                 toast.error('Không thể tải danh sách bài viết');
             }
@@ -82,11 +89,35 @@ const ArticleManagementPage: React.FC = () => {
     }, []);
 
     const createArticle = async () => {
+        // Validation
+        if (!formData.Title.trim()) {
+            toast.error('Vui lòng nhập tiêu đề bài viết');
+            return;
+        }
+        
+        if (!formData.Content.trim()) {
+            toast.error('Vui lòng nhập nội dung bài viết');
+            return;
+        }
+
         try {
+            // Transform data to match backend API format
+            const articleData = {
+                AccountID: user?.AccountID || null,
+                ArticleTitle: formData.Title,
+                Content: formData.Content,
+                Author: formData.Author || user?.FullName || 'Anonymous',
+                PublishedDate: new Date().toISOString(),
+                Status: 'Published',
+                Description: null,
+                ImageUrl: null,
+                IsDisabled: false
+            };
+
             const response = await fetch('http://localhost:5000/api/article', {
                 method: 'POST',
                 headers: getAuthHeaders(),
-                body: JSON.stringify(formData)
+                body: JSON.stringify(articleData)
             });
 
             if (response.ok) {
@@ -111,7 +142,12 @@ const ArticleManagementPage: React.FC = () => {
             const updateData: UpdateArticleData = {
                 ArticleTitle: formData.ArticleTitle,
                 Content: formData.Content,
-                Author: formData.Author
+                Author: formData.Author || user?.FullName || 'Anonymous',
+                PublishedDate: selectedArticle.PublishedDate,
+                Status: selectedArticle.Status,
+                Description: selectedArticle.Description,
+                ImageUrl: selectedArticle.ImageUrl,
+                IsDisabled: selectedArticle.IsDisabled
             };
 
             const response = await fetch(`http://localhost:5000/api/article/${selectedArticle.BlogID}`, {
@@ -213,9 +249,9 @@ const ArticleManagementPage: React.FC = () => {
 
     // Filter articles
     const filteredArticles = articles.filter(article => {
-        const matchesSearch =
+        const matchesSearch = 
             article.ArticleTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            article.Author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (article.Author || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
             article.Content.toLowerCase().includes(searchTerm.toLowerCase());
 
         const matchesStatus = statusFilter === 'all' ||

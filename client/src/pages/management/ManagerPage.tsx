@@ -6,8 +6,7 @@ import {
     BookOpen, 
     Calendar, 
     BarChart3,
-    FileText,
-    Target
+    FileText
 } from "lucide-react";
 
 const ManagerPage: React.FC = () => {
@@ -33,14 +32,23 @@ const ManagerPage: React.FC = () => {
                         <BarChart3 className="h-5 w-5 mr-2 text-primary-600" />
                         Thao tác nhanh
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <Link
-                            to={`/roles/${user?.RoleID}/project-manage`}
+                            to={`/roles/${user?.RoleID}/course-manage`}
                             className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors group"
                         >
                             <div className="text-center">
-                                <Target className="h-8 w-8 text-gray-400 group-hover:text-primary-500 mx-auto mb-2" />
-                                <span className="text-sm font-medium text-gray-600 group-hover:text-primary-600">Quản lý dự án</span>
+                                <BookOpen className="h-8 w-8 text-gray-400 group-hover:text-primary-500 mx-auto mb-2" />
+                                <span className="text-sm font-medium text-gray-600 group-hover:text-primary-600">Quản lý khóa học</span>
+                            </div>
+                        </Link>
+                        <Link
+                            to={`/roles/${user?.RoleID}/article-manage`}
+                            className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors group"
+                        >
+                            <div className="text-center">
+                                <FileText className="h-8 w-8 text-gray-400 group-hover:text-primary-500 mx-auto mb-2" />
+                                <span className="text-sm font-medium text-gray-600 group-hover:text-primary-600">Quản lý bài viết</span>
                             </div>
                         </Link>
                         <Link
@@ -57,7 +65,7 @@ const ManagerPage: React.FC = () => {
                             className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors group"
                         >
                             <div className="text-center">
-                                <FileText className="h-8 w-8 text-gray-400 group-hover:text-primary-500 mx-auto mb-2" />
+                                <BarChart3 className="h-8 w-8 text-gray-400 group-hover:text-primary-500 mx-auto mb-2" />
                                 <span className="text-sm font-medium text-gray-600 group-hover:text-primary-600">Báo cáo & Phân tích</span>
                             </div>
                         </Link>
