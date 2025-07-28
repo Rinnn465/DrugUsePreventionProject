@@ -8,11 +8,13 @@ import {
     ChevronDown,
     Clock,
     FileText,
-    Video
+    Video,
+    Users
 } from 'lucide-react';
 import { SqlCourse, CourseFormData } from '../../types/Course';
 import { sqlLesson } from '../../types/Lesson';
 import AdminLayout from '../../components/AdminLayout';
+import CourseEnrollmentsModal from '../../components/courses/CourseEnrollmentsModal';
 import { toast } from 'react-toastify';
 
 
@@ -42,6 +44,9 @@ const CourseManagmentPage: React.FC = () => {
         Status: 'active',
         IsDisabled: false
     });
+
+    // Enrollments modal state
+    const [showEnrollmentsModal, setShowEnrollmentsModal] = useState(false);
 
     // Form data state
     const [formData, setFormData] = useState<CourseFormData>({
@@ -583,6 +588,16 @@ const CourseManagmentPage: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex items-center space-x-2">
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedCourse(course);
+                                                        setShowEnrollmentsModal(true);
+                                                    }}
+                                                    className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                                                    title="Xem danh sách người tham gia"
+                                                >
+                                                    <Users className="h-4 w-4" />
+                                                </button>
                                                 <button
                                                     onClick={() => openLessonsModal(course)}
                                                     className="text-green-600 hover:text-green-900 p-1 rounded"
@@ -1260,6 +1275,16 @@ const CourseManagmentPage: React.FC = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Course Enrollments Modal */}
+            {showEnrollmentsModal && selectedCourse && (
+                <CourseEnrollmentsModal
+                    isOpen={showEnrollmentsModal}
+                    onClose={() => setShowEnrollmentsModal(false)}
+                    courseId={selectedCourse.CourseID}
+                    courseName={selectedCourse.CourseName}
+                />
             )}
         </AdminLayout>
     );

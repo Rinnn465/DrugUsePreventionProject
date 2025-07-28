@@ -173,4 +173,11 @@ router.get("/statistics/compare-completion-rate", authorizeRoles(["Admin"]), cou
  */
 router.get("/statistics/enroll-monthly", authorizeRoles(["Admin"]), courseController.getMonthlyCourseEnrollmentStatistics);
 
+/**
+ * @route GET /api/course/:courseId/enrollments
+ * @desc Lấy danh sách người tham gia của một khóa học
+ * @access Chỉ Admin, Manager
+ */
+router.get("/:courseId/enrollments", authorizeRoles(["Admin", "Manager"]), courseController.getCourseEnrollments);
+
 export default router;

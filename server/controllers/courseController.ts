@@ -951,3 +951,118 @@ export async function compareCourseCompletionRateStatistics(req: Request, res: R
     }
 }
 
+/**
+ * Lấy danh sách người tham gia của một khóa học
+ *
+ * @route GET /api/course/:courseId/enrollments
+ * @access Private (Admin, Manager)
+ * @param {Request} req - Đối tượng request của Express
+ * @param {Response} res - Đối tượng response của Express
+ * @returns {Promise<void>} Phản hồi JSON với danh sách người tham gia
+ * @throws {400} Nếu courseId không hợp lệ
+ * @throws {404} Nếu không tìm thấy khóa học
+ * @throws {500} Nếu có lỗi truy vấn cơ sở dữ liệu
+ */
+export async function getCourseEnrollments(req: Request, res: Response): Promise<void> {
+    try {
+        const courseId = parseInt(req.params.courseId);
+        
+        if (!courseId || isNaN(courseId)) {
+            res.status(400).json({
+                success: false,
+                message: 'Course ID không hợp lệ'
+            });
+            return;
+        }
+
+        const pool = await poolPromise;
+        
+        // Kiểm tra khóa học có tồn tại không
+        const courseCheckQuery = `
+            SELECT CourseID, CourseName 
+            FROM Course 
+            WHERE CourseID = @courseId AND IsDisabled = 0
+        `;
+        
+        const courseCheckRequest = pool.request();
+        courseCheckRequest.input('courseId', sql.Int, courseId);
+        const courseResult = await courseCheckRequest.query(courseCheckQuery);
+        
+        if (courseResult.recordset.length === 0) {
+            res.status(404).json({
+                success: false,
+                message: 'Không tìm thấy khóa học'
+            });
+            return;
+        }
+
+        // Lấy danh sách người tham gia với thông tin chi tiết
+        const query = `
+            SELECT 
+                e.EnrollmentID,
+                e.CourseID,
+                e.AccountID,
+                e.EnrollmentDate,
+                e.CompletedDate,
+                e.Status,
+                a.Username,
+                a.Email,
+                a.FullName,
+                a.DateOfBirth,
+                a.CreatedAt as AccountCreatedAt,
+                a.ProfilePicture,
+                r.RoleName
+            FROM Enrollment e
+            INNER JOIN Account a ON e.AccountID = a.AccountID
+            INNER JOIN Role r ON a.RoleID = r.RoleID
+            WHERE e.CourseID = @courseId
+            ORDER BY e.EnrollmentDate DESC
+        `;
+
+        const request = pool.request();
+        request.input('courseId', sql.Int, courseId);
+        const result = await request.query(query);
+
+        const enrollments = result.recordset.map((row: any) => ({
+            EnrollmentID: row.EnrollmentID,
+            CourseID: row.CourseID,
+            AccountID: row.AccountID,
+            EnrollmentDate: row.EnrollmentDate,
+            CompletedDate: row.CompletedDate,
+            Status: row.Status,
+            User: {
+                Username: row.Username,
+                Email: row.Email,
+                FullName: row.FullName,
+                DateOfBirth: row.DateOfBirth,
+                AccountCreatedAt: row.AccountCreatedAt,
+                ProfilePicture: row.ProfilePicture,
+                RoleName: row.RoleName
+            }
+        }));
+
+        res.status(200).json({
+            success: true,
+            message: 'Lấy danh sách người tham gia thành công',
+            data: enrollments,
+            course: {
+                CourseID: courseResult.recordset[0].CourseID,
+                CourseName: courseResult.recordset[0].CourseName
+            },
+            statistics: {
+                total: enrollments.length,
+                completed: enrollments.filter(e => e.Status === 'completed').length,
+                inProgress: enrollments.filter(e => e.Status === 'in_progress').length,
+                enrolled: enrollments.filter(e => e.Status === 'enrolled').length
+            }
+        });
+
+    } catch (error) {
+        console.error('Error getting course enrollments:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Có lỗi xảy ra khi lấy danh sách người tham gia'
+        });
+    }
+}
+
