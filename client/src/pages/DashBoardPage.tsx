@@ -1,3 +1,4 @@
+import React from 'react';
 import { useEffect, useState, ChangeEvent, FormEvent, useCallback } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
 import { useUser } from "../context/UserContext";
@@ -777,6 +778,16 @@ const DashBoardPage: React.FC = () => {
     }
   };
 
+  React.useEffect(() => {
+    if (user) {
+      setProfileForm({
+        username: user.Username || '',
+        email: user.Email || '',
+        fullName: user.FullName || '',
+        dateOfBirth: user.DateOfBirth ? new Date(user.DateOfBirth).toISOString().split('T')[0] : '',
+      });
+    }
+  }, [user]);
 
   // Main Dashboard Page (modified to include consultant sections)
   if (!isCoursesPage && !isEventsPage && !isAppointmentsPage && !isProfilePage && !isSecurityPage) {
@@ -1152,8 +1163,8 @@ const DashBoardPage: React.FC = () => {
                   <Users className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Sự kiện của tôi</h1>
-                  <p className="text-gray-600">Theo dõi các sự kiện đã tham gia và sắp tới</p>
+                  <h1 className="text-3xl font-bold text-gray-900">Chương trình của tôi</h1>
+                  <p className="text-gray-600">Theo dõi các chương trình đã tham gia và sắp tới</p>
                 </div>
               </div>
             </div>
@@ -1163,7 +1174,7 @@ const DashBoardPage: React.FC = () => {
               {isLoadingEvents ? (
                 <div className="text-center py-16">
                   <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-200 border-t-green-600 mx-auto"></div>
-                  <p className="text-gray-600 mt-6 text-lg">Đang tải sự kiện...</p>
+                  <p className="text-gray-600 mt-6 text-lg">Đang tải chương trình...</p>
                 </div>
               ) : enrolledEvents.length > 0 ? (
                 <div className="space-y-6">

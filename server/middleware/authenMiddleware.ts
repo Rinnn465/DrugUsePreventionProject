@@ -50,14 +50,9 @@ const authorizeRoles =
         const accountData = accountResult.recordset[0];
 
         if (!userRoleName || !allowedRoles.includes(userRoleName)) {
-          console.log(`❌ Auth Failed: RoleName="${userRoleName}" not in AllowedRoles=[${allowedRoles.join(',')}]`);
-          res.status(403).json({ message: "Forbidden: Role not allowed" });
+          res.status(403).json({ message: "Bạn không có quyền truy cập trang này" });
           return;
         }
-
-        console.log(`✅ Auth Success: User ${decoded.user?.UserID} with role ${userRoleName} authorized`);
-        
-
         // Check if account is disabled
         if (accountData?.IsDisabled) {
           res.status(403).json({ message: "Tài khoản của bạn đã bị vô hiệu hóa." });

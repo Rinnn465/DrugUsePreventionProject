@@ -135,9 +135,13 @@ export const resizeImage = (
  * @returns Validation result
  */
 export const validateImageFile = (file: File, maxSize: number = 10 * 1024 * 1024): { valid: boolean; error?: string } => {
-  // Check file type
-  if (!file.type.startsWith('image/')) {
-    return { valid: false, error: 'Vui lòng chọn file ảnh hợp lệ (JPEG, PNG, GIF)' };
+  const allowedTypes = [
+    'image/jpeg',
+    'image/png',
+    'image/gif'
+  ];
+  if (!allowedTypes.includes(file.type)) {
+    return { valid: false, error: 'Chỉ cho phép các định dạng ảnh JPEG, PNG, GIF.' };
   }
   
   // Check file size
