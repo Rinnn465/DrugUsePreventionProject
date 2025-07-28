@@ -11,8 +11,7 @@ interface AssessmentResult {
 export const saveAssessmentResult = async (req: Request, res: Response): Promise<void> => {
     const { account_id, assessment_id, score, risk_level } = req.body as AssessmentResult;
 
-    console.log('=== NHẬN YÊU CẦU POST ===');
-    console.log('Dữ liệu nhận được:', JSON.stringify(req.body, null, 2));
+    
 
     // Kiểm tra dữ liệu đầu vào
     if (!account_id || !assessment_id || score === undefined || !risk_level) {
@@ -25,7 +24,7 @@ export const saveAssessmentResult = async (req: Request, res: Response): Promise
     }
 
     try {
-        console.log('Kết nối tới SQL Server bằng poolPromise...');
+        
         const pool = await poolPromise;
         const request = pool.request();
 
@@ -38,7 +37,7 @@ export const saveAssessmentResult = async (req: Request, res: Response): Promise
         request.input('AccountID', sql.Int, account_id);
         request.input('AssessmentID', sql.Int, assessment_id);
         const checkResult = await request.query(checkQuery);
-        console.log('Kết quả kiểm tra bản ghi:', JSON.stringify(checkResult.recordset, null, 2));
+        
 
         if (checkResult.recordset.length > 0) {
             // Cập nhật bản ghi cũ
@@ -52,8 +51,7 @@ export const saveAssessmentResult = async (req: Request, res: Response): Promise
             request.input('Score', sql.Int, score);
             request.input('RiskLevel', sql.NVarChar, risk_level);
 
-            console.log('Thực thi query cập nhật:', updateQuery);
-            console.log('Tham số:', { result_id: resultId, score, risk_level });
+            
 
             const updateResult = await request.query(updateQuery);
             if (updateResult.rowsAffected[0] === 0) {
@@ -74,8 +72,7 @@ export const saveAssessmentResult = async (req: Request, res: Response): Promise
             request.input('Score', sql.Int, score);
             request.input('RiskLevel', sql.NVarChar, risk_level);
 
-            console.log('Thực thi query thêm mới:', insertQuery);
-            console.log('Tham số:', { account_id, assessment_id, score, risk_level });
+            
 
             const insertResult = await request.query(insertQuery);
             if (insertResult.rowsAffected[0] === 0) {

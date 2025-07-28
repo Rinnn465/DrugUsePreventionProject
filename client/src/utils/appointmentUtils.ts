@@ -138,13 +138,7 @@ export const isVideoCallAvailable = (
 
     const isAvailable = currentTime >= allowedStartTime && currentTime <= allowedEndTime;
 
-    console.log('Video call availability check:', {
-      appointmentStart: appointmentDateTime.toLocaleString(),
-      appointmentEnd: endDateTime.toLocaleString(),
-      current: currentDateTime.toLocaleString(),
-      allowedWindow: `${new Date(allowedStartTime).toLocaleString()} - ${new Date(allowedEndTime).toLocaleString()}`,
-      isAvailable
-    });
+    
 
     return isAvailable;
   } catch (error) {

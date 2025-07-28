@@ -171,13 +171,7 @@ export async function submitExam(req: Request, res: Response): Promise<void> {
         let correctCount = 0;
         const totalQuestions = allQuestionsResult.recordset.length;
         
-        console.log('=== BEFORE CALCULATION ===');
-        console.log('allQuestionsResult.recordset:', allQuestionsResult.recordset);
-        console.log('totalQuestions:', totalQuestions);
-        console.log('correctAnswersMap size:', correctAnswersMap.size);
-        console.log('questionTypeMap size:', questionTypeMap.size);
-        console.log('answers received:', answers);
-        console.log('===========================');
+        
         
         answers.forEach((answer: any, index: number) => {
             const questionId = answer.questionId;
@@ -185,10 +179,7 @@ export async function submitExam(req: Request, res: Response): Promise<void> {
             const correctAnswers = correctAnswersMap.get(questionId) || [];
             const questionType = questionTypeMap.get(questionId);
             
-            console.log(`--- Question ${index + 1} (ID: ${questionId}) ---`);
-            console.log('Selected answers:', selectedAnswers);
-            console.log('Correct answers:', correctAnswers);
-            console.log('Question type:', questionType);
+            
             
             // Kiểm tra đáp án có đúng không
             let isCorrect = false;
@@ -207,27 +198,13 @@ export async function submitExam(req: Request, res: Response): Promise<void> {
                 }
             }
             
-            console.log('Is correct:', isCorrect);
-            console.log('Current correct count:', correctCount);
-            console.log('-----------------------------------');
+            
         });
 
         const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
         const isPassed = score >= exam.PassingScore;
 
-        // Debug logging
-        console.log('=== EXAM SUBMISSION DEBUG ===');
-        console.log('Exam ID:', examId);
-        console.log('Total Questions:', totalQuestions);
-        console.log('Correct Count:', correctCount);
-        console.log('Score calculation:', `(${correctCount} / ${totalQuestions}) * 100 = ${score}`);
-        console.log('Score:', score);
-        console.log('Passing Score:', exam.PassingScore);
-        console.log('Is Passed:', isPassed);
-        console.log('User Answers:', answers);
-        console.log('Correct Answers Map:', Object.fromEntries(correctAnswersMap));
-        console.log('Question Type Map:', Object.fromEntries(questionTypeMap));
-        console.log('=============================');
+        
 
         // Lưu kết quả thi và lấy ResultID
         const insertResult = await pool.request()

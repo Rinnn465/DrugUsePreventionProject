@@ -42,7 +42,7 @@ export async function autoCreateSurveyMapping(programId: number): Promise<boolea
       `);
 
     if (existingMapping.recordset[0].count > 0) {
-      console.log(`Survey mapping already exists for program ${programId}`);
+
       return true;
     }
 
@@ -68,7 +68,7 @@ export async function autoCreateSurveyMapping(programId: number): Promise<boolea
         VALUES (@SurveyID, @ProgramID, @Type, @SurveyType)
       `);
 
-    console.log(`Auto-created survey mappings for program ${programId}: before (${beforeSurvey.SurveyID}) and after (${afterSurvey.SurveyID})`);
+   
     return true;
 
   } catch (error) {
@@ -166,10 +166,7 @@ export async function createProgram(req: Request, res: Response): Promise<void> 
       return;
     }
 
-    console.log('Original Date:', date);
-    console.log('Formatted Date for SQL:', formattedDate);
-    console.log('Program Date:', programDate);
-    console.log('Today:', today);
+    
 
     // Tạo cuộc họp Zoom
     const program: CommunityProgram = {
@@ -209,12 +206,12 @@ export async function createProgram(req: Request, res: Response): Promise<void> 
     const newProgramId = insertResult.recordset[0].ProgramID;
 
     // Tự động tạo survey mapping cho chương trình mới
-    console.log(`Auto-creating survey mappings for program ${newProgramId}...`);
+    
     
     try {
       const success = await autoCreateSurveyMapping(newProgramId);
       if (success) {
-        console.log(`Survey mapping created successfully for program ${newProgramId}`);
+        
       } else {
         console.warn(`Failed to create survey mapping for program ${newProgramId}`);
       }
@@ -260,10 +257,7 @@ export async function updateProgram(req: Request, res: Response): Promise<void> 
       return;
     }
 
-    console.log('Original Date:', date);
-    console.log('Formatted Date for SQL:', formattedDate);
-    console.log('Program Date:', programDate);
-    console.log('Today:', today);
+    
 
     // Cập nhật chương trình (không tạo lại Zoom meeting)
     const updateResult = await pool.request()
@@ -391,20 +385,20 @@ export async function backfillSurveyMappings(req: Request, res: Response): Promi
       `);
 
     const programs = programsWithoutSurvey.recordset;
-    console.log(`📝 Found ${programs.length} programs without survey mappings`);
+    
 
     let successCount = 0;
     for (const program of programs) {
       const success = await autoCreateSurveyMapping(program.ProgramID);
       if (success) {
         successCount++;
-        console.log(`Created survey mapping for program: ${program.ProgramName} (ID: ${program.ProgramID})`);
+        
       } else {
         console.error(`Failed to create survey mapping for program: ${program.ProgramName} (ID: ${program.ProgramID})`);
       }
     }
 
-    console.log(`Backfill completed: ${successCount}/${programs.length} programs processed successfully`);
+    
     
     res.status(200).json({
       success: true,
@@ -461,7 +455,7 @@ export async function regenerateZoomLink(req: Request, res: Response): Promise<v
     if (program.MeetingRoomName) {
       try {
         await deleteZoomMeeting(program.MeetingRoomName);
-        console.log(`Deleted old Zoom meeting: ${program.MeetingRoomName}`);
+        
       } catch (error) {
         console.warn('Failed to delete old Zoom meeting:', error);
         // Tiếp tục tạo meeting mới dù xóa meeting cũ thất bại
@@ -498,7 +492,7 @@ export async function regenerateZoomLink(req: Request, res: Response): Promise<v
         WHERE ProgramID = @ProgramID
       `);
 
-    console.log(`Generated new Zoom link for program ${id}: ${join_url}`);
+    
 
     res.status(200).json({
       success: true,

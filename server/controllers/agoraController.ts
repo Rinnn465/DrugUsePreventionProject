@@ -7,19 +7,13 @@ const AGORA_APP_ID = process.env.AGORA_APP_ID!;
 const AGORA_APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE!;
 
 export async function generateAgoraToken(req: Request, res: Response): Promise<void> {
-    console.log(req.body);
+    
     try {
         const { channelName, appointmentId, role } = req.body;
         const userId = (req as any).user?.user?.AccountID;
         const isConsultant = role === 'host'; // Assuming 'host' indicates consultant from the client
 
-        console.log('=== AGORA TOKEN REQUEST ===');
-        console.log('Channel Name:', channelName);
-        console.log('Appointment ID:', appointmentId);
-        console.log('User ID:', userId);
-        console.log('Role:', role);
-        console.log('AGORA_APP_ID:', AGORA_APP_ID ? 'Set' : 'Missing');
-        console.log('AGORA_APP_CERTIFICATE:', AGORA_APP_CERTIFICATE ? 'Set' : 'Missing');
+       
 
         if (!userId || !channelName || !appointmentId) {
             console.error('Missing required parameters');
@@ -47,13 +41,7 @@ export async function generateAgoraToken(req: Request, res: Response): Promise<v
         // Set role based on isConsultant
         const agoraRole = isConsultant ? RtcRole.PUBLISHER : RtcRole.SUBSCRIBER;
 
-        console.log('Generating token with params:', {
-            appId: AGORA_APP_ID,
-            channelName,
-            userId,
-            role: agoraRole,
-            expiry: privilegeExpiredTs
-        });
+
 
         const token = RtcTokenBuilder.buildTokenWithUid(
             AGORA_APP_ID,
@@ -64,7 +52,7 @@ export async function generateAgoraToken(req: Request, res: Response): Promise<v
             privilegeExpiredTs
         );
 
-        console.log('Generated token successfully for user:', userId);
+        
 
         res.json({
             token,

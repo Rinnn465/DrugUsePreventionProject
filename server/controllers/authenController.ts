@@ -33,8 +33,6 @@ export async function login(
   const { email, password } = req.body;
 
   try {
-    // Log request body
-    console.log("Request body:", req.body);
 
     // Validate input
     if (!email || !password) {
@@ -93,7 +91,7 @@ export async function login(
     };
 
     // Log userData
-    console.log("userData:", userData);
+    
 
     // Verify JWT_SECRET
     if (!process.env.JWT_SECRET) {
@@ -101,7 +99,7 @@ export async function login(
       res.status(500).json({ message: "Lỗi cấu hình máy chủ" });
       return;
     }
-    console.log("JWT_SECRET length:", process.env.JWT_SECRET.length);
+   
 
     // Generate JWT token
     const token = jwt.sign(
@@ -125,10 +123,10 @@ export async function login(
     );
 
     // Log token and decoded payload
-    console.log("Generated token:", token);
+    
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
-      console.log("Decoded token payload:", decoded);
+      
     } catch (err) {
       console.error("Token verification failed:", err);
     }
@@ -139,7 +137,7 @@ export async function login(
       token,
       user: userData,
     };
-    console.log("Response:", response);
+    
 
     res.status(200).json(response);
   } catch (err: any) {
