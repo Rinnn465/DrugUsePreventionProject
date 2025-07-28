@@ -6,26 +6,13 @@
   <h2>Table of contents</h3>
   <ul>
     <li><a href="#overview">Overview</a></li>
-  </ul>
-  <ul>
     <li><a href="#feature">Features</a></li>
-  </ul>
-  <ul>
+    <li><a href="#tech-stack">Tech Stack</a></li>
     <li><a href="#folder-structure">Folder structure</a></li>
-  </ul>
-  <ul>
     <li><a href="#set-up">Setup and installation</a></li>
-  </ul>
-  <ul>
     <li><a href="#running">Running application</a></li>
-  </ul>
-  <ul>
     <li><a href="#frontend-details">Frontend details</a></li>
-  </ul>
-  <ul>
     <li><a href="#backend-details">Backend details</a></li>
-  </ul>
-  <ul>
     <li><a href="#license">License</a></li>
   </ul>
 </div>
@@ -54,7 +41,11 @@
       <b>Community programs:</b>
       <span>By hosting and organizing community programs for every members of the system, we desired to raise people awareness about the danger of using drugs and their consequences. </span>
   </div>
-  
+  <h2>Tech Stack</h2>
+  <ul>
+    <li>Frontend Tech: Vite + ReactJS, Formik, Yup, Tailwind, TypeScript, React Router, tippyjs/react, lucide-react, axios, agora, react-toastify</li>
+    <li>Backend Tech: Node.js, TypeScript, Express.js, EJS, jsonwebtoken, bcrypt / bcryptjs, cors, mssql, agora, nodemon </li>
+  </ul>
   <h1></h1>
 
   <h2 id="folder-structure">Folder structure</h2>
