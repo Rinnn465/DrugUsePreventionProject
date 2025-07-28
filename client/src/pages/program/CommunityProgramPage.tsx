@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import React, { useEffect, useState, useMemo } from 'react';
-import { Users, Filter, X } from 'lucide-react';
+import { Users, Filter, X, Calendar, Clock, MapPin, Star, Sparkles, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { CommunityProgram, EnrollmentStatus } from '../../types/CommunityProgram';
 import { parseDate } from '../../utils/parseDateUtils';
@@ -301,9 +301,11 @@ const CommunityProgramPage: React.FC = () => {
 
     if (event.IsDisabled) {
       return (
-        <p className="text-center text-red-600 font-medium">
-          Chưa có thông tin chính thức
-        </p>
+        <div className="text-center p-4 bg-gradient-to-r from-red-50 to-pink-50 rounded-2xl border border-red-200">
+          <p className="text-red-600 font-semibold text-sm">
+            Chưa có thông tin chính thức
+          </p>
+        </div>
       );
     }
 
@@ -311,51 +313,67 @@ const CommunityProgramPage: React.FC = () => {
     const isProgramCompleted = event.Status === 'completed';
 
     return (
-      <div className="space-y-2">
+      <div className="space-y-3">
         <Link
           to={`${event.ProgramID}`}
-          className="inline-block w-full text-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
+          className="group inline-block w-full text-center px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-2xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
         >
-          Thông tin chương trình
+          <span className="flex items-center justify-center gap-2">
+            Thông tin chương trình
+            <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
         </Link>
 
         {/* Chương trình đã kết thúc */}
         {isProgramCompleted && (
-          <div className="text-center text-gray-600 font-medium text-sm bg-gray-100 py-3 rounded-lg">
-            Chương trình đã kết thúc
+          <div className="text-center bg-gradient-to-r from-green-50 to-emerald-50 py-4 rounded-2xl border border-green-200">
+            <p className="text-green-700 font-semibold text-sm">Chương trình đã kết thúc</p>
           </div>
         )}
 
         {/* User đã đăng nhập và chương trình chưa kết thúc */}
         {!isProgramCompleted && isAuthenticated && (
           <>
-            {/* User đã đăng ký */}
+                        {/* User đã đăng ký */}
             {enrollmentStatus?.isEnrolled && (
-              <div className="space-y-2">
-                <div className="text-center text-green-600 font-medium text-sm bg-green-50 py-2 rounded-lg">
-                  ✓ Đã đăng ký tham gia
-                </div>
-                
-                {/* Hiển thị nút tham gia meeting khi chương trình đang diễn ra */}
-                {event.Status === 'ongoing' && event.ZoomLink && (
-                  <a
-                    href={event.ZoomLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block w-full text-center px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg"
-                  >
-                    🎥 Tham gia Meeting
-                  </a>
-                )}
-                
-                <button
-                  onClick={() => handleUnenroll(event.ProgramID)}
-                  disabled={isLoading}
-                  className="w-full px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? 'Đang hủy...' : 'Hủy đăng ký'}
-                </button>
-              </div>
+              <button
+                onClick={() => handleUnenroll(event.ProgramID)}
+                disabled={isLoading}
+                onMouseEnter={(e) => {
+                  const btn = e.currentTarget;
+                  btn.classList.add('hovered');
+                  const normalText = btn.querySelector('.normal-text') as HTMLElement;
+                  const hoverText = btn.querySelector('.hover-text') as HTMLElement;
+                  if (normalText) normalText.style.display = 'none';
+                  if (hoverText) hoverText.style.display = 'block';
+                }}
+                onMouseLeave={(e) => {
+                  const btn = e.currentTarget;
+                  btn.classList.remove('hovered');
+                  const normalText = btn.querySelector('.normal-text') as HTMLElement;
+                  const hoverText = btn.querySelector('.hover-text') as HTMLElement;
+                  if (normalText) normalText.style.display = 'block';
+                  if (hoverText) hoverText.style.display = 'none';
+                }}
+                className="w-full px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-red-500 hover:to-pink-500 text-white font-semibold rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none relative overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 translate-x-full hover:translate-x-[-200%] transition-transform duration-700"></div>
+                <span className="relative flex items-center justify-center gap-2">
+                  {isLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Đang hủy...
+                    </>
+                  ) : (
+                    <>
+                      <span className="normal-text">✓ Đã đăng ký tham gia</span>
+                      <span className="hover-text" style={{ display: 'none' }}>Hủy đăng ký</span>
+                    </>
+                  )}
+                </span>
+              </button>
             )}
 
             {/* User chưa đăng ký */}
@@ -363,9 +381,22 @@ const CommunityProgramPage: React.FC = () => {
               <button
                 onClick={() => handleEnroll(event.ProgramID)}
                 disabled={isLoading}
-                className="w-full px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="group w-full px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-2xl hover:from-green-700 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none relative overflow-hidden"
               >
-                {isLoading ? 'Đang đăng ký...' : 'Tham gia'}
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 translate-x-full group-hover:translate-x-[-200%] transition-transform duration-700"></div>
+                <span className="relative flex items-center justify-center gap-2">
+                  {isLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Đang đăng ký...
+                    </>
+                                     ) : (
+                     <>
+                       Tham gia ngay
+                       <Sparkles className="h-4 w-4 group-hover:rotate-12 transition-transform" />
+                     </>
+                   )}
+                </span>
               </button>
             )}
           </>
@@ -375,21 +406,66 @@ const CommunityProgramPage: React.FC = () => {
         {!isProgramCompleted && !isAuthenticated && (
           <button
             onClick={() => openModal()}
-            className="w-full px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors duration-200"
+            className="group w-full px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-2xl hover:from-green-700 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl relative overflow-hidden"
           >
-            Tham gia
+            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 translate-x-full group-hover:translate-x-[-200%] transition-transform duration-700"></div>
+            <span className="relative flex items-center justify-center gap-2">
+              Tham gia ngay
+              <Sparkles className="h-4 w-4 group-hover:rotate-12 transition-transform" />
+            </span>
           </button>
         )}
       </div>
     );
   };
 
+  // Skeleton Loading Component
+  const ProgramCardSkeleton = () => (
+    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
+      <div className="h-64 bg-gradient-to-br from-gray-200 to-gray-300"></div>
+      <div className="p-8">
+        <div className="h-8 bg-gray-200 rounded-lg mb-4"></div>
+        <div className="h-4 bg-gray-200 rounded mb-2"></div>
+        <div className="h-4 bg-gray-200 rounded mb-6 w-3/4"></div>
+        <div className="space-y-3">
+          <div className="h-12 bg-gray-200 rounded-xl"></div>
+          <div className="h-12 bg-gray-200 rounded-xl"></div>
+        </div>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Đang tải danh sách chương trình...</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+        {/* Hero Section Skeleton */}
+        <div className="bg-[#1f54cf]">
+          <div className="container mx-auto px-4 py-16 sm:py-20 lg:py-24 text-center">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="w-8 h-8 bg-white/20 rounded-lg animate-pulse"></div>
+              <div className="h-8 bg-white/20 rounded-lg w-64 animate-pulse"></div>
+            </div>
+            <div className="h-6 bg-white/15 rounded-lg w-3/4 mx-auto animate-pulse"></div>
+          </div>
+        </div>
+
+        {/* Content Skeleton */}
+                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+           {/* Filter Skeleton */}
+           <div className="bg-white/70 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-lg border border-white/20 p-4 sm:p-6 lg:p-8 mb-8 sm:mb-12 animate-pulse">
+             <div className="h-5 sm:h-6 bg-gray-200 rounded-lg mb-4 sm:mb-6 w-1/2 sm:w-1/4"></div>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+               <div className="h-10 sm:h-12 bg-gray-200 rounded-xl"></div>
+               <div className="h-10 sm:h-12 bg-gray-200 rounded-xl"></div>
+             </div>
+           </div>
+
+           {/* Cards Skeleton */}
+           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-7xl mx-auto">
+             {[...Array(6)].map((_, index) => (
+               <ProgramCardSkeleton key={index} />
+             ))}
+           </div>
         </div>
       </div>
     );
@@ -397,16 +473,26 @@ const CommunityProgramPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Có lỗi xảy ra</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-pink-50 to-orange-50 flex items-center justify-center p-4">
+        <div className="text-center max-w-md mx-auto">
+          <div className="relative mb-8">
+            <div className="w-24 h-24 bg-gradient-to-r from-red-400 to-pink-400 rounded-full mx-auto flex items-center justify-center text-white text-4xl shadow-2xl">
+              ⚠️
+            </div>
+            <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full animate-ping"></div>
+          </div>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent mb-4">
+            Oops! Có lỗi xảy ra
+          </h2>
+          <p className="text-gray-600 mb-8 leading-relaxed">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="group px-8 py-4 bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold rounded-2xl hover:from-red-600 hover:to-pink-600 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
           >
-            Thử lại
+            <span className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 group-hover:rotate-12 transition-transform" />
+              Thử lại ngay
+            </span>
           </button>
         </div>
       </div>
@@ -414,33 +500,26 @@ const CommunityProgramPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-primary-600 via-primary-700 to-blue-600 overflow-hidden">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="absolute inset-0">
-          <div className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
-          <div className="absolute top-32 right-20 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
-          <div className="absolute bottom-10 left-1/3 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
-        </div>
-
-        <div className="relative container mx-auto px-4 py-12">
-          <div className="max-w-4xl mx-auto text-center text-white">
-            <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight flex items-center justify-center gap-3 text-white">
-              <div className="p-2 bg-white/20 rounded-full backdrop-blur-sm">
-                <Users className="h-6 w-6" />
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+            {/* Simple Hero Section */}
+      <div className="bg-[#1f54cf]">
+        <div className="container mx-auto px-4 py-16 sm:py-20 lg:py-24 text-center">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+              <Users className="h-5 w-5 text-white" />
+            </div>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white">
               Chương Trình Cộng Đồng
             </h1>
-            <p className="text-lg md:text-xl mb-6 text-blue-100 leading-relaxed">
-              Khám phá các chương trình phòng chống ma túy trực tuyến sắp diễn ra
-            </p>
           </div>
+          <p className="text-white/90 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+            Khám phá các chương trình phòng chống ma túy trực tuyến sắp diễn ra
+          </p>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Filter Section */}
+             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+         {/* Enhanced Filter Section */}
         <Modal
           isOpen={isOpen}
           onClose={closeModal}
@@ -451,133 +530,152 @@ const CommunityProgramPage: React.FC = () => {
             navigate('/login');
           }}
         />
-        <div className="mb-12">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
-            <div className="flex items-center gap-3 mb-6">
-              <Filter className="h-5 w-5 text-blue-600" />
-              <h2 className="text-xl font-bold text-gray-800">Lọc chương trình</h2>
-              {hasActiveFilters && (
-                <button
-                  onClick={clearFilters}
-                  className="ml-auto flex items-center gap-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                  Xóa bộ lọc
-                </button>
-              )}
-            </div>
+        
+                 <div className="mb-8 sm:mb-12 lg:mb-16">
+           <div className="bg-white/70 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-lg border border-white/20 p-4 sm:p-6 lg:p-8 mb-8 sm:mb-12 hover:shadow-xl transition-all duration-300">
+             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 sm:mb-8">
+               <div className="flex items-center gap-3 sm:gap-4">
+                 <div className="p-2 sm:p-3 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl sm:rounded-2xl text-white shadow-lg">
+                   <Filter className="h-5 w-5 sm:h-6 sm:w-6" />
+                 </div>
+                 <h2 className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                   Tìm chương trình phù hợp
+                 </h2>
+               </div>
+               {hasActiveFilters && (
+                 <button
+                   onClick={clearFilters}
+                   className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-gradient-to-r from-red-50 to-pink-50 hover:from-red-100 hover:to-pink-100 text-red-600 rounded-lg sm:rounded-xl transition-all duration-300 border border-red-200 hover:border-red-300 sm:ml-auto"
+                 >
+                   <X className="h-3 w-3 sm:h-4 sm:w-4" />
+                   Xóa bộ lọc
+                 </button>
+               )}
+             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
               {/* Status Filter */}
-              <div>
-                <label htmlFor="status-filter" className="block text-sm font-semibold text-gray-700 mb-2">
-                  Trạng thái
+              <div className="group">
+                <label htmlFor="status-filter" className="block text-sm font-bold text-gray-700 mb-3">
+                  Trạng thái chương trình
                 </label>
                 <select
                   id="status-filter"
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                >
-                  <option value="all">Tất cả trạng thái</option>
-                  <option value="upcoming">Sắp diễn ra</option>
-                  <option value="ongoing">Đang diễn ra</option>
-                  <option value="completed">Đã kết thúc</option>
+                                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-400 bg-white/80 backdrop-blur-sm hover:border-gray-300 transition-all duration-300 text-gray-700 font-medium"
+                 >
+                   <option value="all">Tất cả trạng thái</option>
+                   <option value="upcoming">Sắp diễn ra</option>
+                   <option value="ongoing">Đang diễn ra</option>
+                   <option value="completed">Đã kết thúc</option>
                 </select>
               </div>
 
               {/* Registration Status Filter */}
               {user && (
-                <div>
-                  <label htmlFor="registration-status-filter" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Trạng thái đăng ký
+                <div className="group">
+                  <label htmlFor="registration-status-filter" className="block text-sm font-bold text-gray-700 mb-3">
+                    Trạng thái đăng ký của bạn
                   </label>
                   <select
                     id="registration-status-filter"
                     value={selectedRegistrationStatus}
                     onChange={(e) => setSelectedRegistrationStatus(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                  >
-                    <option value="all">Tất cả</option>
-                    <option value="registered">Đã đăng ký</option>
-                    <option value="not_registered">Chưa đăng ký</option>
+                                         className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-400 bg-white/80 backdrop-blur-sm hover:border-gray-300 transition-all duration-300 text-gray-700 font-medium"
+                   >
+                     <option value="all">Tất cả</option>
+                     <option value="registered">Đã đăng ký</option>
+                     <option value="not_registered">Chưa đăng ký</option>
                   </select>
                 </div>
               )}
             </div>
 
-            {/* Results Count */}
-            <div className="mt-4 text-sm text-gray-600">
-              Hiển thị <span className="font-semibold text-blue-600">{filteredEvents.length}</span> / {events.length} chương trình
-            </div>
+                         {/* Results Count */}
+             <div className="mt-4 sm:mt-6 flex items-center gap-2 text-xs sm:text-sm">
+               <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
+                 <Users className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
+               </div>
+               <span className="text-gray-600">
+                 Hiển thị <span className="font-bold text-blue-600 text-sm sm:text-lg">{filteredEvents.length}</span> / {events.length} chương trình
+               </span>
+             </div>
           </div>
         </div>
 
-        {/* Events Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+                 {/* Enhanced Events Grid */}
+         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-7xl mx-auto">
           {Array.isArray(filteredEvents) && filteredEvents.map((event, index) => (
-            <div key={event.ProgramID || index} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
-              {/* Full Width Image Header */}
+            <div key={event.ProgramID || index} className="group bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 flex flex-col border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1">
+              {/* Enhanced Image Header */}
               <div className="relative h-64 overflow-hidden">
                 {event.ImageUrl ? (
                   <img
                     src={event.ImageUrl}
                     alt={event.ProgramName}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center">
-                    <div className="text-white text-6xl font-bold opacity-50">
+                  <div className="w-full h-full bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 flex items-center justify-center relative overflow-hidden">
+                    <div className="text-white text-6xl font-bold opacity-60 z-10">
                       📅
                     </div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent"></div>
                   </div>
                 )}
-                <div className="absolute top-4 right-4">
-                  <span className="px-3 py-1 text-sm rounded-full text-white bg-blue-500 shadow-lg">
-                    Online
-                  </span>
-                </div>
+                
+                                 {/* Status and Online Badge */}
+                 <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
+                   <span className="px-3 py-1.5 text-xs font-medium rounded-full text-white bg-green-600 shadow-md">
+                     Online
+                   </span>
+                   {event.Status === 'upcoming' && (
+                     <span className="px-3 py-1.5 text-xs font-medium rounded-full text-white bg-blue-600 shadow-md">
+                       Sắp diễn ra
+                     </span>
+                   )}
+                   {event.Status === 'ongoing' && (
+                     <span className="px-3 py-1.5 text-xs font-medium rounded-full text-white bg-orange-600 shadow-md animate-pulse">
+                       Đang live
+                     </span>
+                   )}
+                   {event.Status === 'completed' && (
+                     <span className="px-3 py-1.5 text-xs font-medium rounded-full text-white bg-green-600 shadow-md">
+                       Đã kết thúc
+                     </span>
+                   )}
+                 </div>
+
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
 
-              {/* Content Section */}
-              <div className="p-6 flex flex-col flex-grow">
-                {/* Event Title and Status */}
-                <div className="mb-4">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3 line-clamp-2">{event.ProgramName}</h3>
-                  {/* Status Badge */}
-                  {event.Status === 'upcoming' && (
-                    <span className="inline-block px-3 py-1 text-sm rounded-full text-white font-medium bg-blue-500">
-                      Sắp diễn ra
-                    </span>
-                  )}
-                  {event.Status === 'ongoing' && (
-                    <span className="inline-block px-3 py-1 text-sm rounded-full text-white font-medium bg-yellow-500">
-                      Đang diễn ra
-                    </span>
-                  )}
-                  {event.Status === 'completed' && (
-                    <span className="inline-block px-3 py-1 text-sm rounded-full text-white font-medium bg-green-500">
-                      Đã kết thúc
-                    </span>
-                  )}
-                </div>
+                             {/* Enhanced Content Section */}
+               <div className="p-4 sm:p-6 lg:p-8 flex flex-col flex-grow">
+                                 {/* Event Title */}
+                 <div className="mb-4 sm:mb-6">
+                   <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-2 sm:mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
+                     {event.ProgramName}
+                   </h3>
+                 </div>
 
-                {/* Event Details */}
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-center text-gray-600">
-                    <svg className="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span className="font-medium">{parseDate(event.Date)}</span>
-                  </div>
-                </div>
+                 {/* Event Details */}
+                 <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
+                   <div className="flex items-center text-gray-600 group-hover:text-blue-600 transition-colors duration-300">
+                     <div className="p-1.5 sm:p-2 bg-blue-50 rounded-lg sm:rounded-xl mr-3 sm:mr-4 group-hover:bg-blue-100 transition-colors duration-300">
+                       <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
+                     </div>
+                     <span className="font-semibold text-xs sm:text-sm">{parseDate(event.Date)}</span>
+                   </div>
+                 </div>
 
-                {/* Event Description */}
-                <p className="text-gray-600 mb-6 line-clamp-3 flex-grow text-base leading-relaxed">
-                  {event.Description}
-                </p>
+                 {/* Event Description */}
+                 <p className="text-gray-600 mb-6 sm:mb-8 line-clamp-3 flex-grow text-sm sm:text-base leading-relaxed group-hover:text-gray-700 transition-colors duration-300">
+                   {event.Description}
+                 </p>
 
-                {/* Action Buttons */}
+                {/* Enhanced Action Buttons */}
                 <div className="mt-auto">
                   {renderActionButton(event)}
                 </div>
@@ -586,39 +684,63 @@ const CommunityProgramPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Empty state */}
-        {Array.isArray(filteredEvents) && filteredEvents.length === 0 && events.length > 0 && (
-          <div className="text-center py-12">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
-              <Filter className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                Không tìm thấy chương trình phù hợp
-              </h3>
-              <p className="text-gray-500 mb-4">
-                Hãy thử điều chỉnh bộ lọc để tìm thấy chương trình phù hợp với bạn.
-              </p>
-              <button
-                onClick={clearFilters}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Xóa tất cả bộ lọc
-              </button>
-            </div>
-          </div>
-        )}
+                 {/* Enhanced Empty state - Filtered */}
+         {Array.isArray(filteredEvents) && filteredEvents.length === 0 && events.length > 0 && (
+           <div className="text-center py-12 sm:py-16 lg:py-20">
+             <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-lg border border-gray-200 p-6 sm:p-8 lg:p-12 max-w-lg mx-auto">
+               <div className="relative mb-6 sm:mb-8">
+                 <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full mx-auto flex items-center justify-center shadow-2xl">
+                   <Filter className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-white" />
+                 </div>
+               </div>
+               <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-3 sm:mb-4">
+                 Không tìm thấy chương trình phù hợp
+               </h3>
+               <p className="text-gray-600 mb-6 sm:mb-8 leading-relaxed text-sm sm:text-base px-2">
+                 Hãy thử điều chỉnh bộ lọc để tìm thấy chương trình phù hợp với bạn, hoặc hãy quay lại sau để xem các chương trình mới.
+               </p>
+               <button
+                 onClick={clearFilters}
+                 className="group px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl sm:rounded-2xl hover:from-blue-700 hover:to-indigo-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base"
+               >
+                 <span className="flex items-center gap-2">
+                   <X className="h-4 w-4 sm:h-5 sm:w-5 group-hover:rotate-90 transition-transform" />
+                   Xóa tất cả bộ lọc
+                 </span>
+               </button>
+             </div>
+           </div>
+         )}
 
-        {/* No events at all */}
-        {Array.isArray(events) && events.length === 0 && (
-          <div className="text-center py-12">
-            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">Không có chương trình nào</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Hiện tại chưa có chương trình nào được tổ chức.
-            </p>
-          </div>
-        )}
+         {/* Enhanced Empty state - No events at all */}
+         {Array.isArray(events) && events.length === 0 && (
+           <div className="text-center py-12 sm:py-16 lg:py-20">
+             <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-lg border border-gray-200 p-6 sm:p-8 lg:p-12 max-w-lg mx-auto">
+               <div className="relative mb-6 sm:mb-8">
+                 <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full mx-auto flex items-center justify-center shadow-2xl">
+                   <Calendar className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-white" />
+                 </div>
+               </div>
+               <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-3 sm:mb-4">
+                 Chưa có chương trình nào
+               </h3>
+               <p className="text-gray-600 mb-6 sm:mb-8 leading-relaxed text-sm sm:text-base px-2">
+                 Hiện tại chưa có chương trình nào được tổ chức. Hãy quay lại sau để khám phá các chương trình phòng chống ma túy thú vị nhé!
+               </p>
+               <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-500">
+                 <div className="flex items-center gap-1">
+                   <Heart className="h-3 w-3 sm:h-4 sm:w-4 text-red-400" />
+                   <span>Luôn miễn phí</span>
+                 </div>
+                 <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
+                 <div className="flex items-center gap-1">
+                   <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400" />
+                   <span>Chất lượng cao</span>
+                 </div>
+               </div>
+             </div>
+           </div>
+         )}
       </div>
     </div>
   );
