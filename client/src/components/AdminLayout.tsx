@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 import Avatar from "./common/Avatar";
-import { 
+import {
     Home,
-    BookOpen, 
-    Calendar, 
+    BookOpen,
+    Calendar,
     Shield,
     LogOut,
     ChevronRight,
@@ -28,17 +28,18 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     const location = useLocation();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    
+
     // Sidebar navigation items - phân biệt theo role
     const navigationItems = [
         {
-            label: "Bảng điều khiển",
+            label: user?.RoleName === 'Consultant' ? "Dashboard" : "Bảng điều khiển",
             icon: Home,
-            link: user?.RoleName === 'Staff' ? '/staff' : 
-                  user?.RoleName === 'Manager' ? '/manager' : '/admin',
-            isActive: (user?.RoleName === 'Staff' && location.pathname === '/staff') || 
-                     (user?.RoleName === 'Admin' && location.pathname === '/admin') ||
-                     (user?.RoleName === 'Manager' && location.pathname === '/manager')
+            link: user?.RoleName === 'Staff' ? '/staff' :
+                user?.RoleName === 'Manager' ? '/manager' : user?.RoleName === 'Consultant' ? '/consultant' : '/admin',
+            isActive: (user?.RoleName === 'Staff' && location.pathname === '/staff') ||
+                (user?.RoleName === 'Admin' && location.pathname === '/admin') ||
+                (user?.RoleName === 'Manager' && location.pathname === '/manager') ||
+                (user?.RoleName === 'Consultant' && location.pathname === '/consultant')
         },
         // Chỉ hiển thị cho Staff
         ...(user?.RoleName === 'Staff' ? [
@@ -49,7 +50,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 isActive: location.pathname.includes('/article-manage')
             },
             {
-                label: "Quản lý chương trình cộng đồng", 
+                label: "Quản lý chương trình cộng đồng",
                 icon: Calendar,
                 link: `/roles/${user?.RoleID}/program-manage`,
                 isActive: location.pathname.includes('/program-manage')
@@ -85,7 +86,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 isActive: location.pathname.includes('/course-manage')
             },
             {
-                label: "Quản lý chương trình", 
+                label: "Quản lý chương trình",
                 icon: Calendar,
                 link: `/roles/${user?.RoleID}/program-manage`,
                 isActive: location.pathname.includes('/program-manage')
@@ -147,7 +148,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 <div className="flex items-center justify-between h-16 px-6 bg-slate-900">
                     <div className="flex items-center space-x-2">
                         <Shield className="h-8 w-8 text-blue-400" />
-                        <span className="text-xl font-bold text-white">{user?.RoleName?.toUpperCase() || 'ADMIN'}</span>
+                        <span className="text-xl font-bold text-white">{user?.RoleName?.toUpperCase() === 'CONSULTANT' ? 'CHUYÊN VIÊN'
+                            : user?.RoleName?.toUpperCase() !== 'CONSULTANT' ? user?.RoleName.toUpperCase() : 'ADMIN'}</span>
                     </div>
                     <button
                         onClick={() => setSidebarOpen(false)}
@@ -177,7 +179,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                                 </div>
                                 <ChevronDown className={`h-4 w-4 text-gray-400 transform transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
                             </button>
-                            
+
                             {/* Dropdown Menu */}
                             {dropdownOpen && (
                                 <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 rounded-lg shadow-lg border border-slate-700 z-50">
@@ -205,14 +207,13 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
                         Điều hướng
                     </div>
-                    
+
                     {navigationItems.map((item) => (
                         <Link
                             key={item.link}
                             to={item.link}
-                            className={`flex items-center justify-between px-4 py-3 rounded-lg cursor-pointer transition-colors mb-2 ${
-                                item.isActive ? 'bg-slate-700 text-white' : 'text-gray-300 hover:bg-slate-700 hover:text-white'
-                            }`}
+                            className={`flex items-center justify-between px-4 py-3 rounded-lg cursor-pointer transition-colors mb-2 ${item.isActive ? 'bg-slate-700 text-white' : 'text-gray-300 hover:bg-slate-700 hover:text-white'
+                                }`}
                         >
                             <div className="flex items-center space-x-3">
                                 <item.icon className="h-5 w-5" />
@@ -259,7 +260,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
             {/* Mobile sidebar overlay */}
             {sidebarOpen && (
-                <button 
+                <button
                     className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden border-0 p-0 cursor-pointer"
                     onClick={() => setSidebarOpen(false)}
                     onKeyDown={(e) => {
