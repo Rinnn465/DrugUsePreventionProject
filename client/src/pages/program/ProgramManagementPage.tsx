@@ -361,7 +361,7 @@ const ProgramManagementPage: React.FC = () => {
 
     // Reset form
     const resetForm = () => {
-        setFormData({
+        const defaultValues = {
             ProgramName: '',
             Type: 'online',
             date: '',
@@ -371,7 +371,9 @@ const ProgramManagementPage: React.FC = () => {
             ImageUrl: '',
             Status: 'upcoming',
             IsDisabled: false
-        });
+        };
+        setFormData(defaultValues);
+        formik.resetForm({ values: defaultValues });
     };
 
     // Open edit modal
@@ -398,7 +400,7 @@ const ProgramManagementPage: React.FC = () => {
                     timeZone: 'Asia/Ho_Chi_Minh'
                 }); // en-CA gives YYYY-MM-DD format
 
-                setFormData({
+                const updatedFormData = {
                     ProgramName: freshProgram.ProgramName,
                     Type: freshProgram.Type ?? 'online',
                     date: formattedDate,
@@ -408,7 +410,9 @@ const ProgramManagementPage: React.FC = () => {
                     ImageUrl: freshProgram.ImageUrl ?? '',
                     Status: freshProgram.Status,
                     IsDisabled: freshProgram.IsDisabled
-                });
+                };
+
+                formik.setValues(updatedFormData);
             } else {
                 // Fallback to original program data if fetch fails
                 setSelectedProgram(program);
@@ -417,7 +421,7 @@ const ProgramManagementPage: React.FC = () => {
                     timeZone: 'Asia/Ho_Chi_Minh'
                 });
 
-                setFormData({
+                const updatedFormData = {
                     ProgramName: program.ProgramName,
                     Type: program.Type ?? 'online',
                     date: formattedDate,
@@ -427,7 +431,9 @@ const ProgramManagementPage: React.FC = () => {
                     ImageUrl: program.ImageUrl ?? '',
                     Status: program.Status,
                     IsDisabled: program.IsDisabled
-                });
+                };
+
+                formik.setValues(updatedFormData);
             }
         } catch (error) {
             console.error('Error fetching fresh program data:', error);
@@ -438,7 +444,7 @@ const ProgramManagementPage: React.FC = () => {
                 timeZone: 'Asia/Ho_Chi_Minh'
             });
 
-            setFormData({
+            const updatedFormData = {
                 ProgramName: program.ProgramName,
                 Type: program.Type ?? 'online',
                 date: formattedDate,
@@ -448,7 +454,9 @@ const ProgramManagementPage: React.FC = () => {
                 ImageUrl: program.ImageUrl ?? '',
                 Status: program.Status,
                 IsDisabled: program.IsDisabled
-            });
+            };
+
+            formik.setValues(updatedFormData);
         }
 
         setShowEditModal(true);
@@ -920,9 +928,10 @@ const ProgramManagementPage: React.FC = () => {
                                             </label>
                                             <select
                                                 id="editStatus"
+                                                name="Status"
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                                value={formData.Status}
-                                                onChange={(e) => setFormData({ ...formData, Status: e.target.value })}
+                                                value={formik.values.Status}
+                                                onChange={formik.handleChange}
                                             >
                                                 <option value="upcoming">Sắp diễn ra</option>
                                                 <option value="ongoing">Đang diễn ra</option>
