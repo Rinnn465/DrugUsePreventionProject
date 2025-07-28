@@ -140,7 +140,7 @@ const ArticleManagementPage: React.FC = () => {
 
         try {
             const updateData: UpdateArticleData = {
-                Title: formData.Title,
+                ArticleTitle: formData.ArticleTitle,
                 Content: formData.Content,
                 Author: formData.Author || user?.FullName || 'Anonymous',
                 PublishedDate: selectedArticle.PublishedDate,
