@@ -56,22 +56,25 @@ export const getAccounts = async (req: Request, res: Response) => {
 export const getTotalAccountNumber = async (req: Request, res: Response) => {
   try {
     const pool = await poolPromise;
+    // Chỉ đếm tài khoản có RoleID = 5 (Member) và chưa bị vô hiệu hóa
     const result = await pool.request().query(`
-      SELECT COUNT(*) AS Total FROM Account
-      WHERE IsDisabled = 0
-      AND RoleID != 1 AND RoleID != 3 AND RoleID != 5
-      `);
+      SELECT COUNT(*) AS Total FROM Account WHERE IsDisabled = 0 AND RoleID = 5
+    `);
     res.json({
-      message: "Lấy tổng số tài khoản thành công",
+      message: "Lấy tổng số thành viên thành công",
       data: {
         total: result.recordset[0].Total
       }
     });
-  } catch (err: any) {
-    console.error("Lỗi khi lấy tổng số tài khoản:", err.message);
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error("Lỗi khi lấy tổng số thành viên:", err.message);
+    } else {
+      console.error("Lỗi khi lấy tổng số thành viên:", err);
+    }
     res.status(500).json({ error: "Lỗi máy chủ" });
   }
-}
+};
 
 // Get all roles  
 export const getRoles = async (req: Request, res: Response) => {
@@ -629,20 +632,20 @@ export const deleteAccount = async (
 export const getMonthlyAccountCountStatistic = async (req: Request, res: Response) => {
   try {
     const pool = await poolPromise;
-    // Truy vấn lấy số lượng tài khoản được tạo theo từng tháng
+    // Truy vấn lấy số lượng tài khoản Member được tạo theo từng tháng
     const result = await pool.request().query(`
       SELECT 
         YEAR(CreatedAt) AS Year,
         MONTH(CreatedAt) AS Month,
         COUNT(*) as total
       FROM Account
-      WHERE CreatedAt IS NOT NULL
+      WHERE CreatedAt IS NOT NULL AND RoleID = 5 AND IsDisabled = 0
       GROUP BY YEAR(CreatedAt), MONTH(CreatedAt)
       ORDER BY Year, Month
     `);
     res.json({ data: result.recordset });
   } catch (err: any) {
-    console.error("Lỗi khi thống kê tổng số tài khoản theo tháng:", err.message);
+    console.error("Lỗi khi thống kê tổng số thành viên theo tháng:", err.message);
     res.status(500).json({ error: "Lỗi máy chủ" });
   }
 };

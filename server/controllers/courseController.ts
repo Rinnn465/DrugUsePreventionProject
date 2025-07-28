@@ -740,6 +740,40 @@ export async function getAllCourseEnrollmentStatistic(req: Request, res: Respons
 }
 
 /**
+ * Thống kê số lượt đăng ký khóa học theo từng tháng
+ *
+ * @route GET /api/course/statistics/enroll-monthly
+ * @access Chỉ Admin
+ * @returns {Promise<void>} Phản hồi JSON với số lượt đăng ký theo từng tháng
+ */
+export async function getMonthlyCourseEnrollmentStatistics(req: Request, res: Response): Promise<void> {
+    try {
+        const pool = await poolPromise;
+        // Truy vấn lấy số lượng lượt đăng ký khóa học theo từng tháng
+        const result = await pool.request().query(`
+            SELECT 
+                YEAR(EnrollmentDate) AS Year,
+                MONTH(EnrollmentDate) AS Month,
+                COUNT(*) as total
+            FROM Enrollment
+            WHERE EnrollmentDate IS NOT NULL
+            GROUP BY YEAR(EnrollmentDate), MONTH(EnrollmentDate)
+            ORDER BY Year, Month
+        `);
+        res.status(200).json({
+            message: 'Thống kê số lượt đăng ký khóa học theo tháng thành công',
+            data: result.recordset
+        });
+    } catch (err: any) {
+        console.error('Lỗi trong getMonthlyCourseEnrollmentStatistics:', err);
+        res.status(500).json({
+            message: 'Lỗi khi thống kê số lượt đăng ký khóa học theo tháng',
+            error: err.message
+        });
+    }
+}
+
+/**
  * Thống kê tỷ lệ hoàn thành trên tổng số lượt đăng ký của tất cả các khóa học
  *
  * @route GET /api/course/statistics/total-completion-rate

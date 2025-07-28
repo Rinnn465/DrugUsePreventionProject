@@ -105,7 +105,6 @@ const AccountManagementPage: React.FC = () => {
             }
         } catch (error) {
             console.error('Error fetching roles:', error);
-            // Fallback: extract từ accounts
             const uniqueRoles = accounts.reduce((acc, account) => {
                 if (!acc.find(role => role.RoleID === account.RoleID)) {
                     acc.push({ RoleID: account.RoleID, RoleName: account.RoleName });
@@ -272,7 +271,6 @@ const AccountManagementPage: React.FC = () => {
     useEffect(() => {
         fetchAccounts();
         fetchRoles();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
