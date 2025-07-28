@@ -13,8 +13,6 @@ import {
 const AdminPage: React.FC = () => {
     const { user } = useUser();
 
-
-
     return (
         <AdminLayout>
             {/* Dashboard Content */}

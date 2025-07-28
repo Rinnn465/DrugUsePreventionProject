@@ -42,6 +42,7 @@ import AdminProfilePage from './pages/management/AdminProfilePage';
 import ChangePasswordPage from './pages/management/ChangePasswordPage';
 import RolePage from './pages/management/RolePage';
 import VideoCallPage from '@/components/video/VideoCallPage';
+import StaffPage from './pages/management/StaffPage';
 
 function App() {
   return (
@@ -73,16 +74,16 @@ function App() {
             <Route path="dashboard/:userId/courses" element={<DashBoardPage />} />
             <Route path="dashboard/:userId/events" element={<DashBoardPage />} />
             <Route path="dashboard/:userId/appointments" element={<DashBoardPage />} />
-            <Route path="consultant" element={<ConsultantPage />} />
-            <Route path="consultant/schedule" element={<ConsultantSchedule />} />
             <Route path="roles/:userId" element={<RolePage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
 
           {/* Admin/Manager/Staff routes - no header/footer */}
           <Route path="admin" element={<AdminPage />} />
+          <Route path="consultant" element={<ConsultantPage />} />
+          <Route path="consultant/schedule" element={<ConsultantSchedule />} />
           <Route path="manager" element={<ManagerPage />} />
-          <Route path="staff" element={<AdminPage />} />
+          <Route path="staff" element={<StaffPage />} />
           <Route path="roles/:userId/course-manage" element={<CourseManagmentPage />} />
           <Route path="roles/:userId/program-manage" element={<ProgramManagementPage />} />
           <Route path="roles/:userId/project-manage" element={<ProjectManagementPage />} />
