@@ -116,7 +116,7 @@ const SurveyBeforeEventPage = () => {
                 Khảo Sát Trước Khi Tham Gia Chương Trình Cộng Đồng
             </h1>
             <h2 className="text-2xl font-semibold text-center mb-6 text-gray-700">
-                {programData?.ProgramName || 'Đang tải tên sự kiện...'}
+                {programData?.ProgramName || 'Đang tải tên chương trình...'}
             </h2>
 
             <form className="space-y-6" onSubmit={handleSubmit}>

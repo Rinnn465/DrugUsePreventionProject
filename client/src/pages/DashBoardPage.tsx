@@ -383,7 +383,7 @@ const DashBoardPage: React.FC = () => {
         setEnrolledEvents(eventsData);
       } catch (error) {
         console.error('Error fetching enrolled events:', error);
-        toast.error('Không thể tải danh sách sự kiện đã đăng ký');
+        toast.error('Không thể tải danh sách chương trình đã đăng ký');
         setEnrolledEvents([]);
       } finally {
         setIsLoadingEvents(false);
@@ -924,9 +924,9 @@ const DashBoardPage: React.FC = () => {
             <Link to={`/dashboard/${userId}/events`} className="group bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl shadow-sm p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 block border border-green-100">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-700 text-sm font-semibold">Sự kiện tham gia</p>
+                  <p className="text-green-700 text-sm font-semibold">Chương trình tham gia</p>
                   <p className="text-3xl font-bold text-green-900 mt-2">{enrolledEvents.length}</p>
-                  <p className="text-green-600 text-xs mt-1">Sự kiện đã đăng ký</p>
+                  <p className="text-green-600 text-xs mt-1">chương trình đã đăng ký</p>
                 </div>
                 <div className="h-14 w-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Users className="h-7 w-7 text-white" />
@@ -1153,8 +1153,8 @@ const DashBoardPage: React.FC = () => {
                   <Users className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Sự kiện của tôi</h1>
-                  <p className="text-gray-600">Theo dõi các sự kiện đã tham gia và sắp tới</p>
+                  <h1 className="text-3xl font-bold text-gray-900">Chương trình của tôi</h1>
+                  <p className="text-gray-600">Theo dõi các chương trình đã tham gia và sắp tới</p>
                 </div>
               </div>
             </div>
@@ -1164,7 +1164,7 @@ const DashBoardPage: React.FC = () => {
               {isLoadingEvents ? (
                 <div className="text-center py-16">
                   <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-200 border-t-green-600 mx-auto"></div>
-                  <p className="text-gray-600 mt-6 text-lg">Đang tải sự kiện...</p>
+                  <p className="text-gray-600 mt-6 text-lg">Đang tải chương trình...</p>
                 </div>
               ) : enrolledEvents.length > 0 ? (
                 <div className="space-y-6">
@@ -1190,7 +1190,7 @@ const DashBoardPage: React.FC = () => {
                           )}
                         </div>
 
-                        {/* Event Content */}
+                        {/* Program Content */}
                         <div className="flex-1 p-8">
                           <div className="flex justify-between items-start mb-4">
                             <div className="flex-1">
@@ -1262,14 +1262,14 @@ const DashBoardPage: React.FC = () => {
                   <div className="h-24 w-24 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
                     <Users className="h-12 w-12 text-green-500" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Chưa có sự kiện nào</h3>
-                  <p className="text-gray-600 mb-8 text-lg">Bạn chưa tham gia sự kiện nào. Hãy khám phá các sự kiện thú vị!</p>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Chưa có chương trình nào</h3>
+                  <p className="text-gray-600 mb-8 text-lg">Bạn chưa tham gia chương trình nào. Hãy khám phá các chương trình thú vị!</p>
                   <Link
                     to="/community-programs"
                     className="inline-flex items-center space-x-3 px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-lg font-semibold rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl"
                   >
                     <Users className="h-5 w-5" />
-                    <span>Tham gia sự kiện</span>
+                    <span>Tham gia chương trình</span>
                   </Link>
                 </div>
               )}

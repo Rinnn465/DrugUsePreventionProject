@@ -269,7 +269,7 @@ const HomePage: React.FC = () => {
                   Ngày Hội Cộng Đồng
                 </h3>
                 <p className="text-gray-600 mb-6 text-lg leading-relaxed flex-grow">
-                  Sự kiện mở rộng với nhiều hoạt động, tài liệu giáo dục và sàng lọc dành cho mọi người trong cộng đồng.
+                  Chương trình mở rộng với nhiều hoạt động, tài liệu giáo dục và sàng lọc dành cho mọi người trong cộng đồng.
                 </p>
                 <div className="mt-auto">
                   <div className="flex items-center gap-1 text-gray-500 text-sm mb-4">
