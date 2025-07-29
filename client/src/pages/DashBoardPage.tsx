@@ -683,15 +683,36 @@ const DashBoardPage: React.FC = () => {
     setConsultantDetails(null);
   };
 
-  // Avatar functions
+  const resetFileInput = () => {
+    const fileInput = document.getElementById('member-avatar-upload') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  };
+
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      toast.error('Vui lòng chọn một file ảnh');
+      resetFileInput();
+      return;
+    }
+
+    // Check if file is actually an image
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn một file ảnh hợp lệ');
+      // Clear the input to allow new selection
+      resetFileInput();
+      return;
+    }
 
     // Validate file using utility function
     const validation = validateImageFile(file);
+    
     if (!validation.valid) {
       toast.error(validation.error);
+      // Clear the input to allow new selection
+      resetFileInput();
       return;
     }
 
@@ -700,7 +721,7 @@ const DashBoardPage: React.FC = () => {
     setShowCropModal(true);
 
     // Clear the input
-    event.target.value = '';
+    resetFileInput();
   };
 
   const handleCropComplete = async (croppedImageBlob: Blob) => {
@@ -717,6 +738,7 @@ const DashBoardPage: React.FC = () => {
       formData.append('profilePicture', croppedFile);
 
       const token = localStorage.getItem('token');
+      
       const response = await fetch(`http://localhost:5000/api/account/${user?.AccountID}/upload-avatar`, {
         method: 'POST',
         headers: {
@@ -727,6 +749,7 @@ const DashBoardPage: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
+        
         // Update user context
         if (user && setUser) {
           const updatedUser = { ...user, ProfilePicture: data.profilePicture };
@@ -734,6 +757,10 @@ const DashBoardPage: React.FC = () => {
           localStorage.setItem('user', JSON.stringify(updatedUser));
         }
         toast.success('Cập nhật ảnh đại diện thành công!');
+        
+        // Reset states on success
+        setSelectedImageFile(null);
+        setShowCropModal(false);
       } else {
         const error = await response.json();
         throw new Error(error.message || 'Không thể upload ảnh');
@@ -742,6 +769,11 @@ const DashBoardPage: React.FC = () => {
       console.error('Lỗi khi upload ảnh:', error);
       const errorMessage = error instanceof Error ? error.message : 'Lỗi khi upload ảnh';
       toast.error(errorMessage);
+      
+      // Reset states on error to allow new file selection
+      setSelectedImageFile(null);
+      setShowCropModal(false);
+      resetFileInput();
     } finally {
       setUploadingAvatar(false);
     }
@@ -778,6 +810,11 @@ const DashBoardPage: React.FC = () => {
     }
   };
 
+  const handleCloseCropModal = () => {
+    setShowCropModal(false);
+    setSelectedImageFile(null);
+    resetFileInput();
+  };
 
   // Main Dashboard Page (modified to include consultant sections)
   if (!isCoursesPage && !isEventsPage && !isAppointmentsPage && !isProfilePage && !isSecurityPage) {
@@ -1009,10 +1046,7 @@ const DashBoardPage: React.FC = () => {
         {/* Image Crop Modal */}
         <ImageCropModal
           isOpen={showCropModal}
-          onClose={() => {
-            setShowCropModal(false);
-            setSelectedImageFile(null);
-          }}
+          onClose={handleCloseCropModal}
           onCropComplete={handleCropComplete}
           imageFile={selectedImageFile}
         />
@@ -1681,10 +1715,7 @@ const DashBoardPage: React.FC = () => {
             {showCropModal && selectedImageFile && (
               <ImageCropModal
                 isOpen={showCropModal}
-                onClose={() => {
-                  setShowCropModal(false);
-                  setSelectedImageFile(null);
-                }}
+                onClose={handleCloseCropModal}
                 onCropComplete={handleCropComplete}
                 imageFile={selectedImageFile}
               />
@@ -1803,10 +1834,7 @@ const DashBoardPage: React.FC = () => {
         {/* Image Crop Modal for fallback */}
         <ImageCropModal
           isOpen={showCropModal}
-          onClose={() => {
-            setShowCropModal(false);
-            setSelectedImageFile(null);
-          }}
+          onClose={handleCloseCropModal}
           onCropComplete={handleCropComplete}
           imageFile={selectedImageFile}
         />

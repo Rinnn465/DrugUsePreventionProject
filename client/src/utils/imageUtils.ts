@@ -137,17 +137,19 @@ export const resizeImage = (
 export const validateImageFile = (file: File, maxSize: number = 10 * 1024 * 1024): { valid: boolean; error?: string } => {
   const allowedTypes = [
     'image/jpeg',
+    'image/jpg',
     'image/png',
     'image/gif'
   ];
+  
   if (!allowedTypes.includes(file.type)) {
-    return { valid: false, error: 'Chỉ cho phép các định dạng ảnh JPEG, PNG, GIF.' };
+    return { valid: false, error: `Chỉ cho phép các định dạng ảnh JPEG, PNG, GIF. Loại file hiện tại: ${file.type}` };
   }
   
   // Check file size
   if (file.size > maxSize) {
     const maxSizeMB = Math.round(maxSize / (1024 * 1024));
-    return { valid: false, error: `Kích thước file không được vượt quá ${maxSizeMB}MB` };
+    return { valid: false, error: `Kích thước file không được vượt quá ${maxSizeMB}MB. Kích thước hiện tại: ${Math.round(file.size / (1024 * 1024))}MB` };
   }
   
   return { valid: true };
