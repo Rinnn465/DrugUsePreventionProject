@@ -276,11 +276,6 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
       return;
     }
 
-    if (user?.RoleName.toLowerCase() === 'member') {
-      toast.error('❌ Bạn không có quyền đặt lịch hẹn với chuyên viên!');
-      return;
-    }
-
     toast.success(
       <div>
         <Link to={`/dashboard/${user?.AccountID}/appointments`}>
