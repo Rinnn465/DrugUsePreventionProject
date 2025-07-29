@@ -137,7 +137,7 @@ export const assessmentData: Assessment[] = [
       },
       {
         id: "q6",
-        text: "bạn có cho rằng việc mua hay tiếp cận ma túy trong khu vực mình sống rất dễ danngf không?",
+        text: "bạn có cho rằng việc mua hay tiếp cận ma túy trong khu vực mình sống rất dễ dàng không?",
         options: [
           { id: "a", text: "Không", value: 0 },
           { id: "b", text: "Có", value: 1 }

@@ -887,6 +887,250 @@ const AssessmentDetailPage: React.FC = () => {
             )}
           </div>
 
+          {/* Cảnh báo cho rủi ro cao */}
+          {(assessment.id <= 2 && risk === 'cao') && (
+            <div className="mb-6 p-6 bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-xl shadow-lg">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-red-800 mb-2">
+                    ⚠️ CẢNH BÁO: Nguy cơ cao cần được tư vấn chuyên môn
+                  </h4>
+                  <p className="text-red-700 mb-3">
+                    Kết quả đánh giá cho thấy bạn đang có nguy cơ cao về sử dụng chất gây nghiện. 
+                    <strong> Chúng tôi khuyến nghị bạn nên:</strong>
+                  </p>
+                  <ul className="text-red-700 space-y-2 mb-4">
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-600 font-bold">•</span>
+                      <span>Liên hệ ngay với chuyên viên tư vấn để được hỗ trợ chuyên môn</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-600 font-bold">•</span>
+                      <span>Tham gia các khóa học phòng ngừa và điều trị</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-600 font-bold">•</span>
+                      <span>Chia sẻ với người thân hoặc bạn bè đáng tin cậy</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-600 font-bold">•</span>
+                      <span>Tìm kiếm sự hỗ trợ từ các tổ chức chuyên môn</span>
+                    </li>
+                  </ul>
+                  <div className="flex flex-wrap gap-3">
+                    <Link
+                      to="/appointments"
+                      className="px-6 py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-all shadow-lg flex items-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      Đặt lịch tư vấn ngay
+                    </Link>
+                    <Link
+                      to="/courses"
+                      className="px-6 py-3 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition-all shadow-lg flex items-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                      Xem khóa học phòng ngừa
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Cảnh báo cho rủi ro trung bình */}
+          {(assessment.id <= 2 && risk === 'trung bình') && (
+            <div className="mb-6 p-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-xl shadow-lg">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-yellow-800 mb-2">
+                    ⚠️ LƯU Ý: Cần quan tâm và theo dõi
+                  </h4>
+                  <p className="text-yellow-700 mb-3">
+                    Kết quả đánh giá cho thấy bạn có một số dấu hiệu cần lưu ý. 
+                    <strong> Chúng tôi khuyến nghị bạn nên:</strong>
+                  </p>
+                  <ul className="text-yellow-700 space-y-2 mb-4">
+                    <li className="flex items-start gap-2">
+                      <span className="text-yellow-600 font-bold">•</span>
+                      <span>Tham gia các khóa học phòng ngừa để trang bị kiến thức</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-yellow-600 font-bold">•</span>
+                      <span>Tham khảo ý kiến chuyên gia để được tư vấn</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-yellow-600 font-bold">•</span>
+                      <span>Xây dựng lối sống lành mạnh và tránh xa các tác nhân gây hại</span>
+                    </li>
+                  </ul>
+                  <div className="flex flex-wrap gap-3">
+                    <Link
+                      to="/appointments"
+                      className="px-6 py-3 bg-yellow-600 text-white rounded-lg font-bold hover:bg-yellow-700 transition-all shadow-lg flex items-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      Tư vấn chuyên gia
+                    </Link>
+                    <Link
+                      to="/courses"
+                      className="px-6 py-3 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition-all shadow-lg flex items-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                      Học khóa phòng ngừa
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Cảnh báo cho Parent Assessment - cần hỗ trợ tích cực */}
+          {(assessment.id === 3 && risk === 'cần hỗ trợ tích cực') && (
+            <div className="mb-6 p-6 bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-xl shadow-lg">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-red-800 mb-2">
+                    ⚠️ CẢNH BÁO: Cần tăng cường hỗ trợ con cái
+                  </h4>
+                  <p className="text-red-700 mb-3">
+                    Kết quả đánh giá cho thấy bạn cần tăng cường các biện pháp phòng ngừa và giám sát con cái. 
+                    <strong> Chúng tôi khuyến nghị bạn nên:</strong>
+                  </p>
+                  <ul className="text-red-700 space-y-2 mb-4">
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-600 font-bold">•</span>
+                      <span>Tham gia các khóa học về kỹ năng làm cha mẹ</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-600 font-bold">•</span>
+                      <span>Học phương pháp giao tiếp hiệu quả với con</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-600 font-bold">•</span>
+                      <span>Tư vấn với chuyên gia tâm lý gia đình</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-600 font-bold">•</span>
+                      <span>Thiết lập các quy tắc và giới hạn rõ ràng</span>
+                    </li>
+                  </ul>
+                  <div className="flex flex-wrap gap-3">
+                    <Link
+                      to="/appointments"
+                      className="px-6 py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-all shadow-lg flex items-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      Tư vấn chuyên gia
+                    </Link>
+                    <Link
+                      to="/courses"
+                      className="px-6 py-3 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition-all shadow-lg flex items-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                      Học khóa làm cha mẹ
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Cảnh báo cho School Assessment - cần tăng cường đáng kể */}
+          {(assessment.id === 4 && risk === 'cần tăng cường đáng kể') && (
+            <div className="mb-6 p-6 bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-xl shadow-lg">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-red-800 mb-2">
+                    ⚠️ CẢNH BÁO: Cần xây dựng chương trình phòng ngừa ngay lập tức
+                  </h4>
+                  <p className="text-red-700 mb-3">
+                    Kết quả đánh giá cho thấy nhà trường cần xây dựng và triển khai ngay các chương trình phòng ngừa ma túy. 
+                    <strong> Chúng tôi khuyến nghị nhà trường nên:</strong>
+                  </p>
+                  <ul className="text-red-700 space-y-2 mb-4">
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-600 font-bold">•</span>
+                      <span>Xây dựng chương trình phòng ngừa ma túy toàn diện</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-600 font-bold">•</span>
+                      <span>Đào tạo giáo viên về kỹ năng phát hiện và xử lý</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-600 font-bold">•</span>
+                      <span>Thiết lập hệ thống giám sát và báo cáo</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-600 font-bold">•</span>
+                      <span>Phối hợp với phụ huynh và cộng đồng</span>
+                    </li>
+                  </ul>
+                  <div className="flex flex-wrap gap-3">
+                    <Link
+                      to="/appointments"
+                      className="px-6 py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-all shadow-lg flex items-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      Tư vấn chuyên gia
+                    </Link>
+                    <Link
+                      to="/courses"
+                      className="px-6 py-3 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition-all shadow-lg flex items-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                      Khóa đào tạo giáo viên
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <h4 className="font-bold text-lg mb-2 text-primary-700">Nhận xét và gợi ý:</h4>
             {assessment.id <= 2 ? (
