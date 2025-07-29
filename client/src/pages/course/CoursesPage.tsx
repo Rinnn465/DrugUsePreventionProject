@@ -73,9 +73,9 @@ const CoursesPage: React.FC = () => {
   const normalizeString = (str: string) =>
     str
       .normalize('NFD')                      // Decompose accents
-      .replace(/[\u0300-\u036f]/g, '')       // Remove accents
-      .replace(/\s+/g, '')                   // Remove spaces
-      .toLowerCase();                        // Convert to lowercase
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '')
+      .toLowerCase();
 
   const normalizedSearch = normalizeString(searchTerm);
   const searchTerms = normalizedSearch.split(' ').filter(term => term !== '');

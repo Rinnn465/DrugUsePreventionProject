@@ -2,23 +2,25 @@ import React, { useEffect, useState } from 'react';
 import { Users, Search, Calendar as CalendarIcon, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import CounselorCard from '../../components/counselors/CounselorCard';
 import { ConsultantWithSchedule, Qualification, Specialty } from '../../types/Consultant';
+import { useLocation } from 'react-router-dom';
 
 
 const AppointmentsPage: React.FC = () => {
+
+  const location = useLocation();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCounselor, setSelectedCounselor] = useState<number | null>(null);
   const [viewMode] = useState<'list' | 'selection'>('list');
   const [showSpecialtyFilter, setShowSpecialtyFilter] = useState(false);
 
-  // Set data from fetching
+
   const [consultantData, setConsultantData] = useState<ConsultantWithSchedule[]>([]);
   const [specialtyData, setSpecialtyData] = useState<Specialty[]>([]);
   const [qualificationData, setQualificationData] = useState<Qualification[]>([]);
 
-  // Handling filter data
-  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
 
+  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
 
   useEffect(() => {
     fetch('http://localhost:5000/api/consultant')
@@ -35,14 +37,24 @@ const AppointmentsPage: React.FC = () => {
       .then(response => response.json())
       .then(data => { setSpecialtyData(data.data) })
       .catch(error => console.error('Error fetching specialties:', error));
+
   }, []);
+
+  useEffect(() => {
+    if (location.state?.consultantName) {
+      setSearchTerm(location.state.consultantName);
+    }
+    if (location.state?.consultantId) {
+      setSelectedCounselor(location.state.consultantId);
+    }
+  }, [location.state]);
 
   const mergeDataIntoConsultants = (
     consultantData: any[],
     specialtyData: any[],
     qualificationData: any[]
   ): ConsultantWithSchedule[] => {
-    // Validate inputs
+
     if (
       !Array.isArray(consultantData) ||
       !Array.isArray(specialtyData) ||
@@ -88,6 +100,10 @@ const AppointmentsPage: React.FC = () => {
       }
     });
 
+    // Track unique specialties and qualifications per consultant
+    const consultantSpecialties: { [key: number]: Set<string> } = {};
+    const consultantQualifications: { [key: number]: Set<string> } = {};
+
     specialtyData.forEach((item) => {
       if (!item || typeof item !== 'object' || !item.AccountID) {
         console.warn('Invalid specialty item:', item);
@@ -96,10 +112,18 @@ const AppointmentsPage: React.FC = () => {
 
       const AccountID = item.AccountID;
       if (groupedByConsultant[AccountID]) {
-        groupedByConsultant[AccountID].Specialties.push({
-          SpecialtyID: item.SpecialtyID,
-          Name: item.Name || '',
-        });
+        if (!consultantSpecialties[AccountID]) {
+          consultantSpecialties[AccountID] = new Set();
+        }
+
+        const specialtyKey = `${item.SpecialtyID}-${item.Name}`;
+        if (!consultantSpecialties[AccountID].has(specialtyKey)) {
+          consultantSpecialties[AccountID].add(specialtyKey);
+          groupedByConsultant[AccountID].Specialties.push({
+            SpecialtyID: item.SpecialtyID,
+            Name: item.Name || '',
+          });
+        }
       }
     });
 
@@ -111,10 +135,18 @@ const AppointmentsPage: React.FC = () => {
 
       const AccountID = item.AccountID;
       if (groupedByConsultant[AccountID]) {
-        groupedByConsultant[AccountID].Qualifications.push({
-          QualificationID: item.QualificationID,
-          Name: item.Name || '',
-        });
+        if (!consultantQualifications[AccountID]) {
+          consultantQualifications[AccountID] = new Set();
+        }
+
+        const qualificationKey = `${item.QualificationID}-${item.Name}`;
+        if (!consultantQualifications[AccountID].has(qualificationKey)) {
+          consultantQualifications[AccountID].add(qualificationKey);
+          groupedByConsultant[AccountID].Qualifications.push({
+            QualificationID: item.QualificationID,
+            Name: item.Name || '',
+          });
+        }
       }
     });
 
@@ -126,14 +158,16 @@ const AppointmentsPage: React.FC = () => {
   };
 
   const mergedConsultants = mergeDataIntoConsultants(consultantData, specialtyData, qualificationData);
-  const specialtyOptions = specialtyData.map(specialty => specialty.Name);
+
+  // Deduplicate specialty options for the filter dropdown
+  const specialtyOptions = [...new Set(specialtyData.map(specialty => specialty.Name).filter(name => name))];
 
   const normalizeString = (str: string) =>
     str
       .normalize('NFD')                      // Decompose accents
-      .replace(/[\u0300-\u036f]/g, '')       // Remove accents
-      .replace(/\s+/g, '')                   // Remove spaces
-      .toLowerCase();                        // Convert to lowercase
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '')
+      .toLowerCase();
 
   const normalizedSearch = normalizeString(searchTerm);
 

@@ -36,13 +36,11 @@ const VideoCallComponent: React.FC<VideoCallProps> = ({
             client.on('user-left', handleUserLeft);
 
             try {
-                // Join channel
                 const channelName = generateChannelName(appointmentId);
-                const data = await getAgoraToken(channelName); // You'll implement this
+                const data = await getAgoraToken(channelName);
 
                 await client.join(AGORA_CONFIG.appId, channelName, data?.token, data?.uid);
 
-                // Create and publish local tracks
                 const videoTrack = await AgoraRTC.createCameraVideoTrack();
                 const audioTrack = await AgoraRTC.createMicrophoneAudioTrack();
 
@@ -51,7 +49,6 @@ const VideoCallComponent: React.FC<VideoCallProps> = ({
 
                 await client.publish([videoTrack, audioTrack]);
 
-                // Play local video
                 videoTrack.play('local-video');
 
                 setIsJoined(true);
@@ -125,7 +122,6 @@ const VideoCallComponent: React.FC<VideoCallProps> = ({
         setIsJoined(false);
     };
 
-    // Function to get Agora token from your backend
     const getAgoraToken = async (channelName: string): Promise<object | null> => {
         try {
             const response = await fetch(`http://localhost:5000/api/agora/token`, {
@@ -153,9 +149,7 @@ const VideoCallComponent: React.FC<VideoCallProps> = ({
 
     return (
         <div className="fixed inset-0 bg-black z-50 flex flex-col">
-            {/* Video Container */}
             <div className="flex-1 relative">
-                {/* Remote Video */}
                 <div className="w-full h-full bg-gray-900">
                     {remoteUsers.length > 0 ? (
                         remoteUsers.map(user => (
@@ -177,12 +171,10 @@ const VideoCallComponent: React.FC<VideoCallProps> = ({
                     )}
                 </div>
 
-                {/* Local Video (Picture-in-Picture) */}
                 <div className="absolute top-4 right-4 w-48 h-36 bg-gray-800 rounded-lg overflow-hidden">
                     <div id="local-video" className="w-full h-full" />
                 </div>
 
-                {/* Call Info */}
                 <div className="absolute top-4 left-4 bg-black/50 text-white px-4 py-2 rounded-lg">
                     <p className="text-sm">Appointment #{appointmentId}</p>
                     <p className="text-xs text-gray-300">
