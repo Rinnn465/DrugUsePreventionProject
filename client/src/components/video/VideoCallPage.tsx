@@ -151,7 +151,7 @@ const VideoCallPage: React.FC = () => {
                             <p className="text-gray-600">
                                 Chuẩn bị tham gia cuộc gọi video với{' '}
                                 {callData.isConsultant
-                                    ? callData.appointmentDetails.customerName || 'bệnh nhân'
+                                    ? callData.appointmentDetails.customerName || 'khách hàng'
                                     : callData.appointmentDetails.consultantName || 'chuyên viên tư vấn'
                                 }
                             </p>

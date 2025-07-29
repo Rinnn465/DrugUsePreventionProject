@@ -17,6 +17,7 @@ router.get('/qualifications/:id', consultantController.getConsultantQualificatio
 
 // Get specialties - must be before /:id route
 router.get('/specialties', consultantController.getSpecialties);
+router.get('/filter-specialties', consultantController.getSpecialtiesForFilter);
 router.get('/specialties/:id', consultantController.getConsultantSpecialtyById);
 
 

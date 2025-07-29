@@ -222,7 +222,7 @@ export async function getQualifications(
 
         // Join query to get qualifications with consultant associations
         const result = await pool.request().query(
-            `SELECT q.QualificationID, q.Name, cq.AccountID  
+            `SELECT DISTINCT q.QualificationID, q.Name, cq.AccountID  
                FROM Qualification q JOIN ConsultantQualification cq ON q.QualificationID = cq.QualificationID`
         );
         res
@@ -256,16 +256,38 @@ export async function getSpecialties(
         const pool = await poolPromise;
         // Join query to get specialties with consultant associations
         const result = await pool.request().query(
-            `SELECT s.SpecialtyID, s.Name, cs.AccountID 
+            `SELECT DISTINCT s.SpecialtyID, s.Name, cs.AccountID 
                FROM Specialty s JOIN ConsultantSpecialty cs ON s.SpecialtyID = cs.SpecialtyID`
         );
         res
             .status(200)
-            .json({ message: "Tải dữ liệu chuyên môn thành công", data: result.recordset });
+            .json({ message: "Tải dữ liệu chuyên môn thành công123", data: result.recordset });
         return;
     } catch (err: any) {
         console.error(err);
         throw new Error("Lỗi máy chủ");
+    }
+}
+
+export async function getSpecialtiesForFilter(
+    req: Request,
+    res: Response,
+    next: NextFunction
+) {
+    try {
+        const pool = await poolPromise;
+        // Query to get all specialties for filtering
+        const result = await pool.request().query(`
+            SELECT SpecialtyID, Name 
+            FROM Specialty
+        `);
+        res.status(200).json({
+            message: "Tải dữ liệu chuyên môn cho bộ lọc thành công",
+            data: result.recordset,
+        });
+    } catch (err: any) {
+        console.error(err);
+        res.status(500).json({ message: "Lỗi máy chủ", error: err.message });
     }
 }
 

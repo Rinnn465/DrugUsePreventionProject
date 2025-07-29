@@ -42,7 +42,7 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   assessment,
   formikProps
 }) => {
-  const { values, errors, touched } = formikProps;
+  const { values } = formikProps;
   const currentQuestion = assessment.questions[currentIndex];
 
   const isCurrentQuestionAnswered = () => {
@@ -617,7 +617,7 @@ const AssessmentDetailPage: React.FC = () => {
           onSubmit={handleSubmit}
           validateOnChange={false}
           validateOnBlur={false}
-          validate={(values) => {
+          validate={() => {
             const errors: { [key: string]: string } = {};
             return errors;
           }}
@@ -974,7 +974,7 @@ const AssessmentDetailPage: React.FC = () => {
                   </div>
                   <Link
                     to={'/appointments'}
-                    state={{ counselorId: consultant.AccountID }}
+                    state={{ consultantName: consultant.Name, consultantId: consultant.AccountID }}
                     className="mt-2 inline-block px-4 py-2 bg-gradient-to-r from-accent-500 to-primary-500 text-white rounded-lg font-bold shadow hover:from-primary-600 hover:to-accent-600 transition-all"
                   >
                     Đặt lịch ngay

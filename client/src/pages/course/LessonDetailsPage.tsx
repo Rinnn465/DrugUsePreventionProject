@@ -48,7 +48,7 @@ const LessonDetailsPage: React.FC = () => {
     const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
     const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
     const [showControls, setShowControls] = useState<boolean>(true);
-    const [courseCompleted, setCourseCompleted] = useState<boolean>(false);
+    const [courseCompleted] = useState<boolean>(false);
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const isSeekingRef = useRef(false);
@@ -120,8 +120,6 @@ const LessonDetailsPage: React.FC = () => {
                             progressData: progressData
                         };
                     } catch {
-                        // If lesson progress doesn't exist, return null
-
                         return {
                             lessonId: lessonItem.LessonID,
                             progressData: null
@@ -145,7 +143,7 @@ const LessonDetailsPage: React.FC = () => {
                         // Set video progress
                         newVideoProgress[lessonIdStr] = progressData.CompletionPercentage || 0;
 
-                        // Set last valid time (if available in your database schema)
+                        //Set last valid time
                         newLastValidTime[lessonIdStr] = progressData.LastValidTime || 0;
 
                         // Initialize milestones based on current progress
@@ -230,11 +228,6 @@ const LessonDetailsPage: React.FC = () => {
                 const isEnrolled = enrollmentStatus?.isEnrolled || enrollmentStatus?.data?.isEnrolled || false;
                 setIsLessonEnrolled(isEnrolled);
 
-                if (isEnrolled) {
-
-                } else {
-                    console.warn('Enrollment may have failed for lesson:', selected);
-                }
             } catch (error: unknown) {
                 console.error("Error enrolling in lesson:", error);
 
@@ -286,14 +279,6 @@ const LessonDetailsPage: React.FC = () => {
             };
         }
     }, [isPlaying]);
-
-    const checkCourseCompletion = useCallback(() => {
-        const allLessonsCompleted = !lesson || completedLessons.size === lesson.length;
-        if (allLessonsCompleted && !courseCompleted) {
-            return true;
-        }
-        return false;
-    }, [lesson, completedLessons.size, courseCompleted]);
 
     const handleVideoTimeUpdate = (lessonId: string | number) => {
         if (videoRef.current && !isSeekingRef.current && !videoRef.current.paused) {
@@ -429,13 +414,12 @@ const LessonDetailsPage: React.FC = () => {
 
             // Schedule cleanup and course completion check
             setTimeout(() => {
-                checkCourseCompletion();
                 completionInProgressRef.current.delete(lessonId);
             }, 1500);
 
             return newSet;
         });
-    }, [user?.AccountID, completedLessons, checkCourseCompletion, markLessonCompletedOnServer]);
+    }, [user?.AccountID, completedLessons, markLessonCompletedOnServer]);
 
     const handleLessonCompletion = useCallback((lessonId: string | number) => {
         // Immediate atomic check
