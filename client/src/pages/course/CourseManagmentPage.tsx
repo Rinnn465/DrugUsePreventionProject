@@ -439,12 +439,12 @@ const CourseManagmentPage: React.FC = () => {
     // Get status badge
     const getStatusBadge = (status: string) => {
         const statusConfig = {
-            'active': { color: 'bg-green-100 text-green-800', text: 'Hoạt động' },
-            'inactive': { color: 'bg-gray-100 text-gray-800', text: 'Không hoạt động' },
+            'active': { color: 'bg-green-100 text-green-800 ring-1 ring-green-200', text: 'Hoạt động' },
+            'inactive': { color: 'bg-gray-100 text-gray-800 ring-1 ring-gray-200', text: 'Không hoạt động' },
         };
         const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.active;
         return (
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
+            <span className={`inline-flex items-center justify-center px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap ${config.color}`}>
                 {config.text}
             </span>
         );
@@ -927,105 +927,152 @@ const CourseManagmentPage: React.FC = () => {
 
             {/* Lessons Modal */}
             {showLessonsModal && selectedCourse && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between p-6 border-b">
-                            <h3 className="text-lg font-medium text-gray-900">
-                                Quản lý bài học - {selectedCourse.CourseName}
-                            </h3>
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden">
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+                            <div className="flex items-center space-x-4">
+                                <div className="p-3 bg-blue-100 rounded-xl">
+                                    <FileText className="h-6 w-6 text-blue-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-gray-900">
+                                        Quản lý bài học - {selectedCourse.CourseName}
+                                    </h3>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                        Thêm, chỉnh sửa và xóa các bài học trong khóa học này
+                                    </p>
+                                </div>
+                            </div>
                             <button
                                 onClick={() => setShowLessonsModal(false)}
-                                className="text-gray-400 hover:text-gray-600"
+                                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                             >
-                                <span className="sr-only">Đóng</span>✕
+                                <span className="sr-only">Đóng</span>
+                                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
                             </button>
                         </div>
 
-                        <div className="p-6">
+                        {/* Content */}
+                        <div className="p-6 overflow-y-auto max-h-[calc(95vh-120px)]">
                             {/* Add lesson button */}
-                            <div className="flex justify-between items-center mb-4">
-                                <h4 className="text-md font-medium text-gray-900">Danh sách bài học</h4>
+                            <div className="flex justify-between items-center mb-6">
+                                <div>
+                                    <h4 className="text-lg font-semibold text-gray-900">Danh sách bài học</h4>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        {lessons.length} bài học trong khóa học này
+                                    </p>
+                                </div>
                                 <button
                                     onClick={openCreateLessonModal}
-                                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                    className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl"
                                 >
-                                    <Plus className="h-4 w-4" />
-                                    <span>Thêm bài học</span>
+                                    <Plus className="h-5 w-5" />
+                                    <span className="font-medium">Thêm bài học</span>
                                 </button>
                             </div>
 
                             {/* Lessons list */}
-                            <div className="border rounded-lg overflow-hidden">
+                            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                                 {lessons.length === 0 ? (
-                                    <div className="p-8 text-center text-gray-500">
-                                        <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                                        <p>Chưa có bài học nào</p>
+                                    <div className="p-12 text-center">
+                                        <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                            <FileText className="h-8 w-8 text-gray-400" />
+                                        </div>
+                                        <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có bài học nào</h3>
+                                        <p className="text-gray-500 mb-6">Bắt đầu bằng cách thêm bài học đầu tiên cho khóa học này.</p>
+                                        <button
+                                            onClick={openCreateLessonModal}
+                                            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                        >
+                                            <Plus className="h-4 w-4 mr-2" />
+                                            Thêm bài học đầu tiên
+                                        </button>
                                     </div>
                                 ) : (
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
-                                            <tr>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tiêu đề</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Thời lượng</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Video</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
-                                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Thao tác</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
-                                            {lessons.map((lesson) => (
-                                                <tr key={lesson.LessonID} className="hover:bg-gray-50">
-                                                    <td className="px-6 py-4">
-                                                        <div>
-                                                            <div className="text-sm font-medium text-gray-900">{lesson.Title}</div>
-                                                            <div className="text-sm text-gray-500">{lesson.BriefDescription}</div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-sm text-gray-500">
-                                                        {lesson.Duration ? `${lesson.Duration} phút` : 'Chưa xác định'}
-                                                    </td>
-                                                    <td className="px-6 py-4 text-sm">
-                                                        {lesson.VideoUrl ? (
-                                                            <div className="flex items-center text-green-600">
-                                                                <Video className="h-4 w-4 mr-1" />
-                                                                <span>Có video</span>
-                                                            </div>
-                                                        ) : (
-                                                            <span className="text-gray-400">Chưa có video</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                            lesson.Status === 'active' 
-                                                                ? 'bg-green-100 text-green-800' 
-                                                                : 'bg-gray-100 text-gray-800'
-                                                        }`}>
-                                                            {lesson.Status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-right text-sm font-medium">
-                                                        <div className="flex items-center justify-end space-x-2">
-                                                            <button
-                                                                onClick={() => openEditLessonModal(lesson)}
-                                                                className="text-indigo-600 hover:text-indigo-900 p-1 rounded"
-                                                            >
-                                                                <Edit className="h-4 w-4" />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => {
-                                                                    setSelectedLesson(lesson);
-                                                                    setShowDeleteLessonModal(true);
-                                                                }}
-                                                                className="text-red-600 hover:text-red-900 p-1 rounded"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </button>
-                                                        </div>
-                                                    </td>
+                                    <div className="overflow-x-auto">
+                                        <table className="min-w-full divide-y divide-gray-200">
+                                            <thead className="bg-gray-50">
+                                                <tr>
+                                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tiêu đề</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Thời lượng</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Video</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Trạng thái</th>
+                                                    <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Thao tác</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody className="bg-white divide-y divide-gray-100">
+                                                {lessons.map((lesson, index) => (
+                                                    <tr key={lesson.LessonID} className="hover:bg-gray-50 transition-colors">
+                                                        <td className="px-6 py-5">
+                                                            <div className="flex items-start space-x-3">
+                                                                <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                                                    <span className="text-sm font-medium text-blue-600">{index + 1}</span>
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="text-sm font-semibold text-gray-900 mb-1">{lesson.Title}</div>
+                                                                    <div className="text-sm text-gray-500 line-clamp-2">{lesson.BriefDescription}</div>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-5">
+                                                            <div className="flex items-center space-x-2">
+                                                                <Clock className="h-4 w-4 text-gray-400" />
+                                                                <span className="text-sm text-gray-700 font-medium">
+                                                                    {lesson.Duration ? `${lesson.Duration} phút` : 'Chưa xác định'}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-5">
+                                                            {lesson.VideoUrl ? (
+                                                                <div className="flex items-center space-x-2 text-green-600">
+                                                                    <Video className="h-4 w-4" />
+                                                                    <span className="text-sm font-medium">Có video</span>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center space-x-2 text-gray-400">
+                                                                    <Video className="h-4 w-4" />
+                                                                    <span className="text-sm">Chưa có video</span>
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-6 py-5">
+                                                            <span className={`inline-flex items-center justify-center px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap ${
+                                                                lesson.Status === 'active' 
+                                                                    ? 'bg-green-100 text-green-800 ring-1 ring-green-200' 
+                                                                    : 'bg-gray-100 text-gray-800 ring-1 ring-gray-200'
+                                                            }`}>
+                                                                {lesson.Status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-5 text-right">
+                                                            <div className="flex items-center justify-end space-x-1">
+                                                                <button
+                                                                    onClick={() => openEditLessonModal(lesson)}
+                                                                    className="p-2 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded-lg transition-colors"
+                                                                    title="Chỉnh sửa bài học"
+                                                                >
+                                                                    <Edit className="h-4 w-4" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setSelectedLesson(lesson);
+                                                                        setShowDeleteLessonModal(true);
+                                                                    }}
+                                                                    className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors"
+                                                                    title="Xóa bài học"
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -1035,25 +1082,37 @@ const CourseManagmentPage: React.FC = () => {
 
             {/* Create Lesson Modal */}
             {showCreateLessonModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between p-6 border-b">
-                            <h3 className="text-lg font-medium text-gray-900">Thêm bài học mới</h3>
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[95vh] overflow-hidden">
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+                            <div className="flex items-center space-x-3">
+                                <div className="p-2 bg-blue-100 rounded-lg">
+                                    <Plus className="h-5 w-5 text-blue-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-900">Thêm bài học mới</h3>
+                                    <p className="text-sm text-gray-600">Tạo bài học mới cho khóa học</p>
+                                </div>
+                            </div>
                             <button
                                 onClick={closeCreateLessonModal}
-                                className="text-gray-400 hover:text-gray-600"
+                                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                             >
-                                ✕
+                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
                             </button>
                         </div>
 
-                        <form onSubmit={handleCreateLesson} className="p-6 space-y-6">
+                        <form onSubmit={handleCreateLesson} className="p-6 space-y-6 overflow-y-auto max-h-[calc(95vh-140px)]">
                             <div>
-                                <label htmlFor="create-lesson-title" className="block text-sm font-medium text-gray-700 mb-1">Tiêu đề bài học</label>
+                                <label htmlFor="create-lesson-title" className="block text-sm font-semibold text-gray-700 mb-2">Tiêu đề bài học *</label>
                                 <input
                                     id="create-lesson-title"
                                     type="text"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                    placeholder="Nhập tiêu đề bài học..."
                                     value={lessonFormData.Title}
                                     onChange={(e) => setLessonFormData({ ...lessonFormData, Title: e.target.value })}
                                     required
@@ -1061,45 +1120,48 @@ const CourseManagmentPage: React.FC = () => {
                             </div>
 
                             <div>
-                                <label htmlFor="create-lesson-description" className="block text-sm font-medium text-gray-700 mb-1">Mô tả ngắn</label>
+                                <label htmlFor="create-lesson-description" className="block text-sm font-semibold text-gray-700 mb-2">Mô tả ngắn</label>
                                 <input
                                     id="create-lesson-description"
                                     type="text"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                    placeholder="Mô tả ngắn gọn về bài học..."
                                     value={lessonFormData.BriefDescription}
                                     onChange={(e) => setLessonFormData({ ...lessonFormData, BriefDescription: e.target.value })}
                                 />
                             </div>
 
                             <div>
-                                <label htmlFor="create-lesson-content" className="block text-sm font-medium text-gray-700 mb-1">Nội dung</label>
+                                <label htmlFor="create-lesson-content" className="block text-sm font-semibold text-gray-700 mb-2">Nội dung</label>
                                 <textarea
                                     id="create-lesson-content"
                                     rows={6}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+                                    placeholder="Nhập nội dung chi tiết của bài học..."
                                     value={lessonFormData.Content}
                                     onChange={(e) => setLessonFormData({ ...lessonFormData, Content: e.target.value })}
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label htmlFor="create-lesson-duration" className="block text-sm font-medium text-gray-700 mb-1">Thời lượng (phút)</label>
+                                    <label htmlFor="create-lesson-duration" className="block text-sm font-semibold text-gray-700 mb-2">Thời lượng (phút)</label>
                                     <input
                                         id="create-lesson-duration"
                                         type="number"
                                         min="0"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                        placeholder="0"
                                         value={lessonFormData.Duration || ''}
                                         onChange={(e) => setLessonFormData({ ...lessonFormData, Duration: e.target.value ? parseInt(e.target.value) : null })}
                                     />
                                 </div>
 
                                 <div>
-                                    <label htmlFor="create-lesson-status" className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
+                                    <label htmlFor="create-lesson-status" className="block text-sm font-semibold text-gray-700 mb-2">Trạng thái</label>
                                     <select
                                         id="create-lesson-status"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                                         value={lessonFormData.Status}
                                         onChange={(e) => setLessonFormData({ ...lessonFormData, Status: e.target.value })}
                                     >
@@ -1110,28 +1172,29 @@ const CourseManagmentPage: React.FC = () => {
                             </div>
 
                             <div>
-                                <label htmlFor="create-lesson-video" className="block text-sm font-medium text-gray-700 mb-1">URL Video</label>
+                                <label htmlFor="create-lesson-video" className="block text-sm font-semibold text-gray-700 mb-2">URL Video</label>
                                 <input
                                     id="create-lesson-video"
                                     type="url"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                                     value={lessonFormData.VideoUrl}
                                     onChange={(e) => setLessonFormData({ ...lessonFormData, VideoUrl: e.target.value })}
-                                    placeholder="https://..."
+                                    placeholder="https://www.youtube.com/watch?v=..."
                                 />
+                                <p className="text-xs text-gray-500 mt-1">Nhập URL video từ YouTube hoặc nguồn khác</p>
                             </div>
 
-                            <div className="flex justify-end space-x-3 pt-6 border-t">
+                            <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
                                 <button
                                     type="button"
                                     onClick={closeCreateLessonModal}
-                                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                                    className="px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
                                 >
                                     Hủy
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-lg hover:shadow-xl"
                                 >
                                     Tạo bài học
                                 </button>
@@ -1143,25 +1206,37 @@ const CourseManagmentPage: React.FC = () => {
 
             {/* Edit Lesson Modal */}
             {showEditLessonModal && selectedLesson && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between p-6 border-b">
-                            <h3 className="text-lg font-medium text-gray-900">Chỉnh sửa bài học</h3>
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[95vh] overflow-hidden">
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-purple-50">
+                            <div className="flex items-center space-x-3">
+                                <div className="p-2 bg-indigo-100 rounded-lg">
+                                    <Edit className="h-5 w-5 text-indigo-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-900">Chỉnh sửa bài học</h3>
+                                    <p className="text-sm text-gray-600">Cập nhật thông tin bài học</p>
+                                </div>
+                            </div>
                             <button
                                 onClick={closeEditLessonModal}
-                                className="text-gray-400 hover:text-gray-600"
+                                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                             >
-                                ✕
+                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
                             </button>
                         </div>
 
-                        <form onSubmit={handleUpdateLesson} className="p-6 space-y-6">
+                        <form onSubmit={handleUpdateLesson} className="p-6 space-y-6 overflow-y-auto max-h-[calc(95vh-140px)]">
                             <div>
-                                <label htmlFor="edit-lesson-title" className="block text-sm font-medium text-gray-700 mb-1">Tiêu đề bài học</label>
+                                <label htmlFor="edit-lesson-title" className="block text-sm font-semibold text-gray-700 mb-2">Tiêu đề bài học *</label>
                                 <input
                                     id="edit-lesson-title"
                                     type="text"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                    placeholder="Nhập tiêu đề bài học..."
                                     value={lessonFormData.Title}
                                     onChange={(e) => setLessonFormData({ ...lessonFormData, Title: e.target.value })}
                                     required
@@ -1169,45 +1244,48 @@ const CourseManagmentPage: React.FC = () => {
                             </div>
 
                             <div>
-                                <label htmlFor="edit-lesson-description" className="block text-sm font-medium text-gray-700 mb-1">Mô tả ngắn</label>
+                                <label htmlFor="edit-lesson-description" className="block text-sm font-semibold text-gray-700 mb-2">Mô tả ngắn</label>
                                 <input
                                     id="edit-lesson-description"
                                     type="text"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                    placeholder="Mô tả ngắn gọn về bài học..."
                                     value={lessonFormData.BriefDescription}
                                     onChange={(e) => setLessonFormData({ ...lessonFormData, BriefDescription: e.target.value })}
                                 />
                             </div>
 
                             <div>
-                                <label htmlFor="edit-lesson-content" className="block text-sm font-medium text-gray-700 mb-1">Nội dung</label>
+                                <label htmlFor="edit-lesson-content" className="block text-sm font-semibold text-gray-700 mb-2">Nội dung</label>
                                 <textarea
                                     id="edit-lesson-content"
                                     rows={6}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+                                    placeholder="Nhập nội dung chi tiết của bài học..."
                                     value={lessonFormData.Content}
                                     onChange={(e) => setLessonFormData({ ...lessonFormData, Content: e.target.value })}
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label htmlFor="edit-lesson-duration" className="block text-sm font-medium text-gray-700 mb-1">Thời lượng (phút)</label>
+                                    <label htmlFor="edit-lesson-duration" className="block text-sm font-semibold text-gray-700 mb-2">Thời lượng (phút)</label>
                                     <input
                                         id="edit-lesson-duration"
                                         type="number"
                                         min="0"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                        placeholder="0"
                                         value={lessonFormData.Duration || ''}
                                         onChange={(e) => setLessonFormData({ ...lessonFormData, Duration: e.target.value ? parseInt(e.target.value) : null })}
                                     />
                                 </div>
 
                                 <div>
-                                    <label htmlFor="edit-lesson-status" className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
+                                    <label htmlFor="edit-lesson-status" className="block text-sm font-semibold text-gray-700 mb-2">Trạng thái</label>
                                     <select
                                         id="edit-lesson-status"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                                         value={lessonFormData.Status}
                                         onChange={(e) => setLessonFormData({ ...lessonFormData, Status: e.target.value })}
                                     >
@@ -1218,30 +1296,31 @@ const CourseManagmentPage: React.FC = () => {
                             </div>
 
                             <div>
-                                <label htmlFor="edit-lesson-video" className="block text-sm font-medium text-gray-700 mb-1">URL Video</label>
+                                <label htmlFor="edit-lesson-video" className="block text-sm font-semibold text-gray-700 mb-2">URL Video</label>
                                 <input
                                     id="edit-lesson-video"
                                     type="url"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                    placeholder="https://www.youtube.com/watch?v=..."
                                     value={lessonFormData.VideoUrl}
                                     onChange={(e) => setLessonFormData({ ...lessonFormData, VideoUrl: e.target.value })}
-                                    placeholder="https://..."
                                 />
+                                <p className="text-xs text-gray-500 mt-1">Nhập URL video từ YouTube hoặc nguồn khác</p>
                             </div>
 
-                            <div className="flex justify-end space-x-3 pt-6 border-t">
+                            <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
                                 <button
                                     type="button"
                                     onClick={closeEditLessonModal}
-                                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                                    className="px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
                                 >
                                     Hủy
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                    className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium shadow-lg hover:shadow-xl"
                                 >
-                                    Cập nhật
+                                    Cập nhật bài học
                                 </button>
                             </div>
                         </form>
@@ -1251,25 +1330,38 @@ const CourseManagmentPage: React.FC = () => {
 
             {/* Delete Lesson Modal */}
             {showDeleteLessonModal && selectedLesson && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg max-w-md w-full mx-4">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
                         <div className="p-6">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Xác nhận xóa bài học</h3>
-                            <p className="text-sm text-gray-500 mb-6">
-                                Bạn có chắc chắn muốn xóa bài học "{selectedLesson.Title}"? Hành động này không thể hoàn tác.
-                            </p>
+                            <div className="flex items-center space-x-3 mb-4">
+                                <div className="p-2 bg-red-100 rounded-lg">
+                                    <Trash2 className="h-5 w-5 text-red-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-900">Xác nhận xóa bài học</h3>
+                                    <p className="text-sm text-gray-600">Hành động này không thể hoàn tác</p>
+                                </div>
+                            </div>
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                                <p className="text-sm text-red-800">
+                                    Bạn có chắc chắn muốn xóa bài học <span className="font-semibold">"{selectedLesson.Title}"</span>?
+                                </p>
+                                <p className="text-xs text-red-600 mt-2">
+                                    Tất cả dữ liệu liên quan đến bài học này sẽ bị xóa vĩnh viễn.
+                                </p>
+                            </div>
                             <div className="flex justify-end space-x-3">
                                 <button
                                     onClick={() => setShowDeleteLessonModal(false)}
-                                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                                    className="px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
                                 >
                                     Hủy
                                 </button>
                                 <button
                                     onClick={handleDeleteLesson}
-                                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                                    className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium shadow-lg hover:shadow-xl"
                                 >
-                                    Xóa
+                                    Xóa bài học
                                 </button>
                             </div>
                         </div>
