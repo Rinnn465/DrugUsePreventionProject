@@ -4,12 +4,14 @@ import { User } from "../types/User";
 interface UserContextType {
   user: User | null;
   setUser: (user: User | null) => void;
+  isLoading: boolean;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load user from localStorage on init
   useEffect(() => {
@@ -23,6 +25,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         localStorage.removeItem('user');
       }
     }
+    setIsLoading(false);
   }, []);
 
   const setUserWithStorage = (newUser: User | null) => {
@@ -35,7 +38,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <UserContext.Provider value={{ user, setUser: setUserWithStorage }}>
+    <UserContext.Provider value={{ user, setUser: setUserWithStorage, isLoading }}>
       {children}
     </UserContext.Provider>
   );
