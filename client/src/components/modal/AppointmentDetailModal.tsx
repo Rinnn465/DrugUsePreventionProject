@@ -197,7 +197,7 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
               </div>
               <div className="space-y-2">
                 <p className="text-lg font-medium text-gray-800">
-                  {parseISODateTime(appointment.Time, { format: '12h' }) || 'Không xác định'}
+                  {appointment.Time}
                 </p>
                 <div className="flex flex-wrap gap-4 text-sm">
                   <p className="text-gray-600">

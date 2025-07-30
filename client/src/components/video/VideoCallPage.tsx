@@ -8,6 +8,8 @@ import { useUser } from '@/context/UserContext';
 import apiUtils from '@/utils/apiUtils';
 import { toast } from 'react-toastify';
 import AppointmentCompletionModal from '../modal/AppointmentCompletionModal';
+import { parseSqlDate } from '@/utils/parseSqlDateUtils';
+import { parseISODateTime, parseSQLTime } from '@/utils/parseTimeUtils';
 
 interface VideoCallData {
     appointmentId: number;
@@ -171,11 +173,11 @@ const VideoCallPage: React.FC = () => {
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-600">Ngày</p>
-                                    <p className="font-semibold">{callData.appointmentDetails.date}</p>
+                                    <p className="font-semibold">{parseSqlDate(callData.appointmentDetails.date)}</p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-600">Thời gian</p>
-                                    <p className="font-semibold">{callData.appointmentDetails.time}</p>
+                                    <p className="font-semibold">{parseISODateTime(callData.appointmentDetails.time)}</p>
                                 </div>
                             </div>
                         </div>
