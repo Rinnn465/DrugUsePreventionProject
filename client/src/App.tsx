@@ -1,30 +1,20 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
-import Layout from './components/Layout';
-import HomePage from './pages/HomePage';
-import AboutPage from './pages/about/AboutPage';
-import CoursesPage from './pages/course/CoursesPage';
-import AssessmentsPage from './pages/assessment/AssessmentsPage';
-import AssessmentDetailPage from './pages/assessment/AssessmentDetailPage';
-import AppointmentsPage from './pages/appointment/AppointmentsPage';
-import DashBoardPage from './pages/DashBoardPage';
-import SurveyBeforeEventPage from './pages/survey/SurveyBeforeEventPage';
-import CourseEnrollPage from './pages/course/CourseEnrollPage';
-import NotFoundPage from './pages/NotFoundPage';
-import LoginPage from './pages/authen/LoginPage';
-import SignUpPage from './pages/authen/SignupPage';
-import AuthLayout from './components/AuthLayout';
-import ConsultantDetailsPage from './pages/appointment/ConsultantDetailsPage';
-import LessonDetailsPage from './pages/course/LessonDetailsPage';
-import ExamPage from './pages/course/ExamPage';
-import SurveyCompletePage from './pages/survey/SurveyCompletePage';
-import SurveyAfterEventPage from './pages/survey/SurveyAfterEventPage';
-import CourseManagmentPage from './pages/course/CourseManagmentPage';
-import ProgramManagementPage from './pages/program/ProgramManagementPage';
-import AccountManagementPage from './pages/management/AccountManagementPage';
-import ArticleManagementPage from './pages/management/ArticleManagementPage';
-import EmployeeManagmentPage from './pages/management/EmployeeManagementPage';
-import MemberManagmentPage from './pages/management/MemberManagementPage';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Layout from "./components/Layout";
+import HomePage from "./pages/HomePage";
+import AboutPage from "./pages/about/AboutPage";
+import CoursesPage from "./pages/course/CoursesPage";
+import CourseEnrollPage from "./pages/course/CourseEnrollPage";
+import LessonDetailsPage from "./pages/course/LessonDetailsPage";
+import ExamPage from "./pages/course/ExamPage";
+import ConsultantDetailsPage from "./pages/appointment/ConsultantDetailsPage";
+import AssessmentsPage from "./pages/assessment/AssessmentsPage";
+import AssessmentDetailPage from "./pages/assessment/AssessmentDetailPage";
+import AppointmentsPage from "./pages/appointment/AppointmentsPage";
+import DashBoardPage from "./pages/DashBoardPage";
+import NotFoundPage from "./pages/NotFoundPage";
+import LoginPage from "./pages/authen/LoginPage";
+import SignUpPage from "./pages/authen/SignupPage";
 import ForgotPasswordPage from './pages/authen/ForgotPasswordPage';
 import ResetPasswordPage from './pages/authen/ResetPasswordPage';
 import { UserProvider } from './context/UserContext';
@@ -41,7 +31,18 @@ import AdminProfilePage from './pages/management/AdminProfilePage';
 import ChangePasswordPage from './pages/management/ChangePasswordPage';
 import RolePage from './pages/management/RolePage';
 import VideoCallPage from '@/components/video/VideoCallPage';
-import StaffPage from './pages/management/StaffPage';
+import CourseManagmentPage from './pages/course/CourseManagmentPage';
+import ProgramManagementPage from './pages/program/ProgramManagementPage';
+import AccountManagementPage from './pages/management/AccountManagementPage';
+import ArticleManagementPage from './pages/management/ArticleManagementPage';
+import EmployeeManagmentPage from './pages/management/EmployeeManagementPage';
+import MemberManagmentPage from './pages/management/MemberManagementPage';
+import SurveyBeforeEventPage from './pages/survey/SurveyBeforeEventPage';
+import SurveyAfterEventPage from './pages/survey/SurveyAfterEventPage';
+import SurveyCompletePage from './pages/survey/SurveyCompletePage';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import AuthLayout from './components/AuthLayout';
 
 function App() {
   return (
@@ -82,7 +83,6 @@ function App() {
           <Route path="consultant" element={<ConsultantPage />} />
           <Route path="consultant/schedule" element={<ConsultantSchedule />} />
           <Route path="manager" element={<ManagerPage />} />
-          <Route path="staff" element={<StaffPage />} />
           <Route path="roles/:userId/course-manage" element={<CourseManagmentPage />} />
           <Route path="roles/:userId/program-manage" element={<ProgramManagementPage />} />
           <Route path="roles/:userId/reports" element={<ReportsPage />} />

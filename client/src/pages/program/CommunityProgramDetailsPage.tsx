@@ -291,7 +291,7 @@ const CommunityProgramDetails: React.FC = () => {
             <div className="animate-spin rounded-full h-20 w-20 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 opacity-20 animate-pulse"></div>
           </div>
-          <p className="mt-6 text-lg font-medium text-blue-800">Đang tải thông tin sự kiện...</p>
+          <p className="mt-6 text-lg font-medium text-blue-800">Đang tải thông tin chương trình...</p>
           <p className="text-sm text-blue-600 mt-2">Vui lòng chờ trong giây lát</p>
         </div>
       </div>
@@ -499,7 +499,7 @@ const CommunityProgramDetails: React.FC = () => {
                       className="w-full inline-flex items-center justify-center px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                     >
                       <Users className="h-5 w-5 mr-2" />
-                      Tham gia sự kiện
+                      Tham gia chương trình
                     </button>
                   )}
 
@@ -548,7 +548,7 @@ const CommunityProgramDetails: React.FC = () => {
                     <UserIcon className="h-8 w-8 text-blue-600" />
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 mb-2">Đăng nhập để tham gia</h3>
-                  <p className="text-gray-600 mb-4">Bạn cần đăng nhập để có thể đăng ký tham gia sự kiện này.</p>
+                  <p className="text-gray-600 mb-4">Bạn cần đăng nhập để có thể đăng ký tham gia chương trình này.</p>
                   <Link
                     to="/login"
                     className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"

@@ -66,7 +66,7 @@ interface EnrolledEventsResponse {
 
 const DashBoardPage: React.FC = () => {
   const { userId } = useParams();
-  const { user, setUser } = useUser();
+  const { user, setUser, isLoading: isUserLoading } = useUser();
 
   const location = useLocation();
 
@@ -120,6 +120,14 @@ const DashBoardPage: React.FC = () => {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [showCropModal, setShowCropModal] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingProfileData, setPendingProfileData] = useState<ProfileFormData | null>(null);
+  const [showPasswordConfirmModal, setShowPasswordConfirmModal] = useState(false);
+  const [pendingPasswordData, setPendingPasswordData] = useState<PasswordFormData | null>(null);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Check current page type
   const isCoursesPage = location.pathname.includes('/courses');
@@ -285,8 +293,9 @@ const DashBoardPage: React.FC = () => {
 
   // Fetch user profile when on profile page or userId changes
   useEffect(() => {
-    if (isProfilePage && userId) {
+    if (userId) {
       const fetchUserProfile = async () => {
+        setIsLoadingProfile(true);
         try {
           const token = localStorage.getItem('token');
           const res = await fetch(`http://localhost:5000/api/account/${userId}`, {
@@ -309,16 +318,25 @@ const DashBoardPage: React.FC = () => {
           }
         } catch (err) {
           console.error('Không thể tải thông tin hồ sơ:', err);
+        } finally {
+          setIsLoadingProfile(false);
         }
       };
       fetchUserProfile();
     }
-  }, [isProfilePage, userId, setUser, setProfileForm]);
+  }, [userId, setUser]);
 
+  // Update profileForm when user data changes
   useEffect(() => {
-
-  }, [userId]);
-
+    if (user) {
+      setProfileForm({
+        username: user.Username || '',
+        email: user.Email || '',
+        fullName: user.FullName || '',
+        dateOfBirth: user.DateOfBirth ? new Date(user.DateOfBirth).toISOString().split('T')[0] : '',
+      });
+    }
+  }, [user]);
 
   useEffect(() => {
     fetchAllAppointments();
@@ -383,7 +401,7 @@ const DashBoardPage: React.FC = () => {
         setEnrolledEvents(eventsData);
       } catch (error) {
         console.error('Error fetching enrolled events:', error);
-        toast.error('Không thể tải danh sách sự kiện đã đăng ký');
+        toast.error('Không thể tải danh sách chương trình đã đăng ký');
         setEnrolledEvents([]);
       } finally {
         setIsLoadingEvents(false);
@@ -452,138 +470,73 @@ const DashBoardPage: React.FC = () => {
   // Handle profile form submission
   const handleProfileSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setMessage(null);
-    setIsLoading(true);
 
-    // Check JWT token
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setMessage({ type: "error", text: "Vui lòng đăng nhập lại" });
-      setIsLoading(false);
+    // Validate form
+    if (!profileForm.username.trim()) {
+      setMessage({ type: "error", text: "Tên người dùng không được để trống" });
       return;
     }
 
-    // Check userId
-    if (!userId) {
-      setMessage({ type: "error", text: "Không tìm thấy ID người dùng. Vui lòng thử lại." });
-      setIsLoading(false);
+    if (!profileForm.fullName.trim()) {
+      setMessage({ type: "error", text: "Họ và tên không được để trống" });
       return;
     }
 
-    // Determine changed fields (excluding email as it's readonly)
-    const changedFields: Partial<ProfileFormData> = {};
-    if (profileForm.username !== user?.Username) changedFields.username = profileForm.username;
-    if (profileForm.fullName !== user?.FullName) changedFields.fullName = profileForm.fullName;
-    if (profileForm.dateOfBirth !== (user?.DateOfBirth ? new Date(user.DateOfBirth).toISOString().split('T')[0] : "")) {
-      changedFields.dateOfBirth = profileForm.dateOfBirth;
-    }
-
-    // Validation
-    if (Object.keys(changedFields).length === 0) {
-      setMessage({ type: "error", text: "Không có thông tin nào được thay đổi" });
-      setIsLoading(false);
-      return;
-    }
-    if (changedFields.username && (!changedFields.username || changedFields.username.length < 3 || changedFields.username.length > 50 || !isValidUsername(changedFields.username))) {
-      setMessage({ type: "error", text: "Tên người dùng phải từ 3 đến 50 ký tự và chỉ chứa chữ cái và số" });
-      setIsLoading(false);
-      return;
-    }
-    if (changedFields.fullName && (!changedFields.fullName || changedFields.fullName.length < 2 || changedFields.fullName.length > 100)) {
-      setMessage({ type: "error", text: "Họ tên phải từ 2 đến 100 ký tự" });
-      setIsLoading(false);
-      return;
-    }
-    if (changedFields.dateOfBirth && new Date(changedFields.dateOfBirth) > new Date()) {
-      setMessage({ type: "error", text: "Ngày sinh không được là ngày trong tương lai" });
-      setIsLoading(false);
+    if (!isValidUsername(profileForm.username)) {
+      setMessage({ type: "error", text: "Tên người dùng chỉ được chứa chữ cái và số" });
       return;
     }
 
-    try {
-      const response = await fetch(`http://localhost:5000/api/account/profile/${userId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(changedFields), // Send only changed fields
-      });
+    // Check if there are any changes
+    const hasChanges = 
+      profileForm.username !== user?.Username ||
+      profileForm.fullName !== user?.FullName ||
+      profileForm.dateOfBirth !== (user?.DateOfBirth ? new Date(user.DateOfBirth).toISOString().split('T')[0] : "");
 
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.message || "Cập nhật hồ sơ thất bại");
-      }
-
-      setUser(result.user); // Update user context
-      setMessage({ type: "success", text: "Hồ sơ đã được cập nhật!" });
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Đã xảy ra lỗi khi cập nhật hồ sơ";
-      setMessage({ type: "error", text: errorMessage });
-    } finally {
-      setIsLoading(false);
+    if (!hasChanges) {
+      setMessage({ type: "error", text: "Không có thay đổi nào để cập nhật" });
+      return;
     }
+
+    // Show confirmation modal
+    setPendingProfileData(profileForm);
+    setShowConfirmModal(true);
   };
 
   // Handle password form submission
   const handlePasswordSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
     setMessage(null);
 
     // Validation
-    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
-      setMessage({ type: "error", text: "Vui lòng điền đầy đủ thông tin" });
-      setIsLoading(false);
+    if (!passwordForm.currentPassword.trim()) {
+      setMessage({ type: "error", text: "Vui lòng nhập mật khẩu hiện tại" });
+      return;
+    }
+
+    if (!passwordForm.newPassword.trim()) {
+      setMessage({ type: "error", text: "Vui lòng nhập mật khẩu mới" });
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 8) {
+      setMessage({ type: "error", text: "Mật khẩu mới phải có ít nhất 8 ký tự" });
       return;
     }
 
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setMessage({ type: "error", text: "Mật khẩu mới và xác nhận mật khẩu không khớp" });
-      setIsLoading(false);
+      setMessage({ type: "error", text: "Mật khẩu xác nhận không khớp" });
       return;
     }
 
-    if (passwordForm.newPassword.length < 6) {
-      setMessage({ type: "error", text: "Mật khẩu mới phải có ít nhất 6 ký tự" });
-      setIsLoading(false);
+    if (passwordForm.currentPassword === passwordForm.newPassword) {
+      setMessage({ type: "error", text: "Mật khẩu mới không được trùng với mật khẩu hiện tại" });
       return;
     }
 
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/account/password/${userId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          currentPassword: passwordForm.currentPassword,
-          newPassword: passwordForm.newPassword,
-          confirmPassword: passwordForm.confirmPassword,
-        }),
-      });
-
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.message || "Cập nhật mật khẩu thất bại");
-      }
-
-      // Reset form
-      setPasswordForm({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
-
-      setMessage({ type: "success", text: "Mật khẩu đã được cập nhật thành công!" });
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Đã xảy ra lỗi khi cập nhật mật khẩu";
-      setMessage({ type: "error", text: errorMessage });
-    } finally {
-      setIsLoading(false);
-    }
+    // Show confirmation modal
+    setPendingPasswordData(passwordForm);
+    setShowPasswordConfirmModal(true);
   };
 
   // Handle appointment detail modal
@@ -683,15 +636,36 @@ const DashBoardPage: React.FC = () => {
     setConsultantDetails(null);
   };
 
-  // Avatar functions
+  const resetFileInput = () => {
+    const fileInput = document.getElementById('member-avatar-upload') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  };
+
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      toast.error('Vui lòng chọn một file ảnh');
+      resetFileInput();
+      return;
+    }
+
+    // Check if file is actually an image
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn một file ảnh hợp lệ');
+      // Clear the input to allow new selection
+      resetFileInput();
+      return;
+    }
 
     // Validate file using utility function
     const validation = validateImageFile(file);
+    
     if (!validation.valid) {
       toast.error(validation.error);
+      // Clear the input to allow new selection
+      resetFileInput();
       return;
     }
 
@@ -700,7 +674,7 @@ const DashBoardPage: React.FC = () => {
     setShowCropModal(true);
 
     // Clear the input
-    event.target.value = '';
+    resetFileInput();
   };
 
   const handleCropComplete = async (croppedImageBlob: Blob) => {
@@ -717,6 +691,7 @@ const DashBoardPage: React.FC = () => {
       formData.append('profilePicture', croppedFile);
 
       const token = localStorage.getItem('token');
+      
       const response = await fetch(`http://localhost:5000/api/account/${user?.AccountID}/upload-avatar`, {
         method: 'POST',
         headers: {
@@ -727,6 +702,7 @@ const DashBoardPage: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
+        
         // Update user context
         if (user && setUser) {
           const updatedUser = { ...user, ProfilePicture: data.profilePicture };
@@ -734,6 +710,10 @@ const DashBoardPage: React.FC = () => {
           localStorage.setItem('user', JSON.stringify(updatedUser));
         }
         toast.success('Cập nhật ảnh đại diện thành công!');
+        
+        // Reset states on success
+        setSelectedImageFile(null);
+        setShowCropModal(false);
       } else {
         const error = await response.json();
         throw new Error(error.message || 'Không thể upload ảnh');
@@ -742,6 +722,11 @@ const DashBoardPage: React.FC = () => {
       console.error('Lỗi khi upload ảnh:', error);
       const errorMessage = error instanceof Error ? error.message : 'Lỗi khi upload ảnh';
       toast.error(errorMessage);
+      
+      // Reset states on error to allow new file selection
+      setSelectedImageFile(null);
+      setShowCropModal(false);
+      resetFileInput();
     } finally {
       setUploadingAvatar(false);
     }
@@ -778,6 +763,121 @@ const DashBoardPage: React.FC = () => {
     }
   };
 
+  const handleCloseCropModal = () => {
+    setShowCropModal(false);
+    setSelectedImageFile(null);
+    resetFileInput();
+  };
+
+  const handleProfileConfirm = async () => {
+    if (!pendingProfileData) return;
+
+    setMessage(null);
+    setIsLoading(true);
+    setShowConfirmModal(false);
+
+    // Check JWT token
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setMessage({ type: "error", text: "Vui lòng đăng nhập lại" });
+      setIsLoading(false);
+      return;
+    }
+
+    // Check userId
+    if (!userId) {
+      setMessage({ type: "error", text: "Không tìm thấy ID người dùng. Vui lòng thử lại." });
+      setIsLoading(false);
+      return;
+    }
+
+    // Determine changed fields (excluding email as it's readonly)
+    const changedFields: Partial<ProfileFormData> = {};
+    if (pendingProfileData.username !== user?.Username) changedFields.username = pendingProfileData.username;
+    if (pendingProfileData.fullName !== user?.FullName) changedFields.fullName = pendingProfileData.fullName;
+    if (pendingProfileData.dateOfBirth !== (user?.DateOfBirth ? new Date(user.DateOfBirth).toISOString().split('T')[0] : "")) {
+      changedFields.dateOfBirth = pendingProfileData.dateOfBirth;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/account/profile/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(changedFields), // Send only changed fields
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || "Cập nhật hồ sơ thất bại");
+      }
+
+      setUser(result.user); // Update user context
+      setMessage({ type: "success", text: "Hồ sơ đã được cập nhật!" });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Đã xảy ra lỗi khi cập nhật hồ sơ";
+      setMessage({ type: "error", text: errorMessage });
+    } finally {
+      setIsLoading(false);
+      setPendingProfileData(null);
+    }
+  };
+
+  const handleProfileCancel = () => {
+    setShowConfirmModal(false);
+    setPendingProfileData(null);
+  };
+
+  const handlePasswordConfirm = async () => {
+    if (!pendingPasswordData) return;
+
+    setMessage(null);
+    setIsLoading(true);
+    setShowPasswordConfirmModal(false);
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/account/password/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          currentPassword: pendingPasswordData.currentPassword,
+          newPassword: pendingPasswordData.newPassword,
+          confirmPassword: pendingPasswordData.confirmPassword,
+        }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || "Cập nhật mật khẩu thất bại");
+      }
+
+      // Reset form
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+
+      setMessage({ type: "success", text: "Mật khẩu đã được cập nhật thành công!" });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Đã xảy ra lỗi khi cập nhật mật khẩu";
+      setMessage({ type: "error", text: errorMessage });
+    } finally {
+      setIsLoading(false);
+      setPendingPasswordData(null);
+    }
+  };
+
+  const handlePasswordCancel = () => {
+    setShowPasswordConfirmModal(false);
+    setPendingPasswordData(null);
+  };
 
   // Main Dashboard Page (modified to include consultant sections)
   if (!isCoursesPage && !isEventsPage && !isAppointmentsPage && !isProfilePage && !isSecurityPage) {
@@ -862,7 +962,9 @@ const DashBoardPage: React.FC = () => {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-500">Tên người dùng</p>
-                      <p className="text-lg font-semibold text-gray-900">{user?.Username}</p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {isUserLoading || isLoadingProfile ? "Đang tải..." : user?.Username || "Chưa cập nhật"}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -874,7 +976,9 @@ const DashBoardPage: React.FC = () => {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-500">Email</p>
-                      <p className="text-lg font-semibold text-gray-900">{user?.Email}</p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {isUserLoading || isLoadingProfile ? "Đang tải..." : user?.Email || "Chưa cập nhật"}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -886,7 +990,9 @@ const DashBoardPage: React.FC = () => {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-500">Họ và tên</p>
-                      <p className="text-lg font-semibold text-gray-900">{user?.FullName || "Chưa cập nhật"}</p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {isUserLoading || isLoadingProfile ? "Đang tải..." : user?.FullName || "Chưa cập nhật"}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -898,7 +1004,9 @@ const DashBoardPage: React.FC = () => {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-500">Ngày sinh</p>
-                      <p className="text-lg font-semibold text-gray-900">{user?.DateOfBirth ? parseDate(user.DateOfBirth.toString()) : "Chưa cập nhật"}</p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {isUserLoading || isLoadingProfile ? "Đang tải..." : user?.DateOfBirth ? parseDate(user.DateOfBirth.toString()) : "Chưa cập nhật"}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -924,9 +1032,9 @@ const DashBoardPage: React.FC = () => {
             <Link to={`/dashboard/${userId}/events`} className="group bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl shadow-sm p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 block border border-green-100">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-700 text-sm font-semibold">Sự kiện tham gia</p>
+                  <p className="text-green-700 text-sm font-semibold">Chương trình tham gia</p>
                   <p className="text-3xl font-bold text-green-900 mt-2">{enrolledEvents.length}</p>
-                  <p className="text-green-600 text-xs mt-1">Sự kiện đã đăng ký</p>
+                  <p className="text-green-600 text-xs mt-1">chương trình đã đăng ký</p>
                 </div>
                 <div className="h-14 w-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Users className="h-7 w-7 text-white" />
@@ -1009,10 +1117,7 @@ const DashBoardPage: React.FC = () => {
         {/* Image Crop Modal */}
         <ImageCropModal
           isOpen={showCropModal}
-          onClose={() => {
-            setShowCropModal(false);
-            setSelectedImageFile(null);
-          }}
+          onClose={handleCloseCropModal}
           onCropComplete={handleCropComplete}
           imageFile={selectedImageFile}
         />
@@ -1153,8 +1258,8 @@ const DashBoardPage: React.FC = () => {
                   <Users className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Sự kiện của tôi</h1>
-                  <p className="text-gray-600">Theo dõi các sự kiện đã tham gia và sắp tới</p>
+                  <h1 className="text-3xl font-bold text-gray-900">Chương trình của tôi</h1>
+                  <p className="text-gray-600">Theo dõi các chương trình đã tham gia và sắp tới</p>
                 </div>
               </div>
             </div>
@@ -1164,7 +1269,7 @@ const DashBoardPage: React.FC = () => {
               {isLoadingEvents ? (
                 <div className="text-center py-16">
                   <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-200 border-t-green-600 mx-auto"></div>
-                  <p className="text-gray-600 mt-6 text-lg">Đang tải sự kiện...</p>
+                  <p className="text-gray-600 mt-6 text-lg">Đang tải chương trình...</p>
                 </div>
               ) : enrolledEvents.length > 0 ? (
                 <div className="space-y-6">
@@ -1190,7 +1295,7 @@ const DashBoardPage: React.FC = () => {
                           )}
                         </div>
 
-                        {/* Event Content */}
+                        {/* Program Content */}
                         <div className="flex-1 p-8">
                           <div className="flex justify-between items-start mb-4">
                             <div className="flex-1">
@@ -1262,14 +1367,14 @@ const DashBoardPage: React.FC = () => {
                   <div className="h-24 w-24 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
                     <Users className="h-12 w-12 text-green-500" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Chưa có sự kiện nào</h3>
-                  <p className="text-gray-600 mb-8 text-lg">Bạn chưa tham gia sự kiện nào. Hãy khám phá các sự kiện thú vị!</p>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Chưa có chương trình nào</h3>
+                  <p className="text-gray-600 mb-8 text-lg">Bạn chưa tham gia chương trình nào. Hãy khám phá các chương trình thú vị!</p>
                   <Link
                     to="/community-programs"
                     className="inline-flex items-center space-x-3 px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-lg font-semibold rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl"
                   >
                     <Users className="h-5 w-5" />
-                    <span>Tham gia sự kiện</span>
+                    <span>Tham gia chương trình</span>
                   </Link>
                 </div>
               )}
@@ -1650,22 +1755,7 @@ const DashBoardPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex justify-end space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      // Reset form to original values
-                      setProfileForm({
-                        username: user?.Username || "",
-                        email: user?.Email || "",
-                        fullName: user?.FullName || "",
-                        dateOfBirth: user?.DateOfBirth ? new Date(user.DateOfBirth).toISOString().split('T')[0] : "",
-                      });
-                    }}
-                    className="px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors"
-                  >
-                    Hủy
-                  </button>
+                <div className="flex justify-end">
                   <button
                     type="submit"
                     disabled={isLoading}
@@ -1681,13 +1771,64 @@ const DashBoardPage: React.FC = () => {
             {showCropModal && selectedImageFile && (
               <ImageCropModal
                 isOpen={showCropModal}
-                onClose={() => {
-                  setShowCropModal(false);
-                  setSelectedImageFile(null);
-                }}
+                onClose={handleCloseCropModal}
                 onCropComplete={handleCropComplete}
                 imageFile={selectedImageFile}
               />
+            )}
+
+            {/* Confirmation Modal */}
+            {showConfirmModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
+                  <div className="flex items-center mb-4">
+                    <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                      <User className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">Xác nhận cập nhật</h3>
+                      <p className="text-gray-600 text-sm">Bạn có chắc muốn cập nhật thông tin cá nhân?</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 mb-6">
+                    {pendingProfileData?.username !== user?.Username && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tên người dùng:</span>
+                        <span className="font-medium">{pendingProfileData?.username}</span>
+                      </div>
+                    )}
+                    {pendingProfileData?.fullName !== user?.FullName && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Họ và tên:</span>
+                        <span className="font-medium">{pendingProfileData?.fullName}</span>
+                      </div>
+                    )}
+                    {pendingProfileData?.dateOfBirth !== (user?.DateOfBirth ? new Date(user.DateOfBirth).toISOString().split('T')[0] : "") && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Ngày sinh:</span>
+                        <span className="font-medium">{pendingProfileData?.dateOfBirth}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={handleProfileCancel}
+                      className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      Hủy
+                    </button>
+                    <button
+                      onClick={handleProfileConfirm}
+                      disabled={isLoading}
+                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isLoading ? "Đang cập nhật..." : "Xác nhận"}
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </main>
@@ -1738,52 +1879,146 @@ const DashBoardPage: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-3">Mật khẩu hiện tại</label>
-                    <input
-                      type="password"
-                      name="currentPassword"
-                      value={passwordForm.currentPassword}
-                      onChange={handlePasswordChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="Nhập mật khẩu hiện tại"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showCurrentPassword ? "text" : "password"}
+                        name="currentPassword"
+                        value={passwordForm.currentPassword}
+                        onChange={handlePasswordChange}
+                        className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Nhập mật khẩu hiện tại"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      >
+                        {showCurrentPassword ? (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-3">Mật khẩu mới</label>
-                    <input
-                      type="password"
-                      name="newPassword"
-                      value={passwordForm.newPassword}
-                      onChange={handlePasswordChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="Nhập mật khẩu mới"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showNewPassword ? "text" : "password"}
+                        name="newPassword"
+                        value={passwordForm.newPassword}
+                        onChange={handlePasswordChange}
+                        className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Nhập mật khẩu mới"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      >
+                        {showNewPassword ? (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-3">Xác nhận mật khẩu mới</label>
-                    <input
-                      type="password"
-                      name="confirmPassword"
-                      value={passwordForm.confirmPassword}
-                      onChange={handlePasswordChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="Xác nhận mật khẩu mới"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        name="confirmPassword"
+                        value={passwordForm.confirmPassword}
+                        onChange={handlePasswordChange}
+                        className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Xác nhận mật khẩu mới"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      >
+                        {showConfirmPassword ? (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
                 <div className="flex justify-end">
                   <button
                     type="submit"
-                    className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl hover:from-red-700 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                    disabled={isLoading}
+                    className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl hover:from-red-700 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Lock className="h-4 w-4" />
-                    <span>Cập nhật mật khẩu</span>
+                    <span>{isLoading ? "Đang cập nhật..." : "Cập nhật mật khẩu"}</span>
                   </button>
                 </div>
               </form>
             </div>
+
+            {/* Password Confirmation Modal */}
+            {showPasswordConfirmModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
+                  <div className="flex items-center mb-4">
+                    <div className="h-10 w-10 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+                      <Lock className="h-5 w-5 text-red-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">Xác nhận đổi mật khẩu</h3>
+                      <p className="text-gray-600 text-sm">Bạn có chắc muốn đổi mật khẩu?</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 mb-6">
+                    <div className="text-sm text-gray-500">
+                      Mật khẩu sẽ được thay đổi ngay lập tức sau khi xác nhận.
+                    </div>
+                  </div>
+
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={handlePasswordCancel}
+                      className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      Hủy
+                    </button>
+                    <button
+                      onClick={handlePasswordConfirm}
+                      disabled={isLoading}
+                      className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isLoading ? "Đang cập nhật..." : "Xác nhận"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </main>
       </div>
@@ -1803,10 +2038,7 @@ const DashBoardPage: React.FC = () => {
         {/* Image Crop Modal for fallback */}
         <ImageCropModal
           isOpen={showCropModal}
-          onClose={() => {
-            setShowCropModal(false);
-            setSelectedImageFile(null);
-          }}
+          onClose={handleCloseCropModal}
           onCropComplete={handleCropComplete}
           imageFile={selectedImageFile}
         />

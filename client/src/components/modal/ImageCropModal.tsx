@@ -177,7 +177,9 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
     );
 
     const handleCropComplete = async () => {
-        if (!completedCrop || !imgRef.current) return;
+        if (!completedCrop || !imgRef.current) {
+            return;
+        }
 
         try {
             setIsProcessing(true);
@@ -187,13 +189,35 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
                 scale,
                 rotate,
             );
+            
+            if (croppedImageBlob.size === 0) {
+                throw new Error('Cropped image is empty');
+            }
+            
             onCropComplete(croppedImageBlob);
             onClose();
         } catch (error) {
             console.error('Error cropping image:', error);
+            setCompletedCrop(undefined);
+            setCrop(undefined);
         } finally {
             setIsProcessing(false);
         }
+    };
+
+    const resetModal = () => {
+        setImgSrc('');
+        setCrop(undefined);
+        setCompletedCrop(undefined);
+        setScale(1);
+        setRotate(0);
+        setAspect(1);
+        setIsProcessing(false);
+    };
+
+    const handleClose = () => {
+        resetModal();
+        onClose();
     };
 
     if (!isOpen) return null;
@@ -208,7 +232,7 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
                         <h3 className="text-lg font-semibold text-gray-900">Cắt ảnh đại diện</h3>
                     </div>
                     <button
-                        onClick={onClose}
+                        onClick={handleClose}
                         className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                     >
                         <X className="h-5 w-5 text-gray-500" />
@@ -320,7 +344,7 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
                 {/* Footer */}
                 <div className="flex items-center justify-end space-x-3 p-4 border-t border-gray-200">
                     <button
-                        onClick={onClose}
+                        onClick={handleClose}
                         className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
                     >
                         Hủy

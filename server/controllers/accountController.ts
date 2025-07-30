@@ -1,6 +1,8 @@
-
-import { NextFunction, Request, Response } from "express";
-import { poolPromise, sql } from "../config/database";
+import { Request, Response, NextFunction } from "express";
+import sql from "mssql";
+import { poolPromise } from "../config/database";
+import fs from "fs";
+import path from "path";
 import { Account } from "../types/type";
 import bcrypt from "bcryptjs";
 
@@ -756,8 +758,9 @@ export const uploadAvatar = async (req: Request, res: Response) => {
 
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    
     if (!allowedTypes.includes(req.file.mimetype)) {
-      res.status(400).json({ message: "Chỉ chấp nhận file ảnh (JPEG, JPG, PNG, GIF)" });
+      res.status(400).json({ message: `Chỉ chấp nhận file ảnh (JPEG, JPG, PNG, GIF). Loại file hiện tại: ${req.file.mimetype}` });
       return;
     }
 
@@ -767,23 +770,41 @@ export const uploadAvatar = async (req: Request, res: Response) => {
     const fullPath = `./public${filePath}`;
 
     // Create directory if it doesn't exist
-    const fs = require('fs');
-    const path = require('path');
     const uploadsDir = path.dirname(fullPath);
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });
     }
 
     // Move file to uploads directory
-    fs.writeFileSync(fullPath, req.file.buffer);
+    try {
+      fs.writeFileSync(fullPath, req.file.buffer);
+    } catch (writeError) {
+      console.error('Error writing file:', writeError);
+      res.status(500).json({ error: "Lỗi khi lưu file" });
+      return;
+    }
 
     // Update database
     const pool = await poolPromise;
-    await pool
-      .request()
-      .input("AccountID", sql.Int, accountId)
-      .input("ProfilePicture", sql.NVarChar, filePath)
-      .query("UPDATE Account SET ProfilePicture = @ProfilePicture WHERE AccountID = @AccountID");
+    try {
+      await pool
+        .request()
+        .input("AccountID", sql.Int, accountId)
+        .input("ProfilePicture", sql.NVarChar, filePath)
+        .query("UPDATE Account SET ProfilePicture = @ProfilePicture WHERE AccountID = @AccountID");
+    } catch (dbError) {
+      console.error('Database update error:', dbError);
+      // Try to remove the file if database update fails
+      try {
+        if (fs.existsSync(fullPath)) {
+          fs.unlinkSync(fullPath);
+        }
+      } catch (removeError) {
+        console.error('Error removing file after database error:', removeError);
+      }
+      res.status(500).json({ error: "Lỗi khi cập nhật database" });
+      return;
+    }
 
     res.json({
       message: "Upload avatar thành công",
@@ -791,7 +812,23 @@ export const uploadAvatar = async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.error(`Lỗi khi upload avatar cho AccountID ${accountId}:`, err.message);
-    res.status(500).json({ error: "Lỗi máy chủ" });
+    
+    // Clean up any partial file if it exists
+    try {
+      if (req.file && req.file.buffer) {
+        const fileName = `avatar_${accountId}_${Date.now()}.${req.file.originalname.split('.').pop()}`;
+        const filePath = `/uploads/avatars/${fileName}`;
+        const fullPath = `./public${filePath}`;
+        
+        if (fs.existsSync(fullPath)) {
+          fs.unlinkSync(fullPath);
+        }
+      }
+    } catch (cleanupError) {
+      console.error('Error during cleanup:', cleanupError);
+    }
+    
+    res.status(500).json({ error: "Lỗi máy chủ khi upload avatar" });
   }
 };
 
@@ -823,7 +860,6 @@ export const removeAvatar = async (req: Request, res: Response) => {
 
     // Remove file from filesystem if exists
     if (currentProfilePicture) {
-      const fs = require('fs');
       const fullPath = `./public${currentProfilePicture}`;
       if (fs.existsSync(fullPath)) {
         fs.unlinkSync(fullPath);

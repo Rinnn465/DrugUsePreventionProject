@@ -92,7 +92,6 @@ export async function login(
 
     // Log userData
     
-
     // Verify JWT_SECRET
     if (!process.env.JWT_SECRET) {
       console.error("JWT_SECRET is not set");

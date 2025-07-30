@@ -34,9 +34,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         {
             label: user?.RoleName === 'Consultant' ? "Dashboard" : "Bảng điều khiển",
             icon: Home,
-            link: user?.RoleName === 'Staff' ? '/staff' :
+            link: user?.RoleName === 'Staff' ? '/roles/staff' :
                 user?.RoleName === 'Manager' ? '/manager' : user?.RoleName === 'Consultant' ? '/consultant' : '/admin',
-            isActive: (user?.RoleName === 'Staff' && location.pathname === '/staff') ||
+            isActive: (user?.RoleName === 'Staff' && location.pathname === '/roles/staff') ||
                 (user?.RoleName === 'Admin' && location.pathname === '/admin') ||
                 (user?.RoleName === 'Manager' && location.pathname === '/manager') ||
                 (user?.RoleName === 'Consultant' && location.pathname === '/consultant')
@@ -50,7 +50,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 isActive: location.pathname.includes('/article-manage')
             },
             {
-                label: "Quản lý chương trình cộng đồng",
+                label: "Quản lý chương trình",
                 icon: Calendar,
                 link: `/roles/${user?.RoleID}/program-manage`,
                 isActive: location.pathname.includes('/program-manage')
@@ -76,12 +76,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 link: `/roles/${user?.RoleID}/program-manage`,
                 isActive: location.pathname.includes('/program-manage')
             },
-            {
-                label: "Báo cáo & Phân tích",
-                icon: Settings,
-                link: `/roles/${user?.RoleID}/reports`,
-                isActive: location.pathname.includes('/reports')
-            }
         ] : []),
         // Hiển thị đầy đủ cho Admin
         ...(user?.RoleName === 'Admin' ? [
