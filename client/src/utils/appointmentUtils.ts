@@ -113,8 +113,11 @@ export const isVideoCallAvailable = (
   endBufferMinutes: number = import.meta.env.VITE_VIDEO_CALL_BUFFERED_TIME
 ): boolean => {
   try {
-    appointmentDate = parseSqlDate(appointmentDate);
-    appointmentTime = parseSQLTime(appointmentTime.split('T')[1]);
+    console.log(appointmentDate);
+
+    console.log(appointmentTime);
+    appointmentDate = appointmentDate.split('T')[0];
+    appointmentTime = appointmentTime + ':00';
 
     const appointmentDateTime = new Date(`${appointmentDate}T${appointmentTime}`);
 
@@ -138,7 +141,7 @@ export const isVideoCallAvailable = (
 
     const isAvailable = currentTime >= allowedStartTime && currentTime <= allowedEndTime;
 
-    
+
 
     return isAvailable;
   } catch (error) {
