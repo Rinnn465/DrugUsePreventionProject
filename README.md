@@ -151,7 +151,10 @@ Backend runs on port 5000 by default with the address: <pre>http://localhost:500
 
 </div>
 
-
+<div>
+<a href="https://docs.google.com/document/d/1zvWoV8prQve7sed-TWZBfG0mJyltxo7M/edit?usp=sharing&ouid=100753822544817056389&rtpof=true&sd=true"/>
+  Link document
+</div>
 
 </body>
 
