@@ -39,6 +39,8 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
   const { isOpen, openModal, closeModal } = useModal();
   const navigate = useNavigate();
 
+
+
   useEffect(() => {
     if (schedule && schedule.Schedule && schedule.Schedule.length > 0) {
       const dates = schedule.Schedule
@@ -231,6 +233,11 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
       handleConfirmBooking();
     },
   });
+  useEffect(() => {
+    if (formik.values.note) {
+      setNote(formik.values.note);
+    }
+  }, [formik.values.note]);
 
   const handlePrevMonth = () => {
     const newCurrentDate = new Date(Date.UTC(year, month - 1, 1));
@@ -298,7 +305,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ consultantId,
         time: selectedTime + ':00',
         date: selectedDate?.toISOString(),
         status: 'confirmed',
-        description: note,
+        description: formik.values.note,
         duration: 60,
       }),
     })
